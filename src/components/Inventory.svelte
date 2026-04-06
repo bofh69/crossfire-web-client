@@ -198,6 +198,8 @@
       {#each groundItems as item (item.tag)}
         <div
           class="item-row"
+          class:cursed={item.cursed}
+          class:magical={item.magical}
           style:padding-left="{0.4 + item.depth * 1}rem"
           onclick={() => handleApply(item.tag)}
           oncontextmenu={(e: MouseEvent) => handleContextMenu(e, item, true)}
@@ -324,12 +326,14 @@
     color: #aaccff;
   }
 
-  .item-row.cursed {
-    color: #ff8888;
-  }
-
   .item-row.magical {
     color: #88ccff;
+    background: #1a2535;
+  }
+
+  .item-row.cursed {
+    color: #ff8888;
+    background: #351a1a;
   }
 
   .item-icon {
