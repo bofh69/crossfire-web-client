@@ -74,7 +74,6 @@ body {
 
 .stats-section {
   flex-shrink: 0;
-  max-height: clamp(180px, 28vh, 380px);
   overflow-y: auto;
 }
 
