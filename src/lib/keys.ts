@@ -700,6 +700,30 @@ export function bindCommandToEvent(e: KeyboardEvent, command: string): void {
 }
 
 /**
+ * Bind a command to the key described by a keyboard event, merging in extra flags.
+ * extraFlags should be KEYF_* bits to OR in (e.g. KEYF_ANY | KEYF_EDIT).
+ * Replaces any existing binding for the same key+modifiers.
+ * Persists to localStorage.
+ */
+export function bindCommandWithFlags(e: KeyboardEvent, command: string, extraFlags: number): void {
+    const keysym = normaliseKey(e.key);
+    const flags = keyEventToFlags(e) | extraFlags;
+    keybindInsert(keysym, flags, command);
+    saveBindings();
+}
+
+/**
+ * Look up an existing binding for a keyboard event, merging in extra flags.
+ * Useful when KEYF_ANY is set by the caller so the lookup reflects the actual
+ * binding that would be replaced.
+ */
+export function findBindingForEventWithFlags(e: KeyboardEvent, extraFlags: number): KeyBind | null {
+    const keysym = normaliseKey(e.key);
+    const flags = keyEventToFlags(e) | extraFlags;
+    return keybindFind(keysym, flags);
+}
+
+/**
  * Remove the binding for the key described by a keyboard event.
  * Returns the removed binding, or null if nothing was bound.
  * Persists to localStorage.
