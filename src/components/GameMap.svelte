@@ -5,9 +5,16 @@
   import { MapCellState, MAXLAYERS, Map2Label } from '../lib/protocol';
 
   const TILE_SIZE = 32;
+  const BASE_FONT_SIZE = 10;
+  const LABEL_PAD = 3;
 
   let canvas: HTMLCanvasElement | undefined = $state();
   let mapVersion = $state(0);
+  let containerW = $state(0);
+  let containerH = $state(0);
+
+  /** Effective tile size used in the last draw — kept for click-to-tile mapping. */
+  let currentTileSize = TILE_SIZE;
 
   /** Whether a requestAnimationFrame callback is already pending. */
   let rafPending = false;
@@ -37,8 +44,10 @@
   }
 
   $effect(() => {
-    // Subscribe to mapVersion to trigger redraws
+    // Subscribe to mapVersion and container dimensions to trigger redraws.
     void mapVersion;
+    void containerW;
+    void containerH;
     if (!canvas) return;
     drawMap(canvas);
   });
@@ -57,8 +66,17 @@
     // The player position gives the top-left of the view on the fog map.
     const plPos = getPlayerPosition();
 
-    const canvasW = vw * TILE_SIZE;
-    const canvasH = vh * TILE_SIZE;
+    // Compute tile size to fill the available container space.
+    // Increase beyond the base TILE_SIZE when the container is large so the
+    // map scales up instead of leaving empty black borders.  Never shrink
+    // below the base size.
+    const tileSize = containerW > 0 && containerH > 0
+      ? Math.max(TILE_SIZE, Math.floor(Math.min(containerW / vw, containerH / vh)))
+      : TILE_SIZE;
+    currentTileSize = tileSize;
+
+    const canvasW = vw * tileSize;
+    const canvasH = vh * tileSize;
     if (c.width !== canvasW) c.width = canvasW;
     if (c.height !== canvasH) c.height = canvasH;
 
@@ -83,16 +101,18 @@
         const cell = mapdata_cell(ax, ay);
         if (cell.state === MapCellState.Empty) continue;
         tilesDrawn++;
-        const px = vx * TILE_SIZE;
-        const py = vy * TILE_SIZE;
+        const px = vx * tileSize;
+        const py = vy * tileSize;
         if (cell.state === MapCellState.Fog) {
           ctx.fillStyle = '#1a1a1a';
-          ctx.fillRect(px, py, TILE_SIZE, TILE_SIZE);
+          ctx.fillRect(px, py, tileSize, tileSize);
         }
       }
     }
 
     // Pass 2: draw all tiles for each layer in order (layer 0 first, then 1, …).
+    // Images are scaled from their base TILE_SIZE dimensions to the effective tileSize.
+    const imgScale = tileSize / TILE_SIZE;
     for (let layer = 0; layer < MAXLAYERS; layer++) {
       for (let vy = 0; vy < vh; vy++) {
         for (let vx = 0; vx < vw; vx++) {
@@ -108,33 +128,33 @@
           if (head.face === 0 && tail.face !== 0) continue;
           if (head.face === 0) continue;
 
-          const px = vx * TILE_SIZE;
-          const py = vy * TILE_SIZE;
+          const px = vx * tileSize;
+          const py = vy * tileSize;
 
           const url = getFaceUrl(head.face);
           if (url) {
             const img = imageCache.get(url);
             if (img) {
-              // Use the image's natural pixel dimensions so multi-tile images
-              // are drawn at full size.  The formula aligns the image's
+              // Scale the image from its natural (base TILE_SIZE) dimensions to
+              // the effective tileSize.  The formula aligns the image's
               // bottom-right corner with the head tile's bottom-right corner,
               // matching the C client's convention.
-              const drawW = img.naturalWidth;
-              const drawH = img.naturalHeight;
-              const drawX = px + TILE_SIZE - drawW;
-              const drawY = py + TILE_SIZE - drawH;
+              const drawW = img.naturalWidth * imgScale;
+              const drawH = img.naturalHeight * imgScale;
+              const drawX = px + tileSize - drawW;
+              const drawY = py + tileSize - drawH;
               ctx.drawImage(img, drawX, drawY, drawW, drawH);
               imagesDrawn++;
             } else {
               if (!loadingUrls.has(url) && !failedUrls.has(url)) loadsStarted++;
               loadImage(url);
               ctx.fillStyle = layer === 0 ? '#222' : '#333';
-              ctx.fillRect(px + 1, py + 1, TILE_SIZE - 2, TILE_SIZE - 2);
+              ctx.fillRect(px + 1, py + 1, tileSize - 2, tileSize - 2);
               placeholders++;
             }
           } else {
             ctx.fillStyle = layer === 0 ? '#222' : '#333';
-            ctx.fillRect(px + 1, py + 1, TILE_SIZE - 2, TILE_SIZE - 2);
+            ctx.fillRect(px + 1, py + 1, tileSize - 2, tileSize - 2);
             placeholders++;
           }
         }
@@ -162,14 +182,14 @@
 
         if (alpha > 0) {
           ctx.fillStyle = `rgba(0, 0, 0, ${alpha})`;
-          ctx.fillRect(vx * TILE_SIZE, vy * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+          ctx.fillRect(vx * tileSize, vy * tileSize, tileSize, tileSize);
         }
       }
     }
 
     // Pass 4: draw labels on top of everything (matching old C client's map_draw_labels).
-    ctx.font = '10px sans-serif';
-    const LABEL_PAD = 3;
+    const fontSize = Math.round(BASE_FONT_SIZE * tileSize / TILE_SIZE);
+    ctx.font = `${fontSize}px sans-serif`;
     // The player is always centred in the view; skip their own name label there.
     const playerVX = Math.floor(vw / 2);
     const playerVY = Math.floor(vh / 2);
@@ -181,8 +201,8 @@
         if (cell.state !== MapCellState.Visible || cell.labels.length === 0) continue;
 
         const isPlayerTile = vx === playerVX && vy === playerVY;
-        const px = vx * TILE_SIZE;
-        const py = vy * TILE_SIZE;
+        const px = vx * tileSize;
+        const py = vy * tileSize;
         let offY = 0;
 
         for (const lbl of cell.labels) {
@@ -194,7 +214,7 @@
           const lineH = textH + 2 * LABEL_PAD;
 
           // Center horizontally within the tile.
-          const offX = TILE_SIZE / 2 - textW / 2;
+          const offX = tileSize / 2 - textW / 2;
           const bx = px + offX - LABEL_PAD;
           const by = py + offY;
 
@@ -269,8 +289,8 @@
   function handleClick(e: MouseEvent) {
     if (!canvas) return;
     const rect = canvas.getBoundingClientRect();
-    const tileX = Math.floor((e.clientX - rect.left) / TILE_SIZE);
-    const tileY = Math.floor((e.clientY - rect.top) / TILE_SIZE);
+    const tileX = Math.floor((e.clientX - rect.left) / currentTileSize);
+    const tileY = Math.floor((e.clientY - rect.top) / currentTileSize);
     const view = getViewSize();
     // Player is always at the centre of the view.
     const centerX = Math.floor(view.width / 2);
@@ -281,7 +301,7 @@
   }
 </script>
 
-<div class="game-map">
+<div class="game-map" bind:clientWidth={containerW} bind:clientHeight={containerH}>
   <canvas
     bind:this={canvas}
     onclick={handleClick}
