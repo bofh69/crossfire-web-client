@@ -4,10 +4,14 @@
   import {
     keyEventToString,
     findBindingForEvent,
+    findBindingForEventWithFlags,
     bindCommandToEvent,
+    bindCommandWithFlags,
     unbindEvent,
     getBindings,
     flagsToDisplayString,
+    KEYF_EDIT,
+    KEYF_ANY,
     type KeyBind,
   } from '../lib/keys';
   import { getLastCommand } from '../lib/player';
@@ -66,6 +70,12 @@
     | 'gp-axis-config'      // configuring a gamepad axis (multi-step)
     | 'gp-button-capture'   // waiting for a gamepad button press (binds last command)
     | 'gp-button-confirm'   // confirm binding button to last command
+    | 'bind-cmd-key-input'   // entering command + flags before key capture
+    | 'bind-cmd-key-capture' // waiting for the key to bind (entered command)
+    | 'bind-cmd-key-confirm' // key captured; asking to confirm
+    | 'bind-cmd-gp-input'    // entering command before button capture
+    | 'bind-cmd-gp-capture'  // waiting for the gamepad button to bind (entered command)
+    | 'bind-cmd-gp-confirm'  // button captured; asking to confirm
     ;
 
   let dialogMode = $state<DialogMode>('idle');
@@ -81,6 +91,10 @@
   let gpAxisTestTimer: ReturnType<typeof setInterval> | null = null;
   let gpCapturedButton = $state(-1);
   let gpButtonExistingCmd = $state<string | null>(null);
+
+  // ── Bind-command-to-key/button dialog state ────────────────────────────────
+  let dialogBindCmdEdit = $state(false);   // KEYF_EDIT ("Further edit")
+  let dialogBindCmdAny  = $state(false);   // KEYF_ANY  ("Any modifier")
 
   function toggleMenu(menu: string) {
     clearMenuFadeTimer();
@@ -316,6 +330,87 @@
     dialogMode = 'idle';
   }
 
+  // ── Bind entered command to key ───────────────────────────────────────────
+
+  function startBindCmdKey() {
+    dialogCommand = '';
+    dialogBindCmdEdit = false;
+    dialogBindCmdAny = false;
+    dialogMode = 'bind-cmd-key-input';
+    closeMenu();
+  }
+
+  function beginBindCmdKeyCapture() {
+    dialogMode = 'bind-cmd-key-capture';
+  }
+
+  function handleBindCmdKeyCapture(e: KeyboardEvent) {
+    if (dialogMode !== 'bind-cmd-key-capture') return;
+    if (['Shift', 'Control', 'Alt', 'Meta'].includes(e.key)) return;
+    e.preventDefault();
+    capturedEvent = e;
+    dialogKeyStr = keyEventToString(e);
+    const extraFlags = (dialogBindCmdAny ? KEYF_ANY : 0) | (dialogBindCmdEdit ? KEYF_EDIT : 0);
+    dialogExisting = findBindingForEventWithFlags(e, extraFlags);
+    dialogMode = 'bind-cmd-key-confirm';
+  }
+
+  function confirmBindCmdKey() {
+    if (capturedEvent) {
+      const extraFlags = (dialogBindCmdAny ? KEYF_ANY : 0) | (dialogBindCmdEdit ? KEYF_EDIT : 0);
+      bindCommandWithFlags(capturedEvent, dialogCommand, extraFlags);
+    }
+    dialogMode = 'idle';
+    capturedEvent = null;
+  }
+
+  function cancelBindCmdKeyConfirm() {
+    capturedEvent = null;
+    dialogMode = 'bind-cmd-key-input';
+  }
+
+  function cancelBindCmdKey() {
+    capturedEvent = null;
+    dialogMode = 'idle';
+  }
+
+  // ── Bind entered command to gamepad button ────────────────────────────────
+
+  function startBindCmdGp() {
+    dialogCommand = '';
+    dialogMode = 'bind-cmd-gp-input';
+    closeMenu();
+  }
+
+  function beginBindCmdGpCapture() {
+    dialogMode = 'bind-cmd-gp-capture';
+    startButtonConfig((button: number) => {
+      gpCapturedButton = button;
+      gpButtonExistingCmd = getButtonCommand(button);
+      dialogMode = 'bind-cmd-gp-confirm';
+    });
+  }
+
+  function confirmBindCmdGp() {
+    if (gpCapturedButton >= 0 && dialogCommand) {
+      setButtonCommand(gpCapturedButton, dialogCommand);
+    }
+    dialogMode = 'idle';
+  }
+
+  function cancelBindCmdGpConfirm() {
+    dialogMode = 'bind-cmd-gp-input';
+  }
+
+  function cancelBindCmdGpCapture() {
+    cancelButtonConfig();
+    dialogMode = 'bind-cmd-gp-input';
+  }
+
+  function cancelBindCmdGp() {
+    dialogMode = 'idle';
+  }
+
   function handleRemoveGamepadButton(button: number) {
     removeButtonCommand(button);
   }
@@ -347,6 +442,8 @@
       handleBindCapture(e);
     } else if (dialogMode === 'unbind-capture') {
       handleUnbindCapture(e);
+    } else if (dialogMode === 'bind-cmd-key-capture') {
+      handleBindCmdKeyCapture(e);
     }
   }
 </script>
@@ -393,6 +490,10 @@
           oncontextmenu={(e) => { e.preventDefault(); startBind(); }}
         >Bind last command to key…</button>
         <button
+          onclick={startBindCmdKey}
+          oncontextmenu={(e) => { e.preventDefault(); startBindCmdKey(); }}
+        >Bind command to key…</button>
+        <button
           onclick={startUnbind}
           oncontextmenu={(e) => { e.preventDefault(); startUnbind(); }}
         >Unbind a key…</button>
@@ -413,6 +514,10 @@
             onclick={startGamepadButtonBind}
             oncontextmenu={(e) => { e.preventDefault(); startGamepadButtonBind(); }}
           >Bind last command to button…</button>
+          <button
+            onclick={startBindCmdGp}
+            oncontextmenu={(e) => { e.preventDefault(); startBindCmdGp(); }}
+          >Bind command to button…</button>
           <button
             onclick={() => startGamepadAxisConfig('walk')}
             oncontextmenu={(e) => { e.preventDefault(); startGamepadAxisConfig('walk'); }}
@@ -672,6 +777,98 @@
       </div>
     </div>
   </div>
+{:else if dialogMode === 'bind-cmd-key-input'}
+  <div class="dialog-overlay">
+    <div class="dialog">
+      <p class="dialog-title">Bind command to key</p>
+      <label class="dialog-field-label" for="bind-cmd-key-input">Command:</label>
+      <!-- svelte-ignore a11y_autofocus -->
+      <input id="bind-cmd-key-input" class="dialog-input" type="text" bind:value={dialogCommand} autofocus />
+      <label class="dialog-checkbox-label">
+        <input type="checkbox" bind:checked={dialogBindCmdEdit} />
+        Further edit
+      </label>
+      <label class="dialog-checkbox-label">
+        <input type="checkbox" bind:checked={dialogBindCmdAny} />
+        Any modifier
+      </label>
+      <div class="dialog-buttons">
+        <button class="btn-primary" disabled={!dialogCommand} onclick={beginBindCmdKeyCapture}>Capture Key…</button>
+        <button onclick={cancelBindCmdKey}>Cancel</button>
+      </div>
+    </div>
+  </div>
+{:else if dialogMode === 'bind-cmd-key-capture'}
+  <div class="dialog-overlay">
+    <div class="dialog">
+      <p class="dialog-title">Bind command to key</p>
+      <p>Command: <strong>{dialogCommand}</strong></p>
+      <p class="dialog-prompt">Press the key combination you want to bind…</p>
+      <div class="dialog-buttons">
+        <button onclick={cancelBindCmdKeyConfirm}>Cancel</button>
+      </div>
+    </div>
+  </div>
+{:else if dialogMode === 'bind-cmd-key-confirm'}
+  <div class="dialog-overlay">
+    <div class="dialog">
+      <p class="dialog-title">Bind command to key</p>
+      <p>Key: <strong>{dialogKeyStr}</strong></p>
+      <p>Command: <strong>{dialogCommand}</strong></p>
+      {#if dialogExisting}
+        <p class="dialog-warn">Already bound to: <strong>{dialogExisting.command}</strong></p>
+        <p>Overwrite?</p>
+      {/if}
+      <div class="dialog-buttons">
+        <button class="btn-primary" onclick={confirmBindCmdKey}>
+          {dialogExisting ? 'Overwrite' : 'Bind'}
+        </button>
+        <button onclick={cancelBindCmdKeyConfirm}>Cancel</button>
+      </div>
+    </div>
+  </div>
+{:else if dialogMode === 'bind-cmd-gp-input'}
+  <div class="dialog-overlay">
+    <div class="dialog">
+      <p class="dialog-title">Bind command to gamepad button</p>
+      <label class="dialog-field-label" for="bind-cmd-gp-input">Command:</label>
+      <!-- svelte-ignore a11y_autofocus -->
+      <input id="bind-cmd-gp-input" class="dialog-input" type="text" bind:value={dialogCommand} autofocus />
+      <div class="dialog-buttons">
+        <button class="btn-primary" disabled={!dialogCommand} onclick={beginBindCmdGpCapture}>Capture Button…</button>
+        <button onclick={cancelBindCmdGp}>Cancel</button>
+      </div>
+    </div>
+  </div>
+{:else if dialogMode === 'bind-cmd-gp-capture'}
+  <div class="dialog-overlay">
+    <div class="dialog">
+      <p class="dialog-title">Bind command to gamepad button</p>
+      <p>Command: <strong>{dialogCommand}</strong></p>
+      <p class="dialog-prompt">Press the gamepad button you want to bind…</p>
+      <div class="dialog-buttons">
+        <button onclick={cancelBindCmdGpCapture}>Cancel</button>
+      </div>
+    </div>
+  </div>
+{:else if dialogMode === 'bind-cmd-gp-confirm'}
+  <div class="dialog-overlay">
+    <div class="dialog">
+      <p class="dialog-title">Bind command to gamepad button</p>
+      <p>Button: <strong>B{gpCapturedButton}</strong></p>
+      <p>Command: <strong>{dialogCommand}</strong></p>
+      {#if gpButtonExistingCmd}
+        <p class="dialog-warn">Already bound to: <strong>{gpButtonExistingCmd}</strong></p>
+        <p>Overwrite?</p>
+      {/if}
+      <div class="dialog-buttons">
+        <button class="btn-primary" onclick={confirmBindCmdGp}>
+          {gpButtonExistingCmd ? 'Overwrite' : 'Bind'}
+        </button>
+        <button onclick={cancelBindCmdGpConfirm}>Cancel</button>
+      </div>
+    </div>
+  </div>
 {/if}
 
 <style>
@@ -797,6 +994,33 @@
 
   .dialog-warn {
     color: #ff8800;
+  }
+
+  .dialog-field-label {
+    display: block;
+    margin-bottom: 0.25rem;
+    color: #aaa;
+  }
+
+  .dialog-input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0.3rem 0.5rem;
+    border: 1px solid #555;
+    border-radius: 3px;
+    background: #1a1a1a;
+    color: #c0c0c0;
+    font-size: 0.85rem;
+    margin-bottom: 0.6rem;
+  }
+
+  .dialog-checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    color: #c0c0c0;
+    cursor: pointer;
+    margin-bottom: 0.35rem;
   }
 
   .dialog-buttons {
