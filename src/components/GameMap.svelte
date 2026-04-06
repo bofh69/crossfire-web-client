@@ -11,10 +11,11 @@
   const LABEL_PAD = 3;
   /**
    * Minimum number of tiles that must be visible in each dimension.
-   * Keeps the view large enough to be playable and stays within the server's
-   * minimum map-size requirement (typically 9×9).
+   * computeScale() only increases the scale when at least this many tiles
+   * would still fit at the next step, so that scale-up only happens on large
+   * displays where the extra pixels are genuinely useful.
    */
-  const MIN_TILES = 9;
+  const MIN_TILES = 15;
 
   /**
    * Return the largest integer scale factor such that at least MIN_TILES tiles
