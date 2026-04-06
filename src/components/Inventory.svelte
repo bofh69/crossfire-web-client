@@ -177,6 +177,7 @@
   }
 
   function formatWeight(w: number): string {
+    if (w < 0) return ``;
     if (w < 1) return `${(w * 1000).toFixed(0)}g`;
     return `${w.toFixed(1)}kg`;
   }
