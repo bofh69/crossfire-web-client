@@ -410,10 +410,6 @@
       <div class="dropdown" class:fading={menuFading}>
         {#if isGamepadConnected()}
           <button
-            onclick={showGamepadBindings}
-            oncontextmenu={(e) => { e.preventDefault(); showGamepadBindings(); }}
-          >Show gamepad bindings</button>
-          <button
             onclick={startGamepadButtonBind}
             oncontextmenu={(e) => { e.preventDefault(); startGamepadButtonBind(); }}
           >Bind last command to button…</button>
@@ -429,6 +425,10 @@
             onclick={handleResetGamepad}
             oncontextmenu={(e) => { e.preventDefault(); handleResetGamepad(); }}
           >Reset to defaults</button>
+          <button
+            onclick={showGamepadBindings}
+            oncontextmenu={(e) => { e.preventDefault(); showGamepadBindings(); }}
+          >Show gamepad bindings</button>
         {:else}
           <button disabled>No gamepad connected</button>
         {/if}
