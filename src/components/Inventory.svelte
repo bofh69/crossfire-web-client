@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { tick } from 'svelte';
   import { clientSendApply, clientSendExamine, clientSendMove } from '../lib/player';
   import { toggleLocked, locateItem, sendMarkObj } from '../lib/item';
   import { getFaceUrl } from '../lib/image';
@@ -23,7 +24,13 @@
   let playerItems: FlatItem[] = $state([]);
   let groundItems: FlatItem[] = $state([]);
   let contextMenu = $state<{ x: number; y: number; item: FlatItem; isGround: boolean } | null>(null);
+  let menuFading = $state(false);
+  let fadeTimer: ReturnType<typeof setTimeout> | null = null;
   let itemCount = $state(0);
+
+  /** Element refs for preserving scroll positions across inventory updates. */
+  let playerListEl: HTMLElement | null = null;
+  let groundListEl: HTMLElement | null = null;
 
   function flattenItems(root: Item | null, depth = 0): FlatItem[] {
     const result: FlatItem[] = [];
@@ -52,10 +59,20 @@
     return result;
   }
 
-  export function updateInventory(playerRoot: Item | null, groundRoot: Item | null) {
+  export async function updateInventory(playerRoot: Item | null, groundRoot: Item | null) {
+    const playerScrollTop = playerListEl?.scrollTop ?? 0;
+    const groundScrollTop = groundListEl?.scrollTop ?? 0;
+
     playerItems = flattenItems(playerRoot);
     groundItems = flattenItems(groundRoot);
     itemCount = getCpl()?.count ?? 0;
+
+    // Restore scroll positions after Svelte flushes DOM changes, so that
+    // inserting/removing items (e.g. moving out of a container) doesn't jump
+    // the list to an unexpected position.
+    await tick();
+    if (playerListEl) playerListEl.scrollTop = playerScrollTop;
+    if (groundListEl) groundListEl.scrollTop = groundScrollTop;
   }
 
   function handleApply(tag: number) {
@@ -122,11 +139,38 @@
 
   function handleContextMenu(e: MouseEvent, item: FlatItem, isGround: boolean) {
     e.preventDefault();
-    contextMenu = { x: e.clientX, y: e.clientY, item, isGround };
+    // Cancel any pending fade from a previously open menu.
+    clearFadeTimer();
+    menuFading = false;
+    // Place the menu so the cursor sits slightly inside the top-left corner.
+    contextMenu = { x: e.clientX - 8, y: e.clientY - 8, item, isGround };
+  }
+
+  function clearFadeTimer() {
+    if (fadeTimer !== null) {
+      clearTimeout(fadeTimer);
+      fadeTimer = null;
+    }
   }
 
   function closeContextMenu() {
+    clearFadeTimer();
+    menuFading = false;
     contextMenu = null;
+  }
+
+  function handleMenuMouseLeave() {
+    menuFading = true;
+    fadeTimer = setTimeout(() => {
+      contextMenu = null;
+      menuFading = false;
+      fadeTimer = null;
+    }, 2000);
+  }
+
+  function handleMenuMouseEnter() {
+    clearFadeTimer();
+    menuFading = false;
   }
 
   function formatWeight(w: number): string {
@@ -163,7 +207,7 @@
         </span>
       {/if}
     </h3>
-    <div class="item-list">
+    <div class="item-list" bind:this={playerListEl}>
       {#each playerItems as item (item.tag)}
         <div
           class="item-row"
@@ -194,7 +238,7 @@
 
   <div class="inv-section">
     <h3>Ground ({groundItems.length})</h3>
-    <div class="item-list">
+    <div class="item-list" bind:this={groundListEl}>
       {#each groundItems as item (item.tag)}
         <div
           class="item-row"
@@ -227,23 +271,51 @@
       {@const realItem = locateItem(item.tag)}
       {@const inContainer = openContainer !== null && realItem?.env?.tag === openContainer.tag}
       {#if isGround}
-        <button onclick={() => contextMenu && handleExamine(contextMenu.item)}>Examine</button>
-        <button onclick={() => contextMenu && handlePickup(contextMenu.item)}>Pickup</button>
+        <button
+          onclick={() => contextMenu && handleExamine(contextMenu.item)}
+          oncontextmenu={(e) => { e.preventDefault(); contextMenu && handleExamine(contextMenu.item); }}
+        >Examine</button>
+        <button
+          onclick={() => contextMenu && handlePickup(contextMenu.item)}
+          oncontextmenu={(e) => { e.preventDefault(); contextMenu && handlePickup(contextMenu.item); }}
+        >Pickup</button>
       {:else}
         {#if openContainer !== null}
-          <button onclick={() => contextMenu && handleMoveToContainer(contextMenu.item)}>
+          <button
+            onclick={() => contextMenu && handleMoveToContainer(contextMenu.item)}
+            oncontextmenu={(e) => { e.preventDefault(); contextMenu && handleMoveToContainer(contextMenu.item); }}
+          >
             {inContainer ? 'Move to inventory' : 'Move to container'}
           </button>
         {/if}
-        <button onclick={() => contextMenu && handleDrop(contextMenu.item)}>Drop</button>
-        <button onclick={() => contextMenu && handleExamine(contextMenu.item)}>Examine</button>
-        <button onclick={() => contextMenu && handleLock(contextMenu.item)}>
+        <button
+          onclick={() => contextMenu && handleDrop(contextMenu.item)}
+          oncontextmenu={(e) => { e.preventDefault(); contextMenu && handleDrop(contextMenu.item); }}
+        >Drop</button>
+        <button
+          onclick={() => contextMenu && handleExamine(contextMenu.item)}
+          oncontextmenu={(e) => { e.preventDefault(); contextMenu && handleExamine(contextMenu.item); }}
+        >Examine</button>
+        <button
+          onclick={() => contextMenu && handleLock(contextMenu.item)}
+          oncontextmenu={(e) => { e.preventDefault(); contextMenu && handleLock(contextMenu.item); }}
+        >
           {item.locked ? 'Unlock' : 'Lock'}
         </button>
-        <button onclick={() => contextMenu && handleMark(contextMenu.item)}>Mark</button>
+        <button
+          onclick={() => contextMenu && handleMark(contextMenu.item)}
+          oncontextmenu={(e) => { e.preventDefault(); contextMenu && handleMark(contextMenu.item); }}
+        >Mark</button>
       {/if}
     {/snippet}
-    <div class="context-menu" style:left="{contextMenu.x}px" style:top="{contextMenu.y}px">
+    <div
+      class="context-menu"
+      class:fading={menuFading}
+      style:left="{contextMenu.x}px"
+      style:top="{contextMenu.y}px"
+      onmouseenter={handleMenuMouseEnter}
+      onmouseleave={handleMenuMouseLeave}
+    >
       {@render contextMenuContent()}
     </div>
   {/if}
@@ -378,6 +450,12 @@
     flex-direction: column;
     z-index: 100;
     box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    opacity: 1;
+    transition: opacity 2s ease-out;
+  }
+
+  .context-menu.fading {
+    opacity: 0;
   }
 
   .context-menu button {
