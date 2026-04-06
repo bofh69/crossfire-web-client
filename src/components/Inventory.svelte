@@ -226,20 +226,21 @@
       {@const openContainer = getCpl()?.container ?? null}
       {@const realItem = locateItem(item.tag)}
       {@const inContainer = openContainer !== null && realItem?.env?.tag === openContainer.tag}
-      <button onclick={() => contextMenu && handleExamine(contextMenu.item)}>Examine</button>
       {#if isGround}
+        <button onclick={() => contextMenu && handleExamine(contextMenu.item)}>Examine</button>
         <button onclick={() => contextMenu && handlePickup(contextMenu.item)}>Pickup</button>
       {:else}
-        <button onclick={() => contextMenu && handleDrop(contextMenu.item)}>Drop</button>
-        <button onclick={() => contextMenu && handleLock(contextMenu.item)}>
-          {item.locked ? 'Unlock' : 'Lock'}
-        </button>
-        <button onclick={() => contextMenu && handleMark(contextMenu.item)}>Mark</button>
         {#if openContainer !== null}
           <button onclick={() => contextMenu && handleMoveToContainer(contextMenu.item)}>
             {inContainer ? 'Move to inventory' : 'Move to container'}
           </button>
         {/if}
+        <button onclick={() => contextMenu && handleDrop(contextMenu.item)}>Drop</button>
+        <button onclick={() => contextMenu && handleExamine(contextMenu.item)}>Examine</button>
+        <button onclick={() => contextMenu && handleLock(contextMenu.item)}>
+          {item.locked ? 'Unlock' : 'Lock'}
+        </button>
+        <button onclick={() => contextMenu && handleMark(contextMenu.item)}>Mark</button>
       {/if}
     {/snippet}
     <div class="context-menu" style:left="{contextMenu.x}px" style:top="{contextMenu.y}px">
