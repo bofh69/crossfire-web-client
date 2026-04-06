@@ -906,9 +906,9 @@ export function mapdata_clear_old(x: number, y: number): void {
             expandClearFaceFromLayer(px, py, i);
         }
         cells[px][py].darkness = 0;
-        mapdata_clear_label(px, py);
     }
 
+    mapdata_clear_label(px, py);
     cells[px][py].state = MapCellState.Visible;
 }
 
