@@ -2,7 +2,7 @@
   import { mapdata_cell, getViewSize, getPlayerPosition } from '../lib/mapdata';
   import { getFaceUrl } from '../lib/image';
   import { lookAt } from '../lib/player';
-  import { MapCellState, MAXLAYERS } from '../lib/protocol';
+  import { MapCellState, MAXLAYERS, Map2Label } from '../lib/protocol';
 
   const TILE_SIZE = 32;
 
@@ -163,6 +163,51 @@
         if (alpha > 0) {
           ctx.fillStyle = `rgba(0, 0, 0, ${alpha})`;
           ctx.fillRect(vx * TILE_SIZE, vy * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+        }
+      }
+    }
+
+    // Pass 4: draw labels on top of everything (matching old C client's map_draw_labels).
+    ctx.font = '10px sans-serif';
+    const LABEL_PAD = 3;
+    for (let vy = 0; vy < vh; vy++) {
+      for (let vx = 0; vx < vw; vx++) {
+        const ax = plPos.x + vx;
+        const ay = plPos.y + vy;
+        const cell = mapdata_cell(ax, ay);
+        if (cell.state !== MapCellState.Visible || cell.labels.length === 0) continue;
+
+        const px = vx * TILE_SIZE;
+        const py = vy * TILE_SIZE;
+        let offY = 0;
+
+        for (const lbl of cell.labels) {
+          const metrics = ctx.measureText(lbl.label);
+          const textW = metrics.width;
+          const textH = (metrics.actualBoundingBoxAscent ?? 8) + (metrics.actualBoundingBoxDescent ?? 2);
+          const lineH = textH + 2 * LABEL_PAD;
+
+          // Center horizontally within the tile.
+          const offX = TILE_SIZE / 2 - textW / 2;
+          const bx = px + offX - LABEL_PAD;
+          const by = py + offY;
+
+          // Semi-transparent grey background.
+          ctx.fillStyle = 'rgba(77, 77, 77, 0.5)';
+          ctx.fillRect(bx, by, textW + 2 * LABEL_PAD, lineH);
+
+          // Text color based on label subtype.
+          if (lbl.subtype === Map2Label.DM) {
+            ctx.fillStyle = '#ff0000';
+          } else if (lbl.subtype === Map2Label.PlayerParty) {
+            ctx.fillStyle = 'rgb(177, 225, 255)';
+          } else {
+            ctx.fillStyle = '#ffffff';
+          }
+          const textBaselineY = py + offY + LABEL_PAD + textH;
+          ctx.fillText(lbl.label, px + offX, textBaselineY);
+
+          offY += lineH;
         }
       }
     }
