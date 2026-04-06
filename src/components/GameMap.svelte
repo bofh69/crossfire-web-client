@@ -170,6 +170,9 @@
     // Pass 4: draw labels on top of everything (matching old C client's map_draw_labels).
     ctx.font = '10px sans-serif';
     const LABEL_PAD = 3;
+    // The player is always centred in the view; skip their own name label there.
+    const playerVX = Math.floor(vw / 2);
+    const playerVY = Math.floor(vh / 2);
     for (let vy = 0; vy < vh; vy++) {
       for (let vx = 0; vx < vw; vx++) {
         const ax = plPos.x + vx;
@@ -177,11 +180,14 @@
         const cell = mapdata_cell(ax, ay);
         if (cell.state !== MapCellState.Visible || cell.labels.length === 0) continue;
 
+        const isPlayerTile = vx === playerVX && vy === playerVY;
         const px = vx * TILE_SIZE;
         const py = vy * TILE_SIZE;
         let offY = 0;
 
         for (const lbl of cell.labels) {
+          // Don't show the player's own name above their character.
+          if (isPlayerTile && lbl.subtype === Map2Label.Player) continue;
           const metrics = ctx.measureText(lbl.label);
           const textW = metrics.width;
           const textH = (metrics.actualBoundingBoxAscent ?? 8) + (metrics.actualBoundingBoxDescent ?? 2);
