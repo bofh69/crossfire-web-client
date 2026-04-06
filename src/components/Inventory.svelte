@@ -28,6 +28,9 @@
   let fadeTimer: ReturnType<typeof setTimeout> | null = null;
   let itemCount = $state(0);
 
+  /** Milliseconds after the cursor leaves the context menu before it closes. */
+  const MENU_FADE_MS = 2000;
+
   /** Element refs for preserving scroll positions across inventory updates. */
   let playerListEl: HTMLElement | null = null;
   let groundListEl: HTMLElement | null = null;
@@ -165,7 +168,7 @@
       contextMenu = null;
       menuFading = false;
       fadeTimer = null;
-    }, 2000);
+    }, MENU_FADE_MS);
   }
 
   function handleMenuMouseEnter() {
