@@ -13,7 +13,7 @@
   --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
   --mono: 'Courier New', ui-monospace, Consolas, monospace;
 
-  font: 14px/1.4 var(--sans);
+  font: clamp(12px, 1.1vw, 16px)/1.4 var(--sans);
   color-scheme: dark;
   color: var(--text);
   background: var(--bg);
