@@ -44,8 +44,8 @@ body {
     "menu menu"
     "map  side"
     "info side";
-  grid-template-columns: 1fr 280px;
-  grid-template-rows: 28px 1fr 200px;
+  grid-template-columns: 1fr clamp(200px, 18vw, 360px);
+  grid-template-rows: clamp(24px, 2.5vh, 36px) 1fr clamp(140px, 18vh, 280px);
   width: 100vw;
   height: 100vh;
   gap: 0;
@@ -74,7 +74,7 @@ body {
 
 .stats-section {
   flex-shrink: 0;
-  max-height: 300px;
+  max-height: clamp(180px, 28vh, 380px);
   overflow-y: auto;
 }
 
