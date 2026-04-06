@@ -203,14 +203,16 @@
           ctx.fillRect(bx, by, textW + 2 * LABEL_PAD, lineH);
 
           // Text color based on label subtype.
+          ctx.strokeStyle = 'black';
           if (lbl.subtype === Map2Label.DM) {
             ctx.fillStyle = '#ff0000';
           } else if (lbl.subtype === Map2Label.PlayerParty) {
             ctx.fillStyle = 'rgb(177, 225, 255)';
           } else {
-            ctx.fillStyle = '#ffffff';
+            ctx.fillStyle = '#fff'; // Bingo on color types!
           }
           const textBaselineY = py + offY + LABEL_PAD + textH;
+          ctx.strokeText(lbl.label, px + offX, textBaselineY);
           ctx.fillText(lbl.label, px + offX, textBaselineY);
 
           offY += lineH;
