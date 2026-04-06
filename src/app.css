@@ -13,7 +13,7 @@
   --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
   --mono: 'Courier New', ui-monospace, Consolas, monospace;
 
-  font: clamp(12px, 1.1vw, 16px)/1.4 var(--sans);
+  font: clamp(12px, 1.5vw, 28px)/1.4 var(--sans);
   color-scheme: dark;
   color: var(--text);
   background: var(--bg);
@@ -44,8 +44,8 @@ body {
     "menu menu"
     "map  side"
     "info side";
-  grid-template-columns: 1fr clamp(200px, 18vw, 360px);
-  grid-template-rows: clamp(24px, 2.5vh, 36px) 1fr clamp(140px, 18vh, 280px);
+  grid-template-columns: 1fr clamp(280px, 20vw, 500px);
+  grid-template-rows: clamp(24px, 2.5vh, 28px) 1fr clamp(140px, 18vh, 320px);
   width: 100vw;
   height: 100vh;
   gap: 0;
