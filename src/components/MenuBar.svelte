@@ -44,6 +44,12 @@
   let activeMenu = $state<string | null>(null);
   let pickupMenu: PickupMenu | undefined = $state();
 
+  /** Milliseconds after the cursor leaves the menu-bar before the open dropdown closes. */
+  const MENU_FADE_MS = 2000;
+
+  let menuFading = $state(false);
+  let menuFadeTimer: ReturnType<typeof setTimeout> | null = null;
+
   /** Persist the pickup mode so it survives menu close/reopen. */
   let currentPickupMode = $state(0x80000000 >>> 0); // PU_NEWMODE
 
@@ -77,11 +83,37 @@
   let gpButtonExistingCmd = $state<string | null>(null);
 
   function toggleMenu(menu: string) {
+    clearMenuFadeTimer();
+    menuFading = false;
     activeMenu = activeMenu === menu ? null : menu;
   }
 
   function closeMenu() {
+    clearMenuFadeTimer();
+    menuFading = false;
     activeMenu = null;
+  }
+
+  function clearMenuFadeTimer() {
+    if (menuFadeTimer !== null) {
+      clearTimeout(menuFadeTimer);
+      menuFadeTimer = null;
+    }
+  }
+
+  function handleMenuBarMouseLeave() {
+    if (activeMenu === null) return;
+    menuFading = true;
+    menuFadeTimer = setTimeout(() => {
+      activeMenu = null;
+      menuFading = false;
+      menuFadeTimer = null;
+    }, MENU_FADE_MS);
+  }
+
+  function handleMenuBarMouseEnter() {
+    clearMenuFadeTimer();
+    menuFading = false;
   }
 
   function handleDisconnect() {
@@ -326,12 +358,15 @@
 
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <!-- svelte-ignore a11y_no_static_element_interactions -->
-<div class="menu-bar" onclick={(e: MouseEvent) => e.stopPropagation()}>
+<div class="menu-bar" onclick={(e: MouseEvent) => e.stopPropagation()} onmouseenter={handleMenuBarMouseEnter} onmouseleave={handleMenuBarMouseLeave}>
   <div class="menu-item">
     <button class="menu-button" onclick={() => toggleMenu('file')}>File</button>
     {#if activeMenu === 'file'}
-      <div class="dropdown">
-        <button onclick={handleDisconnect}>Disconnect</button>
+      <div class="dropdown" class:fading={menuFading}>
+        <button
+          onclick={handleDisconnect}
+          oncontextmenu={(e) => { e.preventDefault(); handleDisconnect(); }}
+        >Disconnect</button>
       </div>
     {/if}
   </div>
@@ -343,7 +378,7 @@
     {#if activeMenu === 'pickup'}
       <!-- svelte-ignore a11y_click_events_have_key_events -->
       <!-- svelte-ignore a11y_no_static_element_interactions -->
-      <div class="dropdown" onclick={(e: MouseEvent) => e.stopPropagation()}>
+      <div class="dropdown" class:fading={menuFading} onclick={(e: MouseEvent) => e.stopPropagation()}>
         <PickupMenu bind:this={pickupMenu} initialMode={currentPickupMode} />
       </div>
     {/if}
@@ -352,10 +387,19 @@
   <div class="menu-item">
     <button class="menu-button" onclick={() => toggleMenu('keyboard')}>Keyboard</button>
     {#if activeMenu === 'keyboard'}
-      <div class="dropdown">
-        <button onclick={startBind}>Bind last command to key…</button>
-        <button onclick={startUnbind}>Unbind a key…</button>
-        <button onclick={showBindings}>Show key bindings</button>
+      <div class="dropdown" class:fading={menuFading}>
+        <button
+          onclick={startBind}
+          oncontextmenu={(e) => { e.preventDefault(); startBind(); }}
+        >Bind last command to key…</button>
+        <button
+          onclick={startUnbind}
+          oncontextmenu={(e) => { e.preventDefault(); startUnbind(); }}
+        >Unbind a key…</button>
+        <button
+          onclick={showBindings}
+          oncontextmenu={(e) => { e.preventDefault(); showBindings(); }}
+        >Show key bindings</button>
       </div>
     {/if}
   </div>
@@ -363,13 +407,28 @@
   <div class="menu-item">
     <button class="menu-button" onclick={() => toggleMenu('gamepad')}>Gamepad</button>
     {#if activeMenu === 'gamepad'}
-      <div class="dropdown">
+      <div class="dropdown" class:fading={menuFading}>
         {#if isGamepadConnected()}
-          <button onclick={showGamepadBindings}>Show gamepad bindings</button>
-          <button onclick={startGamepadButtonBind}>Bind last command to button…</button>
-          <button onclick={() => startGamepadAxisConfig('walk')}>Configure walk/run stick…</button>
-          <button onclick={() => startGamepadAxisConfig('fire')}>Configure fire stick…</button>
-          <button onclick={handleResetGamepad}>Reset to defaults</button>
+          <button
+            onclick={showGamepadBindings}
+            oncontextmenu={(e) => { e.preventDefault(); showGamepadBindings(); }}
+          >Show gamepad bindings</button>
+          <button
+            onclick={startGamepadButtonBind}
+            oncontextmenu={(e) => { e.preventDefault(); startGamepadButtonBind(); }}
+          >Bind last command to button…</button>
+          <button
+            onclick={() => startGamepadAxisConfig('walk')}
+            oncontextmenu={(e) => { e.preventDefault(); startGamepadAxisConfig('walk'); }}
+          >Configure walk/run stick…</button>
+          <button
+            onclick={() => startGamepadAxisConfig('fire')}
+            oncontextmenu={(e) => { e.preventDefault(); startGamepadAxisConfig('fire'); }}
+          >Configure fire stick…</button>
+          <button
+            onclick={handleResetGamepad}
+            oncontextmenu={(e) => { e.preventDefault(); handleResetGamepad(); }}
+          >Reset to defaults</button>
         {:else}
           <button disabled>No gamepad connected</button>
         {/if}
@@ -380,9 +439,15 @@
   <div class="menu-item">
     <button class="menu-button" onclick={() => toggleMenu('sound')}>Sound</button>
     {#if activeMenu === 'sound'}
-      <div class="dropdown">
-        <button onclick={toggleMusicMute}>{musicMuted ? 'Unmute Music' : 'Mute Music'}</button>
-        <button onclick={toggleSfxMute}>{sfxMuted ? 'Unmute Sound Effects' : 'Mute Sound Effects'}</button>
+      <div class="dropdown" class:fading={menuFading}>
+        <button
+          onclick={toggleMusicMute}
+          oncontextmenu={(e) => { e.preventDefault(); toggleMusicMute(); }}
+        >{musicMuted ? 'Unmute Music' : 'Mute Music'}</button>
+        <button
+          onclick={toggleSfxMute}
+          oncontextmenu={(e) => { e.preventDefault(); toggleSfxMute(); }}
+        >{sfxMuted ? 'Unmute Sound Effects' : 'Mute Sound Effects'}</button>
       </div>
     {/if}
   </div>
@@ -390,8 +455,11 @@
   <div class="menu-item">
     <button class="menu-button" onclick={() => toggleMenu('help')}>Help</button>
     {#if activeMenu === 'help'}
-      <div class="dropdown">
-        <button onclick={showAbout}>About Crossfire Web Client</button>
+      <div class="dropdown" class:fading={menuFading}>
+        <button
+          onclick={showAbout}
+          oncontextmenu={(e) => { e.preventDefault(); showAbout(); }}
+        >About Crossfire Web Client</button>
       </div>
     {/if}
   </div>
@@ -644,6 +712,12 @@
     min-width: 160px;
     z-index: 50;
     box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    opacity: 1;
+    transition: opacity 2s ease-out;
+  }
+
+  .dropdown.fading {
+    opacity: 0;
   }
 
   .dropdown button {

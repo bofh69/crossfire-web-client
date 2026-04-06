@@ -178,7 +178,10 @@
 <div class="pickup-menu">
   <!-- Control items -->
   {#each controlItems as item}
-    <label class="pickup-item">
+    <label
+      class="pickup-item"
+      oncontextmenu={(e) => { e.preventDefault(); toggleFlag(item.flag); }}
+    >
       <input type="checkbox" checked={isSet(item.flag)} onchange={() => toggleFlag(item.flag)} />
       {item.label}
     </label>
@@ -188,14 +191,21 @@
 
   <!-- Category groups -->
   {#each groups as group}
-    <button class="group-header" onclick={() => toggleGroup(group.label)}>
+    <button
+      class="group-header"
+      onclick={() => toggleGroup(group.label)}
+      oncontextmenu={(e) => { e.preventDefault(); toggleGroup(group.label); }}
+    >
       <span class="arrow">{expandedGroup === group.label ? '▾' : '▸'}</span>
       {group.label}
     </button>
     {#if expandedGroup === group.label}
       <div class="group-items">
         {#each group.items as item}
-          <label class="pickup-item sub-item">
+          <label
+            class="pickup-item sub-item"
+            oncontextmenu={(e) => { e.preventDefault(); toggleFlag(item.flag); }}
+          >
             <input type="checkbox" checked={isSet(item.flag)} onchange={() => toggleFlag(item.flag)} />
             {item.label}
           </label>
@@ -207,14 +217,21 @@
   <div class="separator"></div>
 
   <!-- Weight/Value Ratio -->
-  <button class="group-header" onclick={() => toggleGroup('ratio')}>
+  <button
+    class="group-header"
+    onclick={() => toggleGroup('ratio')}
+    oncontextmenu={(e) => { e.preventDefault(); toggleGroup('ratio'); }}
+  >
     <span class="arrow">{expandedGroup === 'ratio' ? '▾' : '▸'}</span>
     Weight/Value Ratio
   </button>
   {#if expandedGroup === 'ratio'}
     <div class="group-items">
       {#each ratioItems as r}
-        <label class="pickup-item sub-item">
+        <label
+          class="pickup-item sub-item"
+          oncontextmenu={(e) => { e.preventDefault(); setRatio(r.value); }}
+        >
           <input type="radio" name="ratio" checked={currentRatio() === r.value} onchange={() => setRatio(r.value)} />
           {r.label}
         </label>
