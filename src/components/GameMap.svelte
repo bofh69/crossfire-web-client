@@ -2,11 +2,37 @@
   import { mapdata_cell, getViewSize, getPlayerPosition } from '../lib/mapdata';
   import { getFaceUrl } from '../lib/image';
   import { lookAt } from '../lib/player';
-  import { MapCellState, MAXLAYERS, Map2Label } from '../lib/protocol';
+  import { MapCellState, MAXLAYERS, Map2Label, CONFIG_MAPWIDTH, CONFIG_MAPHEIGHT } from '../lib/protocol';
+  import { clientMapsize } from '../lib/client';
+  import { wantConfig } from '../lib/init';
 
   const TILE_SIZE = 32;
   const BASE_FONT_SIZE = 10;
   const LABEL_PAD = 3;
+  /**
+   * Minimum number of tiles that must be visible in each dimension.
+   * Keeps the view large enough to be playable and stays within the server's
+   * minimum map-size requirement (typically 9×9).
+   */
+  const MIN_TILES = 9;
+
+  /**
+   * Return the largest integer scale factor such that at least MIN_TILES tiles
+   * still fit in both container dimensions.  Scale is always ≥ 1, so tiles are
+   * always drawn at 32×32, 64×64, 96×96, … (exact multiples of TILE_SIZE).
+   * This avoids the sub-pixel interpolation that makes pixel art look blurry.
+   */
+  function computeScale(cw: number, ch: number): number {
+    if (cw <= 0 || ch <= 0) return 1;
+    let scale = 1;
+    while (
+      Math.floor(cw / (TILE_SIZE * (scale + 1))) >= MIN_TILES &&
+      Math.floor(ch / (TILE_SIZE * (scale + 1))) >= MIN_TILES
+    ) {
+      scale++;
+    }
+    return scale;
+  }
 
   let canvas: HTMLCanvasElement | undefined = $state();
   let mapVersion = $state(0);
@@ -15,6 +41,37 @@
 
   /** Effective tile size used in the last draw — kept for click-to-tile mapping. */
   let currentTileSize = TILE_SIZE;
+
+  /**
+   * Track the last tile-count dimensions sent to the server so we only send a
+   * new `setup mapsize` command when the desired dimensions actually change.
+   * Using -1 as sentinel ensures the first valid dimensions are always sent.
+   */
+  let lastRequestedW = -1;
+  let lastRequestedH = -1;
+
+  /**
+   * Whenever the container is resized, recompute the ideal tile count and
+   * notify the server.  Using integer scale multiples keeps tiles at clean
+   * pixel boundaries (32, 64, 96, …) and the server fills the view with more
+   * or fewer tiles instead.
+   *
+   * We also keep wantConfig up to date so that reconnects negotiate the same
+   * dimensions without needing to wait for another resize event.
+   */
+  $effect(() => {
+    if (containerW <= 0 || containerH <= 0) return;
+    const scale = computeScale(containerW, containerH);
+    const tileSize = TILE_SIZE * scale;
+    const desiredW = Math.floor(containerW / tileSize);
+    const desiredH = Math.floor(containerH / tileSize);
+    if (desiredW === lastRequestedW && desiredH === lastRequestedH) return;
+    lastRequestedW = desiredW;
+    lastRequestedH = desiredH;
+    wantConfig[CONFIG_MAPWIDTH] = desiredW;
+    wantConfig[CONFIG_MAPHEIGHT] = desiredH;
+    clientMapsize(desiredW, desiredH);
+  });
 
   /** Whether a requestAnimationFrame callback is already pending. */
   let rafPending = false;
@@ -58,6 +115,11 @@
     const ctx = c.getContext('2d');
     if (!ctx) return;
 
+    // Disable image smoothing so pixel art tiles remain crisp at any integer
+    // scale (2×, 3×, …).  Sub-pixel interpolation is what made the previous
+    // fractional-scaling approach look blurry.
+    ctx.imageSmoothingEnabled = false;
+
     // Use the view dimensions (e.g. 20×20) instead of the full fog map.
     const view = getViewSize();
     const vw = view.width || 1;
@@ -66,13 +128,13 @@
     // The player position gives the top-left of the view on the fog map.
     const plPos = getPlayerPosition();
 
-    // Compute tile size to fill the available container space.
-    // Increase beyond the base TILE_SIZE when the container is large so the
-    // map scales up instead of leaving empty black borders.  Never shrink
-    // below the base size.
-    const tileSize = containerW > 0 && containerH > 0
-      ? Math.max(TILE_SIZE, Math.floor(Math.min(containerW / vw, containerH / vh)))
-      : TILE_SIZE;
+    // Use the largest integer scale factor that still fits MIN_TILES tiles in
+    // each dimension.  This keeps tiles at clean multiples of TILE_SIZE
+    // (32 → 64 → 96 → …) so pixel art never suffers sub-pixel blurring.
+    // The server adjusts how many tiles it sends (via clientMapsize) to fill
+    // the container; any leftover space shows as a black border.
+    const scale = computeScale(containerW, containerH);
+    const tileSize = TILE_SIZE * scale;
     currentTileSize = tileSize;
 
     const canvasW = vw * tileSize;
@@ -111,8 +173,10 @@
     }
 
     // Pass 2: draw all tiles for each layer in order (layer 0 first, then 1, …).
-    // Images are scaled from their base TILE_SIZE dimensions to the effective tileSize.
-    const imgScale = tileSize / TILE_SIZE;
+    // Images are scaled by the integer scale factor (naturalSize × scale), keeping
+    // pixel art crisp.  imageSmoothingEnabled=false (set above) ensures the
+    // canvas does not interpolate when drawing at non-1× sizes.
+    const imgScale = scale;
     for (let layer = 0; layer < MAXLAYERS; layer++) {
       for (let vy = 0; vy < vh; vy++) {
         for (let vx = 0; vx < vw; vx++) {
@@ -135,8 +199,8 @@
           if (url) {
             const img = imageCache.get(url);
             if (img) {
-              // Scale the image from its natural (base TILE_SIZE) dimensions to
-              // the effective tileSize.  The formula aligns the image's
+              // Scale the image by the integer scale factor so it fills the
+              // larger tile exactly.  The formula aligns the image's
               // bottom-right corner with the head tile's bottom-right corner,
               // matching the C client's convention.
               const drawW = img.naturalWidth * imgScale;
@@ -188,7 +252,7 @@
     }
 
     // Pass 4: draw labels on top of everything (matching old C client's map_draw_labels).
-    const fontSize = Math.round(BASE_FONT_SIZE * tileSize / TILE_SIZE);
+    const fontSize = Math.round(BASE_FONT_SIZE * scale);
     ctx.font = `${fontSize}px sans-serif`;
     // The player is always centred in the view; skip their own name label there.
     const playerVX = Math.floor(vw / 2);
