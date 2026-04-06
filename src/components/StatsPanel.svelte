@@ -38,7 +38,7 @@
 </script>
 
 <div class="stats-panel">
-  <h3>Stats{stats.title ? ` - ${stats.title}` : ''}</h3>
+  <h3>{stats.title ? stats.title : 'Stats'}</h3>
 
   <div class="bars">
     <div class="bar-row">
