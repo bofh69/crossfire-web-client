@@ -369,6 +369,11 @@
     dialogMode = 'bind-cmd-key-input';
   }
 
+  function cancelBindCmdKeyCapture() {
+    capturedEvent = null;
+    dialogMode = 'bind-cmd-key-input';
+  }
+
   function cancelBindCmdKey() {
     capturedEvent = null;
     dialogMode = 'idle';
@@ -805,7 +810,7 @@
       <p>Command: <strong>{dialogCommand}</strong></p>
       <p class="dialog-prompt">Press the key combination you want to bind…</p>
       <div class="dialog-buttons">
-        <button onclick={cancelBindCmdKeyConfirm}>Cancel</button>
+        <button onclick={cancelBindCmdKeyCapture}>Cancel</button>
       </div>
     </div>
   </div>
