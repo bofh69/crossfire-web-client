@@ -1,8 +1,9 @@
 # Crossfire Web Client
 
-This is a conversion of the Crossfire GTK-v2 client to TypeScript and Svelte.
+This is a conversion of the [Crossfire](https://crossfire.real-time.com/) GTK-v2 client to TypeScript and
+[Svelte](https://svelte.dev/).
 
-Vite is used for the building everything.
+[Vite](https://vite.dev/) is used for the building everything.
 
 Almost everything was done by GitHub Copilot with Claude Opus or Sonnet,
 and me just testing the different versions.
