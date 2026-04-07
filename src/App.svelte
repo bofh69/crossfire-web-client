@@ -9,7 +9,7 @@
     keybindingsInit, setKeyCallbacks, parseKey, parseKeyRelease,
     configureKeys, handleFocusLost,
   } from './lib/keys';
-  import { gamepadInit, gamepadShutdown, setGamepadCallbacks } from './lib/gamepad';
+  import { gamepadInit, gamepadShutdown, setGamepadCallbacks, notifyHpUpdate, resetHpTracking } from './lib/gamepad';
   import type { Stats } from './lib/protocol';
   import { InputState, CS_QUERY_HIDEINPUT, CS_QUERY_SINGLECHAR, CS_QUERY_YESNO, CONFIG_SERVER_TICKS, SHOWMAGIC_FLASH_BIT } from './lib/protocol';
   import { useConfig } from './lib/init';
@@ -258,6 +258,7 @@
   function handleLoggedIn() {
     appState = 'playing';
     serverDisconnected = false;
+    resetHpTracking();
     wireCallbacks();
     initSound();
   }
@@ -307,6 +308,9 @@
       protectionList?.updateProtections(playerStats);
       if (stats.range !== undefined) {
         menuBar?.setRange(stats.range);
+      }
+      if (stats.hp !== undefined) {
+        notifyHpUpdate(playerStats.hp, playerStats.maxhp);
       }
     };
 
