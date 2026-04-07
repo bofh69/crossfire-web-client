@@ -37,6 +37,13 @@ body {
   height: 100vh;
 }
 
+#no-js-message {
+  font-size: 12px;
+  color: #44ee33;
+  font-family: monospace;
+  padding: 1em;
+}
+
 /* Game layout grid */
 .game-layout {
   display: grid;

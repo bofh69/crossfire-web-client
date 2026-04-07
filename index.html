@@ -8,14 +8,14 @@
     <title>crossfire-web</title>
   </head>
   <body>
-    <div id="app"></div>
-    <noscript>
-      <div style="background-color: #black; color: #44ff33; font-family: monospace; padding: 1em; text-align: center;">
-        <p>Do you also hate it when a webpage doesn't work without JavaScipt?</p>
-        <p>Well, this is one of those pages...</p>
-        <p> Please enable JavaScript to continue or send me a PR if you can make it work without.</p>
+    <div id="app">
+      <div id="no-js-message">
+	<p>Do you also hate it when a webpage doesn't work without JavaScript?<br>
+	Well, sorry, but you can't make a real-time game without it...<br>
+	<br>
+	Please enable JavaScript to continue or send me a PR if you can make it work without.</p>
       </div>
-    </noscript>
+    </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
