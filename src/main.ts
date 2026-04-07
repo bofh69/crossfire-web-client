@@ -6,4 +6,6 @@ const app = mount(App, {
   target: document.getElementById('app')!,
 })
 
+document.getElementById('no-js-message')!.style.display = 'none'
+
 export default app
