@@ -1,0 +1,7 @@
+{
+  "name": "crossfire-web-client",
+  "image": "debian:trixie",
+  "features": {},
+  "onCreateCommand": "apt-get update && apt-get install -y nodejs npm",
+  "remoteUser": "root"
+}
