@@ -268,8 +268,11 @@
         const isPlayerTile = vx === playerVX && vy === playerVY;
         const px = vx * tileSize;
         const py = vy * tileSize;
-        // Labels stack upward from the tile top; track the bottom of the next label.
-        let labelBottomY = py;
+        // The first label is drawn above the tile (its bottom edge at py).
+        // Additional labels stack downward from the tile top (py), over the tile.
+        let aboveLabelBottomY = py;
+        let belowLabelTopY = py;
+        let labelIndex = 0;
 
         for (const lbl of cell.labels) {
           // Don't show the player's own name above their character.
@@ -279,8 +282,18 @@
           const textH = (metrics.actualBoundingBoxAscent ?? 8) + (metrics.actualBoundingBoxDescent ?? 2);
           const lineH = textH + 2 * LABEL_PAD;
 
-          // Position this label so its bottom aligns with labelBottomY (tile top for the first label).
-          const labelTopY = labelBottomY - lineH;
+          let labelTopY: number;
+          if (labelIndex === 0) {
+            // First label: place above the tile, bottom edge at tile top.
+            labelTopY = aboveLabelBottomY - lineH;
+            aboveLabelBottomY = labelTopY;
+          } else {
+            // Subsequent labels: stack downward from the tile top, over the tile.
+            labelTopY = belowLabelTopY;
+            belowLabelTopY += lineH;
+          }
+          labelIndex++;
+
           // Center horizontally within the tile.
           const offX = tileSize / 2 - textW / 2;
           const bx = px + offX - LABEL_PAD;
@@ -301,8 +314,6 @@
           const textBaselineY = labelTopY + LABEL_PAD + textH;
           ctx.strokeText(lbl.label, px + offX, textBaselineY);
           ctx.fillText(lbl.label, px + offX, textBaselineY);
-
-          labelBottomY = labelTopY;
         }
       }
     }
