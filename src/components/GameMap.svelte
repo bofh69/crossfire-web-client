@@ -280,14 +280,14 @@
           const lineH = textH + 2 * LABEL_PAD;
 
           // Position this label so its bottom aligns with labelBottomY (tile top for the first label).
-          const by = labelBottomY - lineH;
+          const labelTopY = labelBottomY - lineH;
           // Center horizontally within the tile.
           const offX = tileSize / 2 - textW / 2;
           const bx = px + offX - LABEL_PAD;
 
           // Semi-transparent grey background.
           ctx.fillStyle = 'rgba(77, 77, 77, 0.5)';
-          ctx.fillRect(bx, by, textW + 2 * LABEL_PAD, lineH);
+          ctx.fillRect(bx, labelTopY, textW + 2 * LABEL_PAD, lineH);
 
           // Text color based on label subtype.
           ctx.strokeStyle = 'black';
@@ -298,11 +298,11 @@
           } else {
             ctx.fillStyle = '#fff'; // Bingo on color types!
           }
-          const textBaselineY = by + LABEL_PAD + textH;
+          const textBaselineY = labelTopY + LABEL_PAD + textH;
           ctx.strokeText(lbl.label, px + offX, textBaselineY);
           ctx.fillText(lbl.label, px + offX, textBaselineY);
 
-          labelBottomY = by;
+          labelBottomY = labelTopY;
         }
       }
     }
