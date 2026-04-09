@@ -27,7 +27,7 @@ import {
   getStringFromData, SockList, CrossfireSocket,
 } from './newsocket.js';
 import { locateItem, removeItem, removeItemInventory, updateItem, playerItem, animations, setCSocket as setItemSocket, registerPlayerTag } from './item.js';
-import { mapdata_newmap, mapdata_scroll, mapdata_set_face_layer, mapdata_set_anim_layer, mapdata_set_darkness, mapdata_set_smooth, mapdata_clear_space, mapdata_set_check_space, mapdata_clear_old, mapdata_set_size, mapdata_clear_label, mapdata_add_label } from './mapdata.js';
+import { mapdata_newmap, mapdata_scroll, mapdata_set_face_layer, mapdata_set_anim_layer, mapdata_set_darkness, mapdata_set_smooth, mapdata_clear_space, mapdata_set_check_space, mapdata_clear_old, mapdata_set_size, mapdata_clear_label_view, mapdata_add_label } from './mapdata.js';
 import { addSmooth, getImageInfo, getImageSums, Face2Cmd as imageFace2Cmd, Image2Cmd as imageImage2Cmd } from './image.js';
 import { wantConfig, useConfig, resetPlayerData, getCpl } from './init.js';
 import { newPlayer, notifyNcomAck } from './player.js';
@@ -469,6 +469,7 @@ function Map2Cmd(data: DataView, len: number): void {
     tileCount++;
 
     // Inner loop: read per-tile type bytes until the 255 end-of-space marker.
+    let labelsCleared = false;
     while (pos < len) {
       const typeByte = getCharFromData(data, pos); pos += 1;
 
@@ -494,6 +495,10 @@ function Map2Cmd(data: DataView, len: number): void {
         const strLen = getCharFromData(data, pos); pos += 1;
         const label = getStringFromData(new Uint8Array(data.buffer, data.byteOffset), pos, strLen);
         pos += strLen;
+        if (!labelsCleared) {
+          mapdata_clear_label_view(cx, cy);
+          labelsCleared = true;
+        }
         mapdata_add_label(cx, cy, subtype, label);
       } else if (type >= MAP2_LAYER_START && type < MAP2_LAYER_START + MAXLAYERS) {
         const layer = type & 0xF;

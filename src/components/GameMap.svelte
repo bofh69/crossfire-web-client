@@ -268,7 +268,8 @@
         const isPlayerTile = vx === playerVX && vy === playerVY;
         const px = vx * tileSize;
         const py = vy * tileSize;
-        let offY = 0;
+        // Labels stack upward from the tile top; track the bottom of the next label.
+        let labelBottomY = py;
 
         for (const lbl of cell.labels) {
           // Don't show the player's own name above their character.
@@ -278,10 +279,11 @@
           const textH = (metrics.actualBoundingBoxAscent ?? 8) + (metrics.actualBoundingBoxDescent ?? 2);
           const lineH = textH + 2 * LABEL_PAD;
 
+          // Position this label so its bottom aligns with labelBottomY (tile top for the first label).
+          const by = labelBottomY - lineH;
           // Center horizontally within the tile.
           const offX = tileSize / 2 - textW / 2;
           const bx = px + offX - LABEL_PAD;
-          const by = py + offY;
 
           // Semi-transparent grey background.
           ctx.fillStyle = 'rgba(77, 77, 77, 0.5)';
@@ -296,11 +298,11 @@
           } else {
             ctx.fillStyle = '#fff'; // Bingo on color types!
           }
-          const textBaselineY = py + offY + LABEL_PAD + textH;
+          const textBaselineY = by + LABEL_PAD + textH;
           ctx.strokeText(lbl.label, px + offX, textBaselineY);
           ctx.fillText(lbl.label, px + offX, textBaselineY);
 
-          offY += lineH;
+          labelBottomY = by;
         }
       }
     }
