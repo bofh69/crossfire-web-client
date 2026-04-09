@@ -268,7 +268,11 @@
         const isPlayerTile = vx === playerVX && vy === playerVY;
         const px = vx * tileSize;
         const py = vy * tileSize;
-        let offY = 0;
+        // The first label is drawn above the tile (its bottom edge at py).
+        // Additional labels stack downward from the tile top (py), over the tile.
+        let aboveLabelBottomY = py;
+        let belowLabelTopY = py;
+        let labelIndex = 0;
 
         for (const lbl of cell.labels) {
           // Don't show the player's own name above their character.
@@ -278,14 +282,25 @@
           const textH = (metrics.actualBoundingBoxAscent ?? 8) + (metrics.actualBoundingBoxDescent ?? 2);
           const lineH = textH + 2 * LABEL_PAD;
 
+          let labelTopY: number;
+          if (labelIndex === 0) {
+            // First label: place above the tile, bottom edge at tile top.
+            labelTopY = aboveLabelBottomY - lineH;
+            aboveLabelBottomY = labelTopY;
+          } else {
+            // Subsequent labels: stack downward from the tile top, over the tile.
+            labelTopY = belowLabelTopY;
+            belowLabelTopY += lineH;
+          }
+          labelIndex++;
+
           // Center horizontally within the tile.
           const offX = tileSize / 2 - textW / 2;
           const bx = px + offX - LABEL_PAD;
-          const by = py + offY;
 
           // Semi-transparent grey background.
           ctx.fillStyle = 'rgba(77, 77, 77, 0.5)';
-          ctx.fillRect(bx, by, textW + 2 * LABEL_PAD, lineH);
+          ctx.fillRect(bx, labelTopY, textW + 2 * LABEL_PAD, lineH);
 
           // Text color based on label subtype.
           ctx.strokeStyle = 'black';
@@ -296,11 +311,9 @@
           } else {
             ctx.fillStyle = '#fff'; // Bingo on color types!
           }
-          const textBaselineY = py + offY + LABEL_PAD + textH;
+          const textBaselineY = labelTopY + LABEL_PAD + textH;
           ctx.strokeText(lbl.label, px + offX, textBaselineY);
           ctx.fillText(lbl.label, px + offX, textBaselineY);
-
-          offY += lineH;
         }
       }
     }

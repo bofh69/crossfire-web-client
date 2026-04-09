@@ -471,7 +471,6 @@ function mapdataClear(x: number, y: number): void {
     }
 
     cell.state = MapCellState.Fog;
-    mapdata_clear_label(px, py);
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -870,6 +869,16 @@ export function mapdata_clear_label(px: number, py: number): void {
     cells[px][py].labels = [];
 }
 
+/** Clear all labels at view-relative coordinates. */
+export function mapdata_clear_label_view(x: number, y: number): void {
+    if (!(x < viewWidth && y < viewHeight)) {
+        return;
+    }
+    const px = pl_pos.x + x;
+    const py = pl_pos.y + y;
+    mapdata_clear_label(px, py);
+}
+
 /** Add a label at view-relative coordinates. */
 export function mapdata_add_label(x: number, y: number, subtype: number, label: string): void {
     if (!(x < viewWidth && y < viewHeight)) {
@@ -908,7 +917,6 @@ export function mapdata_clear_old(x: number, y: number): void {
         cells[px][py].darkness = 0;
     }
 
-    mapdata_clear_label(px, py);
     cells[px][py].state = MapCellState.Visible;
 }
 
