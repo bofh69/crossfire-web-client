@@ -33,7 +33,7 @@ export interface GamepadProfile {
      * Substring matched (case-insensitive) against `Gamepad.id` to
      * determine if this profile should be used.
      */
-    matchId: string;
+    matchId: string[];
     /** Axes used for the walk/run stick. */
     walkStick: StickAxes;
     /** Axes used for the fire stick. */
@@ -54,7 +54,7 @@ export interface GamepadProfile {
 
 const xboxProfile: GamepadProfile = {
     name: "Xbox One Controller",
-    matchId: "Microsoft Controller",
+    matchId: ["045e-02dd-", "Vendor: 045e Product: 02dd", "Microsoft Controller", "Microsoft X-Box One"],
     walkStick: { axisX: 0, axisY: 1 },
     fireStick: { axisX: 2, axisY: 3 },
     walkThreshold: 0.2,
@@ -89,7 +89,7 @@ export const defaultProfiles: readonly GamepadProfile[] = [
  */
 export const fallbackProfile: GamepadProfile = {
     name: "Generic Controller",
-    matchId: "",
+    matchId: [""],
     walkStick: { axisX: 0, axisY: 1 },
     fireStick: { axisX: 2, axisY: 3 },
     walkThreshold: 0.2,
@@ -110,9 +110,11 @@ export const fallbackProfile: GamepadProfile = {
 export function findProfileForGamepad(gamepadId: string): GamepadProfile {
     const lower = gamepadId.toLowerCase();
     for (const profile of defaultProfiles) {
-        if (lower.includes(profile.matchId.toLowerCase())) {
-            console.log(lower + " matched with: ", profile.matchId)
-            return structuredClone(profile);
+        for (const matchId of profile.matchId) {
+          if (lower.includes(matchId.toLowerCase())) {
+              console.log(lower + " matched with: ", matchId)
+              return structuredClone(profile);
+          }
         }
     }
     console.log(lower + " didn't match a default profile")
