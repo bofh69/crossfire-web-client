@@ -32,6 +32,11 @@ import type {
 
 import { animations } from "./item";
 import { useConfig, wantConfig } from "./init";
+import {
+    setMoveToCallbacks,
+    run_move_to as runMoveToInternal,
+    clear_move_to as clearMoveToInternal,
+} from "./mapdata_moveto";
 
 // Re-export types for consumers that import from mapdata.
 export type { MapCell, MapCellLayer, MapCellTailLayer, MapLabel };
@@ -87,10 +92,8 @@ let mapHeight = 0;
 let bigfaces: BigCell[][][] = [];
 let activeBigfaces: Set<BigCell> = new Set();
 
-/** Move-to destination. (0, 0) means no destination. */
-export let moveToX = 0;
-export let moveToY = 0;
-export let moveToAttack = false;
+/** Move-to destination — re-exported from mapdata_moveto.ts. */
+export { moveToX, moveToY, moveToAttack } from "./mapdata_moveto";
 
 /** Global map rendering offsets used for local scroll prediction. */
 export let globalOffsetX = 0;
@@ -131,9 +134,27 @@ export function setGetMapImageSize(fn: (face: number) => { w: number; h: number 
 export function setDisplayMapscroll(fn: (dx: number, dy: number) => boolean): void {
     displayMapscrollFn = fn;
 }
-export function setStopRun(fn: () => void): void { stopRunFn = fn; }
-export function setWalkDir(fn: (dir: number) => void): void { walkDirFn = fn; }
-export function setRunDir(fn: (dir: number) => void): void { runDirFn = fn; }
+export function setStopRun(fn: () => void): void {
+    stopRunFn = fn;
+    updateMoveToCallbacks();
+}
+export function setWalkDir(fn: (dir: number) => void): void {
+    walkDirFn = fn;
+    updateMoveToCallbacks();
+}
+export function setRunDir(fn: (dir: number) => void): void {
+    runDirFn = fn;
+    updateMoveToCallbacks();
+}
+
+function updateMoveToCallbacks(): void {
+    setMoveToCallbacks({
+        plMpos: pl_mpos,
+        stopRun: stopRunFn,
+        walkDir: walkDirFn,
+        runDir: runDirFn,
+    });
+}
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Factory helpers
@@ -1046,7 +1067,7 @@ export function mapdata_scroll(dx: number, dy: number): void {
         expandClearBigfaceFromLayer(bc.x, bc.y, bc.layer, false);
     }
 
-    run_move_to();
+    runMoveToInternal();
 }
 
 /** Clear the map for a new map command. */
@@ -1071,7 +1092,7 @@ export function mapdata_newmap(): void {
         expandClearBigfaceFromLayer(bc.x, bc.y, bc.layer, false);
     }
 
-    clear_move_to();
+    clearMoveToInternal();
 }
 
 /** Tick all map animations. */
@@ -1141,7 +1162,7 @@ export function mapdata_animation(): void {
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
-// Player position and movement
+// Player position and movement (delegated to mapdata_moveto.ts)
 // ──────────────────────────────────────────────────────────────────────────────
 
 /**
@@ -1157,83 +1178,7 @@ export function pl_mpos(): { px: number; py: number } {
     };
 }
 
-/** Set the move-to destination.  `dx` and `dy` are relative to the player. */
-export function set_move_to(dx: number, dy: number): void {
-    const oldX = moveToX;
-    const oldY = moveToY;
-
-    const pos = pl_mpos();
-    moveToX = pos.px + dx;
-    moveToY = pos.py + dy;
-
-    // Detect double-click on the same destination.
-    if (moveToX === oldX && moveToY === oldY) {
-        moveToAttack = true;
-    } else {
-        moveToAttack = false;
-    }
-}
-
-/** Clear the current move-to destination. */
-export function clear_move_to(): void {
-    moveToX = 0;
-    moveToY = 0;
-    moveToAttack = false;
-}
-
-/** Return true if the player is at (or has no) move-to destination. */
-export function is_at_moveto(): boolean {
-    if (moveToX === 0 && moveToY === 0) {
-        return true;
-    }
-    const pos = pl_mpos();
-    return pos.px === moveToX && pos.py === moveToY;
-}
-
-/** Take one step towards the move-to destination. */
-export function run_move_to(): void {
-    if (moveToX === 0 && moveToY === 0) {
-        return;
-    }
-
-    if (is_at_moveto()) {
-        clear_move_to();
-        stopRunFn();
-        return;
-    }
-
-    const pos = pl_mpos();
-    const dx = moveToX - pos.px;
-    const dy = moveToY - pos.py;
-    const dir = relative_direction(dx, dy);
-
-    if (moveToAttack) {
-        runDirFn(dir);
-    } else {
-        walkDirFn(dir);
-    }
-}
-
-/**
- * Compute the direction (0-8) from a relative dx/dy offset.
- *
- * Returns:
- *   0 = standing still,
- *   1 = north, 2 = northeast, 3 = east, 4 = southeast,
- *   5 = south, 6 = southwest, 7 = west, 8 = northwest
- */
-export function relative_direction(dx: number, dy: number): number {
-    if (dx === 0 && dy === 0) return 0;
-    if (dx === 0 && dy < 0) return 1;
-    if (dx > 0 && dy < 0) return 2;
-    if (dx > 0 && dy === 0) return 3;
-    if (dx > 0 && dy > 0) return 4;
-    if (dx === 0 && dy > 0) return 5;
-    if (dx < 0 && dy > 0) return 6;
-    if (dx < 0 && dy === 0) return 7;
-    if (dx < 0 && dy < 0) return 8;
-    return 0;
-}
+export { set_move_to, clear_move_to, is_at_moveto, run_move_to, relative_direction } from "./mapdata_moveto";
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Internal helper
