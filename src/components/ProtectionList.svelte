@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import { playerStats } from '../lib/commands';
   import type { Stats } from '../lib/protocol';
+  import { gameEvents } from '../lib/events';
 
   // Names for each resistance slot, matching the server's CS_STAT_RESIST_START
   // index order (index 0 = physical/armor, 1 = magic, …, 17 = blind).
@@ -21,7 +22,7 @@
 
   let protections: ProtectionEntry[] = $state([]);
 
-  export function updateProtections(stats: Stats) {
+  function updateProtections(stats: Stats) {
     const entries: ProtectionEntry[] = [];
     for (let i = 0; i < RESIST_NAMES.length; i++) {
       entries.push({ index: i, name: RESIST_NAMES[i], value: stats.resists[i] ?? 0 });
@@ -30,7 +31,11 @@
   }
 
   // Initialize with whatever data has already arrived before this component mounted.
-  onMount(() => updateProtections(playerStats));
+  onMount(() => {
+    updateProtections(playerStats);
+    const unsub = gameEvents.on('statsUpdate', () => updateProtections(playerStats));
+    return unsub;
+  });
 </script>
 
 <div class="protection-list">

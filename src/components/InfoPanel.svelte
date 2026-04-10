@@ -1,8 +1,10 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import { extendedCommand } from '../lib/p_cmd';
   import { InputState } from '../lib/protocol';
   import { getCpl } from '../lib/init';
   import { type MessageSpan, colorForNdi, parseMarkup } from '../lib/markup';
+  import { gameEvents } from '../lib/events';
 
   let { inputDisabled = false }: { inputDisabled?: boolean } = $props();
 
@@ -15,7 +17,7 @@
   let messagesDiv: HTMLDivElement | undefined = $state();
   let inputEl: HTMLInputElement | undefined = $state();
 
-  export function addMessage(color: number, text: string) {
+  function addMessage(color: number, text: string) {
     const baseColor = colorForNdi(color);
     const spans = parseMarkup(text, baseColor);
     messages = [...messages, { spans }];
@@ -30,7 +32,7 @@
    * Focus the command input field, optionally pre-filling it with text.
    * Used by the keybinding system when entering command mode.
    */
-  export function focusInput(prefill?: string) {
+  function focusInput(prefill?: string) {
     if (prefill !== undefined) {
       commandInput = prefill;
     }
@@ -42,6 +44,15 @@
       }
     });
   }
+
+  onMount(() => {
+    const cleanups = [
+      gameEvents.on('drawInfo', addMessage),
+      gameEvents.on('drawExtInfo', (color, _type, _subtype, message) => addMessage(color, message)),
+      gameEvents.on('focusCommandInput', (prefill) => focusInput(prefill)),
+    ];
+    return () => { for (const unsub of cleanups) unsub(); };
+  });
 
   function scrollToBottom() {
     requestAnimationFrame(() => {

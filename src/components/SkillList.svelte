@@ -3,6 +3,7 @@
   import { skillNames, playerStats, expBarPercent } from '../lib/commands';
   import type { Stats } from '../lib/protocol';
   import { extendedCommand } from '../lib/p_cmd';
+  import { gameEvents } from '../lib/events';
 
   interface SkillEntry {
     index: number;
@@ -14,7 +15,7 @@
   let skills: SkillEntry[] = $state([]);
   let contextMenu = $state<{ x: number; y: number; skill: SkillEntry } | null>(null);
 
-  export function updateSkills(stats: Stats) {
+  function updateSkills(stats: Stats) {
     const entries: SkillEntry[] = [];
     for (let i = 0; i < stats.skillLevel.length; i++) {
       if (stats.skillLevel[i] > 0) {
@@ -32,7 +33,11 @@
   // Initialize with whatever data has already arrived before this component mounted.
   // skill_info and stats packets often arrive during login, before wireCallbacks() is
   // set up in App.svelte, so we must load on mount to catch the pre-login data.
-  onMount(() => updateSkills(playerStats));
+  onMount(() => {
+    updateSkills(playerStats);
+    const unsub = gameEvents.on('statsUpdate', () => updateSkills(playerStats));
+    return unsub;
+  });
 
   function handleContextMenu(e: MouseEvent, skill: SkillEntry) {
     e.preventDefault();
