@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import { clientDisconnect } from '../lib/client';
   import PickupMenu from './PickupMenu.svelte';
   import {
@@ -38,6 +39,7 @@
     type AxisConfigTarget,
     type AxisConfigStep,
   } from '../lib/gamepad';
+  import { gameEvents } from '../lib/events';
 
   interface Props {
     onDisconnect: () => void;
@@ -96,6 +98,18 @@
   let dialogBindCmdEdit = $state(false);   // KEYF_EDIT ("Further edit")
   let dialogBindCmdAny  = $state(false);   // KEYF_ANY  ("Any modifier")
 
+  onMount(() => {
+    const cleanups = [
+      gameEvents.on('pickupUpdate', setPickupMode),
+      gameEvents.on('statsUpdate', (stats) => {
+        if (stats.range !== undefined) setRange(stats.range);
+      }),
+      gameEvents.on('openKeyBind', startBind),
+      gameEvents.on('openGamepadBind', startGamepadButtonBind),
+    ];
+    return () => { for (const unsub of cleanups) unsub(); };
+  });
+
   function toggleMenu(menu: string) {
     clearMenuFadeTimer();
     menuFading = false;
@@ -136,8 +150,7 @@
     closeMenu();
   }
 
-  /** Called by the parent when the server sends a pickup update. */
-  export function setPickupMode(mode: number) {
+  function setPickupMode(mode: number) {
     currentPickupMode = mode >>> 0;
     pickupMenu?.setPickupMode(currentPickupMode);
   }
@@ -145,8 +158,7 @@
   /** The currently readied range item (spell, skill, bow, etc.). */
   let currentRange = $state('');
 
-  /** Called by the parent when the server sends a range stat update. */
-  export function setRange(range: string) {
+  function setRange(range: string) {
     currentRange = range;
   }
 
@@ -157,7 +169,7 @@
 
   // ── Bind last command ──────────────────────────────────────────────────────
 
-  export function startBind() {
+  function startBind() {
     const cmd = getLastCommand();
     if (!cmd) {
       // No command has been sent yet; nothing to bind.
@@ -298,7 +310,7 @@
     // The onDone callback will set dialogMode = 'idle'.
   }
 
-  export function startGamepadButtonBind() {
+  function startGamepadButtonBind() {
     const cmd = getLastCommand();
     if (!cmd) {
       closeMenu();

@@ -1,10 +1,12 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import { mapdata_cell, getViewSize, getPlayerPosition } from '../lib/mapdata';
   import { getFaceUrl } from '../lib/image';
   import { lookAt } from '../lib/player';
   import { MapCellState, MAXLAYERS, Map2Label, CONFIG_MAPWIDTH, CONFIG_MAPHEIGHT } from '../lib/protocol';
   import { clientMapsize } from '../lib/client';
   import { wantConfig } from '../lib/init';
+  import { gameEvents } from '../lib/events';
 
   const TILE_SIZE = 32;
   const BASE_FONT_SIZE = 10;
@@ -97,9 +99,14 @@
     });
   }
 
-  export function redrawMap() {
-    scheduleRedraw();
-  }
+  onMount(() => {
+    const cleanups = [
+      gameEvents.on('mapUpdate', () => scheduleRedraw()),
+      gameEvents.on('newMap', () => scheduleRedraw()),
+      gameEvents.on('tick', () => scheduleRedraw()),
+    ];
+    return () => { for (const unsub of cleanups) unsub(); };
+  });
 
   $effect(() => {
     // Subscribe to mapVersion and container dimensions to trigger redraws.

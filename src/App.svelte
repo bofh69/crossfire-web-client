@@ -2,9 +2,9 @@
   import { onMount } from 'svelte';
   import { clientInit, getCpl } from './lib/init';
   import { initCommands, setPCmdCallbacks } from './lib/p_cmd';
-  import { playerStats, spells } from './lib/commands';
+  import { playerStats } from './lib/commands';
   import { gameEvents } from './lib/events';
-  import { locateItem, animateObjects } from './lib/item';
+  import { animateObjects } from './lib/item';
   import { sendReply } from './lib/player';
   import {
     keybindingsInit, setKeyCallbacks, parseKey, parseKeyRelease,
@@ -89,15 +89,7 @@
     }
   }
 
-  let gameMap: GameMap | undefined = $state();
-  let infoPanel: InfoPanel | undefined = $state();
-  let statsPanel: StatsPanel | undefined = $state();
-  let inventory: Inventory | undefined = $state();
-  let spellList: SpellList | undefined = $state();
-  let skillList: SkillList | undefined = $state();
-  let protectionList: ProtectionList | undefined = $state();
   let menuBar: MenuBar | undefined = $state();
-  let magicMap: MagicMap | undefined = $state();
   let showMagicMap = $state(false);
 
   onMount(() => {
@@ -109,10 +101,10 @@
     // Wire key-system callbacks so keys.ts can interact with the UI.
     setKeyCallbacks({
       drawInfo: (message: string) => {
-        infoPanel?.addMessage(0, message);
+        gameEvents.emit('drawInfo', 0, message);
       },
       focusCommandInput: (prefill?: string) => {
-        infoPanel?.focusInput(prefill);
+        gameEvents.emit('focusCommandInput', prefill);
       },
       getCpl: () => getCpl(),
     });
@@ -120,20 +112,19 @@
     // Wire gamepad callbacks.
     setGamepadCallbacks({
       drawInfo: (message: string) => {
-        infoPanel?.addMessage(0, message);
+        gameEvents.emit('drawInfo', 0, message);
       },
     });
 
     // Wire p_cmd callbacks so bind/gamepad_bind commands can open dialogs.
     setPCmdCallbacks({
       drawInfo: (message: string) => {
-        infoPanel?.addMessage(0, message);
+        gameEvents.emit('drawInfo', 0, message);
       },
-      openKeyBind: () => menuBar?.startBind(),
-      openGamepadBind: () => menuBar?.startGamepadButtonBind(),
+      openKeyBind: () => gameEvents.emit('openKeyBind'),
+      openGamepadBind: () => gameEvents.emit('openGamepadBind'),
       showMagicMap: () => {
         showMagicMap = true;
-        magicMap?.show();
       },
     });
 
@@ -233,7 +224,7 @@
 
       case InputState.CommandMode:
         // Focus should go to the command input.
-        infoPanel?.focusInput();
+        gameEvents.emit('focusCommandInput');
         break;
     }
   }
@@ -290,21 +281,7 @@
 
   function wireCallbacks() {
     eventCleanups.push(
-      gameEvents.on('drawInfo', (color: number, message: string) => {
-        infoPanel?.addMessage(color, message);
-      }),
-
-      gameEvents.on('drawExtInfo', (color: number, _type: number, _subtype: number, message: string) => {
-        infoPanel?.addMessage(color, message);
-      }),
-
       gameEvents.on('statsUpdate', (stats: Partial<Stats>) => {
-        statsPanel?.updateStats(stats);
-        skillList?.updateSkills(playerStats);
-        protectionList?.updateProtections(playerStats);
-        if (stats.range !== undefined) {
-          menuBar?.setRange(stats.range);
-        }
         if (stats.hp !== undefined) {
           notifyHpUpdate(playerStats.hp, playerStats.maxhp);
         }
@@ -322,43 +299,22 @@
         gameQueryInput = '';
       }),
 
-      gameEvents.on('mapUpdate', () => {
-        gameMap?.redrawMap();
-      }),
-
       gameEvents.on('newMap', () => {
-        gameMap?.redrawMap();
         // Switching to a new map hides the magic map overlay.
         showMagicMap = false;
       }),
 
       gameEvents.on('magicMap', () => {
         showMagicMap = true;
-        magicMap?.show();
-      }),
-
-      gameEvents.on('spellUpdate', () => {
-        spellList?.updateSpells(spells);
-      }),
-
-      gameEvents.on('playerUpdate', () => {
-        refreshInventory();
-      }),
-
-      gameEvents.on('pickupUpdate', (mode: number) => {
-        menuBar?.setPickupMode(mode);
       }),
 
       gameEvents.on('tick', (_tickNo: number) => {
         mapdata_animation();
         animateObjects();
-        gameMap?.redrawMap();
-        refreshInventory();
 
         // Flash player position on the magic map.
         const cpl = getCpl();
         if (cpl && cpl.showmagic && showMagicMap) {
-          magicMap?.flashPlayerPos();
           cpl.showmagic ^= SHOWMAGIC_FLASH_BIT;
         } else if (showMagicMap && cpl && !cpl.showmagic) {
           // User closed via the MagicMap component's close button.
@@ -391,24 +347,19 @@
       selfTickTimer = setInterval(() => {
         mapdata_animation();
         animateObjects();
-        gameMap?.redrawMap();
-        refreshInventory();
+        // Emit mapUpdate and playerUpdate so child components refresh
+        // (same as tick handler would in child components).
+        gameEvents.emit('mapUpdate');
+        gameEvents.emit('playerUpdate');
 
         const cpl = getCpl();
         if (cpl && cpl.showmagic && showMagicMap) {
-          magicMap?.flashPlayerPos();
           cpl.showmagic ^= SHOWMAGIC_FLASH_BIT;
         } else if (showMagicMap && cpl && !cpl.showmagic) {
           showMagicMap = false;
         }
       }, 125);
     }
-  }
-
-  function refreshInventory() {
-    const playerRoot = getCpl()?.ob ?? null;
-    const groundRoot = locateItem(0);
-    inventory?.updateInventory(playerRoot, groundRoot);
   }
 </script>
 
@@ -424,9 +375,9 @@
       </div>
     </div>
     <div class="map-area">
-      <GameMap bind:this={gameMap} />
+      <GameMap />
       {#if showMagicMap}
-        <MagicMap bind:this={magicMap} />
+        <MagicMap />
       {/if}
       {#if gameQueryPrompt}
         <div class="query-overlay">
@@ -456,7 +407,7 @@
     </div>
     <div class="side-area">
       <div class="stats-section">
-        <StatsPanel bind:this={statsPanel} />
+        <StatsPanel />
       </div>
       <div class="tab-bar">
         <button class:active={activeTab === 'inventory'} onclick={() => activeTab = 'inventory'}>Items</button>
@@ -466,21 +417,21 @@
       </div>
       <div class="tab-content">
         <div hidden={activeTab !== 'inventory'} class="tab-panel">
-          <Inventory bind:this={inventory} />
+          <Inventory />
         </div>
         <div hidden={activeTab !== 'spells'} class="tab-panel">
-          <SpellList bind:this={spellList} />
+          <SpellList />
         </div>
         <div hidden={activeTab !== 'skills'} class="tab-panel">
-          <SkillList bind:this={skillList} />
+          <SkillList />
         </div>
         <div hidden={activeTab !== 'protections'} class="tab-panel">
-          <ProtectionList bind:this={protectionList} />
+          <ProtectionList />
         </div>
       </div>
     </div>
     <div class="info-area" class:query-active={!!gameQueryPrompt}>
-      <InfoPanel bind:this={infoPanel} inputDisabled={!!gameQueryPrompt} />
+      <InfoPanel inputDisabled={!!gameQueryPrompt} />
     </div>
   </div>
 

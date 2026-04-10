@@ -1,6 +1,8 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import { getCpl } from '../lib/init';
   import { FACE_COLOR_MASK, SHOWMAGIC_FLASH_BIT } from '../lib/protocol';
+  import { gameEvents } from '../lib/events';
 
   /**
    * Magic map color palette matching the old GTK client (old/gtk-v2/src/main.c).
@@ -37,20 +39,28 @@
     });
   }
 
-  export function show() {
+  function show() {
     scheduleRedraw();
   }
 
-  export function flashPlayerPos() {
+  function flashPlayerPos() {
     const cpl = getCpl();
     if (!cpl || !cpl.showmagic) return;
     scheduleRedraw();
   }
 
-  export function hide() {
+  function hide() {
     const cpl = getCpl();
     if (cpl) cpl.showmagic = 0;
   }
+
+  onMount(() => {
+    const cleanups = [
+      gameEvents.on('magicMap', show),
+      gameEvents.on('tick', flashPlayerPos),
+    ];
+    return () => { for (const unsub of cleanups) unsub(); };
+  });
 
   $effect(() => {
     void drawVersion;

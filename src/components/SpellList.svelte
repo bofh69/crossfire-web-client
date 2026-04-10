@@ -1,12 +1,20 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import { sendCommand } from '../lib/player';
+  import { spells } from '../lib/commands';
   import type { Spell } from '../lib/protocol';
+  import { gameEvents } from '../lib/events';
 
   let spellList: Spell[] = $state([]);
 
-  export function updateSpells(newSpells: Spell[]) {
-    spellList = [...newSpells];
+  function updateSpells() {
+    spellList = [...spells];
   }
+
+  onMount(() => {
+    const unsub = gameEvents.on('spellUpdate', updateSpells);
+    return unsub;
+  });
 
   function castSpell(spell: Spell) {
     sendCommand(`cast ${spell.name}`, 0, 1);

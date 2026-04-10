@@ -1,10 +1,11 @@
 <script lang="ts">
-  import { tick } from 'svelte';
+  import { tick, onMount } from 'svelte';
   import { clientSendApply, clientSendExamine, clientSendMove } from '../lib/player';
   import { toggleLocked, locateItem, sendMarkObj } from '../lib/item';
   import { getFaceUrl } from '../lib/image';
   import { getCpl } from '../lib/init';
   import type { Item } from '../lib/protocol';
+  import { gameEvents } from '../lib/events';
 
   interface FlatItem {
     tag: number;
@@ -62,7 +63,10 @@
     return result;
   }
 
-  export async function updateInventory(playerRoot: Item | null, groundRoot: Item | null) {
+  async function refreshInventory() {
+    const playerRoot = getCpl()?.ob ?? null;
+    const groundRoot = locateItem(0);
+
     const playerScrollTop = playerListEl?.scrollTop ?? 0;
     const groundScrollTop = groundListEl?.scrollTop ?? 0;
 
@@ -77,6 +81,14 @@
     if (playerListEl) playerListEl.scrollTop = playerScrollTop;
     if (groundListEl) groundListEl.scrollTop = groundScrollTop;
   }
+
+  onMount(() => {
+    const cleanups = [
+      gameEvents.on('playerUpdate', refreshInventory),
+      gameEvents.on('tick', refreshInventory),
+    ];
+    return () => { for (const unsub of cleanups) unsub(); };
+  });
 
   function handleApply(tag: number) {
     clientSendApply(tag);

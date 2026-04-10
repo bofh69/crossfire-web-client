@@ -1,6 +1,8 @@
 <script lang="ts">
-  import { expBarPercent } from '../lib/commands';
+  import { onMount } from 'svelte';
+  import { expBarPercent, playerStats } from '../lib/commands';
   import type { Stats } from '../lib/protocol';
+  import { gameEvents } from '../lib/events';
 
   let stats: Stats = $state({
     Str: 0, Dex: 0, Con: 0, Wis: 0, Cha: 0, Int: 0, Pow: 0,
@@ -14,9 +16,14 @@
     title: '',
   });
 
-  export function updateStats(newStats: Partial<Stats>) {
+  function updateStats(newStats: Partial<Stats>) {
     stats = { ...stats, ...newStats };
   }
+
+  onMount(() => {
+    const unsub = gameEvents.on('statsUpdate', updateStats);
+    return unsub;
+  });
 
   function barPercent(current: number, max: number): number {
     if (max <= 0) return 0;
