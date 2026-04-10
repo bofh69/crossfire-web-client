@@ -29,20 +29,29 @@ import {
 } from "./player";
 import { LOG } from "./misc";
 import { LogLevel } from "./protocol";
+import {
+    isAxisConfigActive, isButtonConfigActive,
+    handleAxisConfig as doHandleAxisConfig,
+    handleButtonConfig as doHandleButtonConfig,
+    startAxisConfig as doStartAxisConfig,
+    cancelAxisConfig as doCancelAxisConfig,
+    acceptAxisConfig as doAcceptAxisConfig,
+    getAxisTestDirection as doGetAxisTestDirection,
+    startButtonConfig as doStartButtonConfig,
+    cancelButtonConfig as doCancelButtonConfig,
+    type AxisConfigTarget, type AxisConfigStep,
+} from "./gamepad_config";
+import {
+    notifyHpUpdate as doNotifyHpUpdate,
+    resetHpTracking as doResetHpTracking,
+} from "./gamepad_vibration";
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Constants
 // ──────────────────────────────────────────────────────────────────────────────
 
-/** Axis threshold used during axis-configuration to detect stick movement. */
-const AXIS_CONFIG_THRESHOLD = 0.7;
-
-/**
- * After capturing a direction, all axes must drop below this value
- * before the next direction is accepted.  Provides hysteresis so the
- * user doesn't accidentally advance two steps at once.
- */
-const AXIS_CONFIG_CENTER_THRESHOLD = 0.3;
+// Re-export types from gamepad_config.
+export type { AxisConfigTarget, AxisConfigStep } from "./gamepad_config";
 
 /**
  * Hysteresis margin for walk↔run transitions.
@@ -201,63 +210,6 @@ let walkDelayDir = 0;
  */
 let runStopSeq = -1;
 
-// ── HP vibration tracking ────────────────────────────────────────────────────
-
-/**
- * The player's HP at the time of the last stats update.
- * -1 means no previous value is known (first update after login/reconnect).
- */
-let prevHp = -1;
-
-// ── Axis-configuration mode ─────────────────────────────────────────────────
-
-export type AxisConfigTarget = "walk" | "fire";
-
-/**
- * Multi-step axis configuration flow:
- *   1. "move-north" — user pushes stick north
- *   2. "move-east"  — user pushes stick east
- *   3. "move-south" — user pushes stick south (confirms Y axis & sign)
- *   4. "move-west"  — user pushes stick west  (confirms X axis & sign)
- *   5. "testing"    — user sees live direction feedback, Accept/Abort
- */
-export type AxisConfigStep =
-    | "move-north"
-    | "move-east"
-    | "move-south"
-    | "move-west"
-    | "testing";
-
-let axisConfigActive = false;
-let axisConfigTarget: AxisConfigTarget = "walk";
-let axisConfigStep: AxisConfigStep = "move-north";
-let axisConfigCallback: ((axes: StickAxes | null) => void) | null = null;
-
-/**
- * When true, we've captured a direction and are waiting for all axes
- * to return to center before advancing to the next step.
- */
-let axisConfigWaitingForCenter = false;
-
-/** Axis index and sign captured during each calibration step. */
-let axisNorthIdx: number | null = null;
-let axisEastIdx: number | null = null;
-/** Whether the Y axis is inverted (positive = north instead of negative). */
-let axisYInverted = false;
-/** Whether the X axis is inverted (positive = west instead of east). */
-let axisXInverted = false;
-
-/** Pending StickAxes during the testing phase (not yet saved). */
-let axisConfigPending: StickAxes | null = null;
-
-/** Callback for step transitions (so UI can update its state). */
-let axisConfigStepCallback: ((step: AxisConfigStep) => void) | null = null;
-
-// ── Button-configuration mode ───────────────────────────────────────────────
-
-let buttonConfigActive = false;
-let buttonConfigCallback: ((button: number) => void) | null = null;
-
 // ──────────────────────────────────────────────────────────────────────────────
 // Callbacks (like keys.ts KeyCallbacks)
 // ──────────────────────────────────────────────────────────────────────────────
@@ -382,14 +334,14 @@ function pollGamepad(): void {
     if (!gp) return;
 
     // ── Axis-configuration mode ─────────────────────────────────────
-    if (axisConfigActive) {
-        handleAxisConfig(gp);
+    if (isAxisConfigActive()) {
+        doHandleAxisConfig(gp, prevButtons, activeProfile, saveGamepadConfig);
         return;
     }
 
     // ── Button-configuration mode ───────────────────────────────────
-    if (buttonConfigActive) {
-        handleButtonConfig(gp);
+    if (isButtonConfigActive()) {
+        doHandleButtonConfig(gp, prevButtons);
         return;
     }
 
@@ -563,234 +515,18 @@ function processButtons(gp: Gamepad): void {
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
-// Axis configuration (interactive, multi-step)
+// Axis & button configuration (delegated to gamepad_config.ts)
 // ──────────────────────────────────────────────────────────────────────────────
 
-/**
- * Start axis-configuration mode.
- * Guides the user through four directional movements (N, E, S, W) to
- * determine which axes correspond to X and Y, then enters a test phase
- * with live feedback.
- *
- * @param target Which stick to configure ("walk" or "fire").
- * @param onStepChange Called when the configuration step changes (for UI).
- * @param onDone Called when configuration is accepted (axes) or aborted (null).
- */
-export function startAxisConfig(
-    target: AxisConfigTarget,
-    onStepChange: (step: AxisConfigStep) => void,
-    onDone: (axes: StickAxes | null) => void,
-): void {
-    axisConfigActive = true;
-    axisConfigTarget = target;
-    axisConfigStep = "move-north";
-    axisConfigStepCallback = onStepChange;
-    axisConfigCallback = onDone;
-    axisConfigWaitingForCenter = false;
-    axisNorthIdx = null;
-    axisEastIdx = null;
-    axisYInverted = false;
-    axisXInverted = false;
-    axisConfigPending = null;
-}
+export { startAxisConfig, cancelAxisConfig } from "./gamepad_config";
+export { startButtonConfig, cancelButtonConfig } from "./gamepad_config";
 
-/** Cancel a running axis configuration. */
-export function cancelAxisConfig(): void {
-    axisConfigActive = false;
-    axisConfigWaitingForCenter = false;
-    axisConfigCallback = null;
-    axisConfigStepCallback = null;
-    axisNorthIdx = null;
-    axisEastIdx = null;
-    axisConfigPending = null;
-}
-
-/** Accept the current axis configuration (called from test mode). */
 export function acceptAxisConfig(): void {
-    if (!axisConfigActive || axisConfigStep !== "testing") return;
-    if (axisConfigPending && activeProfile) {
-        if (axisConfigTarget === "walk") {
-            activeProfile.walkStick = axisConfigPending;
-        } else {
-            activeProfile.fireStick = axisConfigPending;
-        }
-        saveGamepadConfig();
-    }
-    const doneCb = axisConfigCallback;
-    const result = axisConfigPending;
-    cancelAxisConfig();
-    doneCb?.(result);
+    doAcceptAxisConfig(activeProfile, saveGamepadConfig);
 }
 
-/**
- * Get the live stick direction during axis-config test mode.
- * Returns the direction index (0–8) or 0 if not in test mode.
- */
 export function getAxisTestDirection(): number {
-    if (!axisConfigActive || axisConfigStep !== "testing") return 0;
-    if (!axisConfigPending) return 0;
-
-    if (activeGamepadIndex < 0) return 0;
-    const gamepads = navigator.getGamepads();
-    const gp = gamepads[activeGamepadIndex];
-    if (!gp) return 0;
-
-    const x = gp.axes[axisConfigPending.axisX] ?? 0;
-    const y = gp.axes[axisConfigPending.axisY] ?? 0;
-    return stickToDirection(x, y, 0.2, 0);
-}
-
-function handleAxisConfig(gp: Gamepad): void {
-    // If waiting for center, check whether all axes are back in the
-    // dead-zone before proceeding.
-    if (axisConfigWaitingForCenter) {
-        let allCentered = true;
-        for (let i = 0; i < gp.axes.length; i++) {
-            if (Math.abs(gp.axes[i]) > AXIS_CONFIG_CENTER_THRESHOLD) {
-                allCentered = false;
-                break;
-            }
-        }
-        if (!allCentered) return;  // Still waiting for center.
-        axisConfigWaitingForCenter = false;
-    }
-
-    switch (axisConfigStep) {
-        case "move-north":
-            handleAxisStep(gp, (idx, value) => {
-                axisNorthIdx = idx;
-                // Typically, north is negative Y.  If value is positive,
-                // the axis is inverted.
-                axisYInverted = value > 0;
-                advanceAxisStep("move-east");
-            });
-            break;
-
-        case "move-east":
-            handleAxisStep(gp, (idx, value) => {
-                axisEastIdx = idx;
-                axisXInverted = value < 0;
-                advanceAxisStep("move-south");
-            });
-            break;
-
-        case "move-south":
-            // Confirm it's the same axis as north.
-            handleAxisStep(gp, (idx, _value) => {
-                if (idx !== axisNorthIdx) {
-                    // Different axis — accept the new one.
-                    axisNorthIdx = idx;
-                }
-                advanceAxisStep("move-west");
-            });
-            break;
-
-        case "move-west":
-            // Confirm it's the same axis as east.
-            handleAxisStep(gp, (idx, _value) => {
-                if (idx !== axisEastIdx) {
-                    axisEastIdx = idx;
-                }
-                // Build the StickAxes — store raw axis indices.
-                axisConfigPending = {
-                    axisX: axisEastIdx!,
-                    axisY: axisNorthIdx!,
-                };
-                axisConfigStep = "testing";
-                axisConfigStepCallback?.("testing");
-            });
-            break;
-
-        case "testing":
-            // In test mode, check if the "apply" button (B0) is pressed
-            // to accept.
-            for (let i = 0; i < gp.buttons.length; i++) {
-                if (gp.buttons[i].pressed && !(prevButtons[i] ?? false)) {
-                    // Check if this button is mapped to "apply".
-                    const mapping = activeProfile?.buttons.find(
-                        b => b.button === i);
-                    if (mapping?.command === "apply") {
-                        acceptAxisConfig();
-                        break;
-                    }
-                }
-            }
-            // Update button state for edge detection.
-            for (let i = 0; i < gp.buttons.length; i++) {
-                prevButtons[i] = gp.buttons[i].pressed;
-            }
-            break;
-    }
-}
-
-/**
- * Advance to the next axis-configuration step, requiring the stick to
- * return to center first.
- */
-function advanceAxisStep(nextStep: AxisConfigStep): void {
-    axisConfigWaitingForCenter = true;
-    axisConfigStep = nextStep;
-    axisConfigStepCallback?.(nextStep);
-}
-
-/**
- * Helper: detect the first axis that exceeds AXIS_CONFIG_THRESHOLD and
- * has just crossed from below to above (edge detection).
- */
-function handleAxisStep(
-    gp: Gamepad,
-    onDetected: (axisIndex: number, value: number) => void,
-): void {
-    for (let i = 0; i < gp.axes.length; i++) {
-        const value = gp.axes[i];
-        if (Math.abs(value) >= AXIS_CONFIG_THRESHOLD) {
-            onDetected(i, value);
-            return;
-        }
-    }
-}
-
-// ──────────────────────────────────────────────────────────────────────────────
-// Button configuration (interactive)
-// ──────────────────────────────────────────────────────────────────────────────
-
-/**
- * Start button-configuration mode.
- * The user presses a button, and the first button pressed is reported.
- *
- * @param onDone Called with the button index when a button is pressed.
- */
-export function startButtonConfig(onDone: (button: number) => void): void {
-    buttonConfigActive = true;
-    buttonConfigCallback = onDone;
-}
-
-/** Cancel a running button configuration. */
-export function cancelButtonConfig(): void {
-    buttonConfigActive = false;
-    buttonConfigCallback = null;
-}
-
-function handleButtonConfig(gp: Gamepad): void {
-    for (let i = 0; i < gp.buttons.length; i++) {
-        if (gp.buttons[i].pressed && !(prevButtons[i] ?? false)) {
-            const doneCb = buttonConfigCallback;
-            cancelButtonConfig();
-
-            // Update prevButtons so the press isn't re-detected.
-            for (let j = 0; j < gp.buttons.length; j++) {
-                prevButtons[j] = gp.buttons[j].pressed;
-            }
-
-            doneCb?.(i);
-            return;
-        }
-    }
-
-    // Update previous state so we detect edges correctly.
-    for (let j = 0; j < gp.buttons.length; j++) {
-        prevButtons[j] = gp.buttons[j].pressed;
-    }
+    return doGetAxisTestDirection(activeGamepadIndex, stickToDirection);
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -861,48 +597,15 @@ export function getButtonCommand(button: number): string | null {
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
-// HP vibration
+// HP vibration (delegated to gamepad_vibration.ts)
 // ──────────────────────────────────────────────────────────────────────────────
 
-/**
- * Notify the gamepad subsystem of the player's current HP and max HP.
- * If a gamepad is connected and HP has dropped by more than 10% of the
- * player's maximum HP since the last update, the controller is vibrated.
- *
- * Call this from the `onStatsUpdate` callback whenever `hp` changes.
- */
 export function notifyHpUpdate(hp: number, maxHp: number): void {
-    if (activeGamepadIndex < 0) {
-        prevHp = hp;
-        return;
-    }
-
-    if (prevHp >= 0 && maxHp > 0 && hp < prevHp) {
-        const drop = prevHp - hp;
-        if (drop / maxHp >= 0.1) {
-            const gamepads = navigator.getGamepads();
-            const gp = gamepads[activeGamepadIndex];
-            if (gp?.vibrationActuator) {
-                gp.vibrationActuator.playEffect("dual-rumble", {
-                    startDelay: 0,
-                    duration: 400,
-                    weakMagnitude: 0.5,
-                    strongMagnitude: 1.0,
-                });
-            }
-        }
-    }
-
-    prevHp = hp;
+    doNotifyHpUpdate(hp, maxHp, activeGamepadIndex);
 }
 
-/**
- * Reset the HP baseline used for vibration tracking.
- * Call this when a new player session starts so that the first stats update
- * does not mistakenly trigger a vibration.
- */
 export function resetHpTracking(): void {
-    prevHp = -1;
+    doResetHpTracking();
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
