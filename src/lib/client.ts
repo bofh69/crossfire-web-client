@@ -21,8 +21,8 @@ import { CrossfireSocket } from "./newsocket";
 import {
     dispatchPacket,
     setSocket as setCommandsSocket,
-    callbacks,
 } from "./commands";
+import { gameEvents } from "./events";
 import { wantConfig, useConfig } from "./init";
 import { setSocket as setPlayerSocket } from "./player";
 import { setCSocket as setItemSocket } from "./item";
@@ -70,7 +70,7 @@ export async function clientConnect(hostname: string, port?: number): Promise<vo
     sock.onDisconnect = () => {
         LOG(LogLevel.Info, "client", "Server disconnected");
         csocket = null;
-        callbacks.onDisconnect?.();
+        gameEvents.emit('disconnect');
     };
 
     sock.onError = (_ev: Event) => {

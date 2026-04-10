@@ -1,6 +1,6 @@
 <script lang="ts">
   import { clientConnect, clientNegotiate, sendAddMe } from '../lib/client';
-  import { callbacks } from '../lib/commands';
+  import { gameEvents } from '../lib/events';
   import { sendReply } from '../lib/player';
   import { CS_QUERY_HIDEINPUT, CS_QUERY_SINGLECHAR, CS_QUERY_YESNO, EPORT } from '../lib/protocol';
   import { type InfoLine, parseMarkupLines } from '../lib/markup';
@@ -134,68 +134,66 @@
   }
 
   $effect(() => {
-    callbacks.onQuery = (flags: number, prompt: string) => {
-      // If the server sends an empty prompt, reuse the previous prompt text.
-      if (prompt) {
-        lastQueryPrompt = prompt;
-      }
-      queryPrompt = lastQueryPrompt;
-      queryHidden = (flags & CS_QUERY_HIDEINPUT) !== 0;
-      querySingleChar = (flags & CS_QUERY_SINGLECHAR) !== 0;
-      queryYesNo = (flags & CS_QUERY_YESNO) !== 0;
-      queryInput = '';
-    };
+    const cleanups = [
+      gameEvents.on('query', (flags: number, prompt: string) => {
+        // If the server sends an empty prompt, reuse the previous prompt text.
+        if (prompt) {
+          lastQueryPrompt = prompt;
+        }
+        queryPrompt = lastQueryPrompt;
+        queryHidden = (flags & CS_QUERY_HIDEINPUT) !== 0;
+        querySingleChar = (flags & CS_QUERY_SINGLECHAR) !== 0;
+        queryYesNo = (flags & CS_QUERY_YESNO) !== 0;
+        queryInput = '';
+      }),
 
-    callbacks.onReplyInfo = (infoType: string, text: string) => {
-      const lines = parseMarkupLines(text, '#cccccc');
-      const idx = serverInfoSections.findIndex(s => s.type === infoType);
-      if (idx >= 0) {
-        serverInfoSections = serverInfoSections.map((s, i) => i === idx ? { type: infoType, lines } : s);
-      } else {
-        serverInfoSections = [...serverInfoSections, { type: infoType, lines }];
-      }
-    };
+      gameEvents.on('replyInfo', (infoType: string, text: string) => {
+        const lines = parseMarkupLines(text, '#cccccc');
+        const idx = serverInfoSections.findIndex(s => s.type === infoType);
+        if (idx >= 0) {
+          serverInfoSections = serverInfoSections.map((s, i) => i === idx ? { type: infoType, lines } : s);
+        } else {
+          serverInfoSections = [...serverInfoSections, { type: infoType, lines }];
+        }
+      }),
 
-    callbacks.onVersion = (_cs: number, _sc: number, verStr: string) => {
-      statusMessage = `Server: ${verStr}. Handshaking...`;
-      sendAddMe();
-    };
+      gameEvents.on('version', (_cs: number, _sc: number, verStr: string) => {
+        statusMessage = `Server: ${verStr}. Handshaking...`;
+        sendAddMe();
+      }),
 
-    callbacks.onAddMeSuccess = () => {
-      addMeSuccessReceived = true;
-      if (queryPrompt) {
-        // A query is still on screen – wait until the user answers it.
-        statusMessage = 'Connected.';
-      } else {
-        checkLoginComplete();
-      }
-    };
+      gameEvents.on('addMeSuccess', () => {
+        addMeSuccessReceived = true;
+        if (queryPrompt) {
+          // A query is still on screen – wait until the user answers it.
+          statusMessage = 'Connected.';
+        } else {
+          checkLoginComplete();
+        }
+      }),
 
-    callbacks.onAddMeFail = () => {
-      errorMessage = 'Server rejected login.';
-      statusMessage = '';
-    };
+      gameEvents.on('addMeFail', () => {
+        errorMessage = 'Server rejected login.';
+        statusMessage = '';
+      }),
 
-    callbacks.onFailure = (command: string, message: string) => {
-      errorMessage = `${command}: ${message}`;
-    };
+      gameEvents.on('failure', (command: string, message: string) => {
+        errorMessage = `${command}: ${message}`;
+      }),
 
-    callbacks.onDrawInfo = (_color: number, message: string) => {
-      if (!connected) return;
-      statusMessage = message;
-    };
+      gameEvents.on('drawInfo', (_color: number, message: string) => {
+        if (!connected) return;
+        statusMessage = message;
+      }),
+    ];
 
     return () => {
-      callbacks.onVersion = undefined;
-      callbacks.onAddMeSuccess = undefined;
-      callbacks.onAddMeFail = undefined;
-      callbacks.onFailure = undefined;
-      callbacks.onReplyInfo = undefined;
-      // onQuery and onDrawInfo are NOT cleared here: wireCallbacks() in App.svelte
-      // sets them synchronously before this cleanup runs (Svelte defers $effect
-      // cleanup to the next microtask), so clearing them here would silently
-      // destroy the handlers that the game screen just installed.  App.svelte's
-      // handleDisconnect() is responsible for clearing these when needed.
+      // Unsubscribe all handlers except query and drawInfo:
+      // wireCallbacks() in App.svelte sets them synchronously before this
+      // cleanup runs (Svelte defers $effect cleanup to the next microtask),
+      // so the App's subscriptions are already active.  The event bus supports
+      // multiple listeners, so no conflict arises.
+      for (const unsub of cleanups) unsub();
     };
   });
 </script>
