@@ -6,7 +6,7 @@
  * on()/off() and there is no global mutable state to race on.
  */
 
-import type { Stats, Spell } from './protocol.js';
+import type { Stats } from './protocol.js';
 
 // ── Event payload map ──────────────────────────────────────────────────────
 

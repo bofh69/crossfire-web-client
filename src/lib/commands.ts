@@ -15,7 +15,6 @@ import { NDI_COLOR_MASK, CS_STAT_SKILLINFO, CS_NUM_SKILLS } from './protocol.js'
 import { getIntFromData, getShortFromData, getStringFromData, CrossfireSocket } from './newsocket.js';
 import { setCSocket as setItemSocket } from './item.js';
 import { getImageInfo, getImageSums, Face2Cmd as imageFace2Cmd, Image2Cmd as imageImage2Cmd } from './image.js';
-import { getCpl } from './init.js';
 import { notifyNcomAck } from './player.js';
 import { LOG } from './misc.js';
 import { LogLevel } from './protocol.js';
