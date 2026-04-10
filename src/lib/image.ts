@@ -10,6 +10,7 @@ import {
     getIntFromData,
     getStringFromData,
 } from './newsocket.js';
+import { BinaryReader } from './binary_reader.js';
 import { saveCacheData, loadCacheData } from './storage.js';
 import { LOG } from './misc.js';
 import { LogLevel, MAXPIXMAPNUM, MAX_FACE_SETS } from './protocol.js';
@@ -322,30 +323,20 @@ export function getImageSums(data: string, len: number): void {
     // Re-encode the remaining binary-ish portion to work with raw bytes.
     const encoder = new TextEncoder();
     const raw = encoder.encode(data);
-    let pos = idx;
+    const view = new DataView(raw.buffer, raw.byteOffset + idx, raw.byteLength - idx);
+    const reader = new BinaryReader(view);
 
-    while (pos + 8 <= raw.length) {
-        const view = new DataView(raw.buffer, raw.byteOffset);
-        const imageNum = (raw[pos] << 8) | raw[pos + 1];
-        pos += 2;
+    while (reader.remaining >= 8) {
+        const imageNum = reader.readUint16();
+        const checksum = reader.readUint32();
+        reader.skip(1); // faceset (unused)
+        const nameLen = reader.readUint8();
 
-        const checksum =
-            ((raw[pos] << 24) | (raw[pos + 1] << 16) |
-             (raw[pos + 2] << 8) | raw[pos + 3]) >>> 0;
-        pos += 4;
-
-        const _faceset = raw[pos];
-        pos++;
-
-        const nameLen = raw[pos];
-        pos++;
-
-        if (pos + nameLen > raw.length) {
+        if (nameLen > reader.remaining) {
             break;
         }
 
-        const faceName = getStringFromData(raw, pos, nameLen);
-        pos += nameLen;
+        const faceName = reader.readString(nameLen);
 
         if (imageNum >= 0 && imageNum < MAXPIXMAPNUM) {
             faceToName.set(imageNum, faceName);

@@ -3,9 +3,7 @@
  * Extracted from commands.ts.
  */
 
-import {
-  getStringFromData,
-} from './newsocket.js';
+import { BinaryReader } from './binary_reader.js';
 import { LOG } from './misc.js';
 import { LogLevel } from './protocol.js';
 import { playSound, playMusic } from './sound.js';
@@ -22,28 +20,16 @@ export function Sound2Cmd(data: DataView, len: number): void {
     LOG(LogLevel.Warning, 'Sound2Cmd', `Command too short: ${len} bytes`);
     return;
   }
-  const x = data.getInt8(0);
-  const y = data.getInt8(1);
-  const dir = data.getUint8(2);
-  const vol = data.getUint8(3);
-  const type = data.getUint8(4);
-  const lenSound = data.getUint8(5);
-
-  if (6 + lenSound + 1 > len) {
-    LOG(LogLevel.Warning, 'Sound2Cmd', `Sound length overflows: ${lenSound}`);
-    return;
-  }
-
-  const bytes = new Uint8Array(data.buffer, data.byteOffset);
-  const sound = getStringFromData(bytes, 6, lenSound);
-  const lenSource = data.getUint8(6 + lenSound);
-
-  if (6 + lenSound + 1 + lenSource > len) {
-    LOG(LogLevel.Warning, 'Sound2Cmd', `Source length overflows: ${lenSource}`);
-    return;
-  }
-
-  const source = getStringFromData(bytes, 6 + lenSound + 1, lenSource);
+  const reader = new BinaryReader(data, len);
+  const x = reader.readInt8();
+  const y = reader.readInt8();
+  const dir = reader.readUint8();
+  const vol = reader.readUint8();
+  const type = reader.readUint8();
+  const lenSound = reader.readUint8();
+  const sound = reader.readString(lenSound);
+  const lenSource = reader.readUint8();
+  const source = reader.readString(lenSource);
   playSound(x, y, dir, vol, type, sound, source);
 }
 

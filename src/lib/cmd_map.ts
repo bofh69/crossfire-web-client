@@ -10,10 +10,7 @@ import {
   MAXLAYERS,
   type Animation,
 } from './protocol.js';
-import {
-  getCharFromData, getShortFromData,
-  getStringFromData,
-} from './newsocket.js';
+import { BinaryReader } from './binary_reader.js';
 import {
   mapdata_newmap, mapdata_scroll, mapdata_set_face_layer, mapdata_set_anim_layer,
   mapdata_set_darkness, mapdata_set_smooth, mapdata_clear_space,
@@ -52,9 +49,9 @@ export function NewmapCmd(): void {
 export function Map2Cmd(data: DataView, len: number): void {
   const t0 = performance.now();
   let tileCount = 0;
-  let pos = 0;
-  while (pos < len) {
-    const mask = getShortFromData(data, pos); pos += 2;
+  const reader = new BinaryReader(data, len);
+  while (reader.remaining > 0) {
+    const mask = reader.readInt16();
     const x = ((mask >> 10) & 0x3F) - MAP2_COORD_OFFSET;
     const y = ((mask >> 4) & 0x3F) - MAP2_COORD_OFFSET;
 
@@ -73,8 +70,8 @@ export function Map2Cmd(data: DataView, len: number): void {
 
     // Inner loop: read per-tile type bytes until the 255 end-of-space marker.
     let labelsCleared = false;
-    while (pos < len) {
-      const typeByte = getCharFromData(data, pos); pos += 1;
+    while (reader.remaining > 0) {
+      const typeByte = reader.readUint8();
 
       if (typeByte === 255) {
         mapdata_set_check_space(cx, cy);
@@ -89,15 +86,14 @@ export function Map2Cmd(data: DataView, len: number): void {
       if (type === MAP2_TYPE_CLEAR) {
         mapdata_clear_space(cx, cy);
       } else if (type === MAP2_TYPE_DARKNESS) {
-        const value = getCharFromData(data, pos); pos += 1;
+        const value = reader.readUint8();
         mapdata_set_darkness(cx, cy, value);
       } else if (type === MAP2_TYPE_LABEL) {
         // spaceLen === 7 signals variable-length data: next byte is total length.
-        /* labelTotalLen */ getCharFromData(data, pos); pos += 1;
-        const subtype = getCharFromData(data, pos); pos += 1;
-        const strLen = getCharFromData(data, pos); pos += 1;
-        const label = getStringFromData(new Uint8Array(data.buffer, data.byteOffset), pos, strLen);
-        pos += strLen;
+        reader.skip(1); // labelTotalLen (unused)
+        const subtype = reader.readUint8();
+        const strLen = reader.readUint8();
+        const label = reader.readString(strLen);
         if (!labelsCleared) {
           mapdata_clear_label_view(cx, cy);
           labelsCleared = true;
@@ -105,12 +101,12 @@ export function Map2Cmd(data: DataView, len: number): void {
         mapdata_add_label(cx, cy, subtype, label);
       } else if (type >= MAP2_LAYER_START && type < MAP2_LAYER_START + MAXLAYERS) {
         const layer = type & 0xF;
-        const faceOrAnim = getShortFromData(data, pos); pos += 2;
+        const faceOrAnim = reader.readInt16();
         if (!(faceOrAnim & FACE_IS_ANIM)) {
           mapdata_set_face_layer(cx, cy, faceOrAnim, layer);
         }
         if (spaceLen > 2) {
-          const opt = getCharFromData(data, pos); pos += 1;
+          const opt = reader.readUint8();
           if (faceOrAnim & FACE_IS_ANIM) {
             // opt is the animation speed.
             mapdata_set_anim_layer(cx, cy, faceOrAnim, opt, layer);
@@ -121,16 +117,16 @@ export function Map2Cmd(data: DataView, len: number): void {
         }
         // A fourth byte (when present) is always a smooth value.
         if (spaceLen > 3) {
-          const opt = getCharFromData(data, pos); pos += 1;
+          const opt = reader.readUint8();
           mapdata_set_smooth(cx, cy, opt, layer);
         }
       } else {
         // Unknown type: skip the declared number of data bytes.
         if (spaceLen !== 7) {
-          pos += spaceLen;
+          reader.skip(spaceLen);
         } else {
-          const extraLen = getCharFromData(data, pos); pos += 1;
-          pos += extraLen;
+          const extraLen = reader.readUint8();
+          reader.skip(extraLen);
         }
       }
     }
@@ -214,13 +210,12 @@ export function MagicMapCmd(data: DataView, len: number): void {
 }
 
 export function AnimCmd(data: DataView, len: number): void {
-  let pos = 0;
-  const animId = getShortFromData(data, pos); pos += 2;
-  const animFlags = getShortFromData(data, pos); pos += 2;
+  const reader = new BinaryReader(data, len);
+  const animId = reader.readInt16();
+  const animFlags = reader.readInt16();
   const faces: number[] = [];
-  while (pos < len) {
-    faces.push(getShortFromData(data, pos));
-    pos += 2;
+  while (reader.remaining > 0) {
+    faces.push(reader.readInt16());
   }
   const anim: Animation = {
     flags: animFlags,
@@ -231,8 +226,9 @@ export function AnimCmd(data: DataView, len: number): void {
   animations[animId] = anim;
 }
 
-export function SmoothCmd(data: DataView, _len: number): void {
-  const face = getShortFromData(data, 0);
-  const smooth = getShortFromData(data, 2);
+export function SmoothCmd(data: DataView, len: number): void {
+  const reader = new BinaryReader(data, len);
+  const face = reader.readInt16();
+  const smooth = reader.readInt16();
   addSmooth(face, smooth);
 }
