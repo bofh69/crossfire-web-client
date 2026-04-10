@@ -2,6 +2,7 @@
   import { onMount } from 'svelte';
   import { clientDisconnect } from '../lib/client';
   import PickupMenu from './PickupMenu.svelte';
+  import MenuBarDialogs from './MenuBarDialogs.svelte';
   import {
     keyEventToString,
     findBindingForEvent,
@@ -594,299 +595,42 @@
 </div>
 
 <!-- ── Key-capture / confirm dialogs ── -->
-{#if dialogMode === 'bind-capture'}
-  <div class="dialog-overlay">
-    <div class="dialog">
-      <p class="dialog-title">Bind command to key</p>
-      <p>Command: <strong>{dialogCommand}</strong></p>
-      <p class="dialog-prompt">Press the key combination you want to bind…</p>
-      <div class="dialog-buttons">
-        <button onclick={cancelBind}>Cancel</button>
-      </div>
-    </div>
-  </div>
-{:else if dialogMode === 'bind-confirm'}
-  <div class="dialog-overlay">
-    <div class="dialog">
-      <p class="dialog-title">Bind command to key</p>
-      <p>Key: <strong>{dialogKeyStr}</strong></p>
-      <p>Command: <strong>{dialogCommand}</strong></p>
-      {#if dialogExisting}
-        <p class="dialog-warn">Already bound to: <strong>{dialogExisting.command}</strong></p>
-        <p>Overwrite?</p>
-      {/if}
-      <div class="dialog-buttons">
-        <button class="btn-primary" onclick={confirmBind}>
-          {dialogExisting ? 'Overwrite' : 'Bind'}
-        </button>
-        <button onclick={cancelBind}>Cancel</button>
-      </div>
-    </div>
-  </div>
-{:else if dialogMode === 'unbind-capture'}
-  <div class="dialog-overlay">
-    <div class="dialog">
-      <p class="dialog-title">Unbind a key</p>
-      <p class="dialog-prompt">Press the key combination you want to unbind…</p>
-      <div class="dialog-buttons">
-        <button onclick={cancelUnbind}>Cancel</button>
-      </div>
-    </div>
-  </div>
-{:else if dialogMode === 'unbind-confirm'}
-  <div class="dialog-overlay">
-    <div class="dialog">
-      <p class="dialog-title">Unbind a key</p>
-      <p>Key: <strong>{dialogKeyStr}</strong></p>
-      {#if dialogExisting}
-        <p>Currently bound to: <strong>{dialogExisting.command}</strong></p>
-        <p>Remove this binding?</p>
-        <div class="dialog-buttons">
-          <button class="btn-danger" onclick={confirmUnbind}>Remove</button>
-          <button onclick={cancelUnbind}>Cancel</button>
-        </div>
-      {:else}
-        <p class="dialog-warn">This key is not bound to any command.</p>
-        <div class="dialog-buttons">
-          <button onclick={cancelUnbind}>Close</button>
-        </div>
-      {/if}
-    </div>
-  </div>
-{:else if dialogMode === 'show-bindings'}
-  <div class="dialog-overlay">
-    <div class="dialog dialog-wide">
-      <p class="dialog-title">Key Bindings</p>
-      <div class="bindings-table-wrapper">
-        <table class="bindings-table">
-          <thead>
-            <tr><th>Key</th><th>Modifiers</th><th>Command</th></tr>
-          </thead>
-          <tbody>
-            {#each getBindings() as kb, i}
-              <tr>
-                <td>{kb.keysym}</td>
-                <td>{flagsToDisplayString(kb.flags)}</td>
-                <td>{kb.command}</td>
-              </tr>
-            {/each}
-          </tbody>
-        </table>
-      </div>
-      <div class="dialog-buttons">
-        <button onclick={closeBindings}>Close</button>
-      </div>
-    </div>
-  </div>
-{:else if dialogMode === 'about'}
-  <div class="dialog-overlay">
-    <div class="dialog dialog-wide">
-      <p class="dialog-title">About Crossfire Web Client</p>
-      <p>
-        A web-based client for <a href="http://crossfire.real-time.com/" target="_blank" rel="noopener noreferrer">Crossfire</a>,
-        the cooperative multi-player graphical RPG and adventure game.
-      </p>
-      <p>
-        This client is based on the original
-        <a href="http://crossfire.real-time.com/" target="_blank" rel="noopener noreferrer">Crossfire GTK client</a>
-        and reimplemented for the browser.
-      </p>
-      <p>
-        Source code is available on
-        <a href="https://github.com/bofh69/crossfire-web-client" target="_blank" rel="noopener noreferrer">GitHub</a>.
-      </p>
-      <p class="dialog-credits">
-        Built with
-        <a href="https://svelte.dev/" target="_blank" rel="noopener noreferrer">Svelte</a>,
-        <a href="https://vite.dev/" target="_blank" rel="noopener noreferrer">Vite</a>, and
-        <a href="https://www.typescriptlang.org/" target="_blank" rel="noopener noreferrer">TypeScript</a>.
-      </p>
-      <div class="dialog-buttons">
-        <button onclick={closeAbout}>Close</button>
-      </div>
-    </div>
-  </div>
-{:else if dialogMode === 'gp-show-bindings'}
-  <div class="dialog-overlay">
-    <div class="dialog dialog-wide">
-      <p class="dialog-title">Gamepad Bindings — {getActiveProfileName()}</p>
-      {#if getStickConfig()}
-        {@const sticks = getStickConfig()}
-        <p>Walk/Run stick: axes {sticks?.walk.axisX}, {sticks?.walk.axisY}</p>
-        <p>Fire stick: axes {sticks?.fire.axisX}, {sticks?.fire.axisY}</p>
-      {/if}
-      <div class="bindings-table-wrapper">
-        <table class="bindings-table">
-          <thead>
-            <tr><th>Button</th><th>Command</th><th></th></tr>
-          </thead>
-          <tbody>
-            {#each getButtonMappings() as mapping}
-              <tr>
-                <td>B{mapping.button}</td>
-                <td>{mapping.command}</td>
-                <td>
-                  <button class="btn-small btn-danger" onclick={() => handleRemoveGamepadButton(mapping.button)}>✕</button>
-                </td>
-              </tr>
-            {/each}
-          </tbody>
-        </table>
-      </div>
-      <div class="dialog-buttons">
-        <button onclick={closeGamepadBindings}>Close</button>
-      </div>
-    </div>
-  </div>
-{:else if dialogMode === 'gp-axis-config'}
-  <div class="dialog-overlay">
-    <div class="dialog">
-      <p class="dialog-title">Configure {gpAxisTarget === 'walk' ? 'Walk/Run' : 'Fire'} Stick</p>
-      {#if gpAxisStep === 'move-north'}
-        <p class="dialog-prompt">Push the stick <strong>north</strong> (up)…</p>
-      {:else if gpAxisStep === 'move-east'}
-        <p class="dialog-prompt">Push the stick <strong>east</strong> (right)…</p>
-      {:else if gpAxisStep === 'move-south'}
-        <p class="dialog-prompt">Push the stick <strong>south</strong> (down)…</p>
-      {:else if gpAxisStep === 'move-west'}
-        <p class="dialog-prompt">Push the stick <strong>west</strong> (left)…</p>
-      {:else if gpAxisStep === 'testing'}
-        <p>Move the stick to test. Current direction:</p>
-        <p class="axis-test-direction">{gpAxisTestDir > 0 ? directionName(gpAxisTestDir) : '(center)'}</p>
-        <div class="dialog-buttons">
-          <button class="btn-primary" onclick={handleAcceptAxisConfig}>Accept</button>
-          <button onclick={cancelGamepadAxisConfig}>Abort</button>
-        </div>
-      {/if}
-      {#if gpAxisStep !== 'testing'}
-        <div class="dialog-buttons">
-          <button onclick={cancelGamepadAxisConfig}>Cancel</button>
-        </div>
-      {/if}
-    </div>
-  </div>
-{:else if dialogMode === 'gp-button-capture'}
-  <div class="dialog-overlay">
-    <div class="dialog">
-      <p class="dialog-title">Bind Gamepad Button</p>
-      <p>Command: <strong>{dialogCommand}</strong></p>
-      <p class="dialog-prompt">Press the gamepad button you want to bind…</p>
-      <div class="dialog-buttons">
-        <button onclick={cancelGamepadButtonCapture}>Cancel</button>
-      </div>
-    </div>
-  </div>
-{:else if dialogMode === 'gp-button-confirm'}
-  <div class="dialog-overlay">
-    <div class="dialog">
-      <p class="dialog-title">Bind Gamepad Button</p>
-      <p>Button: <strong>B{gpCapturedButton}</strong></p>
-      <p>Command: <strong>{dialogCommand}</strong></p>
-      {#if gpButtonExistingCmd}
-        <p class="dialog-warn">Already bound to: <strong>{gpButtonExistingCmd}</strong></p>
-        <p>Overwrite?</p>
-      {/if}
-      <div class="dialog-buttons">
-        <button class="btn-primary" onclick={confirmGamepadButtonBind}>
-          {gpButtonExistingCmd ? 'Overwrite' : 'Bind'}
-        </button>
-        <button onclick={cancelGamepadButtonBind}>Cancel</button>
-      </div>
-    </div>
-  </div>
-{:else if dialogMode === 'bind-cmd-key-input'}
-  <div class="dialog-overlay">
-    <div class="dialog">
-      <p class="dialog-title">Bind command to key</p>
-      <label class="dialog-field-label" for="bind-cmd-key-input">Command:</label>
-      <!-- svelte-ignore a11y_autofocus -->
-      <input id="bind-cmd-key-input" class="dialog-input" type="text" bind:value={dialogCommand} autofocus />
-      <label class="dialog-checkbox-label">
-        <input type="checkbox" bind:checked={dialogBindCmdEdit} />
-        Further edit
-      </label>
-      <label class="dialog-checkbox-label">
-        <input type="checkbox" bind:checked={dialogBindCmdAny} />
-        Any modifier
-      </label>
-      <div class="dialog-buttons">
-        <button class="btn-primary" disabled={!dialogCommand} onclick={beginBindCmdKeyCapture}>Capture Key…</button>
-        <button onclick={cancelBindCmdKey}>Cancel</button>
-      </div>
-    </div>
-  </div>
-{:else if dialogMode === 'bind-cmd-key-capture'}
-  <div class="dialog-overlay">
-    <div class="dialog">
-      <p class="dialog-title">Bind command to key</p>
-      <p>Command: <strong>{dialogCommand}</strong></p>
-      <p class="dialog-prompt">Press the key combination you want to bind…</p>
-      <div class="dialog-buttons">
-        <button onclick={cancelBindCmdKeyCapture}>Cancel</button>
-      </div>
-    </div>
-  </div>
-{:else if dialogMode === 'bind-cmd-key-confirm'}
-  <div class="dialog-overlay">
-    <div class="dialog">
-      <p class="dialog-title">Bind command to key</p>
-      <p>Key: <strong>{dialogKeyStr}</strong></p>
-      <p>Command: <strong>{dialogCommand}</strong></p>
-      {#if dialogExisting}
-        <p class="dialog-warn">Already bound to: <strong>{dialogExisting.command}</strong></p>
-        <p>Overwrite?</p>
-      {/if}
-      <div class="dialog-buttons">
-        <button class="btn-primary" onclick={confirmBindCmdKey}>
-          {dialogExisting ? 'Overwrite' : 'Bind'}
-        </button>
-        <button onclick={cancelBindCmdKeyConfirm}>Cancel</button>
-      </div>
-    </div>
-  </div>
-{:else if dialogMode === 'bind-cmd-gp-input'}
-  <div class="dialog-overlay">
-    <div class="dialog">
-      <p class="dialog-title">Bind command to gamepad button</p>
-      <label class="dialog-field-label" for="bind-cmd-gp-input">Command:</label>
-      <!-- svelte-ignore a11y_autofocus -->
-      <input id="bind-cmd-gp-input" class="dialog-input" type="text" bind:value={dialogCommand} autofocus />
-      <div class="dialog-buttons">
-        <button class="btn-primary" disabled={!dialogCommand} onclick={beginBindCmdGpCapture}>Capture Button…</button>
-        <button onclick={cancelBindCmdGp}>Cancel</button>
-      </div>
-    </div>
-  </div>
-{:else if dialogMode === 'bind-cmd-gp-capture'}
-  <div class="dialog-overlay">
-    <div class="dialog">
-      <p class="dialog-title">Bind command to gamepad button</p>
-      <p>Command: <strong>{dialogCommand}</strong></p>
-      <p class="dialog-prompt">Press the gamepad button you want to bind…</p>
-      <div class="dialog-buttons">
-        <button onclick={cancelBindCmdGpCapture}>Cancel</button>
-      </div>
-    </div>
-  </div>
-{:else if dialogMode === 'bind-cmd-gp-confirm'}
-  <div class="dialog-overlay">
-    <div class="dialog">
-      <p class="dialog-title">Bind command to gamepad button</p>
-      <p>Button: <strong>B{gpCapturedButton}</strong></p>
-      <p>Command: <strong>{dialogCommand}</strong></p>
-      {#if gpButtonExistingCmd}
-        <p class="dialog-warn">Already bound to: <strong>{gpButtonExistingCmd}</strong></p>
-        <p>Overwrite?</p>
-      {/if}
-      <div class="dialog-buttons">
-        <button class="btn-primary" onclick={confirmBindCmdGp}>
-          {gpButtonExistingCmd ? 'Overwrite' : 'Bind'}
-        </button>
-        <button onclick={cancelBindCmdGpConfirm}>Cancel</button>
-      </div>
-    </div>
-  </div>
-{/if}
+<MenuBarDialogs
+  {dialogMode}
+  bind:dialogCommand
+  {dialogKeyStr}
+  {dialogExisting}
+  bind:dialogBindCmdEdit
+  bind:dialogBindCmdAny
+  {gpAxisTarget}
+  {gpAxisStep}
+  {gpAxisTestDir}
+  {gpCapturedButton}
+  {gpButtonExistingCmd}
+  onCancelBind={cancelBind}
+  onConfirmBind={confirmBind}
+  onCancelUnbind={cancelUnbind}
+  onConfirmUnbind={confirmUnbind}
+  onCloseBindings={closeBindings}
+  onCloseAbout={closeAbout}
+  onCloseGamepadBindings={closeGamepadBindings}
+  onAcceptAxisConfig={handleAcceptAxisConfig}
+  onCancelGamepadAxisConfig={cancelGamepadAxisConfig}
+  onCancelGamepadButtonCapture={cancelGamepadButtonCapture}
+  onConfirmGamepadButtonBind={confirmGamepadButtonBind}
+  onCancelGamepadButtonBind={cancelGamepadButtonBind}
+  onRemoveGamepadButton={handleRemoveGamepadButton}
+  onBeginBindCmdKeyCapture={beginBindCmdKeyCapture}
+  onCancelBindCmdKey={cancelBindCmdKey}
+  onCancelBindCmdKeyCapture={cancelBindCmdKeyCapture}
+  onConfirmBindCmdKey={confirmBindCmdKey}
+  onCancelBindCmdKeyConfirm={cancelBindCmdKeyConfirm}
+  onBeginBindCmdGpCapture={beginBindCmdGpCapture}
+  onCancelBindCmdGp={cancelBindCmdGp}
+  onCancelBindCmdGpCapture={cancelBindCmdGpCapture}
+  onConfirmBindCmdGp={confirmBindCmdGp}
+  onCancelBindCmdGpConfirm={cancelBindCmdGpConfirm}
+/>
 
 <style>
   .menu-bar {
@@ -968,172 +712,6 @@
     color: #7a6a4a;
     font-size: 0.75rem;
     padding-right: 0.5rem;
-  }
-
-  /* ── Dialog styles ── */
-  .dialog-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.6);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 200;
-  }
-
-  .dialog {
-    background: #2a2a2a;
-    border: 1px solid #555;
-    border-radius: 4px;
-    padding: 1.5rem;
-    min-width: 320px;
-    max-width: 480px;
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.7);
-    color: #c0c0c0;
-    font-size: 0.85rem;
-  }
-
-  .dialog p {
-    margin: 0.4rem 0;
-  }
-
-  .dialog-title {
-    font-size: 1rem;
-    font-weight: bold;
-    color: #e0d0b0;
-    margin-bottom: 0.8rem !important;
-  }
-
-  .dialog-prompt {
-    color: #aaa;
-    font-style: italic;
-  }
-
-  .dialog-warn {
-    color: #ff8800;
-  }
-
-  .dialog-field-label {
-    display: block;
-    margin-bottom: 0.25rem;
-    color: #aaa;
-  }
-
-  .dialog-input {
-    width: 100%;
-    box-sizing: border-box;
-    padding: 0.3rem 0.5rem;
-    border: 1px solid #555;
-    border-radius: 3px;
-    background: #1a1a1a;
-    color: #c0c0c0;
-    font-size: 0.85rem;
-    margin-bottom: 0.6rem;
-  }
-
-  .dialog-checkbox-label {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-    color: #c0c0c0;
-    cursor: pointer;
-    margin-bottom: 0.35rem;
-  }
-
-  .dialog-buttons {
-    display: flex;
-    gap: 0.5rem;
-    margin-top: 1rem;
-    justify-content: flex-end;
-  }
-
-  .dialog-buttons button {
-    padding: 0.35rem 0.9rem;
-    border: 1px solid #555;
-    border-radius: 3px;
-    background: #333;
-    color: #c0c0c0;
-    cursor: pointer;
-    font-size: 0.8rem;
-  }
-
-  .dialog-buttons button:hover {
-    background: #444;
-  }
-
-  .btn-primary {
-    border-color: #4488ff !important;
-    color: #88bbff !important;
-  }
-
-  .btn-danger {
-    border-color: #ff4444 !important;
-    color: #ff8888 !important;
-  }
-
-  .dialog-wide {
-    max-width: 600px;
-    min-width: 400px;
-  }
-
-  .bindings-table-wrapper {
-    max-height: 400px;
-    overflow-y: auto;
-    margin: 0.5rem 0;
-  }
-
-  .bindings-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.8rem;
-  }
-
-  .bindings-table th,
-  .bindings-table td {
-    padding: 0.25rem 0.5rem;
-    text-align: left;
-    border-bottom: 1px solid #444;
-  }
-
-  .bindings-table th {
-    color: #e0d0b0;
-    position: sticky;
-    top: 0;
-    background: #2a2a2a;
-  }
-
-  .bindings-table td {
-    color: #c0c0c0;
-  }
-
-  .dialog a {
-    color: #88bbff;
-    text-decoration: none;
-  }
-
-  .dialog a:hover {
-    text-decoration: underline;
-  }
-
-  .dialog-credits {
-    color: #aaa;
-    font-size: 0.8rem;
-    margin-top: 0.8rem !important;
-  }
-
-  .btn-small {
-    padding: 0.1rem 0.4rem !important;
-    font-size: 0.7rem !important;
-    min-width: 0 !important;
-  }
-
-  .axis-test-direction {
-    font-size: 1.2rem;
-    font-weight: bold;
-    color: #e0d0b0;
-    text-align: center;
-    padding: 0.5rem 0;
-    text-transform: capitalize;
   }
 
   .dropdown button:disabled {
