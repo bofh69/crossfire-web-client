@@ -156,6 +156,10 @@ function updateMoveToCallbacks(): void {
     });
 }
 
+// Initialize move-to callbacks once at module load so set_move_to() can use
+// the current player position even before movement handlers are injected.
+updateMoveToCallbacks();
+
 // ──────────────────────────────────────────────────────────────────────────────
 // Factory helpers
 // ──────────────────────────────────────────────────────────────────────────────

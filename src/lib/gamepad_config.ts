@@ -8,8 +8,6 @@
  */
 
 import type { StickAxes, GamepadProfile } from "./gamepad_defaults";
-import { LOG } from "./misc";
-import { LogLevel } from "./protocol";
 
 // ── Types ───────────────────────────────────────────────────────────────────
 

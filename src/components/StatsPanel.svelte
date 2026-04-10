@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { expBarPercent, playerStats } from '../lib/commands';
+  import { expBarPercent } from '../lib/commands';
   import type { Stats } from '../lib/protocol';
   import { gameEvents } from '../lib/events';
 

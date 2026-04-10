@@ -33,13 +33,8 @@ import {
     isAxisConfigActive, isButtonConfigActive,
     handleAxisConfig as doHandleAxisConfig,
     handleButtonConfig as doHandleButtonConfig,
-    startAxisConfig as doStartAxisConfig,
-    cancelAxisConfig as doCancelAxisConfig,
     acceptAxisConfig as doAcceptAxisConfig,
     getAxisTestDirection as doGetAxisTestDirection,
-    startButtonConfig as doStartButtonConfig,
-    cancelButtonConfig as doCancelButtonConfig,
-    type AxisConfigTarget, type AxisConfigStep,
 } from "./gamepad_config";
 import {
     notifyHpUpdate as doNotifyHpUpdate,
