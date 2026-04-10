@@ -188,11 +188,9 @@
     ];
 
     return () => {
-      // Unsubscribe all handlers except query and drawInfo:
-      // wireCallbacks() in App.svelte sets them synchronously before this
-      // cleanup runs (Svelte defers $effect cleanup to the next microtask),
-      // so the App's subscriptions are already active.  The event bus supports
-      // multiple listeners, so no conflict arises.
+      // Unsubscribe all Login-screen handlers.  The event bus supports
+      // multiple listeners, so App.svelte's own subscriptions (registered
+      // in wireCallbacks()) coexist without conflict.
       for (const unsub of cleanups) unsub();
     };
   });
