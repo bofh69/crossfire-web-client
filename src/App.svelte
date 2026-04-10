@@ -2,7 +2,8 @@
   import { onMount } from 'svelte';
   import { clientInit, getCpl } from './lib/init';
   import { initCommands, setPCmdCallbacks } from './lib/p_cmd';
-  import { callbacks, playerStats, spells } from './lib/commands';
+  import { playerStats, spells } from './lib/commands';
+  import { gameEvents } from './lib/events';
   import { locateItem, animateObjects } from './lib/item';
   import { sendReply } from './lib/player';
   import {
@@ -263,6 +264,9 @@
     initSound();
   }
 
+  /** Unsubscribe functions for game event subscriptions. */
+  let eventCleanups: (() => void)[] = [];
+
   function handleDisconnect() {
     // Stop self-tick timer
     if (selfTickTimer !== null) {
@@ -273,19 +277,10 @@
     // Stop all sound/music
     stopAllSound();
 
-    // Clear callbacks to avoid stale references
-    callbacks.onDrawInfo = undefined;
-    callbacks.onDrawExtInfo = undefined;
-    callbacks.onStatsUpdate = undefined;
-    callbacks.onMapUpdate = undefined;
-    callbacks.onNewMap = undefined;
-    callbacks.onMagicMap = undefined;
-    callbacks.onSpellUpdate = undefined;
-    callbacks.onPlayerUpdate = undefined;
-    callbacks.onPickupUpdate = undefined;
-    callbacks.onTick = undefined;
-    callbacks.onGoodbye = undefined;
-    callbacks.onQuery = undefined;
+    // Unsubscribe all event handlers to avoid stale references
+    for (const unsub of eventCleanups) unsub();
+    eventCleanups = [];
+
     gameQueryPrompt = '';
     gameQuerySingleChar = false;
     gameQueryYesNo = false;
@@ -294,81 +289,101 @@
   }
 
   function wireCallbacks() {
-    callbacks.onDrawInfo = (color: number, message: string) => {
-      infoPanel?.addMessage(color, message);
-    };
+    eventCleanups.push(
+      gameEvents.on('drawInfo', (color: number, message: string) => {
+        infoPanel?.addMessage(color, message);
+      }),
 
-    callbacks.onDrawExtInfo = (color: number, _type: number, _subtype: number, message: string) => {
-      infoPanel?.addMessage(color, message);
-    };
+      gameEvents.on('drawExtInfo', (color: number, _type: number, _subtype: number, message: string) => {
+        infoPanel?.addMessage(color, message);
+      }),
 
-    callbacks.onStatsUpdate = (stats: Partial<Stats>) => {
-      statsPanel?.updateStats(stats);
-      skillList?.updateSkills(playerStats);
-      protectionList?.updateProtections(playerStats);
-      if (stats.range !== undefined) {
-        menuBar?.setRange(stats.range);
-      }
-      if (stats.hp !== undefined) {
-        notifyHpUpdate(playerStats.hp, playerStats.maxhp);
-      }
-    };
+      gameEvents.on('statsUpdate', (stats: Partial<Stats>) => {
+        statsPanel?.updateStats(stats);
+        skillList?.updateSkills(playerStats);
+        protectionList?.updateProtections(playerStats);
+        if (stats.range !== undefined) {
+          menuBar?.setRange(stats.range);
+        }
+        if (stats.hp !== undefined) {
+          notifyHpUpdate(playerStats.hp, playerStats.maxhp);
+        }
+      }),
 
-    callbacks.onQuery = (flags: number, prompt: string) => {
-      // If the server sends an empty prompt, reuse the previous prompt text.
-      if (prompt) {
-        lastGameQueryPrompt = prompt;
-      }
-      gameQueryPrompt = lastGameQueryPrompt;
-      gameQueryHidden = (flags & CS_QUERY_HIDEINPUT) !== 0;
-      gameQuerySingleChar = (flags & CS_QUERY_SINGLECHAR) !== 0;
-      gameQueryYesNo = (flags & CS_QUERY_YESNO) !== 0;
-      gameQueryInput = '';
-    };
+      gameEvents.on('query', (flags: number, prompt: string) => {
+        // If the server sends an empty prompt, reuse the previous prompt text.
+        if (prompt) {
+          lastGameQueryPrompt = prompt;
+        }
+        gameQueryPrompt = lastGameQueryPrompt;
+        gameQueryHidden = (flags & CS_QUERY_HIDEINPUT) !== 0;
+        gameQuerySingleChar = (flags & CS_QUERY_SINGLECHAR) !== 0;
+        gameQueryYesNo = (flags & CS_QUERY_YESNO) !== 0;
+        gameQueryInput = '';
+      }),
 
-    callbacks.onMapUpdate = () => {
-      gameMap?.redrawMap();
-    };
+      gameEvents.on('mapUpdate', () => {
+        gameMap?.redrawMap();
+      }),
 
-    callbacks.onNewMap = () => {
-      gameMap?.redrawMap();
-      // Switching to a new map hides the magic map overlay.
-      showMagicMap = false;
-    };
-
-    callbacks.onMagicMap = () => {
-      showMagicMap = true;
-      magicMap?.show();
-    };
-
-    callbacks.onSpellUpdate = () => {
-      spellList?.updateSpells(spells);
-    };
-
-    callbacks.onPlayerUpdate = () => {
-      refreshInventory();
-    };
-
-    callbacks.onPickupUpdate = (mode: number) => {
-      menuBar?.setPickupMode(mode);
-    };
-
-    callbacks.onTick = (_tickNo: number) => {
-      mapdata_animation();
-      animateObjects();
-      gameMap?.redrawMap();
-      refreshInventory();
-
-      // Flash player position on the magic map.
-      const cpl = getCpl();
-      if (cpl && cpl.showmagic && showMagicMap) {
-        magicMap?.flashPlayerPos();
-        cpl.showmagic ^= SHOWMAGIC_FLASH_BIT;
-      } else if (showMagicMap && cpl && !cpl.showmagic) {
-        // User closed via the MagicMap component's close button.
+      gameEvents.on('newMap', () => {
+        gameMap?.redrawMap();
+        // Switching to a new map hides the magic map overlay.
         showMagicMap = false;
-      }
-    };
+      }),
+
+      gameEvents.on('magicMap', () => {
+        showMagicMap = true;
+        magicMap?.show();
+      }),
+
+      gameEvents.on('spellUpdate', () => {
+        spellList?.updateSpells(spells);
+      }),
+
+      gameEvents.on('playerUpdate', () => {
+        refreshInventory();
+      }),
+
+      gameEvents.on('pickupUpdate', (mode: number) => {
+        menuBar?.setPickupMode(mode);
+      }),
+
+      gameEvents.on('tick', (_tickNo: number) => {
+        mapdata_animation();
+        animateObjects();
+        gameMap?.redrawMap();
+        refreshInventory();
+
+        // Flash player position on the magic map.
+        const cpl = getCpl();
+        if (cpl && cpl.showmagic && showMagicMap) {
+          magicMap?.flashPlayerPos();
+          cpl.showmagic ^= SHOWMAGIC_FLASH_BIT;
+        } else if (showMagicMap && cpl && !cpl.showmagic) {
+          // User closed via the MagicMap component's close button.
+          showMagicMap = false;
+        }
+      }),
+
+      gameEvents.on('goodbye', () => {
+        handleDisconnect();
+      }),
+
+      gameEvents.on('disconnect', () => {
+        // Server closed the connection unexpectedly while we're in the game.
+        serverDisconnected = true;
+      }),
+
+      // Wire addme_success for in-session reconnects (e.g. after the server
+      // asks the user to reconnect when leaving the game).
+      gameEvents.on('addMeSuccess', () => {
+        serverDisconnected = false;
+        gameQueryPrompt = '';
+        gameQuerySingleChar = false;
+        gameQueryYesNo = false;
+      }),
+    );
 
     // Self-tick fallback: if the server doesn't send ticks, drive
     // animations with a local 8 fps timer (matching the old C client).
@@ -388,24 +403,6 @@
         }
       }, 125);
     }
-
-    callbacks.onGoodbye = () => {
-      handleDisconnect();
-    };
-
-    callbacks.onDisconnect = () => {
-      // Server closed the connection unexpectedly while we're in the game.
-      serverDisconnected = true;
-    };
-
-    // Wire addme_success for in-session reconnects (e.g. after the server
-    // asks the user to reconnect when leaving the game).
-    callbacks.onAddMeSuccess = () => {
-      serverDisconnected = false;
-      gameQueryPrompt = '';
-      gameQuerySingleChar = false;
-      gameQueryYesNo = false;
-    };
   }
 
   function refreshInventory() {

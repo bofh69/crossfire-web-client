@@ -35,42 +35,7 @@ import { LOG } from './misc.js';
 import { LogLevel } from './protocol.js';
 import { playSound, playMusic } from './sound.js';
 
-/** Account player info */
-export interface AccountPlayer {
-  name: string;
-  charClass: string;
-  race: string;
-  face: string;
-  party: string;
-  map: string;
-  level: number;
-  faceNum: number;
-}
-
-/** UI callback interface */
-export interface CommandCallbacks {
-  onDrawInfo?: (color: number, message: string) => void;
-  onDrawExtInfo?: (color: number, type: number, subtype: number, message: string) => void;
-  onStatsUpdate?: (stats: Partial<Stats>) => void;
-  onQuery?: (flags: number, prompt: string) => void;
-  onNewMap?: () => void;
-  onMapUpdate?: () => void;
-  onPlayerUpdate?: () => void;
-  onSpellUpdate?: () => void;
-  onPickupUpdate?: (mode: number) => void;
-  onAccountPlayers?: (players: AccountPlayer[]) => void;
-  onFailure?: (command: string, message: string) => void;
-  onMagicMap?: () => void;
-  onTick?: (tickNo: number) => void;
-  onGoodbye?: () => void;
-  onAddMeSuccess?: () => void;
-  onAddMeFail?: () => void;
-  onVersion?: (csVersion: number, scVersion: number, versionString: string) => void;
-  onDisconnect?: () => void;
-  onReplyInfo?: (infoType: string, text: string) => void;
-}
-
-export const callbacks: CommandCallbacks = {};
+import { gameEvents, type AccountPlayer } from './events.js';
 
 let csocket: CrossfireSocket | null = null;
 
@@ -162,7 +127,7 @@ function DrawInfoCmd(data: string): void {
   const color = parseInt(data.substring(0, spaceIdx));
   const message = data.substring(spaceIdx + 1);
   console.log(`[drawinfo] ${message}`);
-  callbacks.onDrawInfo?.(color & NDI_COLOR_MASK, message);
+  gameEvents.emit('drawInfo', color & NDI_COLOR_MASK, message);
 }
 
 function DrawExtInfoCmd(data: string): void {
@@ -177,7 +142,7 @@ function DrawExtInfoCmd(data: string): void {
   const type = parseInt(data.substring(s1 + 1));
   const subtype = parseInt(data.substring(s2 + 1));
   const message = s3 >= 0 ? data.substring(s3 + 1) : '';
-  callbacks.onDrawExtInfo?.(color & NDI_COLOR_MASK, type, subtype, message);
+  gameEvents.emit('drawExtInfo', color & NDI_COLOR_MASK, type, subtype, message);
 }
 
 function StatsCmd(data: DataView, len: number): void {
@@ -248,7 +213,7 @@ function StatsCmd(data: DataView, len: number): void {
         break;
     }
   }
-  callbacks.onStatsUpdate?.(playerStats);
+  gameEvents.emit('statsUpdate', playerStats);
 }
 
 function handleQuery(data: string): void {
@@ -260,7 +225,7 @@ function handleQuery(data: string): void {
   if (prompt.endsWith('\n:') && prompt.length > 2) {
     prompt = prompt.slice(0, -2);
   }
-  callbacks.onQuery?.(flags, prompt.trim());
+  gameEvents.emit('query', flags, prompt.trim());
 }
 
 function PlayerCmd(data: DataView, len: number): void {
@@ -285,7 +250,7 @@ function PlayerCmd(data: DataView, len: number): void {
   newPlayer(tag, name, weight, face);
   registerPlayerTag(tag);
   LOG(LogLevel.Info, 'PlayerCmd', `Player: ${name} tag=${tag}`);
-  callbacks.onPlayerUpdate?.();
+  gameEvents.emit('playerUpdate');
 }
 
 function Item2Cmd(data: DataView, len: number): void {
@@ -305,7 +270,7 @@ function Item2Cmd(data: DataView, len: number): void {
     const type = getShortFromData(data, pos); pos += 2;
     updateItem(tag, location, name, weight, face, flags, anim, animSpeed, nrof, type);
   }
-  callbacks.onPlayerUpdate?.();
+  gameEvents.emit('playerUpdate');
 }
 
 function UpdateItemCmd(data: DataView, len: number): void {
@@ -359,7 +324,7 @@ function UpdateItemCmd(data: DataView, len: number): void {
   }
 
   updateItem(tag, loc, name, weight, face, flags, anim, animspeed, nrof, item.type);
-  callbacks.onPlayerUpdate?.();
+  gameEvents.emit('playerUpdate');
 }
 
 function DeleteItemCmd(data: DataView, len: number): void {
@@ -369,7 +334,7 @@ function DeleteItemCmd(data: DataView, len: number): void {
     const item = locateItem(tag);
     if (item) removeItem(item);
   }
-  callbacks.onPlayerUpdate?.();
+  gameEvents.emit('playerUpdate');
 }
 
 function DeleteInventoryCmd(data: string): void {
@@ -380,7 +345,7 @@ function DeleteInventoryCmd(data: string): void {
   } else {
     LOG(LogLevel.Warning, 'DeleteInventoryCmd', `Invalid tag: ${tag}`);
   }
-  callbacks.onPlayerUpdate?.();
+  gameEvents.emit('playerUpdate');
 }
 
 function AddspellCmd(data: DataView, len: number): void {
@@ -419,7 +384,7 @@ function AddspellCmd(data: DataView, len: number): void {
     };
     spells.push(spell);
   }
-  callbacks.onSpellUpdate?.();
+  gameEvents.emit('spellUpdate');
 }
 
 function UpdspellCmd(data: DataView, len: number): void {
@@ -431,19 +396,19 @@ function UpdspellCmd(data: DataView, len: number): void {
   if (flags & UPD_SP_MANA) { spell.sp = getShortFromData(data, pos); pos += 2; }
   if (flags & UPD_SP_GRACE) { spell.grace = getShortFromData(data, pos); pos += 2; }
   if (flags & UPD_SP_DAMAGE) { spell.dam = getShortFromData(data, pos); pos += 2; }
-  callbacks.onSpellUpdate?.();
+  gameEvents.emit('spellUpdate');
 }
 
 function DeleteSpellCmd(data: DataView, len: number): void {
   const tag = getIntFromData(data, 0);
   const idx = spells.findIndex(s => s.tag === tag);
   if (idx >= 0) spells.splice(idx, 1);
-  callbacks.onSpellUpdate?.();
+  gameEvents.emit('spellUpdate');
 }
 
 function NewmapCmd(): void {
   mapdata_newmap();
-  callbacks.onNewMap?.();
+  gameEvents.emit('newMap');
 }
 
 function Map2Cmd(data: DataView, len: number): void {
@@ -536,14 +501,14 @@ function Map2Cmd(data: DataView, len: number): void {
   if (elapsed > 1 || tileCount > 10) {
     LOG(LogLevel.Debug, 'perf:map2', `parsed ${tileCount} tiles from ${len}B in ${elapsed.toFixed(1)}ms`);
   }
-  callbacks.onMapUpdate?.();
+  gameEvents.emit('mapUpdate');
 }
 
 function mapScrollCmd(data: string): void {
   const parts = data.trim().split(' ');
   if (parts.length >= 2) {
     mapdata_scroll(parseInt(parts[0]), parseInt(parts[1]));
-    callbacks.onMapUpdate?.();
+    gameEvents.emit('mapUpdate');
   }
 }
 
@@ -607,12 +572,12 @@ function MagicMapCmd(data: DataView, len: number): void {
   LOG(LogLevel.Info, 'MagicMapCmd',
     `Received magic map ${mmapx}x${mmapy}, player at (${pmapx},${pmapy})`);
 
-  callbacks.onMagicMap?.();
+  gameEvents.emit('magicMap');
 }
 
 function TickCmd(data: DataView, _len: number): void {
   const tickNo = getIntFromData(data, 0);
-  callbacks.onTick?.(tickNo);
+  gameEvents.emit('tick', tickNo);
 }
 
 /**
@@ -632,7 +597,7 @@ function ComcCmd(data: DataView, len: number): void {
 function PickupCmd(data: DataView, _len: number): void {
   const mode = getIntFromData(data, 0);
   LOG(LogLevel.Debug, 'PickupCmd', `Pickup mode: ${mode}`);
-  callbacks.onPickupUpdate?.(mode >>> 0); // unsigned
+  gameEvents.emit('pickupUpdate', mode >>> 0); // unsigned
 }
 
 function FailureCmd(data: string): void {
@@ -640,7 +605,7 @@ function FailureCmd(data: string): void {
   const command = spaceIdx > 0 ? data.substring(0, spaceIdx) : data;
   const message = spaceIdx > 0 ? data.substring(spaceIdx + 1) : '';
   LOG(LogLevel.Warning, 'FailureCmd', `${command}: ${message}`);
-  callbacks.onFailure?.(command, message);
+  gameEvents.emit('failure', command, message);
 }
 
 function AccountPlayersCmd(data: string): void {
@@ -658,7 +623,7 @@ function AccountPlayersCmd(data: string): void {
       });
     }
   }
-  callbacks.onAccountPlayers?.(players);
+  gameEvents.emit('accountPlayers', players);
 }
 
 function AnimCmd(data: DataView, len: number): void {
@@ -691,7 +656,7 @@ function VersionCmd(data: string): void {
   const scVer = parts.length > 1 ? parseInt(parts[1]) : 0;
   const verStr = parts.length > 2 ? parts[2] : '';
   LOG(LogLevel.Info, 'VersionCmd', `Server version: cs=${csVer} sc=${scVer} ${verStr}`);
-  callbacks.onVersion?.(csVer, scVer, verStr);
+  gameEvents.emit('version', csVer, scVer, verStr);
 }
 
 function ReplyInfoCmd(data: DataView, len: number): void {
@@ -727,7 +692,7 @@ function ReplyInfoCmd(data: DataView, len: number): void {
       }
     }
     // Notify the UI so skill names are shown immediately (stats may already be set).
-    callbacks.onStatsUpdate?.(playerStats);
+    gameEvents.emit('statsUpdate', playerStats);
   } else if (infoType === 'exp_table') {
     // Binary format: 2-byte uint16 (max level count N), then N×8-byte int64 values
     // for levels 1..N.  expTable[0]=0n is the implicit base; expTable[level] is the
@@ -745,24 +710,24 @@ function ReplyInfoCmd(data: DataView, len: number): void {
     }
   } else if (infoType === 'motd' || infoType === 'news' || infoType === 'rules') {
     const text = new TextDecoder().decode(bytes.subarray(spaceIdx + 1));
-    callbacks.onReplyInfo?.(infoType, text);
+    gameEvents.emit('replyInfo', infoType, text);
   }
   LOG(LogLevel.Debug, 'ReplyInfoCmd', `Info type: ${infoType}`);
 }
 
 function GoodbyeCmd(): void {
   LOG(LogLevel.Info, 'GoodbyeCmd', 'Server said goodbye');
-  callbacks.onGoodbye?.();
+  gameEvents.emit('goodbye');
 }
 
 function AddMeFail(): void {
   LOG(LogLevel.Warning, 'AddMeFail', 'Failed to add player');
-  callbacks.onAddMeFail?.();
+  gameEvents.emit('addMeFail');
 }
 
 function AddMeSuccess(): void {
   LOG(LogLevel.Info, 'AddMeSuccess', 'Player added successfully');
-  callbacks.onAddMeSuccess?.();
+  gameEvents.emit('addMeSuccess');
 }
 
 // --- Sound / Music commands ------------------------------------------------
