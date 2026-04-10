@@ -12,7 +12,8 @@
  */
 
 import { NDI_COLOR_MASK, CS_STAT_SKILLINFO, CS_NUM_SKILLS } from './protocol.js';
-import { getIntFromData, getShortFromData, getStringFromData, CrossfireSocket } from './newsocket.js';
+import { getStringFromData, CrossfireSocket } from './newsocket.js';
+import { BinaryReader } from './binary_reader.js';
 import { setCSocket as setItemSocket } from './item.js';
 import { getImageInfo, getImageSums, Face2Cmd as imageFace2Cmd, Image2Cmd as imageImage2Cmd } from './image.js';
 import { notifyNcomAck } from './player.js';
@@ -83,8 +84,8 @@ function handleQuery(data: string): void {
   gameEvents.emit('query', flags, prompt.trim());
 }
 
-function TickCmd(data: DataView, _len: number): void {
-  const tickNo = getIntFromData(data, 0);
+function TickCmd(data: DataView, len: number): void {
+  const tickNo = new BinaryReader(data, len).readInt32();
   gameEvents.emit('tick', tickNo);
 }
 
@@ -93,14 +94,14 @@ function ComcCmd(data: DataView, len: number): void {
     LOG(LogLevel.Error, 'ComcCmd', `Invalid comc length ${len} - ignoring`);
     return;
   }
-  const seq = getShortFromData(data, 0);
+  const seq = new BinaryReader(data, len).readInt16();
   notifyNcomAck(seq);
 }
 
-function PickupCmd(data: DataView, _len: number): void {
-  const mode = getIntFromData(data, 0);
+function PickupCmd(data: DataView, len: number): void {
+  const mode = new BinaryReader(data, len).readUint32();
   LOG(LogLevel.Debug, 'PickupCmd', `Pickup mode: ${mode}`);
-  gameEvents.emit('pickupUpdate', mode >>> 0);
+  gameEvents.emit('pickupUpdate', mode);
 }
 
 function FailureCmd(data: string): void {

@@ -14,10 +14,7 @@ import {
   CS_STAT_GOLEM_HP, CS_STAT_GOLEM_MAXHP,
   type Stats,
 } from './protocol.js';
-import {
-  getCharFromData, getShortFromData, getIntFromData, getInt64FromData,
-  getStringFromData,
-} from './newsocket.js';
+import { BinaryReader } from './binary_reader.js';
 import { LOG } from './misc.js';
 import { LogLevel } from './protocol.js';
 import { gameEvents } from './events.js';
@@ -67,51 +64,49 @@ export function expBarPercent(exp: bigint, level: number): number {
 }
 
 export function StatsCmd(data: DataView, len: number): void {
-  let pos = 0;
-  while (pos < len) {
-    const stat = getCharFromData(data, pos); pos += 1;
+  const reader = new BinaryReader(data, len);
+  while (reader.remaining > 0) {
+    const stat = reader.readUint8();
     switch (stat) {
-      case CS_STAT_HP: playerStats.hp = getShortFromData(data, pos); pos += 2; break;
-      case CS_STAT_MAXHP: playerStats.maxhp = getShortFromData(data, pos); pos += 2; break;
-      case CS_STAT_SP: playerStats.sp = getShortFromData(data, pos); pos += 2; break;
-      case CS_STAT_MAXSP: playerStats.maxsp = getShortFromData(data, pos); pos += 2; break;
-      case CS_STAT_GRACE: playerStats.grace = getShortFromData(data, pos); pos += 2; break;
-      case CS_STAT_MAXGRACE: playerStats.maxgrace = getShortFromData(data, pos); pos += 2; break;
-      case CS_STAT_STR: playerStats.Str = getShortFromData(data, pos); pos += 2; break;
-      case CS_STAT_INT: playerStats.Int = getShortFromData(data, pos); pos += 2; break;
-      case CS_STAT_WIS: playerStats.Wis = getShortFromData(data, pos); pos += 2; break;
-      case CS_STAT_DEX: playerStats.Dex = getShortFromData(data, pos); pos += 2; break;
-      case CS_STAT_CON: playerStats.Con = getShortFromData(data, pos); pos += 2; break;
-      case CS_STAT_CHA: playerStats.Cha = getShortFromData(data, pos); pos += 2; break;
-      case CS_STAT_POW: playerStats.Pow = getShortFromData(data, pos); pos += 2; break;
-      case CS_STAT_LEVEL: playerStats.level = getShortFromData(data, pos); pos += 2; break;
-      case CS_STAT_WC: playerStats.wc = getShortFromData(data, pos); pos += 2; break;
-      case CS_STAT_AC: playerStats.ac = getShortFromData(data, pos); pos += 2; break;
-      case CS_STAT_DAM: playerStats.dam = getShortFromData(data, pos); pos += 2; break;
-      case CS_STAT_ARMOUR: playerStats.resists[0] = getShortFromData(data, pos); pos += 2; break;
-      case CS_STAT_SPEED: playerStats.speed = getIntFromData(data, pos); pos += 4; break;
-      case CS_STAT_FOOD: playerStats.food = getShortFromData(data, pos); pos += 2; break;
-      case CS_STAT_WEAP_SP: playerStats.weaponSp = getIntFromData(data, pos); pos += 4; break;
-      case CS_STAT_FLAGS: playerStats.flags = getShortFromData(data, pos); pos += 2; break;
-      case CS_STAT_WEIGHT_LIM: playerStats.weightLimit = getIntFromData(data, pos); pos += 4; break;
-      case CS_STAT_EXP64: playerStats.exp = getInt64FromData(data, pos); pos += 8; break;
-      case CS_STAT_SPELL_ATTUNE: playerStats.attuned = getIntFromData(data, pos); pos += 4; break;
-      case CS_STAT_SPELL_REPEL: playerStats.repelled = getIntFromData(data, pos); pos += 4; break;
-      case CS_STAT_SPELL_DENY: playerStats.denied = getIntFromData(data, pos); pos += 4; break;
-      case CS_STAT_GOLEM_HP: playerStats.golemHp = getIntFromData(data, pos); pos += 4; break;
-      case CS_STAT_GOLEM_MAXHP: playerStats.golemMaxhp = getIntFromData(data, pos); pos += 4; break;
+      case CS_STAT_HP: playerStats.hp = reader.readInt16(); break;
+      case CS_STAT_MAXHP: playerStats.maxhp = reader.readInt16(); break;
+      case CS_STAT_SP: playerStats.sp = reader.readInt16(); break;
+      case CS_STAT_MAXSP: playerStats.maxsp = reader.readInt16(); break;
+      case CS_STAT_GRACE: playerStats.grace = reader.readInt16(); break;
+      case CS_STAT_MAXGRACE: playerStats.maxgrace = reader.readInt16(); break;
+      case CS_STAT_STR: playerStats.Str = reader.readInt16(); break;
+      case CS_STAT_INT: playerStats.Int = reader.readInt16(); break;
+      case CS_STAT_WIS: playerStats.Wis = reader.readInt16(); break;
+      case CS_STAT_DEX: playerStats.Dex = reader.readInt16(); break;
+      case CS_STAT_CON: playerStats.Con = reader.readInt16(); break;
+      case CS_STAT_CHA: playerStats.Cha = reader.readInt16(); break;
+      case CS_STAT_POW: playerStats.Pow = reader.readInt16(); break;
+      case CS_STAT_LEVEL: playerStats.level = reader.readInt16(); break;
+      case CS_STAT_WC: playerStats.wc = reader.readInt16(); break;
+      case CS_STAT_AC: playerStats.ac = reader.readInt16(); break;
+      case CS_STAT_DAM: playerStats.dam = reader.readInt16(); break;
+      case CS_STAT_ARMOUR: playerStats.resists[0] = reader.readInt16(); break;
+      case CS_STAT_SPEED: playerStats.speed = reader.readInt32(); break;
+      case CS_STAT_FOOD: playerStats.food = reader.readInt16(); break;
+      case CS_STAT_WEAP_SP: playerStats.weaponSp = reader.readInt32(); break;
+      case CS_STAT_FLAGS: playerStats.flags = reader.readInt16(); break;
+      case CS_STAT_WEIGHT_LIM: playerStats.weightLimit = reader.readInt32(); break;
+      case CS_STAT_EXP64: playerStats.exp = reader.readInt64(); break;
+      case CS_STAT_SPELL_ATTUNE: playerStats.attuned = reader.readInt32(); break;
+      case CS_STAT_SPELL_REPEL: playerStats.repelled = reader.readInt32(); break;
+      case CS_STAT_SPELL_DENY: playerStats.denied = reader.readInt32(); break;
+      case CS_STAT_GOLEM_HP: playerStats.golemHp = reader.readInt32(); break;
+      case CS_STAT_GOLEM_MAXHP: playerStats.golemMaxhp = reader.readInt32(); break;
       case CS_STAT_RANGE: {
         // 1-byte length prefix + string (not null-terminated)
-        const rlen = getCharFromData(data, pos); pos += 1;
-        playerStats.range = getStringFromData(new Uint8Array(data.buffer, data.byteOffset), pos, rlen);
-        pos += rlen;
+        const rlen = reader.readUint8();
+        playerStats.range = reader.readString(rlen);
         break;
       }
       case CS_STAT_TITLE: {
         // 1-byte length prefix + string (not null-terminated)
-        const tlen = getCharFromData(data, pos); pos += 1;
-        let titleStr = getStringFromData(new Uint8Array(data.buffer, data.byteOffset), pos, tlen);
-        pos += tlen;
+        const tlen = reader.readUint8();
+        let titleStr = reader.readString(tlen);
         if (titleStr.startsWith('Player: ')) {
           titleStr = titleStr.slice('Player: '.length);
         }
@@ -120,13 +115,12 @@ export function StatsCmd(data: DataView, len: number): void {
       }
       default:
         if (stat >= CS_STAT_RESIST_START && stat <= CS_STAT_RESIST_END) {
-          playerStats.resists[stat - CS_STAT_RESIST_START] = getShortFromData(data, pos);
+          playerStats.resists[stat - CS_STAT_RESIST_START] = reader.readInt16();
           playerStats.resistChange = true;
-          pos += 2;
         } else if (stat >= CS_STAT_SKILLINFO && stat < CS_STAT_SKILLINFO + CS_NUM_SKILLS) {
           const skillIdx = stat - CS_STAT_SKILLINFO;
-          playerStats.skillLevel[skillIdx] = getCharFromData(data, pos); pos += 1;
-          playerStats.skillExp[skillIdx] = getInt64FromData(data, pos); pos += 8;
+          playerStats.skillLevel[skillIdx] = reader.readUint8();
+          playerStats.skillExp[skillIdx] = reader.readInt64();
         } else {
           LOG(LogLevel.Warning, 'StatsCmd', `Unknown stat ${stat}`);
           return; // Can't continue - unknown length
