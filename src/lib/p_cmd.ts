@@ -79,7 +79,7 @@ function drawInfo(message: string): void {
         }
     } else {
         for (const line of lines) {
-            console.info(line);
+            LOG(LogLevel.Info, 'p_cmd', line);
         }
     }
 }

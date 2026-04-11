@@ -55,7 +55,7 @@ function DrawInfoCmd(data: string): void {
   if (spaceIdx < 0) return;
   const color = parseInt(data.substring(0, spaceIdx));
   const message = data.substring(spaceIdx + 1);
-  console.log(`[drawinfo] ${message}`);
+  LOG(LogLevel.Debug, 'DrawInfoCmd', message);
   gameEvents.emit('drawInfo', color & NDI_COLOR_MASK, message);
 }
 
@@ -295,7 +295,6 @@ export function dispatchPacket(packet: ArrayBuffer): void {
     }
   } catch (err) {
     LOG(LogLevel.Error, 'dispatch', `Exception handling ${cmdName}: ${err}`);
-    console.error(err);
   }
 
   const elapsed = performance.now() - t0;

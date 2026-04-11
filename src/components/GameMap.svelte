@@ -3,10 +3,11 @@
   import { mapdata_cell, getViewSize, getPlayerPosition } from '../lib/mapdata';
   import { getFaceUrl } from '../lib/image';
   import { lookAt } from '../lib/player';
-  import { MapCellState, MAXLAYERS, Map2Label, CONFIG_MAPWIDTH, CONFIG_MAPHEIGHT } from '../lib/protocol';
+  import { MapCellState, MAXLAYERS, Map2Label, CONFIG_MAPWIDTH, CONFIG_MAPHEIGHT, LogLevel } from '../lib/protocol';
   import { clientMapsize } from '../lib/client';
   import { wantConfig } from '../lib/init';
   import { gameEvents } from '../lib/events';
+  import { LOG } from '../lib/misc';
 
   const TILE_SIZE = 32;
   const BASE_FONT_SIZE = 10;
@@ -92,7 +93,7 @@
     requestAnimationFrame(() => {
       rafPending = false;
       if (pendingRedrawCount > 1) {
-        console.debug(`[perf:map] coalesced ${pendingRedrawCount} redraw requests into 1 frame`);
+        LOG(LogLevel.Debug, 'GameMap', `coalesced ${pendingRedrawCount} redraw requests into 1 frame`);
       }
       pendingRedrawCount = 0;
       mapVersion++;
@@ -331,13 +332,13 @@
     drawCount++;
 
     if (elapsed > 5) {
-      console.warn(`[perf:map] drawMap took ${elapsed.toFixed(1)}ms — tiles:${tilesDrawn} imgs:${imagesDrawn} placeholders:${placeholders} loadsStarted:${loadsStarted}`);
+      LOG(LogLevel.Warning, 'perf:map', `drawMap took ${elapsed.toFixed(1)}ms — tiles:${tilesDrawn} imgs:${imagesDrawn} placeholders:${placeholders} loadsStarted:${loadsStarted}`);
     }
 
     const now = performance.now();
     if (now - lastStatsTime > 5000) {
       const dt = (now - lastStatsTime) / 1000;
-      console.info(`[perf:map] ${drawCount} draws in ${dt.toFixed(1)}s (${(drawCount / dt).toFixed(1)} draws/s), imageCache:${imageCache.size} loading:${loadingUrls.size} failed:${failedUrls.size}`);
+      LOG(LogLevel.Info, 'perf:map', `${drawCount} draws in ${dt.toFixed(1)}s (${(drawCount / dt).toFixed(1)} draws/s), imageCache:${imageCache.size} loading:${loadingUrls.size} failed:${failedUrls.size}`);
       drawCount = 0;
       lastStatsTime = now;
     }
@@ -359,14 +360,14 @@
       loadingUrls.delete(url);
       imageCache.set(url, img);
       if (elapsed > 100) {
-        console.debug(`[perf:map] image load took ${elapsed.toFixed(0)}ms: ${url}`);
+        LOG(LogLevel.Debug, 'perf:map', `image load took ${elapsed.toFixed(0)}ms: ${url}`);
       }
       scheduleRedraw();
     };
     img.onerror = () => {
       loadingUrls.delete(url);
       failedUrls.add(url);
-      console.warn(`[perf:map] image load failed: ${url}`);
+      LOG(LogLevel.Warning, 'perf:map', `image load failed: ${url}`);
     };
     img.src = url;
   }

@@ -19,6 +19,7 @@ import {
     CONFIG_MAPWIDTH,
     CONFIG_MAPHEIGHT,
     CONFIG_MAPSCROLL,
+    LogLevel,
 } from "./protocol";
 
 import type {
@@ -36,6 +37,7 @@ import {
     run_move_to as runMoveToInternal,
     clear_move_to as clearMoveToInternal,
 } from "./mapdata_moveto";
+import { LOG } from "./misc";
 
 // Re-export types for consumers that import from mapdata.
 export type { MapCell, MapCellLayer, MapCellTailLayer, MapLabel };
@@ -991,7 +993,7 @@ export function mapdata_set_anim_layer(
     if ((anim & ANIM_FLAGS_MASK) === ANIM_RANDOM) {
         const numAnim = animations[animation]?.numAnimations ?? 0;
         if (numAnim === 0) {
-            console.warn("mapdata_set_anim_layer: animating object with zero animations");
+            LOG(LogLevel.Warning, 'mapdata', 'mapdata_set_anim_layer: animating object with zero animations');
             return;
         }
         phase = Math.floor(Math.random() * numAnim);

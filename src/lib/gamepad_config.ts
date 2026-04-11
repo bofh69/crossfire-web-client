@@ -41,29 +41,52 @@ const AXIS_CONFIG_CENTER_THRESHOLD = 0.3;
 
 // ── State ───────────────────────────────────────────────────────────────────
 
-let axisConfigActive = false;
-let axisConfigTarget: AxisConfigTarget = "walk";
-let axisConfigStep: AxisConfigStep = "move-north";
-let axisConfigCallback: ((axes: StickAxes | null) => void) | null = null;
-let axisConfigStepCallback: ((step: AxisConfigStep) => void) | null = null;
-let axisConfigWaitingForCenter = false;
-let axisNorthIdx: number | null = null;
-let axisEastIdx: number | null = null;
-let axisYInverted = false;
-let axisXInverted = false;
-let axisConfigPending: StickAxes | null = null;
+interface AxisConfigState {
+    active: boolean;
+    target: AxisConfigTarget;
+    step: AxisConfigStep;
+    callback: ((axes: StickAxes | null) => void) | null;
+    stepCallback: ((step: AxisConfigStep) => void) | null;
+    waitingForCenter: boolean;
+    northIdx: number | null;
+    eastIdx: number | null;
+    yInverted: boolean;
+    xInverted: boolean;
+    pending: StickAxes | null;
+}
 
-let buttonConfigActive = false;
-let buttonConfigCallback: ((button: number) => void) | null = null;
+interface ButtonConfigState {
+    active: boolean;
+    callback: ((button: number) => void) | null;
+}
+
+const axisConfig: AxisConfigState = {
+    active: false,
+    target: "walk",
+    step: "move-north",
+    callback: null,
+    stepCallback: null,
+    waitingForCenter: false,
+    northIdx: null,
+    eastIdx: null,
+    yInverted: false,
+    xInverted: false,
+    pending: null,
+};
+
+const buttonConfig: ButtonConfigState = {
+    active: false,
+    callback: null,
+};
 
 // ── Axis configuration public API ───────────────────────────────────────────
 
 export function isAxisConfigActive(): boolean {
-    return axisConfigActive;
+    return axisConfig.active;
 }
 
 export function isButtonConfigActive(): boolean {
-    return buttonConfigActive;
+    return buttonConfig.active;
 }
 
 /**
@@ -74,30 +97,30 @@ export function startAxisConfig(
     onStepChange: (step: AxisConfigStep) => void,
     onDone: (axes: StickAxes | null) => void,
 ): void {
-    axisConfigActive = true;
-    axisConfigTarget = target;
-    axisConfigStep = "move-north";
-    axisConfigStepCallback = onStepChange;
-    axisConfigCallback = onDone;
-    axisConfigWaitingForCenter = false;
-    axisNorthIdx = null;
-    axisEastIdx = null;
-    axisYInverted = false;
-    axisXInverted = false;
-    axisConfigPending = null;
+    axisConfig.active = true;
+    axisConfig.target = target;
+    axisConfig.step = "move-north";
+    axisConfig.stepCallback = onStepChange;
+    axisConfig.callback = onDone;
+    axisConfig.waitingForCenter = false;
+    axisConfig.northIdx = null;
+    axisConfig.eastIdx = null;
+    axisConfig.yInverted = false;
+    axisConfig.xInverted = false;
+    axisConfig.pending = null;
 }
 
 /** Cancel a running axis configuration. */
 export function cancelAxisConfig(): void {
-    axisConfigActive = false;
-    axisConfigWaitingForCenter = false;
-    axisConfigCallback = null;
-    axisConfigStepCallback = null;
-    axisNorthIdx = null;
-    axisEastIdx = null;
-    axisYInverted = false;
-    axisXInverted = false;
-    axisConfigPending = null;
+    axisConfig.active = false;
+    axisConfig.waitingForCenter = false;
+    axisConfig.callback = null;
+    axisConfig.stepCallback = null;
+    axisConfig.northIdx = null;
+    axisConfig.eastIdx = null;
+    axisConfig.yInverted = false;
+    axisConfig.xInverted = false;
+    axisConfig.pending = null;
 }
 
 /** Accept the current axis configuration (called from test mode). */
@@ -105,17 +128,17 @@ export function acceptAxisConfig(
     activeProfile: GamepadProfile | null,
     saveGamepadConfig: () => void,
 ): void {
-    if (!axisConfigActive || axisConfigStep !== "testing") return;
-    if (axisConfigPending && activeProfile) {
-        if (axisConfigTarget === "walk") {
-            activeProfile.walkStick = axisConfigPending;
+    if (!axisConfig.active || axisConfig.step !== "testing") return;
+    if (axisConfig.pending && activeProfile) {
+        if (axisConfig.target === "walk") {
+            activeProfile.walkStick = axisConfig.pending;
         } else {
-            activeProfile.fireStick = axisConfigPending;
+            activeProfile.fireStick = axisConfig.pending;
         }
         saveGamepadConfig();
     }
-    const doneCb = axisConfigCallback;
-    const result = axisConfigPending;
+    const doneCb = axisConfig.callback;
+    const result = axisConfig.pending;
     cancelAxisConfig();
     doneCb?.(result);
 }
@@ -128,18 +151,18 @@ export function getAxisTestDirection(
     activeGamepadIndex: number,
     stickToDirection: (x: number, y: number, threshold: number, prevDir: number) => number,
 ): number {
-    if (!axisConfigActive || axisConfigStep !== "testing") return 0;
-    if (!axisConfigPending) return 0;
+    if (!axisConfig.active || axisConfig.step !== "testing") return 0;
+    if (!axisConfig.pending) return 0;
 
     if (activeGamepadIndex < 0) return 0;
     const gamepads = navigator.getGamepads();
     const gp = gamepads[activeGamepadIndex];
     if (!gp) return 0;
 
-    const rawX = gp.axes[axisConfigPending.axisX] ?? 0;
-    const rawY = gp.axes[axisConfigPending.axisY] ?? 0;
-    const x = axisConfigPending.invertX ? -rawX : rawX;
-    const y = axisConfigPending.invertY ? -rawY : rawY;
+    const rawX = gp.axes[axisConfig.pending.axisX] ?? 0;
+    const rawY = gp.axes[axisConfig.pending.axisY] ?? 0;
+    const x = axisConfig.pending.invertX ? -rawX : rawX;
+    const y = axisConfig.pending.invertY ? -rawY : rawY;
     return stickToDirection(x, y, 0.2, 0);
 }
 
@@ -152,7 +175,7 @@ export function handleAxisConfig(
     activeProfile: GamepadProfile | null,
     saveGamepadConfig: () => void,
 ): void {
-    if (axisConfigWaitingForCenter) {
+    if (axisConfig.waitingForCenter) {
         let allCentered = true;
         for (let i = 0; i < gp.axes.length; i++) {
             if (Math.abs(gp.axes[i]!) > AXIS_CONFIG_CENTER_THRESHOLD) {
@@ -161,34 +184,34 @@ export function handleAxisConfig(
             }
         }
         if (!allCentered) return;
-        axisConfigWaitingForCenter = false;
+        axisConfig.waitingForCenter = false;
     }
 
-    switch (axisConfigStep) {
+    switch (axisConfig.step) {
         case "move-north":
             handleAxisStep(gp, (idx, value) => {
-                axisNorthIdx = idx;
+                axisConfig.northIdx = idx;
                 // North should be negative Y (positive = south); if the stick
                 // reads positive when pushed north, Y is inverted.
-                axisYInverted = value > 0;
+                axisConfig.yInverted = value > 0;
                 advanceAxisStep("move-east");
             });
             break;
 
         case "move-east":
             handleAxisStep(gp, (idx, value) => {
-                axisEastIdx = idx;
+                axisConfig.eastIdx = idx;
                 // East should be positive X; if the stick reads negative when
                 // pushed east, X is inverted.
-                axisXInverted = value < 0;
+                axisConfig.xInverted = value < 0;
                 advanceAxisStep("move-south");
             });
             break;
 
         case "move-south":
             handleAxisStep(gp, (idx, _value) => {
-                if (idx !== axisNorthIdx) {
-                    axisNorthIdx = idx;
+                if (idx !== axisConfig.northIdx) {
+                    axisConfig.northIdx = idx;
                 }
                 advanceAxisStep("move-west");
             });
@@ -196,17 +219,17 @@ export function handleAxisConfig(
 
         case "move-west":
             handleAxisStep(gp, (idx, _value) => {
-                if (idx !== axisEastIdx) {
-                    axisEastIdx = idx;
+                if (idx !== axisConfig.eastIdx) {
+                    axisConfig.eastIdx = idx;
                 }
-                axisConfigPending = {
-                    axisX: axisEastIdx!,
-                    axisY: axisNorthIdx!,
-                    invertX: axisXInverted,
-                    invertY: axisYInverted,
+                axisConfig.pending = {
+                    axisX: axisConfig.eastIdx!,
+                    axisY: axisConfig.northIdx!,
+                    invertX: axisConfig.xInverted,
+                    invertY: axisConfig.yInverted,
                 };
-                axisConfigStep = "testing";
-                axisConfigStepCallback?.("testing");
+                axisConfig.step = "testing";
+                axisConfig.stepCallback?.("testing");
             });
             break;
 
@@ -229,9 +252,9 @@ export function handleAxisConfig(
 }
 
 function advanceAxisStep(nextStep: AxisConfigStep): void {
-    axisConfigWaitingForCenter = true;
-    axisConfigStep = nextStep;
-    axisConfigStepCallback?.(nextStep);
+    axisConfig.waitingForCenter = true;
+    axisConfig.step = nextStep;
+    axisConfig.stepCallback?.(nextStep);
 }
 
 function handleAxisStep(
@@ -253,14 +276,14 @@ function handleAxisStep(
  * Start button-configuration mode.
  */
 export function startButtonConfig(onDone: (button: number) => void): void {
-    buttonConfigActive = true;
-    buttonConfigCallback = onDone;
+    buttonConfig.active = true;
+    buttonConfig.callback = onDone;
 }
 
 /** Cancel a running button configuration. */
 export function cancelButtonConfig(): void {
-    buttonConfigActive = false;
-    buttonConfigCallback = null;
+    buttonConfig.active = false;
+    buttonConfig.callback = null;
 }
 
 /**
@@ -269,7 +292,7 @@ export function cancelButtonConfig(): void {
 export function handleButtonConfig(gp: Gamepad, prevButtons: boolean[]): void {
     for (let i = 0; i < gp.buttons.length; i++) {
         if (gp.buttons[i]!.pressed && !(prevButtons[i] ?? false)) {
-            const doneCb = buttonConfigCallback;
+            const doneCb = buttonConfig.callback;
             cancelButtonConfig();
 
             for (let j = 0; j < gp.buttons.length; j++) {

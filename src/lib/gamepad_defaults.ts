@@ -7,6 +7,9 @@
  * sends.
  */
 
+import { LOG } from "./misc";
+import { LogLevel } from "./protocol";
+
 // ──────────────────────────────────────────────────────────────────────────────
 // Types
 // ──────────────────────────────────────────────────────────────────────────────
@@ -116,12 +119,12 @@ export function findProfileForGamepad(gamepadId: string): GamepadProfile {
     for (const profile of defaultProfiles) {
         for (const matchId of profile.matchId) {
           if (lower.includes(matchId.toLowerCase())) {
-              console.log(lower + " matched with: ", matchId)
+              LOG(LogLevel.Debug, 'gamepad::profile', `${lower} matched with: ${matchId}`);
               return structuredClone(profile);
           }
         }
     }
-    console.log(lower + " didn't match a default profile")
+    LOG(LogLevel.Debug, 'gamepad::profile', `${lower} didn't match a default profile`);
 
     return structuredClone(fallbackProfile);
 }
