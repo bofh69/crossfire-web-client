@@ -5,7 +5,8 @@
   import { playerStats } from './lib/commands';
   import { gameEvents } from './lib/events';
   import { animateObjects } from './lib/item';
-  import { sendReply } from './lib/player';
+  import { sendReply, walkDir, runDir, stopRun } from './lib/player';
+  import { setWalkDir, setRunDir, setStopRun } from './lib/mapdata';
   import {
     keybindingsInit, setKeyCallbacks, parseKey, parseKeyRelease,
     configureKeys, handleFocusLost,
@@ -14,7 +15,7 @@
   import type { Stats } from './lib/protocol';
   import { InputState, CS_QUERY_HIDEINPUT, CS_QUERY_SINGLECHAR, CS_QUERY_YESNO, SHOWMAGIC_FLASH_BIT } from './lib/protocol';
   import { useConfig } from './lib/init';
-  import { mapdata_animation } from './lib/mapdata';
+  import { mapdata_animation, run_move_to } from './lib/mapdata';
   import { initSound, stopAll as stopAllSound } from './lib/sound';
   import { SELF_TICK_INTERVAL_MS } from './lib/constants';
   import Login from './components/Login.svelte';
@@ -131,6 +132,11 @@
         showMagicMap = true;
       },
     });
+
+    // Wire movement callbacks so run_move_to() can issue walk/run commands.
+    setWalkDir(walkDir);
+    setRunDir(runDir);
+    setStopRun(stopRun);
 
     // Listen for keyboard events on the window.
     window.addEventListener('keydown', handleGlobalKeyDown);
@@ -325,6 +331,7 @@
       gameEvents.on('tick', (_tickNo: number) => {
         mapdata_animation();
         animateObjects();
+        run_move_to();
 
         // Flash player position on the magic map.
         const cpl = getCpl();
@@ -361,6 +368,7 @@
       selfTickTimer = setInterval(() => {
         mapdata_animation();
         animateObjects();
+        run_move_to();
         // Emit mapUpdate and playerUpdate so child components refresh
         // (same as tick handler would in child components).
         gameEvents.emit('mapUpdate');

@@ -27,6 +27,7 @@ import {
     walkDir,
     getLastNcomSeqSent, isNcomAcked,
 } from "./player";
+import { clear_move_to } from "./mapdata";
 import { LOG } from "./misc";
 import { LogLevel } from "./protocol";
 import {
@@ -415,6 +416,7 @@ function processSticks(gp: Gamepad): void {
         const dir = stickToDirection(fx, fy, gamepadState.activeProfile.fireThreshold, gamepadState.prevFireDir);
         if (dir > 0) {
             if (dir !== gamepadState.prevFireDir || !gamepadState.prevFiring) {
+                clear_move_to();
                 fireDir(dir);
             }
             gamepadState.prevFireDir = dir;
@@ -475,6 +477,7 @@ function processSticks(gp: Gamepad): void {
                     if (gamepadState.prevRunning) {
                         clearRun();
                     }
+                    clear_move_to();
                     runDir(dir);
                 }
                 gamepadState.prevRunning = true;
@@ -526,6 +529,7 @@ function scheduleWalk(dir: number): void {
         // but just in case, verify we're still in walk-only state.
         if (!gamepadState.prevRunning && gamepadState.walkDelayDir > 0) {
             if (gamepadState.walkDelayDir !== gamepadState.prevWalkDir || gamepadState.prevWalkDir === 0) {
+                clear_move_to();
                 walkDir(gamepadState.walkDelayDir);
             }
             gamepadState.prevWalkDir = gamepadState.walkDelayDir;
