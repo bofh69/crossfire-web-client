@@ -49,6 +49,8 @@ let axisConfigStepCallback: ((step: AxisConfigStep) => void) | null = null;
 let axisConfigWaitingForCenter = false;
 let axisNorthIdx: number | null = null;
 let axisEastIdx: number | null = null;
+let axisYInverted = false;
+let axisXInverted = false;
 let axisConfigPending: StickAxes | null = null;
 
 let buttonConfigActive = false;
@@ -80,6 +82,8 @@ export function startAxisConfig(
     axisConfigWaitingForCenter = false;
     axisNorthIdx = null;
     axisEastIdx = null;
+    axisYInverted = false;
+    axisXInverted = false;
     axisConfigPending = null;
 }
 
@@ -91,6 +95,8 @@ export function cancelAxisConfig(): void {
     axisConfigStepCallback = null;
     axisNorthIdx = null;
     axisEastIdx = null;
+    axisYInverted = false;
+    axisXInverted = false;
     axisConfigPending = null;
 }
 
@@ -130,8 +136,10 @@ export function getAxisTestDirection(
     const gp = gamepads[activeGamepadIndex];
     if (!gp) return 0;
 
-    const x = gp.axes[axisConfigPending.axisX] ?? 0;
-    const y = gp.axes[axisConfigPending.axisY] ?? 0;
+    const rawX = gp.axes[axisConfigPending.axisX] ?? 0;
+    const rawY = gp.axes[axisConfigPending.axisY] ?? 0;
+    const x = axisConfigPending.invertX ? -rawX : rawX;
+    const y = axisConfigPending.invertY ? -rawY : rawY;
     return stickToDirection(x, y, 0.2, 0);
 }
 
@@ -158,15 +166,21 @@ export function handleAxisConfig(
 
     switch (axisConfigStep) {
         case "move-north":
-            handleAxisStep(gp, (idx, _value) => {
+            handleAxisStep(gp, (idx, value) => {
                 axisNorthIdx = idx;
+                // North should be negative Y (positive = south); if the stick
+                // reads positive when pushed north, Y is inverted.
+                axisYInverted = value > 0;
                 advanceAxisStep("move-east");
             });
             break;
 
         case "move-east":
-            handleAxisStep(gp, (idx, _value) => {
+            handleAxisStep(gp, (idx, value) => {
                 axisEastIdx = idx;
+                // East should be positive X; if the stick reads negative when
+                // pushed east, X is inverted.
+                axisXInverted = value < 0;
                 advanceAxisStep("move-south");
             });
             break;
@@ -188,6 +202,8 @@ export function handleAxisConfig(
                 axisConfigPending = {
                     axisX: axisEastIdx!,
                     axisY: axisNorthIdx!,
+                    invertX: axisXInverted,
+                    invertY: axisYInverted,
                 };
                 axisConfigStep = "testing";
                 axisConfigStepCallback?.("testing");

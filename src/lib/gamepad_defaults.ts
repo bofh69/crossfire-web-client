@@ -11,12 +11,16 @@
 // Types
 // ──────────────────────────────────────────────────────────────────────────────
 
-/** A pair of axis indices (horizontal, vertical). */
+/** A pair of axis indices (horizontal, vertical) with optional inversion flags. */
 export interface StickAxes {
     /** Axis index for left/right. */
     axisX: number;
     /** Axis index for up/down. */
     axisY: number;
+    /** If true, negate the X axis value before use. */
+    invertX: boolean;
+    /** If true, negate the Y axis value before use. */
+    invertY: boolean;
 }
 
 /** Button-to-command mapping.  Button index → command string. */
@@ -55,8 +59,8 @@ export interface GamepadProfile {
 const xboxProfile: GamepadProfile = {
     name: "Xbox One Controller",
     matchId: ["045e-02dd-", "Vendor: 045e Product: 02dd", "Microsoft Controller", "Microsoft X-Box One"],
-    walkStick: { axisX: 0, axisY: 1 },
-    fireStick: { axisX: 2, axisY: 3 },
+    walkStick: { axisX: 0, axisY: 1, invertX: false, invertY: false },
+    fireStick: { axisX: 2, axisY: 3, invertX: false, invertY: false },
     walkThreshold: 0.2,
     runThreshold: 0.7,
     fireThreshold: 0.7,
@@ -90,8 +94,8 @@ export const defaultProfiles: readonly GamepadProfile[] = [
 export const fallbackProfile: GamepadProfile = {
     name: "Generic Controller",
     matchId: [""],
-    walkStick: { axisX: 0, axisY: 1 },
-    fireStick: { axisX: 2, axisY: 3 },
+    walkStick: { axisX: 0, axisY: 1, invertX: false, invertY: false },
+    fireStick: { axisX: 2, axisY: 3, invertX: false, invertY: false },
     walkThreshold: 0.2,
     runThreshold: 0.7,
     fireThreshold: 0.7,

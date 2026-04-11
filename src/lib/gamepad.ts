@@ -355,18 +355,23 @@ function processSticks(gp: Gamepad): void {
     const ws = activeProfile.walkStick;
     const fs = activeProfile.fireStick;
 
-    // Read axes (clamped to available range).
+    // Read axes, applying per-stick inversion flags set during axis configuration.
     const wxRaw = gp.axes[ws.axisX] ?? 0;
     const wyRaw = gp.axes[ws.axisY] ?? 0;
     const fxRaw = gp.axes[fs.axisX] ?? 0;
     const fyRaw = gp.axes[fs.axisY] ?? 0;
 
-    const walkMag = Math.sqrt(wxRaw * wxRaw + wyRaw * wyRaw);
-    const fireMag = Math.sqrt(fxRaw * fxRaw + fyRaw * fyRaw);
+    const wx = ws.invertX ? -wxRaw : wxRaw;
+    const wy = ws.invertY ? -wyRaw : wyRaw;
+    const fx = fs.invertX ? -fxRaw : fxRaw;
+    const fy = fs.invertY ? -fyRaw : fyRaw;
+
+    const walkMag = Math.sqrt(wx * wx + wy * wy);
+    const fireMag = Math.sqrt(fx * fx + fy * fy);
 
     // ── Fire stick (takes priority for direction-sending) ───────────
     if (fireMag >= activeProfile.fireThreshold) {
-        const dir = stickToDirection(fxRaw, fyRaw, activeProfile.fireThreshold, prevFireDir);
+        const dir = stickToDirection(fx, fy, activeProfile.fireThreshold, prevFireDir);
         if (dir > 0) {
             if (dir !== prevFireDir || !prevFiring) {
                 fireDir(dir);
@@ -408,7 +413,7 @@ function processSticks(gp: Gamepad): void {
     }
 
     if (isWalking) {
-        const dir = stickToDirection(wxRaw, wyRaw, activeProfile.walkThreshold, prevWalkDir);
+        const dir = stickToDirection(wx, wy, activeProfile.walkThreshold, prevWalkDir);
         if (dir > 0) {
             if (isRunning) {
                 // Cancel any pending walk delay — we're running now.
