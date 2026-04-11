@@ -40,6 +40,13 @@ import {
     notifyHpUpdate as doNotifyHpUpdate,
     resetHpTracking as doResetHpTracking,
 } from "./gamepad_vibration";
+import {
+    isHotbarGamepadMode,
+    enterHotbarGamepadMode,
+    exitHotbarGamepadMode,
+    setHotbarGamepadHighlight,
+    getHotbarGamepadHighlight,
+} from "./hotbar";
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Constants
@@ -187,6 +194,14 @@ interface GamepadState {
     runStopSeq: number;
     /** Registered UI callbacks. */
     callbacks: GamepadCallbacks | null;
+    /** Previous walk-stick direction used during hotbar radial-select mode. */
+    prevHotbarDir: number;
+    /**
+     * Set to true when the hotbar gamepad mode exits while the walk stick is
+     * still deflected.  Suppresses walk/run until the stick returns to neutral
+     * to prevent an unintentional step immediately after a hotbar activation.
+     */
+    needsWalkReset: boolean;
 }
 
 const gamepadState: GamepadState = {
@@ -203,6 +218,8 @@ const gamepadState: GamepadState = {
     walkDelayDir: 0,
     runStopSeq: -1,
     callbacks: null,
+    prevHotbarDir: 0,
+    needsWalkReset: false,
 };
 
 interface SavedGamepadConfig {
@@ -359,6 +376,23 @@ function pollGamepad(): void {
 function processSticks(gp: Gamepad): void {
     if (!gamepadState.activeProfile) return;
 
+    // While the hotbar radial-select is active, walk-stick movement is used
+    // to highlight slots rather than move the player.
+    if (isHotbarGamepadMode()) {
+        const ws = gamepadState.activeProfile.walkStick;
+        const wxRaw = gp.axes[ws.axisX] ?? 0;
+        const wyRaw = gp.axes[ws.axisY] ?? 0;
+        const wx = ws.invertX ? -wxRaw : wxRaw;
+        const wy = ws.invertY ? -wyRaw : wyRaw;
+        // Use the walk threshold as dead-zone; directions 1–8 map to slots.
+        const dir = stickToDirection(wx, wy, gamepadState.activeProfile.walkThreshold, gamepadState.prevHotbarDir);
+        gamepadState.prevHotbarDir = dir;
+        // Slot mapping: NW(8)→0, N(1)→1, NE(2)→2, …, W(7)→7  (dir % 8)
+        setHotbarGamepadHighlight(dir > 0 ? dir % 8 : -1);
+        return;
+    }
+    gamepadState.prevHotbarDir = 0;
+
     const ws = gamepadState.activeProfile.walkStick;
     const fs = gamepadState.activeProfile.fireStick;
 
@@ -404,6 +438,18 @@ function processSticks(gp: Gamepad): void {
         ? walkMag >= runExit    // already running: use lower exit threshold
         : walkMag >= runEnter;  // not running: use full enter threshold
     const isWalking = walkMag >= gamepadState.activeProfile.walkThreshold;
+
+    // ── Post-hotbar neutral-zone guard ──────────────────────────────────────
+    // After exiting hotbar mode the stick may still be deflected.  Suppress
+    // walk/run until the stick drops below the walk threshold to avoid an
+    // unintentional step.
+    if (gamepadState.needsWalkReset) {
+        if (!isWalking) {
+            gamepadState.needsWalkReset = false;
+        } else {
+            return;
+        }
+    }
 
     // ── Run-stop guard: check if the pending run_stop has been acked ──
     if (gamepadState.runStopSeq !== -1) {
@@ -509,7 +555,24 @@ function processButtons(gp: Gamepad): void {
         const pressed = gp.buttons[mapping.button]!.pressed;
         const wasPressed = gamepadState.prevButtons[mapping.button] ?? false;
 
-        // Fire on rising edge only.
+        // The special command "hotbar" drives radial slot-selection mode.
+        if (mapping.command === "hotbar") {
+            if (pressed && !wasPressed) {
+                // Rising edge: enter hotbar radial-select mode.
+                enterHotbarGamepadMode();
+            } else if (!pressed && wasPressed) {
+                // Falling edge: activate the highlighted slot (or cancel).
+                exitHotbarGamepadMode(getHotbarGamepadHighlight());
+                gamepadState.prevHotbarDir = 0;
+                // Guard against the walk stick still being deflected after
+                // slot selection — require neutral before allowing walk/run.
+                gamepadState.needsWalkReset = true;
+            }
+            // While held, processSticks() handles direction updates.
+            continue;
+        }
+
+        // Normal button: fire command on rising edge only.
         if (pressed && !wasPressed) {
             extendedCommand(mapping.command);
         }
@@ -660,4 +723,6 @@ export function gamepadShutdown(): void {
     gamepadState.prevRunning = false;
     gamepadState.prevFiring = false;
     gamepadState.runStopSeq = -1;
+    gamepadState.prevHotbarDir = 0;
+    gamepadState.needsWalkReset = false;
 }

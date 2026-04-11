@@ -6,6 +6,8 @@
   import { getCpl } from '../lib/init';
   import type { Item } from '../lib/protocol';
   import { gameEvents } from '../lib/events';
+  import { setHotbarSlot } from '../lib/hotbar';
+  import HotbarSlotPicker from './HotbarSlotPicker.svelte';
 
   interface FlatItem {
     tag: number;
@@ -28,6 +30,7 @@
   let menuFading = $state(false);
   let fadeTimer: ReturnType<typeof setTimeout> | null = null;
   let itemCount = $state(0);
+  let showSlotPicker = $state(false);
 
   /** Milliseconds after the cursor leaves the context menu before it closes. */
   const MENU_FADE_MS = 2000;
@@ -157,6 +160,7 @@
     // Cancel any pending fade from a previously open menu.
     clearFadeTimer();
     menuFading = false;
+    showSlotPicker = false;
     // Place the menu so the cursor sits slightly inside the top-left corner.
     contextMenu = { x: e.clientX - 8, y: e.clientY - 8, item, isGround };
   }
@@ -172,6 +176,23 @@
     clearFadeTimer();
     menuFading = false;
     contextMenu = null;
+    showSlotPicker = false;
+  }
+
+  function handleAddToHotbar(_item: FlatItem) {
+    showSlotPicker = true;
+  }
+
+  function handleSlotSelected(index: number) {
+    if (contextMenu) {
+      const item = contextMenu.item;
+      setHotbarSlot(index, {
+        label: item.name,
+        command: `apply ${item.tag}`,
+        face: item.face,
+      });
+    }
+    closeContextMenu();
   }
 
   function handleMenuMouseLeave() {
@@ -322,6 +343,16 @@
           onclick={() => contextMenu && handleMark(contextMenu.item)}
           oncontextmenu={(e) => { e.preventDefault(); contextMenu && handleMark(contextMenu.item); }}
         >Mark</button>
+        <button
+          onclick={() => contextMenu && handleAddToHotbar(contextMenu.item)}
+          oncontextmenu={(e) => { e.preventDefault(); contextMenu && handleAddToHotbar(contextMenu.item); }}
+        >Add to hotbar…</button>
+        {#if showSlotPicker}
+          <HotbarSlotPicker
+            onSelect={handleSlotSelected}
+            onCancel={closeContextMenu}
+          />
+        {/if}
       {/if}
     {/snippet}
     <div
@@ -331,6 +362,7 @@
       style:top="{contextMenu.y}px"
       onmouseenter={handleMenuMouseEnter}
       onmouseleave={handleMenuMouseLeave}
+      onclick={(e) => e.stopPropagation()}
     >
       {@render contextMenuContent()}
     </div>

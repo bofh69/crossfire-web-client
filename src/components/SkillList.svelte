@@ -4,6 +4,8 @@
   import type { Stats } from '../lib/protocol';
   import { extendedCommand } from '../lib/p_cmd';
   import { gameEvents } from '../lib/events';
+  import { setHotbarSlot } from '../lib/hotbar';
+  import HotbarSlotPicker from './HotbarSlotPicker.svelte';
 
   interface SkillEntry {
     index: number;
@@ -14,6 +16,7 @@
 
   let skills: SkillEntry[] = $state([]);
   let contextMenu = $state<{ x: number; y: number; skill: SkillEntry } | null>(null);
+  let showSlotPicker = $state(false);
 
   function updateSkills(stats: Stats) {
     const entries: SkillEntry[] = [];
@@ -41,11 +44,13 @@
 
   function handleContextMenu(e: MouseEvent, skill: SkillEntry) {
     e.preventDefault();
+    showSlotPicker = false;
     contextMenu = { x: e.clientX, y: e.clientY, skill };
   }
 
   function closeContextMenu() {
     contextMenu = null;
+    showSlotPicker = false;
   }
 
   function useSkill(skill: SkillEntry) {
@@ -55,6 +60,20 @@
 
   function readySkill(skill: SkillEntry) {
     extendedCommand(`ready_skill ${skill.name}`);
+    closeContextMenu();
+  }
+
+  function handleAddToHotbar(_skill: SkillEntry) {
+    showSlotPicker = true;
+  }
+
+  function handleSlotSelected(index: number) {
+    if (contextMenu) {
+      setHotbarSlot(index, {
+        label: contextMenu.skill.name,
+        command: `use_skill ${contextMenu.skill.name}`,
+      });
+    }
     closeContextMenu();
   }
 </script>
@@ -94,11 +113,15 @@
 </div>
 
 {#if contextMenu}
+  <!-- svelte-ignore a11y_click_events_have_key_events -->
+  <!-- svelte-ignore a11y_no_static_element_interactions -->
   <div
     class="context-menu"
     style:left="{contextMenu.x}px"
     style:top="{contextMenu.y}px"
     role="menu"
+    tabindex="-1"
+    onclick={(e) => e.stopPropagation()}
   >
     <button onclick={() => contextMenu && useSkill(contextMenu.skill)}>
       Use skill: {contextMenu.skill.name}
@@ -106,6 +129,15 @@
     <button onclick={() => contextMenu && readySkill(contextMenu.skill)}>
       Ready skill: {contextMenu.skill.name}
     </button>
+    <button onclick={() => contextMenu && handleAddToHotbar(contextMenu.skill)}>
+      Add to hotbar…
+    </button>
+    {#if showSlotPicker}
+      <HotbarSlotPicker
+        onSelect={handleSlotSelected}
+        onCancel={closeContextMenu}
+      />
+    {/if}
   </div>
 {/if}
 

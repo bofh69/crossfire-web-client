@@ -50,6 +50,8 @@ export interface GameEventMap {
   openKeyBind:       [];
   /** Ask the MenuBar to start a "bind last command to gamepad button" flow. */
   openGamepadBind:   [];
+  /** Hotbar slot data or gamepad-select state changed. */
+  hotbarUpdate:      [];
 }
 
 // ── Event bus implementation ───────────────────────────────────────────────

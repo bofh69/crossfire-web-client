@@ -27,6 +27,8 @@
   import ProtectionList from './components/ProtectionList.svelte';
   import MenuBar from './components/MenuBar.svelte';
   import MagicMap from './components/MagicMap.svelte';
+  import Hotbar from './components/Hotbar.svelte';
+  import { loadHotbar, activateHotbarSlot } from './lib/hotbar';
 
   type AppState = 'login' | 'playing';
   let appState = $state<AppState>('login');
@@ -98,6 +100,7 @@
     initCommands();
     keybindingsInit();
     gamepadInit();
+    loadHotbar();
 
     // Wire key-system callbacks so keys.ts can interact with the UI.
     setKeyCallbacks({
@@ -206,6 +209,16 @@
         }
         if (cpl.altOn && !e.ctrlKey) {
           cpl.altOn = false;
+        }
+
+        // F1–F12 activate hotbar slots before keybinding lookup.
+        if (e.key.startsWith('F') && e.key.length <= 3) {
+          const fNum = parseInt(e.key.slice(1), 10);
+          if (fNum >= 1 && fNum <= 12 && !e.shiftKey && !e.ctrlKey && !e.altKey && !e.metaKey) {
+            activateHotbarSlot(fNum - 1);
+            e.preventDefault();
+            break;
+          }
         }
 
         parseKey(e);
@@ -374,6 +387,9 @@
         {#if fireOn}<span class="indicator fire">Fire</span>{/if}
         {#if runOn}<span class="indicator run">Run</span>{/if}
       </div>
+    </div>
+    <div class="hotbar-area">
+      <Hotbar />
     </div>
     <div class="map-area">
       <GameMap />
