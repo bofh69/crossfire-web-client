@@ -175,7 +175,7 @@ function initConfig(): void {
     wantConfig.showgrid       = false;
     wantConfig.showicon       = false;
     wantConfig.signpopup      = true;
-    wantConfig.smooth         = false;
+    wantConfig.smooth         = true;
     wantConfig.sound          = true;
     wantConfig.splash         = true;
     wantConfig.splitinfo      = false;

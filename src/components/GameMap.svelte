@@ -1,11 +1,11 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { mapdata_cell, getViewSize, getPlayerPosition } from '../lib/mapdata';
-  import { getFaceUrl } from '../lib/image';
+  import { mapdata_cell, mapdata_can_smooth, mapdata_contains, getViewSize, getPlayerPosition } from '../lib/mapdata';
+  import { getFaceUrl, getSmoothFace } from '../lib/image';
   import { lookAt } from '../lib/player';
   import { MapCellState, MAXLAYERS, Map2Label, LogLevel } from '../lib/protocol';
   import { clientMapsize } from '../lib/client';
-  import { wantConfig } from '../lib/init';
+  import { wantConfig, useConfig } from '../lib/init';
   import { gameEvents } from '../lib/events';
   import { LOG } from '../lib/misc';
   import { SLOW_DRAW_THRESHOLD_MS, DRAW_STATS_INTERVAL_MS } from '../lib/constants';
@@ -119,6 +119,128 @@
     drawMap(canvas);
   });
 
+  // ── Smooth tile rendering ──────────────────────────────────────────────────
+  // Neighbour offsets (N, NE, E, SE, S, SW, W, NW)
+  const SMOOTH_DX = [0, 1, 1, 1, 0, -1, -1, -1] as const;
+  const SMOOTH_DY = [-1, -1, 0, 1, 1, 1, 0, -1] as const;
+  // Border bitmask contribution per direction (N=2, E=4, S=8, W=1; diagonals=0)
+  const SMOOTH_BWEIGHTS = [2, 0, 4, 0, 8, 0, 1, 0] as const;
+  // Corner bitmask contribution per direction (NE=2, SE=4, SW=8, NW=1; cardinals=0)
+  const SMOOTH_CWEIGHTS = [0, 2, 0, 4, 0, 8, 0, 1] as const;
+  // Which corner bits a cardinal neighbour excludes (e.g. N excludes NW and NE)
+  const SMOOTH_BC_EXCLUDE = [1 + 2, 0, 2 + 4, 0, 4 + 8, 0, 8 + 1, 0] as const;
+
+  // Pre-allocated scratch arrays for drawsmooth to avoid per-tile GC pressure.
+  const _slevels = new Int32Array(8);
+  const _sfaces = new Int32Array(8);
+  const _partdone = new Uint8Array(8);
+
+  /**
+   * Draw smooth-transition overlays for one tile/layer.
+   *
+   * Mirrors `drawsmooth()` in old/gtk-v2/src/map.c.  For each of the eight
+   * neighbours that has a *higher* smooth level at this layer we collect its
+   * smooth-face and level, then draw the appropriate sub-tile from that
+   * smooth-face image onto the current tile to blend the edge.
+   *
+   * The smooth-face image is a 16-tile-wide, 2-tile-tall sprite sheet:
+   *   row 0 – border blends (column index = 4-bit bitmask: N=2 E=4 S=8 W=1)
+   *   row 1 – corner blends (column index = 4-bit bitmask: NE=2 SE=4 SW=8 NW=1)
+   *
+   * @param ctx      Canvas 2D context.
+   * @param ax, ay   Absolute (virtual-map) coordinates of the tile.
+   * @param layer    Layer being drawn.
+   * @param px, py   Pixel position of the tile's top-left corner on the canvas.
+   * @param tileSize Effective tile size in pixels (TILE_SIZE × integer scale).
+   */
+  function drawsmooth(
+    ctx: CanvasRenderingContext2D,
+    ax: number, ay: number,
+    layer: number,
+    px: number, py: number,
+    tileSize: number,
+  ): void {
+    const cell = mapdata_cell(ax, ay);
+
+    // Smooth only makes sense when there is visible content on some layer ≤ current.
+    let hasFace = false;
+    for (let i = 0; i <= layer; i++) {
+      if (cell.heads[i]!.face !== 0) { hasFace = true; break; }
+    }
+    if (!hasFace || !mapdata_can_smooth(ax, ay, layer)) return;
+
+    const mySmooth = cell.smooth[layer]!;
+
+    // Collect neighbour smooth data.
+    for (let i = 0; i < 8; i++) {
+      const emx = ax + SMOOTH_DX[i]!;
+      const emy = ay + SMOOTH_DY[i]!;
+      if (!mapdata_contains(emx, emy)) {
+        _slevels[i] = 0;
+        _sfaces[i] = 0;
+      } else {
+        const ncell = mapdata_cell(emx, emy);
+        if (ncell.smooth[layer]! > mySmooth) {
+          _slevels[i] = ncell.smooth[layer]!;
+          _sfaces[i] = getSmoothFace(ncell.heads[layer]!.face);
+        } else {
+          _slevels[i] = 0;
+          _sfaces[i] = 0;
+        }
+      }
+      _partdone[i] = 0;
+    }
+
+    // Draw overlays from the lowest smooth level upward.
+    while (true) {
+      let lowestIdx = -1;
+      for (let i = 0; i < 8; i++) {
+        if (_slevels[i]! > 0 && _partdone[i] === 0 &&
+            (lowestIdx < 0 || _slevels[i]! < _slevels[lowestIdx]!)) {
+          lowestIdx = i;
+        }
+      }
+      if (lowestIdx < 0) break;
+
+      let weight = 0;
+      let weightC = 15;
+      for (let i = 0; i < 8; i++) {
+        if (_slevels[i]! === _slevels[lowestIdx]! && _sfaces[i]! === _sfaces[lowestIdx]!) {
+          _partdone[i] = 1;
+          weight += SMOOTH_BWEIGHTS[i]!;
+          weightC &= ~SMOOTH_BC_EXCLUDE[i]!;
+        } else {
+          weightC &= ~SMOOTH_CWEIGHTS[i]!;
+        }
+      }
+
+      const smoothFaceNum = _sfaces[lowestIdx]!;
+      if (smoothFaceNum <= 0) continue;
+
+      const smoothUrl = getFaceUrl(smoothFaceNum);
+      if (!smoothUrl) continue;
+
+      const smoothImg = imageCache.get(smoothUrl);
+      if (!smoothImg) {
+        loadImage(smoothUrl);
+        continue;
+      }
+
+      // Draw border sub-tile (row 0, column = weight bitmask).
+      if (weight > 0) {
+        ctx.drawImage(smoothImg,
+          weight * TILE_SIZE, 0, TILE_SIZE, TILE_SIZE,
+          px, py, tileSize, tileSize);
+      }
+      // Draw corner sub-tile (row 1, column = weightC bitmask).
+      if (weightC > 0) {
+        ctx.drawImage(smoothImg,
+          weightC * TILE_SIZE, TILE_SIZE, TILE_SIZE, TILE_SIZE,
+          px, py, tileSize, tileSize);
+      }
+    }
+  }
+
   function drawMap(c: HTMLCanvasElement) {
     const t0 = performance.now();
     performance.mark('drawMap-start');
@@ -196,40 +318,44 @@
           if (cell.state === MapCellState.Empty) continue;
 
           const head = cell.heads[layer]!;
-          const tail = cell.tails[layer]!;
-
-          // Tail cell: skip — the head cell draws the full multi-tile image.
-          if (head.face === 0 && tail.face !== 0) continue;
-          if (head.face === 0) continue;
 
           const px = vx * tileSize;
           const py = vy * tileSize;
 
-          const url = getFaceUrl(head.face);
-          if (url) {
-            const img = imageCache.get(url);
-            if (img) {
-              // Scale the image by the integer scale factor so it fills the
-              // larger tile exactly.  The formula aligns the image's
-              // bottom-right corner with the head tile's bottom-right corner,
-              // matching the C client's convention.
-              const drawW = img.naturalWidth * imgScale;
-              const drawH = img.naturalHeight * imgScale;
-              const drawX = px + tileSize - drawW;
-              const drawY = py + tileSize - drawH;
-              ctx.drawImage(img, drawX, drawY, drawW, drawH);
-              imagesDrawn++;
+          // Tail cell: skip face drawing — the head cell draws the full multi-tile image.
+          // Cells with no face at this layer also skip face drawing.
+          // Both cases still participate in smooth rendering below.
+          if (head.face !== 0) {
+            const url = getFaceUrl(head.face);
+            if (url) {
+              const img = imageCache.get(url);
+              if (img) {
+                // Scale the image by the integer scale factor so it fills the
+                // larger tile exactly.  The formula aligns the image's
+                // bottom-right corner with the head tile's bottom-right corner,
+                // matching the C client's convention.
+                const drawW = img.naturalWidth * imgScale;
+                const drawH = img.naturalHeight * imgScale;
+                const drawX = px + tileSize - drawW;
+                const drawY = py + tileSize - drawH;
+                ctx.drawImage(img, drawX, drawY, drawW, drawH);
+                imagesDrawn++;
+              } else {
+                if (!loadingUrls.has(url) && !failedUrls.has(url)) loadsStarted++;
+                loadImage(url);
+                ctx.fillStyle = layer === 0 ? '#222' : '#333';
+                ctx.fillRect(px + 1, py + 1, tileSize - 2, tileSize - 2);
+                placeholders++;
+              }
             } else {
-              if (!loadingUrls.has(url) && !failedUrls.has(url)) loadsStarted++;
-              loadImage(url);
               ctx.fillStyle = layer === 0 ? '#222' : '#333';
               ctx.fillRect(px + 1, py + 1, tileSize - 2, tileSize - 2);
               placeholders++;
             }
-          } else {
-            ctx.fillStyle = layer === 0 ? '#222' : '#333';
-            ctx.fillRect(px + 1, py + 1, tileSize - 2, tileSize - 2);
-            placeholders++;
+          }
+
+          if (useConfig.smooth) {
+            drawsmooth(ctx, ax, ay, layer, px, py, tileSize);
           }
         }
       }
