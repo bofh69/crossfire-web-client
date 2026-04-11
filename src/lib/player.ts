@@ -5,7 +5,6 @@
 
 import {
     COMMAND_MAX,
-    CONFIG_CWINDOW,
     InputState,
     LogLevel,
     SC_FIRERUN,
@@ -203,7 +202,7 @@ export function sendCommand(command: string, repeat: number, mustSend: number): 
     const commdiff = ((csocket.commandSent - csocket.commandReceived) + 256) % 256;
 
     // Drop duplicate commands when the command window is full.
-    if (commdiff > useConfig[CONFIG_CWINDOW]! && !mustSend && command === lastCommand) {
+    if (commdiff > useConfig.cWindow && !mustSend && command === lastCommand) {
         if (repeat !== -1 && cpl) {
             cpl.count = 0;
         }

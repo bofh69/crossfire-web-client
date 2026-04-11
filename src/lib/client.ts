@@ -5,14 +5,6 @@
  */
 
 import {
-    CONFIG_CACHE,
-    CONFIG_DOWNLOAD,
-    CONFIG_LIGHTING,
-    CONFIG_MAPHEIGHT,
-    CONFIG_MAPWIDTH,
-    CONFIG_PORT,
-    CONFIG_SERVER_TICKS,
-    EPORT,
     VERSION_CS,
     VERSION_SC,
     LogLevel,
@@ -52,7 +44,7 @@ export function clientIsConnected(): boolean {
  *                  include one.  Defaults to the configured port or EPORT.
  */
 export async function clientConnect(hostname: string, port?: number): Promise<void> {
-    const effectivePort = port ?? useConfig[CONFIG_PORT] ?? EPORT;
+    const effectivePort = port ?? useConfig.port;
 
     // Build WebSocket URL if the caller supplied a bare hostname.
     let url = hostname;
@@ -138,9 +130,9 @@ export function clientNegotiate(): void {
     sendVersion();
 
     const sound = 3; // request both sound effects and music
-    const ticks = wantConfig[CONFIG_SERVER_TICKS];
-    const darkness = wantConfig[CONFIG_LIGHTING] ? 1 : 0;
-    const cache = wantConfig[CONFIG_CACHE];
+    const ticks = wantConfig.serverTicks ? 1 : 0;
+    const darkness = wantConfig.lighting > 0 ? 1 : 0;
+    const cache = wantConfig.cache ? 1 : 0;
 
     csocket.sendString(
         `setup map2cmd 1 tick ${ticks} sound2 ${sound} darkness ${darkness} ` +
@@ -154,7 +146,7 @@ export function clientNegotiate(): void {
     csocket.sendString("requestinfo news");
     csocket.sendString("requestinfo rules");
 
-    clientMapsize(wantConfig[CONFIG_MAPWIDTH]!, wantConfig[CONFIG_MAPHEIGHT]!);
+    clientMapsize(wantConfig.mapWidth, wantConfig.mapHeight);
 
-    useConfig[CONFIG_DOWNLOAD] = wantConfig[CONFIG_DOWNLOAD]!;
+    useConfig.download = wantConfig.download;
 }

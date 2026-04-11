@@ -12,7 +12,7 @@
   } from './lib/keys';
   import { gamepadInit, gamepadShutdown, setGamepadCallbacks, notifyHpUpdate, resetHpTracking } from './lib/gamepad';
   import type { Stats } from './lib/protocol';
-  import { InputState, CS_QUERY_HIDEINPUT, CS_QUERY_SINGLECHAR, CS_QUERY_YESNO, CONFIG_SERVER_TICKS, SHOWMAGIC_FLASH_BIT } from './lib/protocol';
+  import { InputState, CS_QUERY_HIDEINPUT, CS_QUERY_SINGLECHAR, CS_QUERY_YESNO, SHOWMAGIC_FLASH_BIT } from './lib/protocol';
   import { useConfig } from './lib/init';
   import { mapdata_animation } from './lib/mapdata';
   import { initSound, stopAll as stopAllSound } from './lib/sound';
@@ -344,7 +344,7 @@
 
     // Self-tick fallback: if the server doesn't send ticks, drive
     // animations with a local 8 fps timer (matching the old C client).
-    if (!useConfig[CONFIG_SERVER_TICKS]) {
+    if (!useConfig.serverTicks) {
       selfTickTimer = setInterval(() => {
         mapdata_animation();
         animateObjects();

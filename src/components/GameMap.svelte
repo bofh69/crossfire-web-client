@@ -3,7 +3,7 @@
   import { mapdata_cell, getViewSize, getPlayerPosition } from '../lib/mapdata';
   import { getFaceUrl } from '../lib/image';
   import { lookAt } from '../lib/player';
-  import { MapCellState, MAXLAYERS, Map2Label, CONFIG_MAPWIDTH, CONFIG_MAPHEIGHT, LogLevel } from '../lib/protocol';
+  import { MapCellState, MAXLAYERS, Map2Label, LogLevel } from '../lib/protocol';
   import { clientMapsize } from '../lib/client';
   import { wantConfig } from '../lib/init';
   import { gameEvents } from '../lib/events';
@@ -73,8 +73,8 @@
     if (desiredW === lastRequestedW && desiredH === lastRequestedH) return;
     lastRequestedW = desiredW;
     lastRequestedH = desiredH;
-    wantConfig[CONFIG_MAPWIDTH] = desiredW;
-    wantConfig[CONFIG_MAPHEIGHT] = desiredH;
+    wantConfig.mapWidth = desiredW;
+    wantConfig.mapHeight = desiredH;
     clientMapsize(desiredW, desiredH);
   });
 
