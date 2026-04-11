@@ -251,28 +251,52 @@ export function getCatSortedCommands(): ConsoleCommand[] {
 }
 
 /**
- * Tab-complete a partial command name.
- * Returns the longest common prefix among all matches (client + server),
- * or the original string if nothing matches.
+ * Gather all tab-completion candidates that start with `partial`.
+ * Searches built-in commands, server commands, and any `extraCandidates`
+ * (e.g. command history entries).  Duplicates are omitted.
  */
-export function completeCommand(partial: string): string {
+export function getCompletionMatches(partial: string, extraCandidates: string[] = []): string[] {
     if (partial.length === 0) {
-        return partial;
+        return [];
     }
     const lower = partial.toLowerCase();
-
-    // Gather all matching names from client commands and server commands.
+    const seen = new Set<string>();
     const matches: string[] = [];
+
     for (const c of commandList) {
-        if (c.name.startsWith(lower)) {
+        if (c.name.startsWith(lower) && !seen.has(c.name)) {
+            seen.add(c.name);
             matches.push(c.name);
         }
     }
     for (const s of serverCommands) {
-        if (s.startsWith(lower)) {
+        if (s.startsWith(lower) && !seen.has(s)) {
+            seen.add(s);
             matches.push(s);
         }
     }
+    for (const e of extraCandidates) {
+        const eLower = e.toLowerCase();
+        if (eLower.startsWith(lower) && !seen.has(eLower)) {
+            seen.add(eLower);
+            matches.push(e);
+        }
+    }
+    return matches;
+}
+
+/**
+ * Tab-complete a partial command string.
+ * Returns the longest common prefix among all matches (built-in commands,
+ * server commands, and optional `extraCandidates` such as history entries),
+ * or the original string if nothing matches.
+ */
+export function completeCommand(partial: string, extraCandidates: string[] = []): string {
+    if (partial.length === 0) {
+        return partial;
+    }
+
+    const matches = getCompletionMatches(partial, extraCandidates);
 
     if (matches.length === 0) {
         return partial;
@@ -281,12 +305,17 @@ export function completeCommand(partial: string): string {
         return matches[0]!;
     }
 
-    // Find longest common prefix.
+    // Find longest common prefix (case-insensitive comparison, preserve case
+    // of the first match).
     let prefix = matches[0]!;
     for (let i = 1; i < matches.length; i++) {
-        while (!matches[i]!.startsWith(prefix)) {
-            prefix = prefix.slice(0, -1);
+        const m = matches[i]!;
+        let j = 0;
+        while (j < prefix.length && j < m.length &&
+               prefix[j]!.toLowerCase() === m[j]!.toLowerCase()) {
+            j++;
         }
+        prefix = prefix.slice(0, j);
     }
     return prefix.length > 0 ? prefix : partial;
 }

@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { extendedCommand } from '../lib/p_cmd';
+  import { extendedCommand, completeCommand, getCompletionMatches } from '../lib/p_cmd';
   import { InputState } from '../lib/protocol';
   import { getCpl } from '../lib/init';
   import { type MessageSpan, colorForNdi, parseMarkup } from '../lib/markup';
@@ -17,6 +17,13 @@
   let commandInput = $state('');
   let messagesDiv: HTMLDivElement | undefined = $state();
   let inputEl: HTMLInputElement | undefined = $state();
+
+  // Command history: oldest entry at index 0, newest at the end.
+  let commandHistory: string[] = $state([]);
+  // -1 = not browsing history (live input); counts from newest (0) to oldest (length-1).
+  let historyIndex = $state(-1);
+  // Current input saved before browsing so we can restore it on ArrowDown.
+  let savedInput = $state('');
 
   function addMessage(color: number, text: string) {
     const baseColor = colorForNdi(color);
@@ -75,7 +82,49 @@
     } else if (e.key === 'Escape') {
       // Leave command mode and return focus to the game.
       commandInput = '';
+      historyIndex = -1;
       blurInput();
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (commandHistory.length === 0) return;
+      if (historyIndex === -1) {
+        // Start browsing: save live input and jump to the newest entry.
+        savedInput = commandInput;
+        historyIndex = 0;
+      } else if (historyIndex < commandHistory.length - 1) {
+        historyIndex++;
+      }
+      commandInput = commandHistory[commandHistory.length - 1 - historyIndex]!;
+      // Move cursor to end after value update.
+      requestAnimationFrame(() => {
+        inputEl?.setSelectionRange(commandInput.length, commandInput.length);
+      });
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (historyIndex === -1) return;
+      if (historyIndex > 0) {
+        historyIndex--;
+        commandInput = commandHistory[commandHistory.length - 1 - historyIndex]!;
+      } else {
+        // Back to live input.
+        historyIndex = -1;
+        commandInput = savedInput;
+      }
+      requestAnimationFrame(() => {
+        inputEl?.setSelectionRange(commandInput.length, commandInput.length);
+      });
+    } else if (e.key === 'Tab') {
+      e.preventDefault();
+      const completed = completeCommand(commandInput, commandHistory);
+      if (completed !== commandInput) {
+        commandInput = completed;
+      } else {
+        // Input already equals the longest common prefix — show all matches.
+        const matches = getCompletionMatches(commandInput, commandHistory);
+        if (matches.length > 1) {
+          addMessage(0, matches.join('  '));
+        }
+      }
     }
   }
 
@@ -101,9 +150,17 @@
     // Empty input or bare chat prefix → just unfocus, don't send anything.
     if (cmd.length === 0 || cmd === CHAT_PREFIX.trim()) {
       commandInput = '';
+      historyIndex = -1;
       blurInput();
       return;
     }
+
+    // Append to history, avoiding consecutive duplicates.
+    if (commandHistory.length === 0 || commandHistory[commandHistory.length - 1] !== cmd) {
+      commandHistory = [...commandHistory, cmd];
+    }
+    historyIndex = -1;
+    savedInput = '';
 
     extendedCommand(cmd);
     commandInput = '';
