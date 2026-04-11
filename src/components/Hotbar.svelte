@@ -16,21 +16,38 @@
     getHotbarGamepadHighlight,
   } from '../lib/hotbar';
   import { getFaceUrl } from '../lib/image';
+  import { findPlayerItemFaceByName } from '../lib/item';
   import { gameEvents } from '../lib/events';
 
   let currentSlots = $state([...getHotbarSlots()]);
   let gamepadMode = $state(false);
   let gamepadHighlight = $state(-1);
   let contextMenu = $state<{ x: number; y: number; index: number } | null>(null);
+  /** Incremented on every inventory change to force reactive face lookups. */
+  let inventoryVersion = $state(0);
 
   onMount(() => {
-    const unsub = gameEvents.on('hotbarUpdate', () => {
-      currentSlots = [...getHotbarSlots()];
-      gamepadMode = isHotbarGamepadMode();
-      gamepadHighlight = getHotbarGamepadHighlight();
-    });
-    return unsub;
+    const unsubs = [
+      gameEvents.on('hotbarUpdate', () => {
+        currentSlots = [...getHotbarSlots()];
+        gamepadMode = isHotbarGamepadMode();
+        gamepadHighlight = getHotbarGamepadHighlight();
+      }),
+      gameEvents.on('playerUpdate', () => { inventoryVersion++; }),
+      gameEvents.on('tick', () => { inventoryVersion++; }),
+    ];
+    return () => { for (const unsub of unsubs) unsub(); };
   });
+
+  function getSlotFace(slot: { command: string; face?: number }): number | undefined {
+    const match = slot.command.match(/^apply (.+)$/);
+    if (match) {
+      // inventoryVersion is read here so Svelte tracks it as a dependency.
+      void inventoryVersion;
+      return findPlayerItemFaceByName(match[1]!);
+    }
+    return slot.face;
+  }
 
   function handleSlotClick(index: number) {
     activateHotbarSlot(index);
@@ -71,9 +88,9 @@
       >
         <span class="fkey">F{i + 1}</span>
         {#if slot}
-          {#if slot.face && getFaceUrl(slot.face)}
+          {#if getFaceUrl(getSlotFace(slot) ?? 0)}
             <img
-              src={getFaceUrl(slot.face)!}
+              src={getFaceUrl(getSlotFace(slot) ?? 0)!}
               alt=""
               class="slot-icon"
             />

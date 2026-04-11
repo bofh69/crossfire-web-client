@@ -12,6 +12,7 @@
   interface FlatItem {
     tag: number;
     name: string;
+    dName: string;
     weight: number;
     nrof: number;
     face: number;
@@ -46,6 +47,7 @@
       result.push({
         tag: item.tag,
         name: item.nrof > 1 ? `${item.nrof} ${item.pName || item.dName}` : item.dName,
+        dName: item.dName,
         weight: item.weight,
         nrof: item.nrof,
         face: item.face,
@@ -187,8 +189,8 @@
     if (contextMenu) {
       const item = contextMenu.item;
       setHotbarSlot(index, {
-        label: item.name,
-        command: `apply ${item.tag}`,
+        label: item.dName,
+        command: `apply ${item.dName}`,
         face: item.face,
       });
     }

@@ -759,6 +759,19 @@ export function animateObjects(): void {
 // Utility: debug inventory dump
 // ──────────────────────────────────────────────────────────────────────────────
 
+/**
+ * Return the face number of the first item in the player's inventory whose
+ * `dName` matches `name`, or `undefined` if no match is found.
+ */
+export function findPlayerItemFaceByName(name: string): number | undefined {
+    for (let item: Item | null = player.inv; item; item = item.next) {
+        if (item.dName === name) {
+            return item.face;
+        }
+    }
+    return undefined;
+}
+
 /** Print an item's inventory tree to the console (debug aid). */
 export function printInventory(op: Item, indent: number = 0): void {
     const pad = " ".repeat(indent);
