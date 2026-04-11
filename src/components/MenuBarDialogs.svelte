@@ -4,6 +4,7 @@
     flagsToDisplayString,
     type KeyBind,
   } from '../lib/keys';
+  import type { HotbarSlot } from '../lib/hotbar';
   import {
     getActiveProfileName,
     getButtonMappings,
@@ -31,6 +32,8 @@
     | 'bind-cmd-gp-input'
     | 'bind-cmd-gp-capture'
     | 'bind-cmd-gp-confirm'
+    | 'bind-cmd-hotbar-input'
+    | 'bind-cmd-hotbar-confirm'
     ;
 
   interface Props {
@@ -70,6 +73,13 @@
     onCancelBindCmdGpCapture: () => void;
     onConfirmBindCmdGp: () => void;
     onCancelBindCmdGpConfirm: () => void;
+    dialogHotbarSlot: number;
+    dialogHotbarLabel: string;
+    hotbarExistingSlot: HotbarSlot | null;
+    onBindCmdHotbar: () => void;
+    onCancelBindCmdHotbar: () => void;
+    onConfirmBindCmdHotbar: () => void;
+    onCancelBindCmdHotbarConfirm: () => void;
   }
 
   let {
@@ -107,6 +117,13 @@
     onCancelBindCmdGpCapture,
     onConfirmBindCmdGp,
     onCancelBindCmdGpConfirm,
+    dialogHotbarSlot = $bindable(),
+    dialogHotbarLabel = $bindable(),
+    hotbarExistingSlot,
+    onBindCmdHotbar,
+    onCancelBindCmdHotbar,
+    onConfirmBindCmdHotbar,
+    onCancelBindCmdHotbarConfirm,
   }: Props = $props();
 </script>
 
@@ -402,6 +419,43 @@
       </div>
     </div>
   </div>
+{:else if dialogMode === 'bind-cmd-hotbar-input'}
+  <div class="dialog-overlay">
+    <div class="dialog">
+      <p class="dialog-title">Bind command to hotbar slot</p>
+      <label class="dialog-field-label" for="bind-cmd-hotbar-cmd">Command:</label>
+      <!-- svelte-ignore a11y_autofocus -->
+      <input id="bind-cmd-hotbar-cmd" class="dialog-input" type="text" bind:value={dialogCommand} autofocus />
+      <label class="dialog-field-label" for="bind-cmd-hotbar-label">Label (leave blank to use command):</label>
+      <input id="bind-cmd-hotbar-label" class="dialog-input" type="text" bind:value={dialogHotbarLabel} placeholder={dialogCommand} />
+      <label class="dialog-field-label" for="bind-cmd-hotbar-slot">Slot:</label>
+      <select id="bind-cmd-hotbar-slot" class="dialog-input dialog-select" bind:value={dialogHotbarSlot}>
+        {#each {length: 12} as _, i}
+          <option value={i}>F{i + 1}</option>
+        {/each}
+      </select>
+      <div class="dialog-buttons">
+        <button class="btn-primary" disabled={!dialogCommand} onclick={onBindCmdHotbar}>Bind</button>
+        <button onclick={onCancelBindCmdHotbar}>Cancel</button>
+      </div>
+    </div>
+  </div>
+{:else if dialogMode === 'bind-cmd-hotbar-confirm'}
+  <div class="dialog-overlay">
+    <div class="dialog">
+      <p class="dialog-title">Bind command to hotbar slot</p>
+      <p>Slot: <strong>F{dialogHotbarSlot + 1}</strong></p>
+      <p>Command: <strong>{dialogCommand}</strong></p>
+      {#if hotbarExistingSlot}
+        <p class="dialog-warn">Slot already assigned to: <strong>{hotbarExistingSlot.label}</strong></p>
+        <p>Overwrite?</p>
+      {/if}
+      <div class="dialog-buttons">
+        <button class="btn-primary" onclick={onConfirmBindCmdHotbar}>Overwrite</button>
+        <button onclick={onCancelBindCmdHotbarConfirm}>Back</button>
+      </div>
+    </div>
+  </div>
 {/if}
 
 <style>
@@ -464,6 +518,11 @@
     font-size: 0.85rem;
     margin-bottom: 0.6rem;
     box-sizing: border-box;
+  }
+
+  .dialog-select {
+    font-family: inherit;
+    cursor: pointer;
   }
 
   .dialog-checkbox-label {
