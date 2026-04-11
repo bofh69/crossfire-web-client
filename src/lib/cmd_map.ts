@@ -32,8 +32,8 @@ export function SetupCmd(data: string): void {
     if (key === 'mapsize' && value !== 'FALSE') {
       const [w = NaN, h = NaN] = value.split('x').map(Number);
       if (!isNaN(w) && !isNaN(h) && w > 0 && h > 0) {
-        useConfig[19] = w; // CONFIG_MAPWIDTH
-        useConfig[20] = h; // CONFIG_MAPHEIGHT
+        useConfig.mapWidth = w;
+        useConfig.mapHeight = h;
         mapdata_set_size(w, h);
       }
     }

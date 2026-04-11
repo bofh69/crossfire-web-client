@@ -16,9 +16,6 @@ import {
     ANIM_RANDOM,
     ANIM_SYNC,
     MapCellState,
-    CONFIG_MAPWIDTH,
-    CONFIG_MAPHEIGHT,
-    CONFIG_MAPSCROLL,
     LogLevel,
 } from "./protocol";
 
@@ -1031,7 +1028,7 @@ export function mapdata_scroll(dx: number, dy: number): void {
 
     recenterVirtualMapView(dx, dy);
 
-    if (wantConfig[CONFIG_MAPSCROLL] && displayMapscrollFn(dx, dy)) {
+    if (wantConfig.mapscroll && displayMapscrollFn(dx, dy)) {
         // Mark tiles overlapped by big faces from outside the view area.
         for (const bc of activeBigfaces) {
             for (let bx = 0; bx < bc.head.sizeX; bx++) {
@@ -1191,8 +1188,8 @@ export function mapdata_animation(): void {
  * coordinates.
  */
 export function pl_mpos(): { px: number; py: number } {
-    const vw = useConfig[CONFIG_MAPWIDTH] || viewWidth;
-    const vh = useConfig[CONFIG_MAPHEIGHT] || viewHeight;
+    const vw = useConfig.mapWidth || viewWidth;
+    const vh = useConfig.mapHeight || viewHeight;
     return {
         px: pl_pos.x + Math.floor(vw / 2),
         py: pl_pos.y + Math.floor(vh / 2),

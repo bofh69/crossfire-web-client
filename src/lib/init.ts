@@ -7,43 +7,6 @@ import type { Player } from "./protocol";
 import {
     CS_NUM_SKILLS,
     InputState,
-    CONFIG_APPLY_CONTAINER,
-    CONFIG_AUTO_AFK,
-    CONFIG_CACHE,
-    CONFIG_CWINDOW,
-    CONFIG_DARKNESS,
-    CONFIG_DEBOUNCE,
-    CONFIG_DISPLAYMODE,
-    CONFIG_DOWNLOAD,
-    CONFIG_ECHO,
-    CONFIG_FASTTCP,
-    CONFIG_FOGWAR,
-    CONFIG_FOODBEEP,
-    CONFIG_GRAD_COLOR,
-    CONFIG_ICONSCALE,
-    CONFIG_INV_MENU,
-    CONFIG_LIGHTING,
-    CONFIG_MAPHEIGHT,
-    CONFIG_MAPSCALE,
-    CONFIG_MAPSCROLL,
-    CONFIG_MAPWIDTH,
-    CONFIG_MUSIC_VOL,
-    CONFIG_NUMS,
-    CONFIG_POPUPS,
-    CONFIG_PORT,
-    CONFIG_RESISTS,
-    CONFIG_SERVER_TICKS,
-    CONFIG_SHOWGRID,
-    CONFIG_SHOWICON,
-    CONFIG_SIGNPOPUP,
-    CONFIG_SMOOTH,
-    CONFIG_SOUND,
-    CONFIG_SPLASH,
-    CONFIG_SPLITINFO,
-    CONFIG_SPLITWIN,
-    CONFIG_TIMESTAMP,
-    CONFIG_TOOLTIPS,
-    CONFIG_TRIMINFO,
     CFG_DM_PIXMAP,
     CFG_LT_PIXEL,
     COMMAND_WINDOW,
@@ -56,128 +19,200 @@ import { playerItem, mapItem, setCpl as setCplInItem } from "./item";
 import { setCpl as setCplInPlayer } from "./player";
 
 // ──────────────────────────────────────────────────────────────────────────────
-// Configuration name/value arrays
+// Typed configuration object
 // ──────────────────────────────────────────────────────────────────────────────
 
 /**
- * Human-readable names for each CONFIG index.
- * Indices match the CONFIG_* constants from protocol.ts.
- * Index 0 is unused (CONFIG constants start at 1).
+ * Strongly-typed client configuration.
+ *
+ * Boolean fields represent on/off toggles (previously stored as 1/0 in a plain
+ * number[]).  Numeric fields carry true integer values (scales, port, timeouts,
+ * enum-style selectors, etc.).
+ *
+ * The ordering mirrors the CONFIG_* constants in protocol.ts so that the
+ * descriptors in CONFIG_DESCS stay easy to cross-reference.
  */
-export const configNames: string[] = [
-    "",                       // 0  (unused)
-    "download_all_images",    // 1  CONFIG_DOWNLOAD
-    "echo_bindings",          // 2  CONFIG_ECHO
-    "fasttcpsend",            // 3  CONFIG_FASTTCP
-    "command_window",         // 4  CONFIG_CWINDOW
-    "cacheimages",            // 5  CONFIG_CACHE
-    "fog_of_war",             // 6  CONFIG_FOGWAR
-    "iconscale",              // 7  CONFIG_ICONSCALE
-    "mapscale",               // 8  CONFIG_MAPSCALE
-    "popups",                 // 9  CONFIG_POPUPS
-    "displaymode",            // 10 CONFIG_DISPLAYMODE
-    "showicon",               // 11 CONFIG_SHOWICON
-    "tooltips",               // 12 CONFIG_TOOLTIPS
-    "sound",                  // 13 CONFIG_SOUND
-    "splitinfo",              // 14 CONFIG_SPLITINFO
-    "split",                  // 15 CONFIG_SPLITWIN
-    "show_grid",              // 16 CONFIG_SHOWGRID
-    "lighting",               // 17 CONFIG_LIGHTING
-    "trim_info_window",       // 18 CONFIG_TRIMINFO
-    "map_width",              // 19 CONFIG_MAPWIDTH
-    "map_height",             // 20 CONFIG_MAPHEIGHT
-    "foodbeep",               // 21 CONFIG_FOODBEEP
-    "darkness",               // 22 CONFIG_DARKNESS
-    "port",                   // 23 CONFIG_PORT
-    "grad_color_bars",        // 24 CONFIG_GRAD_COLOR
-    "resistances",            // 25 CONFIG_RESISTS
-    "smoothing",              // 26 CONFIG_SMOOTH
-    "nosplash",               // 27 CONFIG_SPLASH
-    "auto_apply_container",   // 28 CONFIG_APPLY_CONTAINER
-    "mapscroll",              // 29 CONFIG_MAPSCROLL
-    "sign_popups",            // 30 CONFIG_SIGNPOPUP
-    "message_timestamping",   // 31 CONFIG_TIMESTAMP
-    "auto_afk",               // 32 CONFIG_AUTO_AFK
-    "inv_menu",               // 33 CONFIG_INV_MENU
-    "music_vol",              // 34 CONFIG_MUSIC_VOL
-    "server_ticks",           // 35 CONFIG_SERVER_TICKS
-    "debounce",               // 36 CONFIG_DEBOUNCE
+export interface ClientConfig {
+    // --- boolean toggles (CONFIG_DOWNLOAD … CONFIG_DEBOUNCE) ---
+    download: boolean;          // CONFIG_DOWNLOAD        = 1
+    echo: boolean;              // CONFIG_ECHO            = 2
+    fasttcp: boolean;           // CONFIG_FASTTCP         = 3
+    cache: boolean;             // CONFIG_CACHE           = 5
+    fogwar: boolean;            // CONFIG_FOGWAR          = 6
+    popups: boolean;            // CONFIG_POPUPS          = 9
+    showicon: boolean;          // CONFIG_SHOWICON        = 11
+    tooltips: boolean;          // CONFIG_TOOLTIPS        = 12
+    sound: boolean;             // CONFIG_SOUND           = 13
+    splitinfo: boolean;         // CONFIG_SPLITINFO       = 14
+    splitwin: boolean;          // CONFIG_SPLITWIN        = 15
+    showgrid: boolean;          // CONFIG_SHOWGRID        = 16
+    triminfo: boolean;          // CONFIG_TRIMINFO        = 18
+    foodbeep: boolean;          // CONFIG_FOODBEEP        = 21
+    darkness: boolean;          // CONFIG_DARKNESS        = 22
+    gradColor: boolean;         // CONFIG_GRAD_COLOR      = 24
+    smooth: boolean;            // CONFIG_SMOOTH          = 26
+    splash: boolean;            // CONFIG_SPLASH          = 27
+    applyContainer: boolean;    // CONFIG_APPLY_CONTAINER = 28
+    mapscroll: boolean;         // CONFIG_MAPSCROLL       = 29
+    signpopup: boolean;         // CONFIG_SIGNPOPUP       = 30
+    timestamp: boolean;         // CONFIG_TIMESTAMP       = 31
+    invMenu: boolean;           // CONFIG_INV_MENU        = 33
+    serverTicks: boolean;       // CONFIG_SERVER_TICKS    = 35
+    debounce: boolean;          // CONFIG_DEBOUNCE        = 36
+
+    // --- numeric values ---
+    cWindow: number;            // CONFIG_CWINDOW         = 4  (command-window depth)
+    iconscale: number;          // CONFIG_ICONSCALE       = 7  (%)
+    mapscale: number;           // CONFIG_MAPSCALE        = 8  (%)
+    displaymode: number;        // CONFIG_DISPLAYMODE     = 10 (CFG_DM_*)
+    lighting: number;           // CONFIG_LIGHTING        = 17 (CFG_LT_*)
+    mapWidth: number;           // CONFIG_MAPWIDTH        = 19 (tiles)
+    mapHeight: number;          // CONFIG_MAPHEIGHT       = 20 (tiles)
+    port: number;               // CONFIG_PORT            = 23
+    resists: number;            // CONFIG_RESISTS         = 25 (0/1/2 display mode)
+    autoAfk: number;            // CONFIG_AUTO_AFK        = 32 (seconds)
+    musicVol: number;           // CONFIG_MUSIC_VOL       = 34 (0-100)
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Configuration descriptors (replace the old configNames array)
+// ──────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Metadata for each CONFIG_* slot.
+ * `key`  – property name on {@link ClientConfig}.
+ * `name` – localStorage key suffix (must match what old clients stored so that
+ *          previously-saved settings are still loaded correctly).
+ */
+interface ConfigDesc {
+    key: keyof ClientConfig;
+    name: string;
+}
+
+/**
+ * One entry per CONFIG_* index (1-based; index 0 is null / unused).
+ * The index of each entry equals the matching CONFIG_* constant in protocol.ts.
+ */
+const CONFIG_DESCS: (ConfigDesc | null)[] = [
+    null,                                                                     // 0  unused
+    { key: 'download',       name: 'download_all_images'  },                 // 1  CONFIG_DOWNLOAD
+    { key: 'echo',           name: 'echo_bindings'        },                 // 2  CONFIG_ECHO
+    { key: 'fasttcp',        name: 'fasttcpsend'          },                 // 3  CONFIG_FASTTCP
+    { key: 'cWindow',        name: 'command_window'       },                 // 4  CONFIG_CWINDOW
+    { key: 'cache',          name: 'cacheimages'          },                 // 5  CONFIG_CACHE
+    { key: 'fogwar',         name: 'fog_of_war'           },                 // 6  CONFIG_FOGWAR
+    { key: 'iconscale',      name: 'iconscale'            },                 // 7  CONFIG_ICONSCALE
+    { key: 'mapscale',       name: 'mapscale'             },                 // 8  CONFIG_MAPSCALE
+    { key: 'popups',         name: 'popups'               },                 // 9  CONFIG_POPUPS
+    { key: 'displaymode',    name: 'displaymode'          },                 // 10 CONFIG_DISPLAYMODE
+    { key: 'showicon',       name: 'showicon'             },                 // 11 CONFIG_SHOWICON
+    { key: 'tooltips',       name: 'tooltips'             },                 // 12 CONFIG_TOOLTIPS
+    { key: 'sound',          name: 'sound'                },                 // 13 CONFIG_SOUND
+    { key: 'splitinfo',      name: 'splitinfo'            },                 // 14 CONFIG_SPLITINFO
+    { key: 'splitwin',       name: 'split'                },                 // 15 CONFIG_SPLITWIN
+    { key: 'showgrid',       name: 'show_grid'            },                 // 16 CONFIG_SHOWGRID
+    { key: 'lighting',       name: 'lighting'             },                 // 17 CONFIG_LIGHTING
+    { key: 'triminfo',       name: 'trim_info_window'     },                 // 18 CONFIG_TRIMINFO
+    { key: 'mapWidth',       name: 'map_width'            },                 // 19 CONFIG_MAPWIDTH
+    { key: 'mapHeight',      name: 'map_height'           },                 // 20 CONFIG_MAPHEIGHT
+    { key: 'foodbeep',       name: 'foodbeep'             },                 // 21 CONFIG_FOODBEEP
+    { key: 'darkness',       name: 'darkness'             },                 // 22 CONFIG_DARKNESS
+    { key: 'port',           name: 'port'                 },                 // 23 CONFIG_PORT
+    { key: 'gradColor',      name: 'grad_color_bars'      },                 // 24 CONFIG_GRAD_COLOR
+    { key: 'resists',        name: 'resistances'          },                 // 25 CONFIG_RESISTS
+    { key: 'smooth',         name: 'smoothing'            },                 // 26 CONFIG_SMOOTH
+    { key: 'splash',         name: 'nosplash'             },                 // 27 CONFIG_SPLASH
+    { key: 'applyContainer', name: 'auto_apply_container' },                 // 28 CONFIG_APPLY_CONTAINER
+    { key: 'mapscroll',      name: 'mapscroll'            },                 // 29 CONFIG_MAPSCROLL
+    { key: 'signpopup',      name: 'sign_popups'          },                 // 30 CONFIG_SIGNPOPUP
+    { key: 'timestamp',      name: 'message_timestamping' },                 // 31 CONFIG_TIMESTAMP
+    { key: 'autoAfk',        name: 'auto_afk'             },                 // 32 CONFIG_AUTO_AFK
+    { key: 'invMenu',        name: 'inv_menu'             },                 // 33 CONFIG_INV_MENU
+    { key: 'musicVol',       name: 'music_vol'            },                 // 34 CONFIG_MUSIC_VOL
+    { key: 'serverTicks',    name: 'server_ticks'         },                 // 35 CONFIG_SERVER_TICKS
+    { key: 'debounce',       name: 'debounce'             },                 // 36 CONFIG_DEBOUNCE
 ];
 
 /** Desired configuration values. */
-export const wantConfig: number[] = new Array<number>(CONFIG_NUMS).fill(0);
+export const wantConfig = {} as ClientConfig;
 
 /** Active configuration values (may differ from wantConfig during negotiation). */
-export const useConfig: number[] = new Array<number>(CONFIG_NUMS).fill(0);
+export const useConfig = {} as ClientConfig;
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Configuration defaults
 // ──────────────────────────────────────────────────────────────────────────────
-
-const TRUE = 1;
-const FALSE = 0;
 
 /**
  * Populate {@link wantConfig} with built-in defaults and copy them into
  * {@link useConfig}. Matches the C `init_config()` function.
  */
 function initConfig(): void {
-    wantConfig[CONFIG_APPLY_CONTAINER] = TRUE;
-    wantConfig[CONFIG_CACHE] = FALSE;
-    wantConfig[CONFIG_CWINDOW] = COMMAND_WINDOW;
-    wantConfig[CONFIG_DARKNESS] = TRUE;
-    wantConfig[CONFIG_DISPLAYMODE] = CFG_DM_PIXMAP;
-    wantConfig[CONFIG_DOWNLOAD] = FALSE;
-    wantConfig[CONFIG_ECHO] = FALSE;
-    wantConfig[CONFIG_FASTTCP] = TRUE;
-    wantConfig[CONFIG_FOGWAR] = TRUE;
-    wantConfig[CONFIG_FOODBEEP] = FALSE;
-    wantConfig[CONFIG_GRAD_COLOR] = FALSE;
-    wantConfig[CONFIG_ICONSCALE] = 100;
-    wantConfig[CONFIG_LIGHTING] = CFG_LT_PIXEL;
-    wantConfig[CONFIG_MAPHEIGHT] = 20;
-    wantConfig[CONFIG_MAPSCALE] = 100;
-    wantConfig[CONFIG_MAPSCROLL] = TRUE;
-    wantConfig[CONFIG_MAPWIDTH] = 20;
-    wantConfig[CONFIG_POPUPS] = FALSE;
-    wantConfig[CONFIG_PORT] = EPORT;
-    wantConfig[CONFIG_RESISTS] = 0;
-    wantConfig[CONFIG_SHOWGRID] = FALSE;
-    wantConfig[CONFIG_SHOWICON] = FALSE;
-    wantConfig[CONFIG_SIGNPOPUP] = TRUE;
-    wantConfig[CONFIG_SMOOTH] = FALSE;
-    wantConfig[CONFIG_SOUND] = TRUE;
-    wantConfig[CONFIG_SPLASH] = TRUE;
-    wantConfig[CONFIG_SPLITINFO] = FALSE;
-    wantConfig[CONFIG_SPLITWIN] = FALSE;
-    wantConfig[CONFIG_TIMESTAMP] = FALSE;
-    wantConfig[CONFIG_TOOLTIPS] = TRUE;
-    wantConfig[CONFIG_TRIMINFO] = FALSE;
-    wantConfig[CONFIG_AUTO_AFK] = 300;
-    wantConfig[CONFIG_INV_MENU] = TRUE;
-    wantConfig[CONFIG_MUSIC_VOL] = 100;
-    wantConfig[CONFIG_SERVER_TICKS] = TRUE;
-    wantConfig[CONFIG_DEBOUNCE] = TRUE;
+    wantConfig.applyContainer = true;
+    wantConfig.cache          = false;
+    wantConfig.cWindow        = COMMAND_WINDOW;
+    wantConfig.darkness       = true;
+    wantConfig.debounce       = true;
+    wantConfig.displaymode    = CFG_DM_PIXMAP;
+    wantConfig.download       = false;
+    wantConfig.echo           = false;
+    wantConfig.fasttcp        = true;
+    wantConfig.fogwar         = true;
+    wantConfig.foodbeep       = false;
+    wantConfig.gradColor      = false;
+    wantConfig.iconscale      = 100;
+    wantConfig.invMenu        = true;
+    wantConfig.lighting       = CFG_LT_PIXEL;
+    wantConfig.mapHeight      = 20;
+    wantConfig.mapscale       = 100;
+    wantConfig.mapscroll      = true;
+    wantConfig.mapWidth       = 20;
+    wantConfig.musicVol       = 100;
+    wantConfig.popups         = false;
+    wantConfig.port           = EPORT;
+    wantConfig.resists        = 0;
+    wantConfig.serverTicks    = true;
+    wantConfig.showgrid       = false;
+    wantConfig.showicon       = false;
+    wantConfig.signpopup      = true;
+    wantConfig.smooth         = false;
+    wantConfig.sound          = true;
+    wantConfig.splash         = true;
+    wantConfig.splitinfo      = false;
+    wantConfig.splitwin       = false;
+    wantConfig.timestamp      = false;
+    wantConfig.tooltips       = true;
+    wantConfig.triminfo       = false;
+    wantConfig.autoAfk        = 300;
 
-    for (let i = 0; i < CONFIG_NUMS; i++) {
-        useConfig[i] = wantConfig[i]!;
-    }
+    Object.assign(useConfig, wantConfig);
 }
 
 /**
  * Load any user-overridden config values from localStorage and merge them
  * into {@link wantConfig} / {@link useConfig}.
+ *
+ * Boolean configs accept legacy stored numbers (0 → false, non-zero → true)
+ * so that settings saved by earlier versions of the client still load correctly.
  */
 function loadSavedConfig(): void {
-    for (let i = 1; i < CONFIG_NUMS; i++) {
-        const name = configNames[i];
-        if (name) {
-            const saved = loadConfig<number | null>(`config_${name}`, null);
-            if (saved !== null) {
-                wantConfig[i] = saved;
-                useConfig[i] = saved;
-            }
+    for (const desc of CONFIG_DESCS) {
+        if (!desc) continue;
+        const raw = loadConfig<boolean | number | null>(`config_${desc.name}`, null);
+        if (raw === null) continue;
+        const key = desc.key;
+        const defaultVal = wantConfig[key];
+        let coerced: boolean | number;
+        if (typeof defaultVal === 'boolean') {
+            // `raw` is guaranteed non-null here (guarded above).
+            // Accept legacy stored numbers (0 → false, non-zero → true) so
+            // that settings saved by older builds still load correctly.
+            coerced = typeof raw === 'boolean' ? raw : (raw as number) !== 0;
+        } else {
+            coerced = typeof raw === 'number' ? raw : defaultVal;
         }
+        (wantConfig as Record<keyof ClientConfig, boolean | number>)[key] = coerced;
+        (useConfig  as Record<keyof ClientConfig, boolean | number>)[key] = coerced;
     }
 }
 
@@ -186,11 +221,9 @@ function loadSavedConfig(): void {
  * survive page reloads.
  */
 export function saveCurrentConfig(): void {
-    for (let i = 1; i < CONFIG_NUMS; i++) {
-        const name = configNames[i];
-        if (name) {
-            saveConfig(`config_${name}`, wantConfig[i]);
-        }
+    for (const desc of CONFIG_DESCS) {
+        if (!desc) continue;
+        saveConfig(`config_${desc.name}`, wantConfig[desc.key]);
     }
 }
 
