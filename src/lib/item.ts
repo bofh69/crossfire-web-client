@@ -32,8 +32,10 @@ import {
     F_UNPAID,
     F_LOCKED,
     F_READ,
+    LogLevel,
 } from "./protocol";
 import { SockList, CrossfireSocket } from "./newsocket";
+import { LOG } from "./misc";
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Item‐type classification table (parsed from old/common/item-types).
@@ -287,7 +289,7 @@ export function getTypeFromName(name: string): number {
             }
         }
     }
-    console.warn(`item::getTypeFromName: Could not find match for ${name}`);
+    LOG(LogLevel.Warning, 'item', `getTypeFromName: Could not find match for ${name}`);
     return 255;
 }
 
@@ -479,7 +481,7 @@ export function setItemValues(
     type: number,
 ): void {
     if (!op) {
-        console.error("setItemValues: item pointer is null");
+        LOG(LogLevel.Error, 'item', 'setItemValues: item pointer is null');
         return;
     }
 
@@ -760,10 +762,10 @@ export function animateObjects(): void {
 /** Print an item's inventory tree to the console (debug aid). */
 export function printInventory(op: Item, indent: number = 0): void {
     const pad = " ".repeat(indent);
-    console.log(`${pad}${op.dName} (tag=${op.tag}, weight=${op.weight.toFixed(1)} kg)`);
+    LOG(LogLevel.Debug, 'item', `${pad}${op.dName} (tag=${op.tag}, weight=${op.weight.toFixed(1)} kg)`);
     for (let tmp: Item | null = op.inv; tmp; tmp = tmp.next) {
         const line = `${pad}  - ${tmp.nrof} ${tmp.dName}${tmp.flags} (${tmp.tag})`;
-        console.log(`${line}  ${(tmp.nrof * tmp.weight).toFixed(1)} kg`);
+        LOG(LogLevel.Debug, 'item', `${line}  ${(tmp.nrof * tmp.weight).toFixed(1)} kg`);
         if (tmp.inv) {
             printInventory(tmp, indent + 2);
         }

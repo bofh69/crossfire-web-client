@@ -22,7 +22,9 @@ import {
   MAXSOCKBUF,
   VERSION_CS,
   VERSION_SC,
+  LogLevel,
 } from "./protocol";
+import { LOG } from "./misc";
 
 /** Maximum payload size for a SockList (MAXSOCKBUF minus 2-byte length header). */
 const MAX_DATA_SIZE = MAXSOCKBUF - 2;
@@ -54,9 +56,8 @@ export class SockList {
   /** Add a single unsigned byte. */
   addChar(c: number): void {
     if (this._len + 1 > MAX_DATA_SIZE) {
-      console.error(
-        `SockList.addChar: Could not write ${c & 0xff} to socket: Buffer full.`
-      );
+      LOG(LogLevel.Error, 'SockList',
+        `addChar: Could not write ${c & 0xff} to socket: Buffer full.`);
       return;
     }
     this.view.setUint8(this._len, c & 0xff);
@@ -66,9 +67,8 @@ export class SockList {
   /** Add a 16-bit unsigned integer in network (big-endian) byte order. */
   addShort(s: number): void {
     if (this._len + 2 > MAX_DATA_SIZE) {
-      console.error(
-        `SockList.addShort: Could not write ${s & 0xffff} to socket: Buffer full.`
-      );
+      LOG(LogLevel.Error, 'SockList',
+        `addShort: Could not write ${s & 0xffff} to socket: Buffer full.`);
       return;
     }
     this.view.setUint16(this._len, s & 0xffff, false);
@@ -78,9 +78,8 @@ export class SockList {
   /** Add a 32-bit unsigned integer in network (big-endian) byte order. */
   addInt(i: number): void {
     if (this._len + 4 > MAX_DATA_SIZE) {
-      console.error(
-        `SockList.addInt: Could not write ${i >>> 0} to socket: Buffer full.`
-      );
+      LOG(LogLevel.Error, 'SockList',
+        `addInt: Could not write ${i >>> 0} to socket: Buffer full.`);
       return;
     }
     this.view.setUint32(this._len, i >>> 0, false);
@@ -196,7 +195,7 @@ export class CrossfireSocket {
 
       ws.addEventListener("open", () => {
         this.ws = ws;
-        console.log(`CrossfireSocket: connected to ${this.url}`);
+        LOG(LogLevel.Info, 'CrossfireSocket', `connected to ${this.url}`);
         resolve();
       });
 
@@ -205,12 +204,12 @@ export class CrossfireSocket {
           // Connection was never established.
           reject(new Error(`CrossfireSocket: failed to connect to ${this.url}`));
         }
-        console.error("CrossfireSocket: WebSocket error", ev);
+        LOG(LogLevel.Error, 'CrossfireSocket', `WebSocket error: ${ev}`);
         this.onError?.(ev);
       });
 
       ws.addEventListener("close", () => {
-        console.log("CrossfireSocket: connection closed");
+        LOG(LogLevel.Info, 'CrossfireSocket', 'connection closed');
         this.ws = null;
         this.onDisconnect?.();
       });
@@ -232,13 +231,13 @@ export class CrossfireSocket {
   /** Send a pre-built SockList packet. */
   send(sl: SockList): void {
     if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
-      console.warn("CrossfireSocket.send: not connected");
+      LOG(LogLevel.Warning, 'CrossfireSocket', 'send: not connected');
       return;
     }
     const data = sl.getData();
     // Log the outgoing binary packet as a text preview (first 64 bytes decoded).
     const preview = new TextDecoder().decode(data.subarray(0, Math.min(64, data.length)));
-    console.debug(`[TX binary ${data.length}B] ${preview}`);
+    LOG(LogLevel.Debug, 'CrossfireSocket', `[TX binary ${data.length}B] ${preview}`);
     this.ws.send(data);
     this.commandSent++;
   }
@@ -250,10 +249,10 @@ export class CrossfireSocket {
    */
   sendString(cmd: string): void {
     if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
-      console.warn("CrossfireSocket.sendString: not connected");
+      LOG(LogLevel.Warning, 'CrossfireSocket', 'sendString: not connected');
       return;
     }
-    console.debug(`[TX] ${cmd}`);
+    LOG(LogLevel.Debug, 'CrossfireSocket', `[TX] ${cmd}`);
     const encoded = new TextEncoder().encode(cmd);
     this.ws.send(encoded);
     this.commandSent++;
@@ -282,7 +281,8 @@ export class CrossfireSocket {
     this.onPacket?.(payload);
     const elapsed = performance.now() - t0;
     if (elapsed > 5) {
-      console.warn(`[perf:ws] onPacket callback took ${elapsed.toFixed(1)}ms for ${payload.length}B message (#${this.commandReceived})`);
+      LOG(LogLevel.Warning, 'perf:ws',
+        `onPacket callback took ${elapsed.toFixed(1)}ms for ${payload.length}B message (#${this.commandReceived})`);
     }
   }
 }

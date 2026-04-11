@@ -150,8 +150,60 @@ function sanitiseName(name: string): string {
     return name.replace(/[^a-zA-Z0-9_-]/g, "_").substring(0, 80);
 }
 
-/** The sanitised name of the currently active controller (for storage). */
-let activeControllerKey = "";
+// ──────────────────────────────────────────────────────────────────────────────
+// Module state
+// ──────────────────────────────────────────────────────────────────────────────
+
+interface GamepadState {
+    /** The sanitised name of the currently active controller (for storage). */
+    activeControllerKey: string;
+    /** Active gamepad profile (resolved per-controller, possibly user-customised). */
+    activeProfile: GamepadProfile | null;
+    /** The gamepad index we're currently tracking (-1 = none). */
+    activeGamepadIndex: number;
+    /** Previous button states for edge detection (true = was pressed). */
+    prevButtons: boolean[];
+    /** Previous direction from walk stick (for change detection). */
+    prevWalkDir: number;
+    /** Previous direction from fire stick. */
+    prevFireDir: number;
+    /** Whether we were running last frame (with hysteresis). */
+    prevRunning: boolean;
+    /** Whether we were firing (via fire stick) last frame. */
+    prevFiring: boolean;
+    /** Animation frame handle for the polling loop. */
+    pollHandle: number | null;
+    /** Timer handle for the pending walk command. */
+    walkDelayTimer: ReturnType<typeof setTimeout> | null;
+    /** Direction of the pending walk (set when timer fires or promoted to run). */
+    walkDelayDir: number;
+    /**
+     * When we send `run_stop`, we record the ncom sequence number here.
+     * We suppress any walk commands from the gamepad until the server has
+     * acknowledged that `run_stop` via a comc response, preventing an extra
+     * walk step that would otherwise be triggered while the stick passes
+     * through the walk zone on its way back to center.
+     */
+    runStopSeq: number;
+    /** Registered UI callbacks. */
+    callbacks: GamepadCallbacks | null;
+}
+
+const gamepadState: GamepadState = {
+    activeControllerKey: "",
+    activeProfile: null,
+    activeGamepadIndex: -1,
+    prevButtons: [],
+    prevWalkDir: 0,
+    prevFireDir: 0,
+    prevRunning: false,
+    prevFiring: false,
+    pollHandle: null,
+    walkDelayTimer: null,
+    walkDelayDir: 0,
+    runStopSeq: -1,
+    callbacks: null,
+};
 
 interface SavedGamepadConfig {
     walkStick: StickAxes;
@@ -163,49 +215,6 @@ interface SavedGamepadConfig {
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
-// Module state
-// ──────────────────────────────────────────────────────────────────────────────
-
-/** Active gamepad profile (resolved per-controller, possibly user-customised). */
-let activeProfile: GamepadProfile | null = null;
-
-/** The gamepad index we're currently tracking (-1 = none). */
-let activeGamepadIndex = -1;
-
-/** Previous button states for edge detection (true = was pressed). */
-let prevButtons: boolean[] = [];
-
-/** Previous direction from walk stick (for change detection). */
-let prevWalkDir = 0;
-/** Previous direction from fire stick. */
-let prevFireDir = 0;
-/** Whether we were running last frame (with hysteresis). */
-let prevRunning = false;
-/** Whether we were firing (via fire stick) last frame. */
-let prevFiring = false;
-
-/** Animation frame handle for the polling loop. */
-let pollHandle: number | null = null;
-
-// ── Walk-delay state (prevents walk-then-run on fast flick) ─────────────────
-
-/** Timer handle for the pending walk command. */
-let walkDelayTimer: ReturnType<typeof setTimeout> | null = null;
-/** Direction of the pending walk (set when timer fires or promoted to run). */
-let walkDelayDir = 0;
-
-// ── Run-stop guard (prevents extra walk step after releasing run) ────────────
-
-/**
- * When we send `run_stop`, we record the ncom sequence number here.
- * We suppress any walk commands from the gamepad until the server has
- * acknowledged that `run_stop` via a comc response, preventing an extra
- * walk step that would otherwise be triggered while the stick passes
- * through the walk zone on its way back to center.
- */
-let runStopSeq = -1;
-
-// ──────────────────────────────────────────────────────────────────────────────
 // Callbacks (like keys.ts KeyCallbacks)
 // ──────────────────────────────────────────────────────────────────────────────
 
@@ -213,10 +222,8 @@ export interface GamepadCallbacks {
     drawInfo: (message: string) => void;
 }
 
-let cb: GamepadCallbacks | null = null;
-
 export function setGamepadCallbacks(c: GamepadCallbacks): void {
-    cb = c;
+    gamepadState.callbacks = c;
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -224,16 +231,16 @@ export function setGamepadCallbacks(c: GamepadCallbacks): void {
 // ──────────────────────────────────────────────────────────────────────────────
 
 function saveGamepadConfig(): void {
-    if (!activeProfile || !activeControllerKey) return;
+    if (!gamepadState.activeProfile || !gamepadState.activeControllerKey) return;
     const data: SavedGamepadConfig = {
-        walkStick: activeProfile.walkStick,
-        fireStick: activeProfile.fireStick,
-        walkThreshold: activeProfile.walkThreshold,
-        runThreshold: activeProfile.runThreshold,
-        fireThreshold: activeProfile.fireThreshold,
-        buttons: activeProfile.buttons,
+        walkStick: gamepadState.activeProfile.walkStick,
+        fireStick: gamepadState.activeProfile.fireStick,
+        walkThreshold: gamepadState.activeProfile.walkThreshold,
+        runThreshold: gamepadState.activeProfile.runThreshold,
+        fireThreshold: gamepadState.activeProfile.fireThreshold,
+        buttons: gamepadState.activeProfile.buttons,
     };
-    saveConfig(STORAGE_KEY_PREFIX + activeControllerKey, data);
+    saveConfig(STORAGE_KEY_PREFIX + gamepadState.activeControllerKey, data);
 }
 
 function loadSavedConfig(controllerKey: string): SavedGamepadConfig | null {
@@ -251,17 +258,17 @@ function onGamepadConnected(e: GamepadEvent): void {
         `Gamepad connected: "${gp.id}" (index ${gp.index}, ` +
         `${gp.buttons.length} buttons, ${gp.axes.length} axes)`);
 
-    if (activeGamepadIndex >= 0) {
+    if (gamepadState.activeGamepadIndex >= 0) {
         // Already tracking a gamepad; ignore additional ones.
         return;
     }
 
-    activeGamepadIndex = gp.index;
-    activeControllerKey = sanitiseName(gp.id);
+    gamepadState.activeGamepadIndex = gp.index;
+    gamepadState.activeControllerKey = sanitiseName(gp.id);
 
     // Try to load saved config for this controller, otherwise use a
     // matching built-in profile.
-    const saved = loadSavedConfig(activeControllerKey);
+    const saved = loadSavedConfig(gamepadState.activeControllerKey);
     const profile = findProfileForGamepad(gp.id);
     if (saved) {
         profile.walkStick = saved.walkStick;
@@ -271,15 +278,15 @@ function onGamepadConnected(e: GamepadEvent): void {
         profile.fireThreshold = saved.fireThreshold;
         profile.buttons = saved.buttons;
     }
-    activeProfile = profile;
+    gamepadState.activeProfile = profile;
 
-    prevButtons = new Array(gp.buttons.length).fill(false);
-    prevWalkDir = 0;
-    prevFireDir = 0;
-    prevRunning = false;
-    prevFiring = false;
+    gamepadState.prevButtons = new Array(gp.buttons.length).fill(false);
+    gamepadState.prevWalkDir = 0;
+    gamepadState.prevFireDir = 0;
+    gamepadState.prevRunning = false;
+    gamepadState.prevFiring = false;
 
-    cb?.drawInfo(`Gamepad connected: ${profile.name}`);
+    gamepadState.callbacks?.drawInfo(`Gamepad connected: ${profile.name}`);
     startPolling();
 }
 
@@ -288,18 +295,18 @@ function onGamepadDisconnected(e: GamepadEvent): void {
     LOG(LogLevel.Info, "gamepad::disconnected",
         `Gamepad disconnected: "${gp.id}" (index ${gp.index})`);
 
-    if (gp.index === activeGamepadIndex) {
-        activeGamepadIndex = -1;
-        activeControllerKey = "";
-        activeProfile = null;
-        prevButtons = [];
+    if (gp.index === gamepadState.activeGamepadIndex) {
+        gamepadState.activeGamepadIndex = -1;
+        gamepadState.activeControllerKey = "";
+        gamepadState.activeProfile = null;
+        gamepadState.prevButtons = [];
         stopPolling();
 
         // Clean up any in-progress fire/run.
         clearFire();
         clearRun();
 
-        cb?.drawInfo("Gamepad disconnected.");
+        gamepadState.callbacks?.drawInfo("Gamepad disconnected.");
     }
 }
 
@@ -308,35 +315,35 @@ function onGamepadDisconnected(e: GamepadEvent): void {
 // ──────────────────────────────────────────────────────────────────────────────
 
 function startPolling(): void {
-    if (pollHandle !== null) return;
-    pollHandle = requestAnimationFrame(pollGamepad);
+    if (gamepadState.pollHandle !== null) return;
+    gamepadState.pollHandle = requestAnimationFrame(pollGamepad);
 }
 
 function stopPolling(): void {
-    if (pollHandle !== null) {
-        cancelAnimationFrame(pollHandle);
-        pollHandle = null;
+    if (gamepadState.pollHandle !== null) {
+        cancelAnimationFrame(gamepadState.pollHandle);
+        gamepadState.pollHandle = null;
     }
 }
 
 function pollGamepad(): void {
-    pollHandle = requestAnimationFrame(pollGamepad);
+    gamepadState.pollHandle = requestAnimationFrame(pollGamepad);
 
-    if (activeGamepadIndex < 0 || !activeProfile) return;
+    if (gamepadState.activeGamepadIndex < 0 || !gamepadState.activeProfile) return;
 
     const gamepads = navigator.getGamepads();
-    const gp = gamepads[activeGamepadIndex];
+    const gp = gamepads[gamepadState.activeGamepadIndex];
     if (!gp) return;
 
     // ── Axis-configuration mode ─────────────────────────────────────
     if (isAxisConfigActive()) {
-        doHandleAxisConfig(gp, prevButtons, activeProfile, saveGamepadConfig);
+        doHandleAxisConfig(gp, gamepadState.prevButtons, gamepadState.activeProfile, saveGamepadConfig);
         return;
     }
 
     // ── Button-configuration mode ───────────────────────────────────
     if (isButtonConfigActive()) {
-        doHandleButtonConfig(gp, prevButtons);
+        doHandleButtonConfig(gp, gamepadState.prevButtons);
         return;
     }
 
@@ -350,10 +357,10 @@ function pollGamepad(): void {
 // ──────────────────────────────────────────────────────────────────────────────
 
 function processSticks(gp: Gamepad): void {
-    if (!activeProfile) return;
+    if (!gamepadState.activeProfile) return;
 
-    const ws = activeProfile.walkStick;
-    const fs = activeProfile.fireStick;
+    const ws = gamepadState.activeProfile.walkStick;
+    const fs = gamepadState.activeProfile.fireStick;
 
     // Read axes, applying per-stick inversion flags set during axis configuration.
     const wxRaw = gp.axes[ws.axisX] ?? 0;
@@ -370,39 +377,39 @@ function processSticks(gp: Gamepad): void {
     const fireMag = Math.sqrt(fx * fx + fy * fy);
 
     // ── Fire stick (takes priority for direction-sending) ───────────
-    if (fireMag >= activeProfile.fireThreshold) {
-        const dir = stickToDirection(fx, fy, activeProfile.fireThreshold, prevFireDir);
+    if (fireMag >= gamepadState.activeProfile.fireThreshold) {
+        const dir = stickToDirection(fx, fy, gamepadState.activeProfile.fireThreshold, gamepadState.prevFireDir);
         if (dir > 0) {
-            if (dir !== prevFireDir || !prevFiring) {
+            if (dir !== gamepadState.prevFireDir || !gamepadState.prevFiring) {
                 fireDir(dir);
             }
-            prevFireDir = dir;
-            prevFiring = true;
-        } else if (prevFiring) {
+            gamepadState.prevFireDir = dir;
+            gamepadState.prevFiring = true;
+        } else if (gamepadState.prevFiring) {
             clearFire();
-            prevFiring = false;
-            prevFireDir = 0;
+            gamepadState.prevFiring = false;
+            gamepadState.prevFireDir = 0;
         }
-    } else if (prevFiring) {
+    } else if (gamepadState.prevFiring) {
         clearFire();
-        prevFiring = false;
-        prevFireDir = 0;
+        gamepadState.prevFiring = false;
+        gamepadState.prevFireDir = 0;
     }
 
     // ── Walk / run stick (with hysteresis, walk delay, run-stop guard) ──
-    const runEnter = activeProfile.runThreshold;
-    const runExit = Math.max(activeProfile.walkThreshold,
-                             activeProfile.runThreshold - HYSTERESIS);
-    const isRunning = prevRunning
+    const runEnter = gamepadState.activeProfile.runThreshold;
+    const runExit = Math.max(gamepadState.activeProfile.walkThreshold,
+                             gamepadState.activeProfile.runThreshold - HYSTERESIS);
+    const isRunning = gamepadState.prevRunning
         ? walkMag >= runExit    // already running: use lower exit threshold
         : walkMag >= runEnter;  // not running: use full enter threshold
-    const isWalking = walkMag >= activeProfile.walkThreshold;
+    const isWalking = walkMag >= gamepadState.activeProfile.walkThreshold;
 
     // ── Run-stop guard: check if the pending run_stop has been acked ──
-    if (runStopSeq !== -1) {
-        if (isNcomAcked(runStopSeq)) {
+    if (gamepadState.runStopSeq !== -1) {
+        if (isNcomAcked(gamepadState.runStopSeq)) {
             // Server acknowledged the run_stop; we can process walk again.
-            runStopSeq = -1;
+            gamepadState.runStopSeq = -1;
         } else if (isWalking && !isRunning) {
             // Still waiting for run_stop ack and stick is in walk zone —
             // suppress walk to avoid an extra step.  We intentionally
@@ -413,26 +420,26 @@ function processSticks(gp: Gamepad): void {
     }
 
     if (isWalking) {
-        const dir = stickToDirection(wx, wy, activeProfile.walkThreshold, prevWalkDir);
+        const dir = stickToDirection(wx, wy, gamepadState.activeProfile.walkThreshold, gamepadState.prevWalkDir);
         if (dir > 0) {
             if (isRunning) {
                 // Cancel any pending walk delay — we're running now.
                 cancelWalkDelay();
-                if (dir !== prevWalkDir || !prevRunning) {
-                    if (prevRunning) {
+                if (dir !== gamepadState.prevWalkDir || !gamepadState.prevRunning) {
+                    if (gamepadState.prevRunning) {
                         clearRun();
                     }
                     runDir(dir);
                 }
-                prevRunning = true;
-                prevWalkDir = dir;
+                gamepadState.prevRunning = true;
+                gamepadState.prevWalkDir = dir;
             } else {
                 // Walking speed.
-                if (prevRunning) {
+                if (gamepadState.prevRunning) {
                     clearRun();
                     // Record the run_stop sequence for the guard.
-                    runStopSeq = getLastNcomSeqSent();
-                    prevRunning = false;
+                    gamepadState.runStopSeq = getLastNcomSeqSent();
+                    gamepadState.prevRunning = false;
                 }
                 // Use walk delay: schedule the walk command after a short
                 // delay.  If the stick reaches run within the window, the
@@ -443,12 +450,12 @@ function processSticks(gp: Gamepad): void {
     } else {
         // Stick returned to center.
         cancelWalkDelay();
-        if (prevRunning) {
+        if (gamepadState.prevRunning) {
             clearRun();
-            runStopSeq = getLastNcomSeqSent();
-            prevRunning = false;
+            gamepadState.runStopSeq = getLastNcomSeqSent();
+            gamepadState.prevRunning = false;
         }
-        prevWalkDir = 0;
+        gamepadState.prevWalkDir = 0;
     }
 }
 
@@ -460,33 +467,33 @@ function processSticks(gp: Gamepad): void {
  * If the direction changed, replace the pending walk.
  */
 function scheduleWalk(dir: number): void {
-    if (walkDelayTimer !== null && walkDelayDir === dir) {
+    if (gamepadState.walkDelayTimer !== null && gamepadState.walkDelayDir === dir) {
         // Already pending for this direction.
         return;
     }
     cancelWalkDelay();
-    walkDelayDir = dir;
-    walkDelayTimer = setTimeout(() => {
-        walkDelayTimer = null;
+    gamepadState.walkDelayDir = dir;
+    gamepadState.walkDelayTimer = setTimeout(() => {
+        gamepadState.walkDelayTimer = null;
         // Re-check: if the stick has since reached run threshold, the
         // run branch in processSticks will have cancelled us already,
         // but just in case, verify we're still in walk-only state.
-        if (!prevRunning && walkDelayDir > 0) {
-            if (walkDelayDir !== prevWalkDir || prevWalkDir === 0) {
-                walkDir(walkDelayDir);
+        if (!gamepadState.prevRunning && gamepadState.walkDelayDir > 0) {
+            if (gamepadState.walkDelayDir !== gamepadState.prevWalkDir || gamepadState.prevWalkDir === 0) {
+                walkDir(gamepadState.walkDelayDir);
             }
-            prevWalkDir = walkDelayDir;
+            gamepadState.prevWalkDir = gamepadState.walkDelayDir;
         }
-        walkDelayDir = 0;
+        gamepadState.walkDelayDir = 0;
     }, WALK_DELAY_MS);
 }
 
 function cancelWalkDelay(): void {
-    if (walkDelayTimer !== null) {
-        clearTimeout(walkDelayTimer);
-        walkDelayTimer = null;
+    if (gamepadState.walkDelayTimer !== null) {
+        clearTimeout(gamepadState.walkDelayTimer);
+        gamepadState.walkDelayTimer = null;
     }
-    walkDelayDir = 0;
+    gamepadState.walkDelayDir = 0;
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -494,13 +501,13 @@ function cancelWalkDelay(): void {
 // ──────────────────────────────────────────────────────────────────────────────
 
 function processButtons(gp: Gamepad): void {
-    if (!activeProfile) return;
+    if (!gamepadState.activeProfile) return;
 
-    for (const mapping of activeProfile.buttons) {
+    for (const mapping of gamepadState.activeProfile.buttons) {
         if (mapping.button >= gp.buttons.length) continue;
 
         const pressed = gp.buttons[mapping.button]!.pressed;
-        const wasPressed = prevButtons[mapping.button] ?? false;
+        const wasPressed = gamepadState.prevButtons[mapping.button] ?? false;
 
         // Fire on rising edge only.
         if (pressed && !wasPressed) {
@@ -510,7 +517,7 @@ function processButtons(gp: Gamepad): void {
 
     // Update previous state for all buttons.
     for (let i = 0; i < gp.buttons.length; i++) {
-        prevButtons[i] = gp.buttons[i]!.pressed;
+        gamepadState.prevButtons[i] = gp.buttons[i]!.pressed;
     }
 }
 
@@ -522,11 +529,11 @@ export { startAxisConfig, cancelAxisConfig } from "./gamepad_config";
 export { startButtonConfig, cancelButtonConfig } from "./gamepad_config";
 
 export function acceptAxisConfig(): void {
-    doAcceptAxisConfig(activeProfile, saveGamepadConfig);
+    doAcceptAxisConfig(gamepadState.activeProfile, saveGamepadConfig);
 }
 
 export function getAxisTestDirection(): number {
-    return doGetAxisTestDirection(activeGamepadIndex, stickToDirection);
+    return doGetAxisTestDirection(gamepadState.activeGamepadIndex, stickToDirection);
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -535,64 +542,64 @@ export function getAxisTestDirection(): number {
 
 /** Set or replace the command for a specific button. */
 export function setButtonCommand(button: number, command: string): void {
-    if (!activeProfile) return;
-    const existing = activeProfile.buttons.find(b => b.button === button);
+    if (!gamepadState.activeProfile) return;
+    const existing = gamepadState.activeProfile.buttons.find(b => b.button === button);
     if (existing) {
         existing.command = command;
     } else {
-        activeProfile.buttons.push({ button, command });
+        gamepadState.activeProfile.buttons.push({ button, command });
     }
     saveGamepadConfig();
 }
 
 /** Remove the command mapping for a specific button. */
 export function removeButtonCommand(button: number): void {
-    if (!activeProfile) return;
-    activeProfile.buttons = activeProfile.buttons.filter(
+    if (!gamepadState.activeProfile) return;
+    gamepadState.activeProfile.buttons = gamepadState.activeProfile.buttons.filter(
         b => b.button !== button);
     saveGamepadConfig();
 }
 
 /** Get the current button mappings (read-only snapshot). */
 export function getButtonMappings(): readonly ButtonMapping[] {
-    return activeProfile?.buttons ?? [];
+    return gamepadState.activeProfile?.buttons ?? [];
 }
 
 /** Get the current stick configuration. */
 export function getStickConfig(): {
     walk: StickAxes; fire: StickAxes } | null {
-    if (!activeProfile) return null;
+    if (!gamepadState.activeProfile) return null;
     return {
-        walk: { ...activeProfile.walkStick },
-        fire: { ...activeProfile.fireStick },
+        walk: { ...gamepadState.activeProfile.walkStick },
+        fire: { ...gamepadState.activeProfile.fireStick },
     };
 }
 
 /** Reset gamepad bindings to defaults for the current controller. */
 export function resetGamepadBindings(): void {
-    if (activeGamepadIndex < 0) return;
+    if (gamepadState.activeGamepadIndex < 0) return;
     const gamepads = navigator.getGamepads();
-    const gp = gamepads[activeGamepadIndex];
+    const gp = gamepads[gamepadState.activeGamepadIndex];
     if (!gp) return;
 
-    activeProfile = findProfileForGamepad(gp.id);
+    gamepadState.activeProfile = findProfileForGamepad(gp.id);
     saveGamepadConfig();
-    cb?.drawInfo("Gamepad bindings reset to defaults.");
+    gamepadState.callbacks?.drawInfo("Gamepad bindings reset to defaults.");
 }
 
 /** Check whether a gamepad is currently connected and active. */
 export function isGamepadConnected(): boolean {
-    return activeGamepadIndex >= 0 && activeProfile !== null;
+    return gamepadState.activeGamepadIndex >= 0 && gamepadState.activeProfile !== null;
 }
 
 /** Get the name of the active gamepad profile. */
 export function getActiveProfileName(): string {
-    return activeProfile?.name ?? "(none)";
+    return gamepadState.activeProfile?.name ?? "(none)";
 }
 
 /** Find the existing command for a given button, or null. */
 export function getButtonCommand(button: number): string | null {
-    return activeProfile?.buttons.find(b => b.button === button)?.command
+    return gamepadState.activeProfile?.buttons.find(b => b.button === button)?.command
         ?? null;
 }
 
@@ -601,7 +608,7 @@ export function getButtonCommand(button: number): string | null {
 // ──────────────────────────────────────────────────────────────────────────────
 
 export function notifyHpUpdate(hp: number, maxHp: number): void {
-    doNotifyHpUpdate(hp, maxHp, activeGamepadIndex);
+    doNotifyHpUpdate(hp, maxHp, gamepadState.activeGamepadIndex);
 }
 
 export function resetHpTracking(): void {
@@ -641,16 +648,16 @@ export function gamepadShutdown(): void {
     stopPolling();
     cancelWalkDelay();
 
-    if (prevRunning) clearRun();
-    if (prevFiring) clearFire();
+    if (gamepadState.prevRunning) clearRun();
+    if (gamepadState.prevFiring) clearFire();
 
-    activeGamepadIndex = -1;
-    activeControllerKey = "";
-    activeProfile = null;
-    prevButtons = [];
-    prevWalkDir = 0;
-    prevFireDir = 0;
-    prevRunning = false;
-    prevFiring = false;
-    runStopSeq = -1;
+    gamepadState.activeGamepadIndex = -1;
+    gamepadState.activeControllerKey = "";
+    gamepadState.activeProfile = null;
+    gamepadState.prevButtons = [];
+    gamepadState.prevWalkDir = 0;
+    gamepadState.prevFireDir = 0;
+    gamepadState.prevRunning = false;
+    gamepadState.prevFiring = false;
+    gamepadState.runStopSeq = -1;
 }
