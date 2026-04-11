@@ -22,9 +22,6 @@ import {
   MAXSOCKBUF,
   VERSION_CS,
   VERSION_SC,
-  EPORT,
-  COMMAND_WINDOW,
-  COMMAND_MAX,
 } from "./protocol";
 
 /** Maximum payload size for a SockList (MAXSOCKBUF minus 2-byte length header). */

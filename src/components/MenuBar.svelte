@@ -10,8 +10,6 @@
     bindCommandToEvent,
     bindCommandWithFlags,
     unbindEvent,
-    getBindings,
-    flagsToDisplayString,
     KEYF_EDIT,
     KEYF_ANY,
     type KeyBind,
@@ -23,9 +21,6 @@
   } from '../lib/sound';
   import {
     isGamepadConnected,
-    getActiveProfileName,
-    getButtonMappings,
-    getStickConfig,
     setButtonCommand,
     removeButtonCommand,
     resetGamepadBindings,
@@ -33,7 +28,6 @@
     cancelAxisConfig,
     acceptAxisConfig,
     getAxisTestDirection,
-    directionName,
     startButtonConfig,
     cancelButtonConfig,
     getButtonCommand,

@@ -44,10 +44,7 @@ import { Sound2Cmd, MusicCmd } from './cmd_sound.js';
 
 // ── Socket management ──────────────────────────────────────────────────────
 
-let csocket: CrossfireSocket | null = null;
-
 export function setSocket(sock: CrossfireSocket): void {
-  csocket = sock;
   setItemSocket(sock);
 }
 
@@ -120,10 +117,10 @@ function AccountPlayersCmd(data: string): void {
     const parts = line.split(':');
     if (parts.length >= 6) {
       players.push({
-        name: parts[0], charClass: parts[1], race: parts[2],
-        face: parts[3], party: parts[4], map: parts[5],
-        level: parts.length > 6 ? parseInt(parts[6]) : 0,
-        faceNum: parts.length > 7 ? parseInt(parts[7]) : 0,
+        name: parts[0]!, charClass: parts[1]!, race: parts[2]!,
+        face: parts[3]!, party: parts[4]!, map: parts[5]!,
+        level: parts.length > 6 ? parseInt(parts[6]!) : 0,
+        faceNum: parts.length > 7 ? parseInt(parts[7]!) : 0,
       });
     }
   }
@@ -132,9 +129,9 @@ function AccountPlayersCmd(data: string): void {
 
 function VersionCmd(data: string): void {
   const parts = data.split(' ', 3);
-  const csVer = parts.length > 0 ? parseInt(parts[0]) : 0;
-  const scVer = parts.length > 1 ? parseInt(parts[1]) : 0;
-  const verStr = parts.length > 2 ? parts[2] : '';
+  const csVer = parts.length > 0 ? parseInt(parts[0]!) : 0;
+  const scVer = parts.length > 1 ? parseInt(parts[1]!) : 0;
+  const verStr = parts.length > 2 ? parts[2]! : '';
   LOG(LogLevel.Info, 'VersionCmd', `Server version: cs=${csVer} sc=${scVer} ${verStr}`);
   gameEvents.emit('version', csVer, scVer, verStr);
 }

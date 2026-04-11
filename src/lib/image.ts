@@ -5,7 +5,6 @@
  */
 
 import {
-    getCharFromData,
     getShortFromData,
     getIntFromData,
     getStringFromData,
@@ -15,7 +14,7 @@ import { saveCacheData, loadCacheData } from './storage.js';
 import { LOG } from './misc.js';
 import { LogLevel, MAXPIXMAPNUM, MAX_FACE_SETS } from './protocol.js';
 
-import type { FaceInformation, FaceSet } from './protocol.js';
+import type { FaceInformation } from './protocol.js';
 
 // ---------------------------------------------------------------------------
 // Module state
@@ -237,8 +236,8 @@ export function getImageInfo(data: Uint8Array, len: number): void {
         return;
     }
 
-    faceInfo.numImages = parseInt(lines[0], 10) || 0;
-    faceInfo.bmapsChecksum = parseInt(lines[1], 10) || 0;
+    faceInfo.numImages = parseInt(lines[0]!, 10) || 0;
+    faceInfo.bmapsChecksum = parseInt(lines[1]!, 10) || 0;
 
     for (let i = 2; i < lines.length; i++) {
         const line = lines[i];
@@ -251,7 +250,7 @@ export function getImageInfo(data: Uint8Array, len: number): void {
                 `Bad faceset line, ignoring: ${line}`);
             continue;
         }
-        const setnum = parseInt(parts[0], 10);
+        const setnum = parseInt(parts[0]!, 10);
         if (setnum < 0 || setnum >= MAX_FACE_SETS) {
             LOG(LogLevel.Warning, 'getImageInfo',
                 `setnum out of range: ${setnum}`);
@@ -271,12 +270,12 @@ export function getImageInfo(data: Uint8Array, len: number): void {
         }
         faceInfo.facesets[setnum] = {
             setnum,
-            prefix: parts[1],
-            fullname: parts[2],
-            fallback: parseInt(parts[3], 10) || 0,
-            size: parts[4],
-            extension: parts[5],
-            comment: parts[6],
+            prefix: parts[1]!,
+            fullname: parts[2]!,
+            fallback: parseInt(parts[3]!, 10) || 0,
+            size: parts[4]!,
+            extension: parts[5]!,
+            comment: parts[6]!,
         };
     }
     faceInfo.haveFacesetInfo = true;
@@ -300,7 +299,7 @@ export function getImageInfo(data: Uint8Array, len: number): void {
  * Because the caller already decoded the whole buffer as a string, we
  * re-encode to get at the binary portion.
  */
-export function getImageSums(data: string, len: number): void {
+export function getImageSums(data: string, _len: number): void {
     // Find the first two space-delimited tokens (start, stop).
     let idx = 0;
 
@@ -368,8 +367,8 @@ function readPngDimensionsSync(pngBytes: Uint8Array): { w: number; h: number } {
     if (pngBytes[1] !== 0x50 || pngBytes[2] !== 0x4E || pngBytes[3] !== 0x47) {
         return { w: 32, h: 32 };
     }
-    const w = (pngBytes[16] << 24 | pngBytes[17] << 16 | pngBytes[18] << 8 | pngBytes[19]) >>> 0;
-    const h = (pngBytes[20] << 24 | pngBytes[21] << 16 | pngBytes[22] << 8 | pngBytes[23]) >>> 0;
+    const w = (pngBytes[16]! << 24 | pngBytes[17]! << 16 | pngBytes[18]! << 8 | pngBytes[19]!) >>> 0;
+    const h = (pngBytes[20]! << 24 | pngBytes[21]! << 16 | pngBytes[22]! << 8 | pngBytes[23]!) >>> 0;
     return { w: w || 32, h: h || 32 };
 }
 

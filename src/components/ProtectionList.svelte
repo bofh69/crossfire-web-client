@@ -25,7 +25,7 @@
   function updateProtections(stats: Stats) {
     const entries: ProtectionEntry[] = [];
     for (let i = 0; i < RESIST_NAMES.length; i++) {
-      entries.push({ index: i, name: RESIST_NAMES[i], value: stats.resists[i] ?? 0 });
+      entries.push({ index: i, name: RESIST_NAMES[i]!, value: stats.resists[i] ?? 0 });
     }
     protections = entries;
   }

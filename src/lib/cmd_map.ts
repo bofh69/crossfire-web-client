@@ -27,11 +27,11 @@ import { gameEvents } from './events.js';
 export function SetupCmd(data: string): void {
   const parts = data.split(' ');
   for (let i = 0; i < parts.length - 1; i += 2) {
-    const key = parts[i];
-    const value = parts[i + 1];
+    const key = parts[i]!;
+    const value = parts[i + 1]!;
     if (key === 'mapsize' && value !== 'FALSE') {
-      const [w, h] = value.split('x').map(Number);
-      if (w > 0 && h > 0) {
+      const [w = NaN, h = NaN] = value.split('x').map(Number);
+      if (!isNaN(w) && !isNaN(h) && w > 0 && h > 0) {
         useConfig[19] = w; // CONFIG_MAPWIDTH
         useConfig[20] = h; // CONFIG_MAPHEIGHT
         mapdata_set_size(w, h);
@@ -141,7 +141,7 @@ export function Map2Cmd(data: DataView, len: number): void {
 export function mapScrollCmd(data: string): void {
   const parts = data.trim().split(' ');
   if (parts.length >= 2) {
-    mapdata_scroll(parseInt(parts[0]), parseInt(parts[1]));
+    mapdata_scroll(parseInt(parts[0]!), parseInt(parts[1]!));
     gameEvents.emit('mapUpdate');
   }
 }
@@ -176,10 +176,10 @@ export function MagicMapCmd(data: DataView, len: number): void {
     return;
   }
 
-  const mmapx = parseInt(headerParts[0], 10);
-  const mmapy = parseInt(headerParts[1], 10);
-  const pmapx = parseInt(headerParts[2], 10);
-  const pmapy = parseInt(headerParts[3], 10);
+  const mmapx = parseInt(headerParts[0]!, 10);
+  const mmapy = parseInt(headerParts[1]!, 10);
+  const pmapx = parseInt(headerParts[2]!, 10);
+  const pmapy = parseInt(headerParts[3]!, 10);
 
   if (mmapx === 0 || mmapy === 0) {
     LOG(LogLevel.Warning, 'MagicMapCmd', 'Empty magic map');

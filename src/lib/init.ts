@@ -160,7 +160,7 @@ function initConfig(): void {
     wantConfig[CONFIG_DEBOUNCE] = TRUE;
 
     for (let i = 0; i < CONFIG_NUMS; i++) {
-        useConfig[i] = wantConfig[i];
+        useConfig[i] = wantConfig[i]!;
     }
 }
 

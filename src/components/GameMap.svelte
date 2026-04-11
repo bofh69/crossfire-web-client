@@ -193,8 +193,8 @@
           const cell = mapdata_cell(ax, ay);
           if (cell.state === MapCellState.Empty) continue;
 
-          const head = cell.heads[layer];
-          const tail = cell.tails[layer];
+          const head = cell.heads[layer]!;
+          const tail = cell.tails[layer]!;
 
           // Tail cell: skip — the head cell draws the full multi-tile image.
           if (head.face === 0 && tail.face !== 0) continue;

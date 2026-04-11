@@ -125,9 +125,9 @@ function parseSoundsConf(text: string): Map<string, SoundInfo> {
       LOG(LogLevel.Warning, 'parseSoundsConf', `Bad line: ${line}`);
       continue;
     }
-    const name = parts[0];
-    const vol = parseInt(parts[1], 10);
-    const file = parts[2];
+    const name = parts[0]!;
+    const vol = parseInt(parts[1]!, 10);
+    const file = parts[2]!;
     if (name && file) {
       map.set(name, { file, vol: isNaN(vol) ? 100 : vol });
     }
