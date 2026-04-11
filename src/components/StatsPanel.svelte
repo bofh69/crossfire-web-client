@@ -3,6 +3,7 @@
   import { expBarPercent } from '../lib/commands';
   import type { Stats } from '../lib/protocol';
   import { gameEvents } from '../lib/events';
+  import { MAX_FOOD } from '../lib/constants';
 
   let stats: Stats = $state({
     Str: 0, Dex: 0, Con: 0, Wis: 0, Cha: 0, Int: 0, Pow: 0,
@@ -39,7 +40,7 @@
   let hpPercent = $derived(barPercent(stats.hp, stats.maxhp));
   let spPercent = $derived(barPercent(stats.sp, stats.maxsp));
   let gracePercent = $derived(barPercent(stats.grace, stats.maxgrace));
-  let foodPercent = $derived(barPercent(stats.food, 999));
+  let foodPercent = $derived(barPercent(stats.food, MAX_FOOD));
   // expTable is a plain array mutated on login; re-evaluated whenever stats updates.
   let expPercent = $derived(expBarPercent(stats.exp, stats.level));
 </script>
@@ -115,19 +116,19 @@
 
 <style>
   .stats-panel {
-    background: #1a1a1a;
-    border: 1px solid #333;
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
     padding: 0.5rem;
     font-size: 0.8rem;
-    color: #c0c0c0;
+    color: var(--text);
     overflow-y: auto;
   }
 
   h3 {
     margin: 0 0 0.5rem;
-    color: #e0d0b0;
+    color: var(--text-warm);
     font-size: 0.9rem;
-    border-bottom: 1px solid #333;
+    border-bottom: 1px solid var(--border);
     padding-bottom: 0.25rem;
   }
 

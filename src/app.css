@@ -4,11 +4,22 @@
   --bg: #1e1e1e;
   --bg-darker: #151515;
   --bg-lighter: #2a2a2a;
+  --bg-panel: #1a1a1a;
+  --bg-mid: #252525;
+  --bg-card: #3a3a3a;
+  --bg-warm: #4a3a2a;
+  --bg-warm-hover: #5a4a3a;
   --text: #c0c0c0;
   --text-bright: #e0e0e0;
   --text-dim: #888;
+  --text-warm: #e0d0b0;
+  --text-warm-dim: #c0b090;
   --border: #333;
+  --border-mid: #444;
+  --border-light: #555;
   --accent: #7a6a4a;
+  --danger-bg: #8b2020;
+  --danger-text: #ff8888;
 
   --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
   --mono: 'Courier New', ui-monospace, Consolas, monospace;
@@ -86,7 +97,7 @@ body {
 
 .tab-bar {
   display: flex;
-  background: #252525;
+  background: var(--bg-mid);
   border-top: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
@@ -140,10 +151,10 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #444;
+  background: var(--border-mid);
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #555;
+  background: var(--border-light);
 }

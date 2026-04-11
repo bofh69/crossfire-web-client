@@ -13,6 +13,13 @@
 import { LOG } from './misc.js';
 import { LogLevel } from './protocol.js';
 import { loadConfig, saveConfig } from './storage.js';
+import {
+  MUSIC_VOLUME_CAP,
+  MUSIC_FADE_OUT_MS,
+  MUSIC_FADE_STOP_MS,
+  MUSIC_FADE_IN_MS,
+  MUSIC_FADE_STEP_MS,
+} from './constants.js';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -29,15 +36,6 @@ interface SoundInfo {
 
 /** Base URL prefix for sound assets (no trailing slash). */
 const SOUND_BASE = 'sounds';
-
-/** Duration in ms to fade out the old track when switching to a new one. */
-const MUSIC_FADE_OUT_MS = 2000;
-
-/** Duration in ms to fade out the current track when stopping music. */
-const MUSIC_FADE_STOP_MS = 1000;
-
-/** Duration in ms to fade in a new track when music was already playing. */
-const MUSIC_FADE_IN_MS = 2000;
 
 /** Parsed sounds.conf mapping: logical-name → SoundInfo */
 let soundConfig: Map<string, SoundInfo> | null = null;
@@ -265,7 +263,7 @@ function stopFadeIn(): void {
  */
 function fadeOutElement(el: HTMLAudioElement, durationMs: number, onComplete: () => void): void {
   const startVol = el.volume;
-  const steps = Math.max(1, Math.round(durationMs / 50));
+  const steps = Math.max(1, Math.round(durationMs / MUSIC_FADE_STEP_MS));
   const stepVol = startVol / steps;
   let step = 0;
   fadeOutIntervalId = setInterval(() => {
@@ -279,13 +277,13 @@ function fadeOutElement(el: HTMLAudioElement, durationMs: number, onComplete: ()
       if (fadingOutElement === el) fadingOutElement = null;
       onComplete();
     }
-  }, 50);
+  }, MUSIC_FADE_STEP_MS);
 }
 
 /** Linearly fade in `el` from 0 to `targetVol` over `durationMs` milliseconds. */
 function fadeInElement(el: HTMLAudioElement, targetVol: number, durationMs: number): void {
   el.volume = 0;
-  const steps = Math.max(1, Math.round(durationMs / 50));
+  const steps = Math.max(1, Math.round(durationMs / MUSIC_FADE_STEP_MS));
   const stepVol = targetVol / steps;
   let step = 0;
   fadeInIntervalId = setInterval(() => {
@@ -296,7 +294,7 @@ function fadeInElement(el: HTMLAudioElement, targetVol: number, durationMs: numb
       fadeInIntervalId = null;
       el.volume = targetVol;  // ensure we land exactly on the target
     }
-  }, 50);
+  }, MUSIC_FADE_STEP_MS);
 }
 
 /**
@@ -307,7 +305,7 @@ function fadeInElement(el: HTMLAudioElement, targetVol: number, durationMs: numb
 function startTrack(name: string, fadeIn: boolean): void {
   const el = new Audio();
   el.loop = true;
-  const targetVol = Math.min(musicVolume, 100) / 100 * 0.75;  // cap at 75 % like old client
+  const targetVol = Math.min(musicVolume, 100) / 100 * MUSIC_VOLUME_CAP;  // cap at 75 % like old client
   musicElement = el;
 
   const oggUrl = `${SOUND_BASE}/music/${name}.ogg`;
@@ -393,7 +391,7 @@ export function setSoundEnabled(enabled: boolean): void {
 export function setMusicVolume(vol: number): void {
   musicVolume = vol;
   if (musicElement) {
-    musicElement.volume = Math.min(vol, 100) / 100 * 0.75;
+    musicElement.volume = Math.min(vol, 100) / 100 * MUSIC_VOLUME_CAP;
   }
 }
 

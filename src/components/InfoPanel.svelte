@@ -5,6 +5,7 @@
   import { getCpl } from '../lib/init';
   import { type MessageSpan, colorForNdi, parseMarkup } from '../lib/markup';
   import { gameEvents } from '../lib/events';
+  import { MSG_BUFFER_MAX, MSG_BUFFER_TRIM } from '../lib/constants';
 
   let { inputDisabled = false }: { inputDisabled?: boolean } = $props();
 
@@ -22,8 +23,8 @@
     const spans = parseMarkup(text, baseColor);
     messages = [...messages, { spans }];
     // Keep a reasonable buffer
-    if (messages.length > 500) {
-      messages = messages.slice(-400);
+    if (messages.length > MSG_BUFFER_MAX) {
+      messages = messages.slice(-MSG_BUFFER_TRIM);
     }
     scrollToBottom();
   }
@@ -140,8 +141,8 @@
     display: flex;
     flex-direction: column;
     height: 100%;
-    background: #1a1a1a;
-    border: 1px solid #333;
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
   }
 
   .messages {
@@ -160,7 +161,7 @@
 
   .input-row {
     display: flex;
-    border-top: 1px solid #333;
+    border-top: 1px solid var(--border);
   }
 
   .input-row.disabled {
@@ -173,7 +174,7 @@
     padding: 0.4rem 0.5rem;
     border: none;
     background: #222;
-    color: #e0e0e0;
+    color: var(--text-bright);
     font-family: 'Courier New', monospace;
     font-size: 0.85rem;
   }
@@ -186,14 +187,14 @@
   button {
     padding: 0.4rem 0.75rem;
     border: none;
-    border-left: 1px solid #333;
-    background: #333;
-    color: #c0c0c0;
+    border-left: 1px solid var(--border);
+    background: var(--border);
+    color: var(--text);
     cursor: pointer;
     font-size: 0.85rem;
   }
 
   button:hover {
-    background: #444;
+    background: var(--border-mid);
   }
 </style>

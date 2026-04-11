@@ -16,6 +16,7 @@
   import { useConfig } from './lib/init';
   import { mapdata_animation } from './lib/mapdata';
   import { initSound, stopAll as stopAllSound } from './lib/sound';
+  import { SELF_TICK_INTERVAL_MS } from './lib/constants';
   import Login from './components/Login.svelte';
   import GameMap from './components/GameMap.svelte';
   import InfoPanel from './components/InfoPanel.svelte';
@@ -358,7 +359,7 @@
         } else if (showMagicMap && cpl && !cpl.showmagic) {
           showMagicMap = false;
         }
-      }, 125);
+      }, SELF_TICK_INTERVAL_MS);
     }
   }
 </script>
@@ -463,13 +464,13 @@
     gap: 0.75rem;
     width: 340px;
     padding: 1.5rem;
-    background: #1e1e1e;
-    border: 1px solid #7a6a4a;
+    background: var(--bg);
+    border: 1px solid var(--accent);
     border-radius: 6px;
   }
 
   .query-box .query-text {
-    color: #c0b090;
+    color: var(--text-warm-dim);
     font-size: 0.9rem;
     margin: 0;
   }
@@ -487,36 +488,36 @@
     display: flex;
     flex-direction: column;
     gap: 0.25rem;
-    color: #c0b090;
+    color: var(--text-warm-dim);
     font-size: 0.9rem;
   }
 
   .query-box input {
     padding: 0.5rem;
-    border: 1px solid #555;
+    border: 1px solid var(--border-light);
     border-radius: 4px;
-    background: #2a2a2a;
-    color: #e0e0e0;
+    background: var(--bg-lighter);
+    color: var(--text-bright);
     font-size: 1rem;
   }
 
   .query-box input:focus {
     outline: none;
-    border-color: #7a6a4a;
+    border-color: var(--accent);
   }
 
   .query-box button {
     padding: 0.6rem 1rem;
-    border: 1px solid #7a6a4a;
+    border: 1px solid var(--accent);
     border-radius: 4px;
-    background: #4a3a2a;
-    color: #e0d0b0;
+    background: var(--bg-warm);
+    color: var(--text-warm);
     font-size: 1rem;
     cursor: pointer;
   }
 
   .query-box button:hover {
-    background: #5a4a3a;
+    background: var(--bg-warm-hover);
   }
 
   .menu-area {
@@ -539,7 +540,7 @@
   }
 
   .indicator.fire {
-    background: #8b2020;
+    background: var(--danger-bg);
     color: #ffcccc;
   }
 
@@ -574,28 +575,28 @@
     align-items: center;
     gap: 1rem;
     padding: 2rem;
-    background: #1e1e1e;
-    border: 1px solid #8b2020;
+    background: var(--bg);
+    border: 1px solid var(--danger-bg);
     border-radius: 6px;
   }
 
   .disconnect-box p {
-    color: #ff8888;
+    color: var(--danger-text);
     font-size: 1.1rem;
     margin: 0;
   }
 
   .disconnect-box button {
     padding: 0.6rem 1.5rem;
-    border: 1px solid #7a6a4a;
+    border: 1px solid var(--accent);
     border-radius: 4px;
-    background: #4a3a2a;
-    color: #e0d0b0;
+    background: var(--bg-warm);
+    color: var(--text-warm);
     font-size: 1rem;
     cursor: pointer;
   }
 
   .disconnect-box button:hover {
-    background: #5a4a3a;
+    background: var(--bg-warm-hover);
   }
 </style>

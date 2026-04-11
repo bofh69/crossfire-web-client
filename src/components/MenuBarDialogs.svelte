@@ -416,14 +416,14 @@
   }
 
   .dialog {
-    background: #2a2a2a;
-    border: 1px solid #555;
+    background: var(--bg-lighter);
+    border: 1px solid var(--border-light);
     border-radius: 4px;
     padding: 1.5rem;
     min-width: 320px;
     max-width: 480px;
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.7);
-    color: #c0c0c0;
+    color: var(--text);
     font-size: 0.85rem;
   }
 
@@ -434,7 +434,7 @@
   .dialog-title {
     font-size: 1rem;
     font-weight: bold;
-    color: #e0d0b0;
+    color: var(--text-warm);
     margin-bottom: 0.8rem !important;
   }
 
@@ -456,10 +456,10 @@
   .dialog-input {
     width: 100%;
     padding: 0.4rem;
-    border: 1px solid #555;
+    border: 1px solid var(--border-light);
     border-radius: 3px;
-    background: #1a1a1a;
-    color: #e0e0e0;
+    background: var(--bg-panel);
+    color: var(--text-bright);
     font-family: 'Courier New', monospace;
     font-size: 0.85rem;
     margin-bottom: 0.6rem;
@@ -489,16 +489,16 @@
 
   .dialog-buttons button {
     padding: 0.35rem 0.75rem;
-    border: 1px solid #555;
+    border: 1px solid var(--border-light);
     border-radius: 3px;
-    background: #333;
-    color: #c0c0c0;
+    background: var(--border);
+    color: var(--text);
     cursor: pointer;
     font-size: 0.8rem;
   }
 
   .dialog-buttons button:hover {
-    background: #444;
+    background: var(--border-mid);
   }
 
   .btn-primary {
@@ -526,7 +526,7 @@
 
   .dialog-credits {
     font-size: 0.8rem;
-    color: #888;
+    color: var(--text-dim);
     margin-top: 1rem !important;
   }
 
@@ -534,7 +534,7 @@
     max-height: 300px;
     overflow-y: auto;
     margin: 0.5rem 0;
-    border: 1px solid #444;
+    border: 1px solid var(--border-mid);
     border-radius: 3px;
   }
 
@@ -545,7 +545,7 @@
   }
 
   .bindings-table th {
-    background: #333;
+    background: var(--border);
     padding: 0.3rem 0.5rem;
     text-align: left;
     color: #999;
@@ -556,14 +556,14 @@
 
   .bindings-table td {
     padding: 0.25rem 0.5rem;
-    border-top: 1px solid #333;
-    color: #c0c0c0;
+    border-top: 1px solid var(--border);
+    color: var(--text);
   }
 
   .axis-test-direction {
     font-size: 1.2rem;
     font-weight: bold;
-    color: #e0d0b0;
+    color: var(--text-warm);
     text-align: center;
     margin: 0.5rem 0 !important;
   }

@@ -64,8 +64,8 @@
 
 <style>
   .protection-list {
-    background: #1a1a1a;
-    border: 1px solid #333;
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
     display: flex;
     flex-direction: column;
     height: 100%;
@@ -75,9 +75,9 @@
   h3 {
     margin: 0;
     padding: 0.4rem 0.5rem;
-    color: #e0d0b0;
+    color: var(--text-warm);
     font-size: 0.8rem;
-    background: #252525;
+    background: var(--bg-mid);
   }
 
   .protections-scroll {
@@ -94,20 +94,20 @@
   thead th {
     position: sticky;
     top: 0;
-    background: #252525;
+    background: var(--bg-mid);
     color: #999;
     text-align: left;
     padding: 0.3rem 0.4rem;
-    border-bottom: 1px solid #333;
+    border-bottom: 1px solid var(--border);
     font-weight: normal;
   }
 
   tr {
-    color: #c0c0c0;
+    color: var(--text);
   }
 
   tr:hover {
-    background: #2a2a2a;
+    background: var(--bg-lighter);
   }
 
   td {
@@ -128,6 +128,6 @@
   }
 
   .negative {
-    color: #ff8888;
+    color: var(--danger-text);
   }
 </style>
