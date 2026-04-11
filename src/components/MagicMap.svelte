@@ -98,9 +98,9 @@
     // Draw each tile as a colored square.
     for (let y = 0; y < cpl.mmapy; y++) {
       for (let x = 0; x < cpl.mmapx; x++) {
-        const val = cpl.magicmap[y * cpl.mmapx + x];
+        const val = cpl.magicmap[y * cpl.mmapx + x]!;
         const colorIdx = val & FACE_COLOR_MASK;
-        const color = MAGIC_MAP_COLORS[colorIdx] ?? MAGIC_MAP_COLORS[0];
+        const color = MAGIC_MAP_COLORS[colorIdx] ?? MAGIC_MAP_COLORS[0]!;
         ctx.fillStyle = color;
         ctx.fillRect(tileSize * x, tileSize * y, tileSize, tileSize);
       }
@@ -109,8 +109,8 @@
     // Flash the player position: alternate between Black and White each tick.
     if (cpl.showmagic) {
       const flashColor = (cpl.showmagic & SHOWMAGIC_FLASH_BIT)
-        ? MAGIC_MAP_COLORS[0]  // Black
-        : MAGIC_MAP_COLORS[1]; // White
+        ? MAGIC_MAP_COLORS[0]!  // Black
+        : MAGIC_MAP_COLORS[1]!; // White
       ctx.fillStyle = flashColor;
       ctx.fillRect(
         tileSize * cpl.pmapx,

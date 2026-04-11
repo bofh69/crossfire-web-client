@@ -4,8 +4,6 @@
 
   // ── Pickup flag constants (from old/gtk-v2/src/pickup.c) ──────────
 
-  const PU_NOTHING      = 0x00000000;
-  const PU_DEBUG         = 0x10000000;
   const PU_INHIBIT       = 0x20000000;
   const PU_STOP          = 0x40000000;
   const PU_NEWMODE       = 0x80000000;

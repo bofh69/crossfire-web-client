@@ -494,7 +494,7 @@ function processButtons(gp: Gamepad): void {
     for (const mapping of activeProfile.buttons) {
         if (mapping.button >= gp.buttons.length) continue;
 
-        const pressed = gp.buttons[mapping.button].pressed;
+        const pressed = gp.buttons[mapping.button]!.pressed;
         const wasPressed = prevButtons[mapping.button] ?? false;
 
         // Fire on rising edge only.
@@ -505,7 +505,7 @@ function processButtons(gp: Gamepad): void {
 
     // Update previous state for all buttons.
     for (let i = 0; i < gp.buttons.length; i++) {
-        prevButtons[i] = gp.buttons[i].pressed;
+        prevButtons[i] = gp.buttons[i]!.pressed;
     }
 }
 

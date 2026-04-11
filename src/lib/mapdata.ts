@@ -26,7 +26,6 @@ import type {
     MapCellLayer,
     MapCellTailLayer,
     MapLabel,
-    Animation,
     PlayerPosition,
 } from "./protocol";
 
@@ -161,6 +160,24 @@ function updateMoveToCallbacks(): void {
 updateMoveToCallbacks();
 
 // ──────────────────────────────────────────────────────────────────────────────
+// Array access helpers
+//
+// cells and bigfaces are always fully initialised before use (see mapdataAlloc
+// and initBigfaces).  The non-null assertions below are safe by construction;
+// the helpers centralise them so callers stay readable.
+// ──────────────────────────────────────────────────────────────────────────────
+
+/** Get the map cell at absolute coordinates. */
+function cellAt(x: number, y: number): MapCell {
+    return cells[x]![y]!;
+}
+
+/** Get the BigCell at view coordinates and layer index. */
+function bigfaceAt(x: number, y: number, layer: number): BigCell {
+    return bigfaces[x]![y]![layer]!;
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
 // Factory helpers
 // ──────────────────────────────────────────────────────────────────────────────
 
@@ -203,7 +220,7 @@ function newCell(): MapCell {
 
 function resetCell(cell: MapCell): void {
     for (let i = 0; i < MAXLAYERS; i++) {
-        const h = cell.heads[i];
+        const h = cell.heads[i]!;
         h.face = 0;
         h.sizeX = 1;
         h.sizeY = 1;
@@ -211,7 +228,7 @@ function resetCell(cell: MapCell): void {
         h.animationSpeed = 0;
         h.animationLeft = 0;
         h.animationPhase = 0;
-        const t = cell.tails[i];
+        const t = cell.tails[i]!;
         t.face = 0;
         t.sizeX = 0;
         t.sizeY = 0;
@@ -231,7 +248,7 @@ function resetCell(cell: MapCell): void {
 /** Clear cells[x][y .. y+lenY-1]. */
 function clearCells(x: number, y: number, lenY: number): void {
     for (let i = 0; i < lenY; i++) {
-        resetCell(cells[x][y + i]);
+        resetCell(cellAt(x, y + i));
     }
 }
 
@@ -244,13 +261,13 @@ function getImageSize(face: number): { w: number; h: number } {
 }
 
 function markResmooth(x: number, y: number, layer: number): void {
-    if (cells[x][y].smooth[layer] > 1) {
+    if (cellAt(x, y).smooth[layer]! > 1) {
         for (let sdx = -1; sdx < 2; sdx++) {
             for (let sdy = -1; sdy < 2; sdy++) {
                 if ((sdx || sdy) &&
                     x + sdx > 0 && x + sdx < mapWidth &&
                     y + sdy > 0 && y + sdy < mapHeight) {
-                    cells[x + sdx][y + sdy].needResmooth = true;
+                    cellAt(x + sdx, y + sdy).needResmooth = true;
                 }
             }
         }
@@ -264,36 +281,36 @@ function markResmooth(x: number, y: number, layer: number): void {
 function expandNeedUpdate(x: number, y: number, w: number, h: number): void {
     for (let dx = 0; dx < w; dx++) {
         for (let dy = 0; dy < h; dy++) {
-            cells[x - dx][y - dy].needUpdate = true;
+            cellAt(x - dx, y - dy).needUpdate = true;
         }
     }
 }
 
 function expandNeedUpdateFromLayer(x: number, y: number, layer: number): void {
-    const head = cells[x][y].heads[layer];
+    const head = cellAt(x, y).heads[layer]!;
     if (head.face !== 0) {
         expandNeedUpdate(x, y, head.sizeX, head.sizeY);
     }
 }
 
 function expandClearFace(x: number, y: number, w: number, h: number, layer: number): void {
-    const cell = cells[x][y];
+    const cell = cellAt(x, y);
     for (let dx = 0; dx < w; dx++) {
         for (let dy = dx === 0 ? 1 : 0; dy < h; dy++) {
-            const tail = cells[x - dx][y - dy].tails[layer];
-            if (tail.face === cell.heads[layer].face &&
+            const tail = cellAt(x - dx, y - dy).tails[layer]!;
+            if (tail.face === cell.heads[layer]!.face &&
                 tail.sizeX === dx &&
                 tail.sizeY === dy) {
                 tail.face = 0;
                 tail.sizeX = 0;
                 tail.sizeY = 0;
-                cells[x - dx][y - dy].needUpdate = true;
+                cellAt(x - dx, y - dy).needUpdate = true;
             }
             markResmooth(x - dx, y - dy, layer);
         }
     }
 
-    const head = cell.heads[layer];
+    const head = cell.heads[layer]!;
     head.face = 0;
     head.animation = 0;
     head.animationSpeed = 0;
@@ -307,7 +324,7 @@ function expandClearFace(x: number, y: number, w: number, h: number, layer: numb
 }
 
 function expandClearFaceFromLayer(x: number, y: number, layer: number): void {
-    const head = cells[x][y].heads[layer];
+    const head = cellAt(x, y).heads[layer]!;
     if (head.face !== 0 && head.sizeX > 0 && head.sizeY > 0) {
         expandClearFace(x, y, head.sizeX, head.sizeY, layer);
     }
@@ -319,26 +336,26 @@ function expandClearFaceFromLayer(x: number, y: number, layer: number): void {
  * size and we don't want to clobber animation metadata.
  */
 function expandSetFace(x: number, y: number, layer: number, face: number, clear: boolean): void {
-    const cell = cells[x][y];
+    const cell = cellAt(x, y);
 
     if (clear) {
         expandClearFaceFromLayer(x, y, layer);
     }
 
     const { w, h } = getImageSize(face);
-    cell.heads[layer].face = face;
-    cell.heads[layer].sizeX = w;
-    cell.heads[layer].sizeY = h;
+    cell.heads[layer]!.face = face;
+    cell.heads[layer]!.sizeX = w;
+    cell.heads[layer]!.sizeY = h;
     cell.needUpdate = true;
     markResmooth(x, y, layer);
 
     for (let dx = 0; dx < w; dx++) {
         for (let dy = dx === 0 ? 1 : 0; dy < h; dy++) {
-            const tail = cells[x - dx][y - dy].tails[layer];
+            const tail = cellAt(x - dx, y - dy).tails[layer]!;
             tail.face = face;
             tail.sizeX = dx;
             tail.sizeY = dy;
-            cells[x - dx][y - dy].needUpdate = true;
+            cellAt(x - dx, y - dy).needUpdate = true;
             markResmooth(x - dx, y - dy, layer);
         }
     }
@@ -349,11 +366,11 @@ function expandSetFace(x: number, y: number, layer: number, face: number, clear:
 // ──────────────────────────────────────────────────────────────────────────────
 
 function expandClearBigface(x: number, y: number, w: number, h: number, layer: number, setNeedUpdate: boolean): void {
-    const head = bigfaces[x][y][layer].head;
+    const head = bigfaceAt(x, y, layer).head;
 
     for (let dx = 0; dx < w && dx <= x; dx++) {
         for (let dy = dx === 0 ? 1 : 0; dy < h && dy <= y; dy++) {
-            const tail = bigfaces[x - dx][y - dy][layer].tail;
+            const tail = bigfaceAt(x - dx, y - dy, layer).tail;
             if (tail.face === head.face &&
                 tail.sizeX === dx &&
                 tail.sizeY === dy) {
@@ -364,7 +381,7 @@ function expandClearBigface(x: number, y: number, w: number, h: number, layer: n
                 if (x - dx >= 0 && x - dx < viewWidth &&
                     y - dy >= 0 && y - dy < viewHeight) {
                     if (setNeedUpdate) {
-                        cells[pl_pos.x + x - dx][pl_pos.y + y - dy].needUpdate = true;
+                        cellAt(pl_pos.x + x - dx, pl_pos.y + y - dy).needUpdate = true;
                     }
                 }
             }
@@ -377,7 +394,7 @@ function expandClearBigface(x: number, y: number, w: number, h: number, layer: n
 }
 
 function expandClearBigfaceFromLayer(x: number, y: number, layer: number, setNeedUpdate: boolean): void {
-    const headcell = bigfaces[x][y][layer];
+    const headcell = bigfaceAt(x, y, layer);
     const head = headcell.head;
     if (head.face !== 0) {
         activeBigfaces.delete(headcell);
@@ -386,7 +403,7 @@ function expandClearBigfaceFromLayer(x: number, y: number, layer: number, setNee
 }
 
 function expandSetBigface(x: number, y: number, layer: number, face: number, clear: boolean): void {
-    const headcell = bigfaces[x][y][layer];
+    const headcell = bigfaceAt(x, y, layer);
     const head = headcell.head;
 
     if (clear) {
@@ -404,14 +421,14 @@ function expandSetBigface(x: number, y: number, layer: number, face: number, cle
 
     for (let dx = 0; dx < w && dx <= x; dx++) {
         for (let dy = dx === 0 ? 1 : 0; dy < h && dy <= y; dy++) {
-            const tail = bigfaces[x - dx][y - dy][layer].tail;
+            const tail = bigfaceAt(x - dx, y - dy, layer).tail;
             tail.face = face;
             tail.sizeX = dx;
             tail.sizeY = dy;
 
             if (x - dx >= 0 && x - dx < viewWidth &&
                 y - dy >= 0 && y - dy < viewHeight) {
-                cells[pl_pos.x + x - dx][pl_pos.y + y - dy].needUpdate = true;
+                cellAt(pl_pos.x + x - dx, pl_pos.y + y - dy).needUpdate = true;
             }
         }
     }
@@ -439,9 +456,9 @@ function initBigfaces(): void {
     for (let x = 0; x < MAX_VIEW; x++) {
         bigfaces[x] = [];
         for (let y = 0; y < MAX_VIEW; y++) {
-            bigfaces[x][y] = [];
+            bigfaces[x]![y] = [];
             for (let i = 0; i < MAXLAYERS; i++) {
-                bigfaces[x][y][i] = {
+                bigfaces[x]![y]![i] = {
                     head: newLayer(),
                     tail: newTailLayer(),
                     x,
@@ -481,7 +498,7 @@ function mapdataClear(x: number, y: number): void {
     const px = pl_pos.x + x;
     const py = pl_pos.y + y;
 
-    const cell = cells[px][py];
+    const cell = cellAt(px, py);
     if (cell.state === MapCellState.Empty) {
         return;
     }
@@ -489,7 +506,7 @@ function mapdataClear(x: number, y: number): void {
     if (cell.state === MapCellState.Visible) {
         cell.needUpdate = true;
         for (let i = 0; i < MAXLAYERS; i++) {
-            if (cell.heads[i].face) {
+            if (cell.heads[i]!.face) {
                 expandNeedUpdateFromLayer(px, py, i);
             }
         }
@@ -588,7 +605,7 @@ function recenterVirtualMapView(diffX: number, diffY: number): void {
             const sx = srcX + i;
             const dx = dstX + i;
             for (let j = 0; j < lenY; j++) {
-                copyCellData(cells[sx][srcY + j], cells[dx][dstY + j]);
+                copyCellData(cellAt(sx, srcY + j), cellAt(dx, dstY + j));
             }
         }
     } else if (shiftX > 0) {
@@ -596,7 +613,7 @@ function recenterVirtualMapView(diffX: number, diffY: number): void {
             const sx = srcX + i;
             const dx = dstX + i;
             for (let j = 0; j < lenY; j++) {
-                copyCellData(cells[sx][srcY + j], cells[dx][dstY + j]);
+                copyCellData(cellAt(sx, srcY + j), cellAt(dx, dstY + j));
             }
         }
     } else {
@@ -605,11 +622,11 @@ function recenterVirtualMapView(diffX: number, diffY: number): void {
             const col = dstX + i;
             if (shiftY < 0) {
                 for (let j = 0; j < lenY; j++) {
-                    copyCellData(cells[col][srcY + j], cells[col][dstY + j]);
+                    copyCellData(cellAt(col, srcY + j), cellAt(col, dstY + j));
                 }
             } else {
                 for (let j = lenY - 1; j >= 0; j--) {
-                    copyCellData(cells[col][srcY + j], cells[col][dstY + j]);
+                    copyCellData(cellAt(col, srcY + j), cellAt(col, dstY + j));
                 }
             }
         }
@@ -636,9 +653,9 @@ function recenterVirtualMapView(diffX: number, diffY: number): void {
 /** Copy all data from one cell to another (shallow copy is fine). */
 function copyCellData(src: MapCell, dst: MapCell): void {
     for (let i = 0; i < MAXLAYERS; i++) {
-        Object.assign(dst.heads[i], src.heads[i]);
-        Object.assign(dst.tails[i], src.tails[i]);
-        dst.smooth[i] = src.smooth[i];
+        Object.assign(dst.heads[i]!, src.heads[i]!);
+        Object.assign(dst.tails[i]!, src.tails[i]!);
+        dst.smooth[i] = src.smooth[i]!;
     }
     dst.labels = src.labels.slice();
     dst.darkness = src.darkness;
@@ -653,7 +670,7 @@ function copyCellData(src: MapCell, dst: MapCell): void {
 
 /** Get the cell at absolute map coordinates. */
 export function mapdata_cell(x: number, y: number): MapCell {
-    return cells[x][y];
+    return cellAt(x, y);
 }
 
 /** Check whether the map contains the given absolute coordinates. */
@@ -668,8 +685,8 @@ export function mapdata_size(): { width: number; height: number } {
 
 /** Check whether a layer can be smoothed at the given absolute coordinates. */
 export function mapdata_can_smooth(x: number, y: number, layer: number): boolean {
-    return (cells[x][y].heads[layer].face === 0 && layer > 0) ||
-        cells[x][y].smooth[layer] !== 0;
+    return (cellAt(x, y).heads[layer]!.face === 0 && layer > 0) ||
+        cellAt(x, y).smooth[layer]! !== 0;
 }
 
 /**
@@ -704,7 +721,7 @@ export function mapdata_face(x: number, y: number, layer: number): number {
     if (!mapdataHasTile(x, y, layer)) {
         return 0;
     }
-    return cells[pl_pos.x + x][pl_pos.y + y].heads[layer].face;
+    return cellAt(pl_pos.x + x, pl_pos.y + y).heads[layer]!.face;
 }
 
 /**
@@ -714,8 +731,8 @@ export function mapdata_face(x: number, y: number, layer: number): number {
 export function mapdata_face_info(
     mx: number, my: number, layer: number,
 ): { face: number; dx: number; dy: number } {
-    const head = cells[mx][my].heads[layer];
-    const tail = cells[mx][my].tails[layer];
+    const head = cellAt(mx, my).heads[layer]!;
+    const tail = cellAt(mx, my).tails[layer]!;
 
     if (head.face !== 0) {
         return {
@@ -724,7 +741,7 @@ export function mapdata_face_info(
             dy: 1 - head.sizeY,
         };
     } else if (tail.face !== 0) {
-        const headPtr = cells[mx + tail.sizeX][my + tail.sizeY].heads[layer];
+        const headPtr = cellAt(mx + tail.sizeX, my + tail.sizeY).heads[layer]!;
         return {
             face: tail.face,
             dx: tail.sizeX - headPtr.sizeX + 1,
@@ -747,21 +764,21 @@ export function mapdata_bigface(
 
     const px = pl_pos.x + x;
     const py = pl_pos.y + y;
-    let result = cells[px][py].tails[layer].face;
+    let result = cellAt(px, py).tails[layer]!.face;
 
     if (result !== 0) {
-        const dx = cells[px][py].tails[layer].sizeX;
-        const dy = cells[px][py].tails[layer].sizeY;
-        const w = cells[px + dx][py + dy].heads[layer].sizeX;
-        const h = cells[px + dx][py + dy].heads[layer].sizeY;
+        const dx = cellAt(px, py).tails[layer]!.sizeX;
+        const dy = cellAt(px, py).tails[layer]!.sizeY;
+        const w = cellAt(px + dx, py + dy).heads[layer]!.sizeX;
+        const h = cellAt(px + dx, py + dy).heads[layer]!.sizeY;
 
         let clearBigface: boolean;
-        if (cells[px][py].state === MapCellState.Fog) {
+        if (cellAt(px, py).state === MapCellState.Fog) {
             clearBigface = false;
         } else if (x + dx < viewWidth && y + dy < viewHeight) {
-            clearBigface = cells[px + dx][py + dy].state === MapCellState.Fog;
+            clearBigface = cellAt(px + dx, py + dy).state === MapCellState.Fog;
         } else {
-            clearBigface = bigfaces[x + dx][y + dy][layer].head.face === 0;
+            clearBigface = bigfaceAt(x + dx, y + dy, layer).head.face === 0;
         }
 
         if (!clearBigface) {
@@ -771,12 +788,12 @@ export function mapdata_bigface(
         expandClearFaceFromLayer(px + dx, py + dy, layer);
     }
 
-    result = bigfaces[x][y][layer].tail.face;
+    result = bigfaceAt(x, y, layer).tail.face;
     if (result !== 0) {
-        const dx = bigfaces[x][y][layer].tail.sizeX;
-        const dy = bigfaces[x][y][layer].tail.sizeY;
-        const w = bigfaces[x + dx][y + dy][layer].head.sizeX;
-        const h = bigfaces[x + dx][y + dy][layer].head.sizeY;
+        const dx = bigfaceAt(x, y, layer).tail.sizeX;
+        const dy = bigfaceAt(x, y, layer).tail.sizeY;
+        const w = bigfaceAt(x + dx, y + dy, layer).head.sizeX;
+        const h = bigfaceAt(x + dx, y + dy, layer).head.sizeY;
         return { face: result, ww: w - 1 - dx, hh: h - 1 - dy };
     }
 
@@ -791,12 +808,12 @@ export function mapdata_bigface_head(
         return { face: 0, ww: 1, hh: 1 };
     }
 
-    const result = bigfaces[x][y][layer].head.face;
+    const result = bigfaceAt(x, y, layer).head.face;
     if (result !== 0) {
         return {
             face: result,
-            ww: bigfaces[x][y][layer].head.sizeX,
-            hh: bigfaces[x][y][layer].head.sizeY,
+            ww: bigfaceAt(x, y, layer).head.sizeX,
+            hh: bigfaceAt(x, y, layer).head.sizeY,
         };
     }
     return { face: 0, ww: 1, hh: 1 };
@@ -804,9 +821,6 @@ export function mapdata_bigface_head(
 
 /** Clear a map space (called from Map2Cmd). View-relative coordinates. */
 export function mapdata_clear_space(x: number, y: number): void {
-    const px = pl_pos.x + x;
-    const py = pl_pos.y + y;
-
     if (x < viewWidth && y < viewHeight) {
         mapdataClear(x, y);
     } else {
@@ -829,9 +843,9 @@ export function mapdata_set_check_space(x: number, y: number): void {
     }
 
     let isBlank = true;
-    const cell = cells[px][py];
+    const cell = cellAt(px, py);
     for (let i = 0; i < MAXLAYERS; i++) {
-        if (cell.heads[i].face > 0 || cell.tails[i].face > 0) {
+        if (cell.heads[i]!.face > 0 || cell.tails[i]!.face > 0) {
             isBlank = false;
             break;
         }
@@ -860,11 +874,11 @@ export function mapdata_set_darkness(x: number, y: number, darkness: number): vo
 }
 
 function setDarkness(x: number, y: number, darkness: number): void {
-    if (cells[x][y].darkness === darkness) {
+    if (cellAt(x, y).darkness === darkness) {
         return;
     }
-    cells[x][y].darkness = darkness;
-    cells[x][y].needUpdate = true;
+    cellAt(x, y).darkness = darkness;
+    cellAt(x, y).needUpdate = true;
 }
 
 /** Set smooth value for a layer.  View-relative coordinates. */
@@ -875,23 +889,23 @@ export function mapdata_set_smooth(x: number, y: number, smooth: number, layer: 
     const px = pl_pos.x + x;
     const py = pl_pos.y + y;
 
-    if (cells[px][py].smooth[layer] !== smooth) {
+    if (cellAt(px, py).smooth[layer]! !== smooth) {
         for (let i = 0; i < 8; i++) {
-            const rx = px + DX[i];
-            const ry = py + DY[i];
+            const rx = px + DX[i]!;
+            const ry = py + DY[i]!;
             if (rx < 0 || ry < 0 || mapWidth <= rx || mapHeight <= ry) {
                 continue;
             }
-            cells[rx][ry].needResmooth = true;
+            cellAt(rx, ry).needResmooth = true;
         }
-        cells[px][py].needResmooth = true;
-        cells[px][py].smooth[layer] = smooth;
+        cellAt(px, py).needResmooth = true;
+        cellAt(px, py).smooth[layer] = smooth;
     }
 }
 
 /** Clear all labels at absolute map coordinates. */
 export function mapdata_clear_label(px: number, py: number): void {
-    cells[px][py].labels = [];
+    cellAt(px, py).labels = [];
 }
 
 /** Clear all labels at view-relative coordinates. */
@@ -918,8 +932,8 @@ export function mapdata_add_label(x: number, y: number, subtype: number, label: 
         return;
     }
 
-    cells[px][py].labels.push({ subtype, label });
-    cells[px][py].needUpdate = true;
+    cellAt(px, py).labels.push({ subtype, label });
+    cellAt(px, py).needUpdate = true;
 }
 
 /**
@@ -934,15 +948,15 @@ export function mapdata_clear_old(x: number, y: number): void {
     const px = pl_pos.x + x;
     const py = pl_pos.y + y;
 
-    if (cells[px][py].state === MapCellState.Fog) {
-        cells[px][py].needUpdate = true;
+    if (cellAt(px, py).state === MapCellState.Fog) {
+        cellAt(px, py).needUpdate = true;
         for (let i = 0; i < MAXLAYERS; i++) {
             expandClearFaceFromLayer(px, py, i);
         }
-        cells[px][py].darkness = 0;
+        cellAt(px, py).darkness = 0;
     }
 
-    cells[px][py].state = MapCellState.Visible;
+    cellAt(px, py).state = MapCellState.Visible;
 }
 
 /** Set a face on a specific layer.  View-relative coordinates. */
@@ -951,7 +965,7 @@ export function mapdata_set_face_layer(x: number, y: number, face: number, layer
     const py = pl_pos.y + y;
 
     if (x < viewWidth && y < viewHeight) {
-        cells[px][py].needUpdate = true;
+        cellAt(px, py).needUpdate = true;
         if (face > 0) {
             expandSetFace(px, py, layer, face, true);
         } else {
@@ -981,14 +995,14 @@ export function mapdata_set_anim_layer(
             return;
         }
         phase = Math.floor(Math.random() * numAnim);
-        face = animations[animation].faces[phase];
+        face = animations[animation]!.faces[phase]!;
         speedLeft = Math.floor(Math.random() * animSpeed);
     } else if ((anim & ANIM_FLAGS_MASK) === ANIM_SYNC) {
         if (animations[animation]) {
-            animations[animation].speed = animSpeed;
-            phase = animations[animation].phase;
-            speedLeft = animations[animation].speedLeft;
-            face = animations[animation].faces[phase];
+            animations[animation]!.speed = animSpeed;
+            phase = animations[animation]!.phase;
+            speedLeft = animations[animation]!.speedLeft;
+            face = animations[animation]!.faces[phase]!;
         }
     }
 
@@ -996,10 +1010,10 @@ export function mapdata_set_anim_layer(
         mapdata_clear_old(x, y);
         if (face > 0) {
             expandSetFace(px, py, layer, face, true);
-            cells[px][py].heads[layer].animation = animation;
-            cells[px][py].heads[layer].animationPhase = phase;
-            cells[px][py].heads[layer].animationSpeed = animSpeed;
-            cells[px][py].heads[layer].animationLeft = speedLeft;
+            cellAt(px, py).heads[layer]!.animation = animation;
+            cellAt(px, py).heads[layer]!.animationPhase = phase;
+            cellAt(px, py).heads[layer]!.animationSpeed = animSpeed;
+            cellAt(px, py).heads[layer]!.animationLeft = speedLeft;
         } else {
             expandClearFaceFromLayer(px, py, layer);
         }
@@ -1022,7 +1036,7 @@ export function mapdata_scroll(dx: number, dy: number): void {
                 for (let by = bx === 0 ? 1 : 0; by < bc.head.sizeY; by++) {
                     if (bc.x - bx >= 0 && bc.x - bx < viewWidth &&
                         bc.y - by >= 0 && bc.y - by < viewHeight) {
-                        cells[pl_pos.x + bc.x - bx][pl_pos.y + bc.y - by].needUpdate = true;
+                        cellAt(pl_pos.x + bc.x - bx, pl_pos.y + bc.y - by).needUpdate = true;
                     }
                 }
             }
@@ -1030,7 +1044,7 @@ export function mapdata_scroll(dx: number, dy: number): void {
     } else {
         for (let x = 0; x < viewWidth; x++) {
             for (let y = 0; y < viewHeight; y++) {
-                cells[pl_pos.x + x][pl_pos.y + y].needUpdate = true;
+                cellAt(pl_pos.x + x, pl_pos.y + y).needUpdate = true;
             }
         }
     }
@@ -1087,7 +1101,7 @@ export function mapdata_newmap(): void {
     for (let x = 0; x < mapWidth; x++) {
         clearCells(x, 0, mapHeight);
         for (let y = 0; y < mapHeight; y++) {
-            cells[x][y].needUpdate = true;
+            cellAt(x, y).needUpdate = true;
         }
     }
 
@@ -1103,13 +1117,14 @@ export function mapdata_newmap(): void {
 export function mapdata_animation(): void {
     // Update synchronized animations.
     for (let a = 0; a < Math.min(animations.length, MAXANIM); a++) {
-        if (animations[a] && animations[a].speed) {
-            animations[a].speedLeft++;
-            if (animations[a].speedLeft >= animations[a].speed) {
-                animations[a].speedLeft = 0;
-                animations[a].phase++;
-                if (animations[a].phase >= animations[a].numAnimations) {
-                    animations[a].phase = 0;
+        const anim = animations[a];
+        if (anim && anim.speed) {
+            anim.speedLeft++;
+            if (anim.speedLeft >= anim.speed) {
+                anim.speedLeft = 0;
+                anim.phase++;
+                if (anim.phase >= anim.numAnimations) {
+                    anim.phase = 0;
                 }
             }
         }
@@ -1120,7 +1135,7 @@ export function mapdata_animation(): void {
 
     for (let x = 0; x < maxX; x++) {
         for (let y = 0; y < maxY; y++) {
-            const mapSpace = cells[pl_pos.x + x][pl_pos.y + y];
+            const mapSpace = cellAt(pl_pos.x + x, pl_pos.y + y);
 
             if (mapSpace.state !== MapCellState.Visible) {
                 continue;
@@ -1128,7 +1143,7 @@ export function mapdata_animation(): void {
 
             for (let layer = 0; layer < MAXLAYERS; layer++) {
                 // Animate cell heads.
-                const cell = mapSpace.heads[layer];
+                const cell = mapSpace.heads[layer]!;
                 if (cell.animation) {
                     cell.animationLeft++;
                     if (cell.animationLeft >= cell.animationSpeed) {

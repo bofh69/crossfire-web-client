@@ -115,7 +115,7 @@ export function parseMarkup(text: string, baseColor: string): MessageSpan[] {
 export function parseMarkupLines(text: string, baseColor: string): InfoLine[] {
   const rawLines = text.split('\n');
   // Drop trailing blank lines
-  while (rawLines.length > 0 && rawLines[rawLines.length - 1].trim() === '') {
+  while (rawLines.length > 0 && rawLines[rawLines.length - 1]!.trim() === '') {
     rawLines.pop();
   }
   return rawLines.map(line => {

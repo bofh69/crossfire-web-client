@@ -49,8 +49,6 @@ let axisConfigStepCallback: ((step: AxisConfigStep) => void) | null = null;
 let axisConfigWaitingForCenter = false;
 let axisNorthIdx: number | null = null;
 let axisEastIdx: number | null = null;
-let axisYInverted = false;
-let axisXInverted = false;
 let axisConfigPending: StickAxes | null = null;
 
 let buttonConfigActive = false;
@@ -82,8 +80,6 @@ export function startAxisConfig(
     axisConfigWaitingForCenter = false;
     axisNorthIdx = null;
     axisEastIdx = null;
-    axisYInverted = false;
-    axisXInverted = false;
     axisConfigPending = null;
 }
 
@@ -151,7 +147,7 @@ export function handleAxisConfig(
     if (axisConfigWaitingForCenter) {
         let allCentered = true;
         for (let i = 0; i < gp.axes.length; i++) {
-            if (Math.abs(gp.axes[i]) > AXIS_CONFIG_CENTER_THRESHOLD) {
+            if (Math.abs(gp.axes[i]!) > AXIS_CONFIG_CENTER_THRESHOLD) {
                 allCentered = false;
                 break;
             }
@@ -162,17 +158,15 @@ export function handleAxisConfig(
 
     switch (axisConfigStep) {
         case "move-north":
-            handleAxisStep(gp, (idx, value) => {
+            handleAxisStep(gp, (idx, _value) => {
                 axisNorthIdx = idx;
-                axisYInverted = value > 0;
                 advanceAxisStep("move-east");
             });
             break;
 
         case "move-east":
-            handleAxisStep(gp, (idx, value) => {
+            handleAxisStep(gp, (idx, _value) => {
                 axisEastIdx = idx;
-                axisXInverted = value < 0;
                 advanceAxisStep("move-south");
             });
             break;
@@ -202,7 +196,7 @@ export function handleAxisConfig(
 
         case "testing":
             for (let i = 0; i < gp.buttons.length; i++) {
-                if (gp.buttons[i].pressed && !(prevButtons[i] ?? false)) {
+                if (gp.buttons[i]!.pressed && !(prevButtons[i] ?? false)) {
                     const mapping = activeProfile?.buttons.find(
                         b => b.button === i);
                     if (mapping?.command === "apply") {
@@ -212,7 +206,7 @@ export function handleAxisConfig(
                 }
             }
             for (let i = 0; i < gp.buttons.length; i++) {
-                prevButtons[i] = gp.buttons[i].pressed;
+                prevButtons[i] = gp.buttons[i]!.pressed;
             }
             break;
     }
@@ -229,7 +223,7 @@ function handleAxisStep(
     onDetected: (axisIndex: number, value: number) => void,
 ): void {
     for (let i = 0; i < gp.axes.length; i++) {
-        const value = gp.axes[i];
+        const value = gp.axes[i]!;
         if (Math.abs(value) >= AXIS_CONFIG_THRESHOLD) {
             onDetected(i, value);
             return;
@@ -258,12 +252,12 @@ export function cancelButtonConfig(): void {
  */
 export function handleButtonConfig(gp: Gamepad, prevButtons: boolean[]): void {
     for (let i = 0; i < gp.buttons.length; i++) {
-        if (gp.buttons[i].pressed && !(prevButtons[i] ?? false)) {
+        if (gp.buttons[i]!.pressed && !(prevButtons[i] ?? false)) {
             const doneCb = buttonConfigCallback;
             cancelButtonConfig();
 
             for (let j = 0; j < gp.buttons.length; j++) {
-                prevButtons[j] = gp.buttons[j].pressed;
+                prevButtons[j] = gp.buttons[j]!.pressed;
             }
 
             doneCb?.(i);
@@ -272,6 +266,6 @@ export function handleButtonConfig(gp: Gamepad, prevButtons: boolean[]): void {
     }
 
     for (let j = 0; j < gp.buttons.length; j++) {
-        prevButtons[j] = gp.buttons[j].pressed;
+        prevButtons[j] = gp.buttons[j]!.pressed;
     }
 }

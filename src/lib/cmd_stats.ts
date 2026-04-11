@@ -55,9 +55,9 @@ export const expTable: bigint[] = [];
 export function expBarPercent(exp: bigint, level: number): number {
   if (expTable.length < 2 || level <= 0) return 0;
   const curIdx = Math.min(level, expTable.length - 1);
-  const curLevelExp = expTable[curIdx];
+  const curLevelExp = expTable[curIdx]!;
   if (curIdx + 1 >= expTable.length) return 100; // at or beyond max level
-  const nextLevelExp = expTable[curIdx + 1];
+  const nextLevelExp = expTable[curIdx + 1]!;
   if (nextLevelExp <= curLevelExp) return 100;
   const ratio = Number(exp - curLevelExp) / Number(nextLevelExp - curLevelExp);
   return Math.max(0, Math.min(100, ratio * 100));

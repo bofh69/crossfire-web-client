@@ -154,7 +154,7 @@ export function clientNegotiate(): void {
     csocket.sendString("requestinfo news");
     csocket.sendString("requestinfo rules");
 
-    clientMapsize(wantConfig[CONFIG_MAPWIDTH], wantConfig[CONFIG_MAPHEIGHT]);
+    clientMapsize(wantConfig[CONFIG_MAPWIDTH]!, wantConfig[CONFIG_MAPHEIGHT]!);
 
-    useConfig[CONFIG_DOWNLOAD] = wantConfig[CONFIG_DOWNLOAD];
+    useConfig[CONFIG_DOWNLOAD] = wantConfig[CONFIG_DOWNLOAD]!;
 }

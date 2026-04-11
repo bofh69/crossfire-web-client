@@ -167,7 +167,7 @@ const numberWords: string[] = [
 
 export function getNumber(i: number): string {
     if (i <= 20) {
-        return numberWords[i];
+        return numberWords[i]!;
     }
     return String(i);
 }
@@ -720,7 +720,7 @@ function animateList(head: Item | null): boolean {
                     ip.animState = 0;
                 }
                 if (anim) {
-                    ip.face = anim.faces[ip.animState];
+                    ip.face = anim.faces[ip.animState]!;
                 }
                 ip.lastAnim = 0;
                 gotOne = true;

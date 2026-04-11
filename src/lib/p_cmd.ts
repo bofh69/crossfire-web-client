@@ -5,7 +5,6 @@
 
 import { CommCat, LogLevel, type ConsoleCommand } from "./protocol";
 import { LOG } from "./misc";
-import { saveConfig } from "./storage";
 import { sendCommand, setLastCommand } from "./player";
 import { resetBindings } from "./keys";
 import { getCpl } from "./init";
@@ -203,9 +202,11 @@ const builtinCommands: ConsoleCommand[] = [
             "    Opens the gamepad bind dialog with 'cast fireball' ready to be assigned.",
         handler: commandGamepadBind,
     },
-    { name: "help",         category: CommCat.Misc,  description: "Show help on commands",         handler: commandHelp },
-    { name: "magicmap",     category: CommCat.Misc,  description: "Show last received magic map",  handler: commandMagicmap },
-    { name: "take",         category: CommCat.Misc,  description: "Take items from the ground",   handler: commandTake },
+    { name: "help",         category: CommCat.Misc,  description: "Show help on commands",            handler: commandHelp },
+    { name: "inv",          category: CommCat.Misc,  description: "Request inventory from server",    handler: commandInv },
+    { name: "magicmap",     category: CommCat.Misc,  description: "Show last received magic map",     handler: commandMagicmap },
+    { name: "resetkeys",    category: CommCat.Setup, description: "Reset all key bindings to default",handler: commandResetKeys },
+    { name: "take",         category: CommCat.Misc,  description: "Take items from the ground",       handler: commandTake },
 ];
 
 // ---------------------------------------------------------------------------
@@ -277,13 +278,13 @@ export function completeCommand(partial: string): string {
         return partial;
     }
     if (matches.length === 1) {
-        return matches[0];
+        return matches[0]!;
     }
 
     // Find longest common prefix.
-    let prefix = matches[0];
+    let prefix = matches[0]!;
     for (let i = 1; i < matches.length; i++) {
-        while (!matches[i].startsWith(prefix)) {
+        while (!matches[i]!.startsWith(prefix)) {
             prefix = prefix.slice(0, -1);
         }
     }

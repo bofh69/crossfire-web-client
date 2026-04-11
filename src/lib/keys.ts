@@ -19,8 +19,8 @@ import { InputState, type Player } from "./protocol";
 import { loadConfig, saveConfig } from "./storage";
 import { extendedCommand } from "./p_cmd";
 import {
-    fireDir, runDir, clearFire, clearRun, stopFire, stopRun,
-    sendCommand, checkRepeatThrottle, resetRepeatThrottle, recordRepeatSend,
+    fireDir, runDir, clearFire, clearRun,
+    checkRepeatThrottle, resetRepeatThrottle, recordRepeatSend,
 } from "./player";
 import { LOG } from "./misc";
 import { LogLevel } from "./protocol";
@@ -594,7 +594,7 @@ export function unbindKey(params: string): void {
         // List all bindings
         cb?.drawInfo("Current keybindings (use 'unbind <number>' to remove):");
         for (let i = 0; i < bindings.length; i++) {
-            const kb = bindings[i];
+            const kb = bindings[i]!;
             const flagStr = flagsToString(kb.flags);
             cb?.drawInfo(`  ${i}: [${flagStr}] ${kb.keysym} → ${kb.command}`);
         }
@@ -603,7 +603,7 @@ export function unbindKey(params: string): void {
 
     const idx = parseInt(arg, 10);
     if (!isNaN(idx) && idx >= 0 && idx < bindings.length) {
-        const kb = bindings[idx];
+        const kb = bindings[idx]!;
         cb?.drawInfo(`Removed binding ${idx}: ${kb.keysym} → ${kb.command}`);
         keybindRemoveIndex(idx);
         saveBindings();
