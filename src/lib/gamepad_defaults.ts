@@ -76,7 +76,7 @@ const xboxProfile: GamepadProfile = {
         { button: 0,  command: "apply" },
         { button: 1,  command: "disarm" },
         { button: 2,  command: "use_skill pray" },
-        { button: 3,  command: "search" },
+        { button: 3,  command: "hotbar" },
         { button: 11, command: "stay fire" },
         { button: 12, command: "ready_skill throwing" },
         { button: 13, command: "take" },
@@ -109,7 +109,7 @@ export const fallbackProfile: GamepadProfile = {
     fireThreshold: DEFAULT_FIRE_THRESHOLD,
     buttons: [
         { button: 0,  command: "apply" },
-        { button: 1,  command: "disarm" },
+        { button: 1,  command: "hotbar" },
         { button: 2,  command: "use_skill pray" },
         { button: 3,  command: "search" },
     ],

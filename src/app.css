@@ -59,11 +59,12 @@ body {
 .game-layout {
   display: grid;
   grid-template-areas:
-    "menu menu"
-    "map  side"
-    "info side";
+    "menu   menu"
+    "hotbar side"
+    "map    side"
+    "info   side";
   grid-template-columns: 1fr clamp(280px, 20vw, 500px);
-  grid-template-rows: clamp(24px, 2.5vh, 28px) 1fr clamp(140px, 18vh, 320px);
+  grid-template-rows: clamp(24px, 2.5vh, 28px) clamp(30px, 4vh, 44px) 1fr clamp(140px, 18vh, 320px);
   width: 100vw;
   height: 100vh;
   gap: 0;
@@ -132,6 +133,12 @@ body {
 .info-area {
   grid-area: info;
   border-top: 1px solid var(--border);
+  overflow: hidden;
+  min-height: 0;
+}
+
+.hotbar-area {
+  grid-area: hotbar;
   overflow: hidden;
   min-height: 0;
 }
