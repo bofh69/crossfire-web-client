@@ -22,6 +22,7 @@ import {
     fireDir, runDir, clearFire, clearRun,
     checkRepeatThrottle, resetRepeatThrottle, recordRepeatSend,
 } from "./player";
+import { clear_move_to } from "./mapdata";
 import { LOG } from "./misc";
 import { LogLevel } from "./protocol";
 
@@ -354,6 +355,8 @@ export function parseKey(e: KeyboardEvent): void {
 
         // Direction binding with fire/run modifier
         if (kb.direction >= 0) {
+            // Any manual directional input cancels an active click-to-move.
+            clear_move_to();
             if (cpl.fireOn) {
                 fireDir(kb.direction);
                 return;

@@ -18,6 +18,23 @@ export let moveToX = 0;
 export let moveToY = 0;
 export let moveToAttack = false;
 
+/**
+ * Player position at the time the last walk/run command was sent.
+ * We hold off sending another command until the player actually moves
+ * (pl_pos changes), preventing command flooding that causes overshoot.
+ */
+let moveToLastPos: { px: number; py: number } | null = null;
+
+/**
+ * Number of consecutive ticks where movement was expected (a command was
+ * sent) but the player's position did not change.  After a threshold this
+ * indicates the path is blocked (wall, etc.) and we abandon the move-to.
+ */
+let moveToStuckTicks = 0;
+
+/** After this many consecutive stuck ticks, abandon the move-to. */
+const MOVE_TO_STUCK_LIMIT = 3;
+
 /** Callbacks injected by mapdata.ts. */
 let plMposFn: PlMposFn = () => ({ px: 0, py: 0 });
 let stopRunFn: () => void = () => {};
@@ -54,6 +71,12 @@ export function set_move_to(dx: number, dy: number): void {
     } else {
         moveToAttack = false;
     }
+
+    // Always reset the rate-limit position and stuck counter so that a new
+    // click immediately sends the first command, even if the previous
+    // move-to was blocked (e.g. a wall stopped the player).
+    moveToLastPos = null;
+    moveToStuckTicks = 0;
 }
 
 /** Clear the current move-to destination. */
@@ -61,6 +84,8 @@ export function clear_move_to(): void {
     moveToX = 0;
     moveToY = 0;
     moveToAttack = false;
+    moveToLastPos = null;
+    moveToStuckTicks = 0;
 }
 
 /** Return true if the player is at (or has no) move-to destination. */
@@ -85,6 +110,25 @@ export function run_move_to(): void {
     }
 
     const pos = plMposFn();
+
+    // Rate-limit: don't queue another command until the player has actually
+    // moved since the last one was sent.  Without this guard, sending one
+    // command per local timer tick (125 ms) causes the server to receive
+    // several identical direction commands before a single mapscroll arrives,
+    // making the player overshoot the destination.
+    if (moveToLastPos !== null &&
+        pos.px === moveToLastPos.px &&
+        pos.py === moveToLastPos.py) {
+        // The player didn't move — could be normal network latency, or the
+        // path is blocked (wall).  Count consecutive stuck ticks and give up
+        // after the threshold so the yellow border doesn't linger forever.
+        moveToStuckTicks++;
+        if (moveToStuckTicks >= MOVE_TO_STUCK_LIMIT) {
+            clear_move_to();
+        }
+        return;
+    }
+
     const dx = moveToX - pos.px;
     const dy = moveToY - pos.py;
     const dir = relative_direction(dx, dy);
@@ -94,6 +138,9 @@ export function run_move_to(): void {
     } else {
         walkDirFn(dir);
     }
+
+    moveToLastPos = { px: pos.px, py: pos.py };
+    moveToStuckTicks = 0;
 }
 
 /**

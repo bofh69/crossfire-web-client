@@ -3,6 +3,7 @@
   import { mapdata_cell, mapdata_can_smooth, mapdata_contains, getViewSize, getPlayerPosition } from '../lib/mapdata';
   import { getFaceUrl, getSmoothFace } from '../lib/image';
   import { lookAt } from '../lib/player';
+  import { set_move_to, moveToX, moveToY } from '../lib/mapdata';
   import { MapCellState, MAXLAYERS, Map2Label, LogLevel } from '../lib/protocol';
   import { clientMapsize } from '../lib/client';
   import { wantConfig, useConfig } from '../lib/init';
@@ -453,6 +454,26 @@
       }
     }
 
+    // Pass 5: draw a thin yellow border on the move-to target tile so the
+    // player can see where they right-clicked.  Cleared automatically when
+    // the player arrives or when move-to is cancelled by manual input.
+    if (moveToX !== 0 || moveToY !== 0) {
+      const tvx = moveToX - plPos.x;
+      const tvy = moveToY - plPos.y;
+      if (tvx >= 0 && tvx < vw && tvy >= 0 && tvy < vh) {
+        ctx.save();
+        ctx.strokeStyle = 'rgba(255, 255, 0, 0.85)';
+        ctx.lineWidth = Math.max(1, Math.round(scale));
+        ctx.strokeRect(
+          tvx * tileSize + ctx.lineWidth / 2,
+          tvy * tileSize + ctx.lineWidth / 2,
+          tileSize - ctx.lineWidth,
+          tileSize - ctx.lineWidth,
+        );
+        ctx.restore();
+      }
+    }
+
     performance.mark('drawMap-end');
     performance.measure('drawMap', 'drawMap-start', 'drawMap-end');
     const elapsed = performance.now() - t0;
@@ -512,12 +533,27 @@
     const dy = tileY - centerY;
     lookAt(dx, dy);
   }
+
+  function handleRightClick(e: MouseEvent) {
+    e.preventDefault();
+    if (!canvas) return;
+    const rect = canvas.getBoundingClientRect();
+    const tileX = Math.floor((e.clientX - rect.left) / currentTileSize);
+    const tileY = Math.floor((e.clientY - rect.top) / currentTileSize);
+    const view = getViewSize();
+    const centerX = Math.floor(view.width / 2);
+    const centerY = Math.floor(view.height / 2);
+    const dx = tileX - centerX;
+    const dy = tileY - centerY;
+    set_move_to(dx, dy);
+  }
 </script>
 
 <div class="game-map" bind:clientWidth={containerW} bind:clientHeight={containerH}>
   <canvas
     bind:this={canvas}
     onclick={handleClick}
+    oncontextmenu={handleRightClick}
     width={640}
     height={640}
   ></canvas>
