@@ -52,6 +52,10 @@ export interface GameEventMap {
   openGamepadBind:   [];
   /** Hotbar slot data or gamepad-select state changed. */
   hotbarUpdate:      [];
+  /** Increase the tile zoom level by one step. */
+  zoomIn:            [];
+  /** Decrease the tile zoom level by one step. */
+  zoomOut:           [];
 }
 
 // ── Event bus implementation ───────────────────────────────────────────────
