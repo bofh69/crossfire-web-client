@@ -84,6 +84,7 @@
       commandInput = '';
       historyIndex = -1;
       blurInput();
+      e.stopPropagation();
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
       if (commandHistory.length === 0) return;
