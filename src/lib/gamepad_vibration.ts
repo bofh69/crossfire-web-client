@@ -3,6 +3,13 @@
  * Extracted from gamepad.ts.
  */
 
+import {
+  VIBRATION_DURATION_MS,
+  VIBRATION_HP_DROP_THRESHOLD,
+  VIBRATION_WEAK_MAGNITUDE,
+  VIBRATION_STRONG_MAGNITUDE,
+} from './constants';
+
 /**
  * The player's HP at the time of the last stats update.
  * -1 means no previous value is known (first update after login/reconnect).
@@ -22,15 +29,15 @@ export function notifyHpUpdate(hp: number, maxHp: number, activeGamepadIndex: nu
 
     if (prevHp >= 0 && maxHp > 0 && hp < prevHp) {
         const drop = prevHp - hp;
-        if (drop / maxHp >= 0.1) {
+        if (drop / maxHp >= VIBRATION_HP_DROP_THRESHOLD) {
             const gamepads = navigator.getGamepads();
             const gp = gamepads[activeGamepadIndex];
             if (gp?.vibrationActuator) {
                 gp.vibrationActuator.playEffect("dual-rumble", {
                     startDelay: 0,
-                    duration: 400,
-                    weakMagnitude: 0.5,
-                    strongMagnitude: 1.0,
+                    duration: VIBRATION_DURATION_MS,
+                    weakMagnitude: VIBRATION_WEAK_MAGNITUDE,
+                    strongMagnitude: VIBRATION_STRONG_MAGNITUDE,
                 });
             }
         }

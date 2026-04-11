@@ -8,6 +8,7 @@
   import { wantConfig } from '../lib/init';
   import { gameEvents } from '../lib/events';
   import { LOG } from '../lib/misc';
+  import { SLOW_DRAW_THRESHOLD_MS, DRAW_STATS_INTERVAL_MS } from '../lib/constants';
 
   const TILE_SIZE = 32;
   const BASE_FONT_SIZE = 10;
@@ -331,12 +332,12 @@
     const elapsed = performance.now() - t0;
     drawCount++;
 
-    if (elapsed > 5) {
+    if (elapsed > SLOW_DRAW_THRESHOLD_MS) {
       LOG(LogLevel.Warning, 'perf:map', `drawMap took ${elapsed.toFixed(1)}ms — tiles:${tilesDrawn} imgs:${imagesDrawn} placeholders:${placeholders} loadsStarted:${loadsStarted}`);
     }
 
     const now = performance.now();
-    if (now - lastStatsTime > 5000) {
+    if (now - lastStatsTime > DRAW_STATS_INTERVAL_MS) {
       const dt = (now - lastStatsTime) / 1000;
       LOG(LogLevel.Info, 'perf:map', `${drawCount} draws in ${dt.toFixed(1)}s (${(drawCount / dt).toFixed(1)} draws/s), imageCache:${imageCache.size} loading:${loadingUrls.size} failed:${failedUrls.size}`);
       drawCount = 0;

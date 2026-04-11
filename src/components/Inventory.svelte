@@ -339,8 +339,8 @@
 
 <style>
   .inventory {
-    background: #1a1a1a;
-    border: 1px solid #333;
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
     display: flex;
     flex-direction: column;
     height: 100%;
@@ -356,15 +356,15 @@
   }
 
   .inv-section + .inv-section {
-    border-top: 1px solid #444;
+    border-top: 1px solid var(--border-mid);
   }
 
   h3 {
     margin: 0;
     padding: 0.4rem 0.5rem;
-    color: #e0d0b0;
+    color: var(--text-warm);
     font-size: 0.8rem;
-    background: #252525;
+    background: var(--bg-mid);
     display: flex;
     align-items: center;
   }
@@ -381,15 +381,15 @@
 
   .count-clear {
     cursor: pointer;
-    color: #888;
+    color: var(--text-dim);
     font-size: 0.7rem;
     padding: 0 0.15rem;
     border-radius: 2px;
   }
 
   .count-clear:hover {
-    color: #ff8888;
-    background: #3a3a3a;
+    color: var(--danger-text);
+    background: var(--bg-card);
   }
 
   .item-list {
@@ -404,11 +404,11 @@
     gap: 0.3rem;
     padding: 0.2rem 0.4rem;
     cursor: pointer;
-    color: #c0c0c0;
+    color: var(--text);
   }
 
   .item-row:hover {
-    background: #2a2a2a;
+    background: var(--bg-lighter);
   }
 
   .item-row.applied {
@@ -421,7 +421,7 @@
   }
 
   .item-row.cursed {
-    color: #ff8888;
+    color: var(--danger-text);
     background: #351a1a;
   }
 
@@ -438,7 +438,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #333;
+    background: var(--border);
     color: #666;
     font-size: 0.7rem;
     flex-shrink: 0;
@@ -452,15 +452,15 @@
   }
 
   .item-weight {
-    color: #888;
+    color: var(--text-dim);
     font-size: 0.7rem;
     flex-shrink: 0;
   }
 
   .context-menu {
     position: fixed;
-    background: #333;
-    border: 1px solid #555;
+    background: var(--border);
+    border: 1px solid var(--border-light);
     border-radius: 4px;
     display: flex;
     flex-direction: column;
@@ -485,6 +485,6 @@
   }
 
   .context-menu button:hover {
-    background: #444;
+    background: var(--border-mid);
   }
 </style>

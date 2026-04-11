@@ -25,6 +25,7 @@ import {
   LogLevel,
 } from "./protocol";
 import { LOG } from "./misc";
+import { SLOW_PACKET_THRESHOLD_MS } from "./constants";
 
 /** Maximum payload size for a SockList (MAXSOCKBUF minus 2-byte length header). */
 const MAX_DATA_SIZE = MAXSOCKBUF - 2;
@@ -280,7 +281,7 @@ export class CrossfireSocket {
     const t0 = performance.now();
     this.onPacket?.(payload);
     const elapsed = performance.now() - t0;
-    if (elapsed > 5) {
+    if (elapsed > SLOW_PACKET_THRESHOLD_MS) {
       LOG(LogLevel.Warning, 'perf:ws',
         `onPacket callback took ${elapsed.toFixed(1)}ms for ${payload.length}B message (#${this.commandReceived})`);
     }

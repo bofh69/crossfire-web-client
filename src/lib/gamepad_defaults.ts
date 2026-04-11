@@ -9,6 +9,11 @@
 
 import { LOG } from "./misc";
 import { LogLevel } from "./protocol";
+import {
+    DEFAULT_WALK_THRESHOLD,
+    DEFAULT_RUN_THRESHOLD,
+    DEFAULT_FIRE_THRESHOLD,
+} from "./constants";
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Types
@@ -64,9 +69,9 @@ const xboxProfile: GamepadProfile = {
     matchId: ["045e-02dd-", "Vendor: 045e Product: 02dd", "Microsoft Controller", "Microsoft X-Box One"],
     walkStick: { axisX: 0, axisY: 1, invertX: false, invertY: false },
     fireStick: { axisX: 2, axisY: 3, invertX: false, invertY: false },
-    walkThreshold: 0.2,
-    runThreshold: 0.7,
-    fireThreshold: 0.7,
+    walkThreshold: DEFAULT_WALK_THRESHOLD,
+    runThreshold: DEFAULT_RUN_THRESHOLD,
+    fireThreshold: DEFAULT_FIRE_THRESHOLD,
     buttons: [
         { button: 0,  command: "apply" },
         { button: 1,  command: "disarm" },
@@ -99,9 +104,9 @@ export const fallbackProfile: GamepadProfile = {
     matchId: [""],
     walkStick: { axisX: 0, axisY: 1, invertX: false, invertY: false },
     fireStick: { axisX: 2, axisY: 3, invertX: false, invertY: false },
-    walkThreshold: 0.2,
-    runThreshold: 0.7,
-    fireThreshold: 0.7,
+    walkThreshold: DEFAULT_WALK_THRESHOLD,
+    runThreshold: DEFAULT_RUN_THRESHOLD,
+    fireThreshold: DEFAULT_FIRE_THRESHOLD,
     buttons: [
         { button: 0,  command: "apply" },
         { button: 1,  command: "disarm" },

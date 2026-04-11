@@ -302,7 +302,7 @@
   }
 
   h1 {
-    color: #e0d0b0;
+    color: var(--text-warm);
     font-size: 2rem;
     margin-bottom: 1rem;
   }
@@ -322,17 +322,17 @@
     display: flex;
     flex-direction: column;
     gap: 1rem;
-    border: 1px solid #333;
+    border: 1px solid var(--border);
     border-radius: 6px;
     padding: 1rem;
-    background: #151515;
+    background: var(--bg-darker);
   }
 
   .info-section h3 {
-    color: #e0d0b0;
+    color: var(--text-warm);
     font-size: 0.9rem;
     margin: 0 0 0.5rem 0;
-    border-bottom: 1px solid #333;
+    border-bottom: 1px solid var(--border);
     padding-bottom: 0.25rem;
   }
 
@@ -348,7 +348,7 @@
   }
 
   .info-title {
-    color: #e0d0b0;
+    color: var(--text-warm);
     font-weight: bold;
     font-size: 0.9rem;
     margin: 0.5rem 0 0.25rem 0;
@@ -374,36 +374,36 @@
     display: flex;
     flex-direction: column;
     gap: 0.25rem;
-    color: #c0b090;
+    color: var(--text-warm-dim);
     font-size: 0.9rem;
   }
 
   input {
     padding: 0.5rem;
-    border: 1px solid #555;
+    border: 1px solid var(--border-light);
     border-radius: 4px;
-    background: #2a2a2a;
-    color: #e0e0e0;
+    background: var(--bg-lighter);
+    color: var(--text-bright);
     font-size: 1rem;
   }
 
   input:focus {
     outline: none;
-    border-color: #7a6a4a;
+    border-color: var(--accent);
   }
 
   button {
     padding: 0.6rem 1rem;
-    border: 1px solid #7a6a4a;
+    border: 1px solid var(--accent);
     border-radius: 4px;
-    background: #4a3a2a;
-    color: #e0d0b0;
+    background: var(--bg-warm);
+    color: var(--text-warm);
     font-size: 1rem;
     cursor: pointer;
   }
 
   button:hover:not(:disabled) {
-    background: #5a4a3a;
+    background: var(--bg-warm-hover);
   }
 
   button:disabled {
@@ -422,7 +422,7 @@
   }
 
   .query-text {
-    color: #c0b090;
+    color: var(--text-warm-dim);
     font-size: 0.9rem;
     margin: 0;
   }
@@ -444,8 +444,8 @@
     display: block;
     width: 12rem;
     padding: 0.35rem 0;
-    background: #7a6a4a;
-    color: #e0d0b0;
+    background: var(--accent);
+    color: var(--text-warm);
     font-size: 0.8rem;
     font-weight: bold;
     text-align: center;

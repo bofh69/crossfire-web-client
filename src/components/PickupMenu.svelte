@@ -250,14 +250,14 @@
     align-items: center;
     gap: 0.4rem;
     padding: 0.25rem 0.5rem;
-    color: #c0c0c0;
+    color: var(--text);
     font-size: 0.8rem;
     cursor: pointer;
     user-select: none;
   }
 
   .pickup-item:hover {
-    background: #3a3a3a;
+    background: var(--bg-card);
   }
 
   .sub-item {
@@ -280,7 +280,7 @@
   }
 
   .group-header:hover {
-    background: #3a3a3a;
+    background: var(--bg-card);
   }
 
   .arrow {
@@ -290,19 +290,19 @@
   }
 
   .group-items {
-    border-left: 2px solid #444;
+    border-left: 2px solid var(--border-mid);
     margin-left: 0.5rem;
   }
 
   .separator {
     height: 1px;
-    background: #444;
+    background: var(--border-mid);
     margin: 0.25rem 0;
   }
 
   input[type="checkbox"],
   input[type="radio"] {
-    accent-color: #7a6a4a;
+    accent-color: var(--accent);
     margin: 0;
   }
 </style>
