@@ -486,6 +486,18 @@
     closeMenu();
   }
 
+  // ── Zoom (tile scale) ────────────────────────────────────────────────────
+
+  function handleZoomIn() {
+    gameEvents.emit('zoomIn');
+    closeMenu();
+  }
+
+  function handleZoomOut() {
+    gameEvents.emit('zoomOut');
+    closeMenu();
+  }
+
   // ── Sound mute toggles ────────────────────────────────────────────────────
 
   let musicMuted = $state(getMusicMuted());
@@ -623,6 +635,22 @@
           onclick={toggleSfxMute}
           oncontextmenu={(e) => { e.preventDefault(); toggleSfxMute(); }}
         >{sfxMuted ? 'Unmute Sound Effects' : 'Mute Sound Effects'}</button>
+      </div>
+    {/if}
+  </div>
+
+  <div class="menu-item">
+    <button class="menu-button" onclick={() => toggleMenu('view')} oncontextmenu={(e) => { e.preventDefault(); toggleMenu('view'); }}>View</button>
+    {#if activeMenu === 'view'}
+      <div class="dropdown" class:fading={menuFading}>
+        <button
+          onclick={handleZoomIn}
+          oncontextmenu={(e) => { e.preventDefault(); handleZoomIn(); }}
+        >Zoom In</button>
+        <button
+          onclick={handleZoomOut}
+          oncontextmenu={(e) => { e.preventDefault(); handleZoomOut(); }}
+        >Zoom Out</button>
       </div>
     {/if}
   </div>

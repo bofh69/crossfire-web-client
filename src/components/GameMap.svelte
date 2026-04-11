@@ -10,15 +10,20 @@
   import { gameEvents } from '../lib/events';
   import { LOG } from '../lib/misc';
   import { SLOW_DRAW_THRESHOLD_MS, DRAW_STATS_INTERVAL_MS } from '../lib/constants';
+  import { loadConfig, saveConfig } from '../lib/storage';
 
   const TILE_SIZE = 32;
   const BASE_FONT_SIZE = 10;
   const LABEL_PAD = 3;
+  const MIN_SCALE = 1;
+  const MAX_SCALE = 8;
+  const ZOOM_STORAGE_KEY = 'tileScale';
   /**
    * Minimum number of tiles that must be visible in each dimension.
    * computeScale() only increases the scale when at least this many tiles
    * would still fit at the next step, so that scale-up only happens on large
    * displays where the extra pixels are genuinely useful.
+   * Used as a fallback when the user has not chosen an explicit zoom level.
    */
   const MIN_TILES = 15;
 
@@ -45,6 +50,13 @@
   let containerW = $state(0);
   let containerH = $state(0);
 
+  /**
+   * User-chosen tile scale (1 = 32 px, 2 = 64 px, …).
+   * null means "auto" — computeScale() is used instead.
+   * Persisted in localStorage so it survives page reloads.
+   */
+  let storedScale = $state<number | null>(loadConfig<number | null>(ZOOM_STORAGE_KEY, null));
+
   /** Effective tile size used in the last draw — kept for click-to-tile mapping. */
   let currentTileSize = TILE_SIZE;
 
@@ -57,20 +69,24 @@
   let lastRequestedH = -1;
 
   /**
-   * Whenever the container is resized, recompute the ideal tile count and
-   * notify the server.  Using integer scale multiples keeps tiles at clean
-   * pixel boundaries (32, 64, 96, …) and the server fills the view with more
-   * or fewer tiles instead.
+   * Whenever the container is resized or the zoom level changes, recompute the
+   * ideal tile count and notify the server.  Using integer scale multiples
+   * keeps tiles at clean pixel boundaries (32, 64, 96, …) and the server
+   * fills the view with more or fewer tiles instead.
+   *
+   * We request enough tiles to fill (and slightly overflow) the container so
+   * that no black border ever appears; the container's overflow:hidden clips
+   * the outermost partial tiles.
    *
    * We also keep wantConfig up to date so that reconnects negotiate the same
    * dimensions without needing to wait for another resize event.
    */
   $effect(() => {
     if (containerW <= 0 || containerH <= 0) return;
-    const scale = computeScale(containerW, containerH);
+    const scale = storedScale ?? computeScale(containerW, containerH);
     const tileSize = TILE_SIZE * scale;
-    const desiredW = Math.floor(containerW / tileSize);
-    const desiredH = Math.floor(containerH / tileSize);
+    const desiredW = Math.ceil(containerW / tileSize);
+    const desiredH = Math.ceil(containerH / tileSize);
     if (desiredW === lastRequestedW && desiredH === lastRequestedH) return;
     lastRequestedW = desiredW;
     lastRequestedH = desiredH;
@@ -107,6 +123,18 @@
       gameEvents.on('mapUpdate', () => scheduleRedraw()),
       gameEvents.on('newMap', () => scheduleRedraw()),
       gameEvents.on('tick', () => scheduleRedraw()),
+      gameEvents.on('zoomIn', () => {
+        const current = storedScale ?? computeScale(containerW, containerH);
+        storedScale = Math.min(current + 1, MAX_SCALE);
+        saveConfig(ZOOM_STORAGE_KEY, storedScale);
+        scheduleRedraw();
+      }),
+      gameEvents.on('zoomOut', () => {
+        const current = storedScale ?? computeScale(containerW, containerH);
+        storedScale = Math.max(current - 1, MIN_SCALE);
+        saveConfig(ZOOM_STORAGE_KEY, storedScale);
+        scheduleRedraw();
+      }),
     ];
     return () => { for (const unsub of cleanups) unsub(); };
   });
@@ -262,11 +290,11 @@
     const plPos = getPlayerPosition();
 
     // Use the largest integer scale factor that still fits MIN_TILES tiles in
-    // each dimension.  This keeps tiles at clean multiples of TILE_SIZE
-    // (32 → 64 → 96 → …) so pixel art never suffers sub-pixel blurring.
-    // The server adjusts how many tiles it sends (via clientMapsize) to fill
-    // the container; any leftover space shows as a black border.
-    const scale = computeScale(containerW, containerH);
+    // each dimension, unless the user has chosen an explicit zoom level.
+    // Integer multiples keep pixel art crisp (32 → 64 → 96 → …).
+    // The server fills the view with more or fewer tiles (via clientMapsize);
+    // we request enough tiles to cover the container so no black border appears.
+    const scale = storedScale ?? computeScale(containerW, containerH);
     const tileSize = TILE_SIZE * scale;
     currentTileSize = tileSize;
 
