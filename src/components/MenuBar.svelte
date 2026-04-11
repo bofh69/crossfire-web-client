@@ -20,6 +20,11 @@
     setMusicMuted, setSfxMuted,
   } from '../lib/sound';
   import {
+    setHotbarSlot,
+    getHotbarSlots,
+    type HotbarSlot,
+  } from '../lib/hotbar';
+  import {
     isGamepadConnected,
     setButtonCommand,
     removeButtonCommand,
@@ -73,6 +78,8 @@
     | 'bind-cmd-gp-input'    // entering command before button capture
     | 'bind-cmd-gp-capture'  // waiting for the gamepad button to bind (entered command)
     | 'bind-cmd-gp-confirm'  // button captured; asking to confirm
+    | 'bind-cmd-hotbar-input'   // entering command + label + slot
+    | 'bind-cmd-hotbar-confirm' // asking to overwrite an occupied slot
     ;
 
   let dialogMode = $state<DialogMode>('idle');
@@ -92,6 +99,11 @@
   // ── Bind-command-to-key/button dialog state ────────────────────────────────
   let dialogBindCmdEdit = $state(false);   // KEYF_EDIT ("Further edit")
   let dialogBindCmdAny  = $state(false);   // KEYF_ANY  ("Any modifier")
+
+  // ── Bind-command-to-hotbar-slot dialog state ──────────────────────────────
+  let dialogHotbarSlot  = $state(0);       // slot index 0–11
+  let dialogHotbarLabel = $state('');      // display label (blank → use command)
+  let hotbarExistingSlot = $state<HotbarSlot | null>(null);
 
   onMount(() => {
     const cleanups = [
@@ -423,6 +435,48 @@
     dialogMode = 'idle';
   }
 
+  // ── Bind entered command to hotbar slot ───────────────────────────────────
+
+  function startBindCmdHotbar() {
+    dialogCommand = '';
+    dialogHotbarLabel = '';
+    dialogHotbarSlot = 0;
+    hotbarExistingSlot = null;
+    dialogMode = 'bind-cmd-hotbar-input';
+    closeMenu();
+  }
+
+  function handleBindCmdHotbar() {
+    const existing = getHotbarSlots()[dialogHotbarSlot] ?? null;
+    if (existing) {
+      hotbarExistingSlot = existing;
+      dialogMode = 'bind-cmd-hotbar-confirm';
+    } else {
+      setHotbarSlot(dialogHotbarSlot, {
+        label: dialogHotbarLabel || dialogCommand,
+        command: dialogCommand,
+      });
+      dialogMode = 'idle';
+    }
+  }
+
+  function confirmBindCmdHotbar() {
+    setHotbarSlot(dialogHotbarSlot, {
+      label: dialogHotbarLabel || dialogCommand,
+      command: dialogCommand,
+    });
+    dialogMode = 'idle';
+  }
+
+  function cancelBindCmdHotbarConfirm() {
+    hotbarExistingSlot = null;
+    dialogMode = 'bind-cmd-hotbar-input';
+  }
+
+  function cancelBindCmdHotbar() {
+    dialogMode = 'idle';
+  }
+
   function handleRemoveGamepadButton(button: number) {
     removeButtonCommand(button);
   }
@@ -505,6 +559,10 @@
           onclick={startBindCmdKey}
           oncontextmenu={(e) => { e.preventDefault(); startBindCmdKey(); }}
         >Bind command to key…</button>
+        <button
+          onclick={startBindCmdHotbar}
+          oncontextmenu={(e) => { e.preventDefault(); startBindCmdHotbar(); }}
+        >Bind command to hotbar slot…</button>
         <button
           onclick={startUnbind}
           oncontextmenu={(e) => { e.preventDefault(); startUnbind(); }}
@@ -624,6 +682,13 @@
   onCancelBindCmdGpCapture={cancelBindCmdGpCapture}
   onConfirmBindCmdGp={confirmBindCmdGp}
   onCancelBindCmdGpConfirm={cancelBindCmdGpConfirm}
+  bind:dialogHotbarSlot
+  bind:dialogHotbarLabel
+  {hotbarExistingSlot}
+  onBindCmdHotbar={handleBindCmdHotbar}
+  onCancelBindCmdHotbar={cancelBindCmdHotbar}
+  onConfirmBindCmdHotbar={confirmBindCmdHotbar}
+  onCancelBindCmdHotbarConfirm={cancelBindCmdHotbarConfirm}
 />
 
 <style>
