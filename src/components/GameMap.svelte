@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { mapdata_cell, mapdata_can_smooth, mapdata_contains, mapdata_bigface_render_info, getViewSize, getPlayerPosition } from '../lib/mapdata';
+  import { mapdata_cell, mapdata_can_smooth, mapdata_contains, getViewSize, getPlayerPosition } from '../lib/mapdata';
   import { getFaceUrl, getSmoothFace } from '../lib/image';
   import { lookAt } from '../lib/player';
   import { set_move_to, moveToX, moveToY } from '../lib/mapdata';
@@ -18,6 +18,15 @@
   const MIN_SCALE = 1;
   const MAX_SCALE = 8;
   const ZOOM_STORAGE_KEY = 'tileScale';
+  /**
+   * Extra tiles requested from the server beyond the visible display area,
+   * matching MAX_FACE_SIZE in mapdata.ts.  Half of this margin is added on
+   * each side of the view so that multi-tile objects near the display boundary
+   * still have their head tile within the server's confirmed map data.  The
+   * extra tiles are rendered but immediately clipped; they never appear on
+   * screen.  Must be an even number.
+   */
+  const MAP_PADDING = 16;
   /**
    * Minimum number of tiles that must be visible in each dimension.
    * computeScale() only increases the scale when at least this many tiles
@@ -62,6 +71,12 @@
   /** Draw offsets used in the last draw — kept for click-to-tile mapping. */
   let currentDrawOffsetX = 0;
   let currentDrawOffsetY = 0;
+  /**
+   * Half of the actual padding applied in the last draw.  The display tile
+   * index of a server tile vx is (vx − paddingHalf); used in click handlers
+   * to convert a display-tile index to a player-relative offset.
+   */
+  let currentPaddingHalf = MAP_PADDING / 2;
 
   /**
    * Track the last tile-count dimensions sent to the server so we only send a
@@ -73,13 +88,10 @@
 
   /**
    * Whenever the container is resized or the zoom level changes, recompute the
-   * ideal tile count and notify the server.  Using integer scale multiples
-   * keeps tiles at clean pixel boundaries (32, 64, 96, …) and the server
-   * fills the view with more or fewer tiles instead.
-   *
-   * We request enough tiles to fill (and slightly overflow) the container so
-   * that no black border ever appears; the container's overflow:hidden clips
-   * the outermost partial tiles.
+   * ideal tile count and notify the server.  We request MAP_PADDING extra tiles
+   * beyond the visible area so that multi-tile objects near the display boundary
+   * still have their head tile within the server's confirmed data.  The extra
+   * tiles are rendered but clipped by the canvas clip region.
    *
    * We also keep wantConfig up to date so that reconnects negotiate the same
    * dimensions without needing to wait for another resize event.
@@ -88,14 +100,18 @@
     if (containerW <= 0 || containerH <= 0) return;
     const scale = storedScale ?? computeScale(containerW, containerH);
     const tileSize = TILE_SIZE * scale;
-    const desiredW = Math.ceil(containerW / tileSize);
-    const desiredH = Math.ceil(containerH / tileSize);
-    if (desiredW === lastRequestedW && desiredH === lastRequestedH) return;
-    lastRequestedW = desiredW;
-    lastRequestedH = desiredH;
-    wantConfig.mapWidth = desiredW;
-    wantConfig.mapHeight = desiredH;
-    clientMapsize(desiredW, desiredH);
+    const displayW = Math.ceil(containerW / tileSize);
+    const displayH = Math.ceil(containerH / tileSize);
+    // Request extra tiles so multi-tile object heads near the display edge are
+    // always within the server's confirmed map data.
+    const serverW = displayW + MAP_PADDING;
+    const serverH = displayH + MAP_PADDING;
+    if (serverW === lastRequestedW && serverH === lastRequestedH) return;
+    lastRequestedW = serverW;
+    lastRequestedH = serverH;
+    wantConfig.mapWidth = serverW;
+    wantConfig.mapHeight = serverH;
+    clientMapsize(serverW, serverH);
   });
 
   /** Whether a requestAnimationFrame callback is already pending. */
@@ -301,21 +317,28 @@
     const tileSize = TILE_SIZE * scale;
     currentTileSize = tileSize;
 
-    // Always size the canvas to fill the full container so there is no black
-    // border around the map.  When the server has not yet confirmed the new
-    // map size (e.g. right after a zoom change), we will have fewer tiles than
-    // pixels; the tile grid is centred within the canvas and the surrounding
-    // area stays the #111 background, which is visually identical to the
-    // container background.
+    // The server sends MAP_PADDING extra tiles beyond the visible display area
+    // (half on each side in each dimension) so that multi-tile object heads
+    // near the display boundary are still within the confirmed server data.
+    // When the server has not yet confirmed the padded map size for BOTH
+    // dimensions (e.g. during the negotiation round-trip, or if the server
+    // capped the map size), fall back to zero padding so nothing breaks.
+    const effectivePadding = (vw > MAP_PADDING && vh > MAP_PADDING) ? MAP_PADDING : 0;
+    const paddingHalf = effectivePadding / 2;
+    const displayW = vw - effectivePadding;
+    const displayH = vh - effectivePadding;
+    currentPaddingHalf = paddingHalf;
+
+    // Canvas always fills the full container.
     const canvasW = Math.max(containerW, 1);
     const canvasH = Math.max(containerH, 1);
     if (c.width !== canvasW) c.width = canvasW;
     if (c.height !== canvasH) c.height = canvasH;
 
-    // Centre the tile grid within the canvas (only has visible effect when the
-    // server has not yet confirmed a larger map size).
-    const tilesPixW = vw * tileSize;
-    const tilesPixH = vh * tileSize;
+    // Centre the display tile grid within the canvas.  Any gap between the
+    // display area and the canvas edge remains the #111 background colour.
+    const tilesPixW = displayW * tileSize;
+    const tilesPixH = displayH * tileSize;
     const drawOffsetX = tilesPixW < canvasW ? Math.floor((canvasW - tilesPixW) / 2) : 0;
     const drawOffsetY = tilesPixH < canvasH ? Math.floor((canvasH - tilesPixH) / 2) : 0;
     currentDrawOffsetX = drawOffsetX;
@@ -324,10 +347,17 @@
     ctx.fillStyle = '#111';
     ctx.fillRect(0, 0, canvasW, canvasH);
 
-    // Apply translation so all tile drawing is relative to the top-left of
-    // the tile grid rather than the canvas origin.
+    // Translate so (0, 0) is the top-left of the display tile grid.
     ctx.save();
     ctx.translate(drawOffsetX, drawOffsetY);
+
+    // Clip to the display area.  The padding tiles (rendered with negative or
+    // large pixel offsets) are clipped here so they never appear on screen.
+    // Multi-tile images whose head is in the padding zone but whose body
+    // extends into the display are naturally visible through this clip region.
+    ctx.beginPath();
+    ctx.rect(0, 0, tilesPixW, tilesPixH);
+    ctx.clip();
 
     let tilesDrawn = 0;
     let imagesDrawn = 0;
@@ -347,8 +377,8 @@
         const cell = mapdata_cell(ax, ay);
         if (cell.state === MapCellState.Empty) continue;
         tilesDrawn++;
-        const px = vx * tileSize;
-        const py = vy * tileSize;
+        const px = (vx - paddingHalf) * tileSize;
+        const py = (vy - paddingHalf) * tileSize;
         if (cell.state === MapCellState.Fog) {
           ctx.fillStyle = '#1a1a1a';
           ctx.fillRect(px, py, tileSize, tileSize);
@@ -360,6 +390,12 @@
     // Images are scaled by the integer scale factor (naturalSize × scale), keeping
     // pixel art crisp.  imageSmoothingEnabled=false (set above) ensures the
     // canvas does not interpolate when drawing at non-1× sizes.
+    //
+    // The loop covers the full server view (vw × vh tiles), including the
+    // MAP_PADDING buffer zone.  Heads in the buffer zone are drawn with pixel
+    // positions outside the display area, but their images extend leftward /
+    // upward into the clipped display region — making multi-tile objects
+    // partially visible at the display boundary just as the old GTK client did.
     const imgScale = scale;
     for (let layer = 0; layer < MAXLAYERS; layer++) {
       for (let vy = 0; vy < vh; vy++) {
@@ -371,8 +407,8 @@
 
           const head = cell.heads[layer]!;
 
-          const px = vx * tileSize;
-          const py = vy * tileSize;
+          const px = (vx - paddingHalf) * tileSize;
+          const py = (vy - paddingHalf) * tileSize;
 
           // Tail cell: skip face drawing — the head cell draws the full multi-tile image.
           // Cells with no face at this layer also skip face drawing.
@@ -406,32 +442,6 @@
             }
           }
 
-          // Draw bigface tail: the head of this multi-tile object is outside the
-          // view (to the right or bottom).  The head cell is never iterated, so
-          // the image would otherwise be skipped entirely.  We draw it here,
-          // aligned as if the head tile were visible; the canvas clips whatever
-          // falls outside its bounds.
-          const bf = mapdata_bigface_render_info(vx, vy, layer);
-          if (bf.face !== 0) {
-            const headPx = (vx + bf.headDX) * tileSize;
-            const headPy = (vy + bf.headDY) * tileSize;
-            const bfUrl = getFaceUrl(bf.face);
-            if (bfUrl) {
-              const bfImg = imageCache.get(bfUrl);
-              if (bfImg) {
-                const drawW = bfImg.naturalWidth * imgScale;
-                const drawH = bfImg.naturalHeight * imgScale;
-                const drawX = headPx + tileSize - drawW;
-                const drawY = headPy + tileSize - drawH;
-                ctx.drawImage(bfImg, drawX, drawY, drawW, drawH);
-                imagesDrawn++;
-              } else {
-                if (!loadingUrls.has(bfUrl) && !failedUrls.has(bfUrl)) loadsStarted++;
-                loadImage(bfUrl);
-              }
-            }
-          }
-
           if (useConfig.smooth) {
             drawsmooth(ctx, ax, ay, layer, px, py, tileSize);
           }
@@ -460,7 +470,7 @@
 
         if (alpha > 0) {
           ctx.fillStyle = `rgba(0, 0, 0, ${alpha})`;
-          ctx.fillRect(vx * tileSize, vy * tileSize, tileSize, tileSize);
+          ctx.fillRect((vx - paddingHalf) * tileSize, (vy - paddingHalf) * tileSize, tileSize, tileSize);
         }
       }
     }
@@ -468,7 +478,7 @@
     // Pass 4: draw labels on top of everything (matching old C client's map_draw_labels).
     const fontSize = Math.round(BASE_FONT_SIZE * scale);
     ctx.font = `${fontSize}px sans-serif`;
-    // The player is always centred in the view; skip their own name label there.
+    // The player is always centred in the server view; skip their own name label there.
     const playerVX = Math.floor(vw / 2);
     const playerVY = Math.floor(vh / 2);
     for (let vy = 0; vy < vh; vy++) {
@@ -479,8 +489,8 @@
         if (cell.state !== MapCellState.Visible || cell.labels.length === 0) continue;
 
         const isPlayerTile = vx === playerVX && vy === playerVY;
-        const px = vx * tileSize;
-        const py = vy * tileSize;
+        const px = (vx - paddingHalf) * tileSize;
+        const py = (vy - paddingHalf) * tileSize;
         // The first label is drawn above the tile (its bottom edge at py).
         // Additional labels stack downward from the tile top (py), over the tile.
         let aboveLabelBottomY = py;
@@ -542,8 +552,8 @@
         ctx.strokeStyle = 'rgba(255, 255, 0, 0.85)';
         ctx.lineWidth = Math.max(1, Math.round(scale));
         ctx.strokeRect(
-          tvx * tileSize + ctx.lineWidth / 2,
-          tvy * tileSize + ctx.lineWidth / 2,
+          (tvx - paddingHalf) * tileSize + ctx.lineWidth / 2,
+          (tvy - paddingHalf) * tileSize + ctx.lineWidth / 2,
           tileSize - ctx.lineWidth,
           tileSize - ctx.lineWidth,
         );
@@ -603,10 +613,13 @@
   function handleClick(e: MouseEvent) {
     if (!canvas) return;
     const rect = canvas.getBoundingClientRect();
-    const tileX = Math.floor((e.clientX - rect.left - currentDrawOffsetX) / currentTileSize);
-    const tileY = Math.floor((e.clientY - rect.top - currentDrawOffsetY) / currentTileSize);
+    // Convert canvas pixel position to a display-tile index (0 = left/top of
+    // visible area), then offset back to server-view tile index by adding
+    // currentPaddingHalf.  The player sits at the server-view centre.
+    const tileX = Math.floor((e.clientX - rect.left - currentDrawOffsetX) / currentTileSize) + currentPaddingHalf;
+    const tileY = Math.floor((e.clientY - rect.top - currentDrawOffsetY) / currentTileSize) + currentPaddingHalf;
     const view = getViewSize();
-    // Player is always at the centre of the view.
+    // Player is always at the centre of the server view.
     const centerX = Math.floor(view.width / 2);
     const centerY = Math.floor(view.height / 2);
     const dx = tileX - centerX;
@@ -618,8 +631,8 @@
     e.preventDefault();
     if (!canvas) return;
     const rect = canvas.getBoundingClientRect();
-    const tileX = Math.floor((e.clientX - rect.left - currentDrawOffsetX) / currentTileSize);
-    const tileY = Math.floor((e.clientY - rect.top - currentDrawOffsetY) / currentTileSize);
+    const tileX = Math.floor((e.clientX - rect.left - currentDrawOffsetX) / currentTileSize) + currentPaddingHalf;
+    const tileY = Math.floor((e.clientY - rect.top - currentDrawOffsetY) / currentTileSize) + currentPaddingHalf;
     const view = getViewSize();
     const centerX = Math.floor(view.width / 2);
     const centerY = Math.floor(view.height / 2);
