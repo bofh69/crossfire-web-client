@@ -59,7 +59,7 @@ const CURRENT_MAX_VIEW = 33;
 // BigCell – tracks multi-tile faces outside the view area
 // ──────────────────────────────────────────────────────────────────────────────
 
-interface BigCell {
+export interface BigCell {
     head: MapCellLayer;
     tail: MapCellTailLayer;
     x: number;
@@ -670,6 +670,11 @@ function copyCellData(src: MapCell, dst: MapCell): void {
 /** Get the cell at absolute map coordinates. */
 export function mapdata_cell(x: number, y: number): MapCell {
     return cellAt(x, y);
+}
+
+/** Return the set of big-face cells whose heads are outside the view. */
+export function getActiveBigfaces(): ReadonlySet<BigCell> {
+    return activeBigfaces;
 }
 
 /** Check whether the map contains the given absolute coordinates. */

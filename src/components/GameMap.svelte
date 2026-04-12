@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { mapdata_cell, mapdata_can_smooth, mapdata_contains, getViewSize, getPlayerPosition } from '../lib/mapdata';
+  import { mapdata_cell, mapdata_can_smooth, mapdata_contains, getViewSize, getPlayerPosition, getActiveBigfaces } from '../lib/mapdata';
   import { getFaceUrl, getSmoothFace } from '../lib/image';
   import { lookAt } from '../lib/player';
   import { set_move_to, moveToX, moveToY } from '../lib/mapdata';
@@ -444,6 +444,36 @@
           }
         }
       }
+
+      // Also draw big-face heads for this layer.  These are multi-tile objects
+      // whose heads are outside the server-confirmed view (to the right or below).
+      // Their head data lives in activeBigfaces, not in cells[], so the cells
+      // loop above skips them.  We compute the display position from the
+      // view-relative coords stored in each BigCell and draw the full image.
+      for (const bc of getActiveBigfaces()) {
+        if (bc.layer !== layer || bc.head.face === 0) continue;
+        // Convert view-relative bigface coords to display tile position.
+        const bvx = bc.x + Math.floor(displayW / 2) - Math.floor(vw / 2);
+        const bvy = bc.y + Math.floor(displayH / 2) - Math.floor(vh / 2);
+        // bvx/bvy will always be >= 0 for bigfaces (heads to the right/below
+        // the server view), but guard against unexpected values.
+        if (bvx < 0 || bvy < 0) continue;
+        const bpx = bvx * tileSize;
+        const bpy = bvy * tileSize;
+        const url = getFaceUrl(bc.head.face);
+        if (url) {
+          const img = imageCache.get(url);
+          if (img) {
+            const drawW = img.naturalWidth * imgScale;
+            const drawH = img.naturalHeight * imgScale;
+            ctx.drawImage(img, bpx + tileSize - drawW, bpy + tileSize - drawH, drawW, drawH);
+            imagesDrawn++;
+          } else {
+            if (!loadingUrls.has(url) && !failedUrls.has(url)) loadsStarted++;
+            loadImage(url);
+          }
+        }
+      }
     }
 
     // Pass 3: darkness overlay (applied on top of all layers).
@@ -457,8 +487,16 @@
 
         let alpha = 0;
         if (!inServerView(ax, ay)) {
-          // Outside server view: always apply fog opacity.
-          alpha = 0.2;
+          // Outside server view: apply the fog overlay.  If the tile was
+          // previously seen (Fog state), preserve its stored darkness and add
+          // the +0.2 fog penalty (same formula as in-view fog tiles).
+          // Unvisited tiles (Empty state) get a flat 0.2.
+          const cell = mapdata_cell(ax, ay);
+          if (cell.state === MapCellState.Fog) {
+            alpha = Math.min(cell.darkness / 255 + 0.2, 0.8);
+          } else {
+            alpha = 0.2;
+          }
         } else {
           const cell = mapdata_cell(ax, ay);
           if (cell.state === MapCellState.Empty) continue;
