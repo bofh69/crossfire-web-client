@@ -413,32 +413,28 @@
           if (!mapdata_contains(ax, ay)) continue;
           const cell = mapdata_cell(ax, ay);
           const head = cell.heads[layer]!;
-          let tail = cell.tails[layer]!;
+          const tail = cell.tails[layer]!;
 
-          // Always check bigfaces[] for tail data at this position.  The
-          // bigface tail in bigfaces[] is always current (set by expandSetBigface
-          // when the server sends data), while cells[].heads[N] may contain stale
-          // data from a previous frame when the bigface head was inside the view.
-          // bigfaceTailData takes priority over stale cells[] head data.
+          // Check bigfaces[] for tail data at this position.  bigfaces[] holds
+          // data for faces whose head is outside the server view (x >= viewWidth
+          // or y >= viewHeight).  This is checked unconditionally so that:
+          //   (a) Phase 2 below can always draw the bigface image even when
+          //       cells[].heads has a legitimate face on the same layer, and
+          //   (b) the empty-skip below correctly accounts for bigface data.
           const bx = ax - plPos.x;
           const by = ay - plPos.y;
           const bigfaceTailData = getBigfaceTail(bx, by, layer);
 
-          // Suppress stale cells[] head data when a bigface tail is present for
-          // the same layer.  The head data at this position is from a previous
-          // frame; the bigface has since moved outside the server view and the
-          // server may not have explicitly cleared the old cells[] entry.
-          const effectiveHeadFace = (bigfaceTailData !== null) ? 0 : head.face;
-
           // Skip cells with no face data at all.
-          if (cell.state === MapCellState.Empty && effectiveHeadFace === 0 && tail.face === 0 && bigfaceTailData === null) continue;
+          if (cell.state === MapCellState.Empty && head.face === 0 && tail.face === 0 && bigfaceTailData === null) continue;
 
           const px = vx * tileSize;
           const py = vy * tileSize;
 
-          if (effectiveHeadFace !== 0) {
+          // Phase 1: draw from cells[] data (HEAD or CELLS-TAIL path).
+          if (head.face !== 0) {
             // HEAD: draw the face image bottom-right-aligned at this tile.
-            const url = getFaceUrl(effectiveHeadFace);
+            const url = getFaceUrl(head.face);
             if (url) {
               const img = imageCache.get(url);
               if (img) {
@@ -499,11 +495,22 @@
                 }
               }
             }
-          } else if (bigfaceTailData !== null) {
-            // BIGFACE TAIL: head is in bigfaces[], not cells[].  The head
-            // position in cells[] has no face data so it will NOT draw itself.
-            // We must always render here — do not skip even when the head's
-            // canvas position is within the display range.
+          }
+
+          // Phase 2: bigfaces[] tail — always draw from bigfaces[] regardless
+          // of what cells[] contains.  This is a separate pass so that:
+          //   (a) in-view cells[].heads faces (ground, other objects) are drawn
+          //       first by Phase 1 and are NOT suppressed by bigface tail data;
+          //   (b) the bigface image is drawn on top of whatever Phase 1 placed,
+          //       which is the correct visual layering (bigface overlaps tiles
+          //       it occupies);
+          //   (c) when the extended-area head position has cells[].state=Empty
+          //       (never visited), the bigface still appears because this path
+          //       draws the full image from an in-view tail tile, not relying on
+          //       the head position's cells[] data at all.
+          // offscreenHeadsDrawn prevents multiple in-view tails of the same
+          // bigface from drawing the same image more than once per layer pass.
+          if (bigfaceTailData !== null) {
             const headAx = ax + bigfaceTailData.sizeX;
             const headAy = ay + bigfaceTailData.sizeY;
             const headVx = headAx - mx_start;
@@ -605,19 +612,24 @@
         let alpha = 0;
 
         if (!inServerView(ax, ay)) {
-          // Outside server view: use the nearest server-view cell's darkness so
-          // that multi-tile images whose head is just beyond the edge appear at
-          // the same brightness as their in-view tail tiles.  This mirrors the
-          // C client, which clamps the light-map coordinates to [0, nx]×[0, ny].
+          // Outside server view: mirror the nearest in-view border cell's
+          // darkness formula so that multi-tile images whose head is just beyond
+          // the server-view edge receive the same overlay as their in-view tail
+          // tiles.  This matches the C client's light-map coordinate clamping
+          // (C client: dx = MIN(MAX(0, x), nx)).
           const cax = Math.max(plPos.x, Math.min(plPos.x + vw - 1, ax));
           const cay = Math.max(plPos.y, Math.min(plPos.y + vh - 1, ay));
           const edgeCell = mapdata_cell(cax, cay);
-          if (edgeCell.state === MapCellState.Fog) {
-            alpha = Math.min(edgeCell.darkness / 255 + 0.2, 0.8);
-          } else {
-            // Visible or Empty edge cell: apply the base fog overlay so the
-            // extended display area always looks distinctly foggy.
+          if (edgeCell.state === MapCellState.Empty) {
+            // Border cell is completely unexplored: apply minimum fog.
             alpha = 0.2;
+          } else if (edgeCell.state === MapCellState.Visible) {
+            // Border cell is currently visible: use its darkness directly,
+            // matching what the in-view darkness pass produces for Visible cells.
+            alpha = edgeCell.darkness > 0 ? Math.min(edgeCell.darkness / 255, 0.8) : 0;
+          } else {
+            // Border cell is Fog: use its darkness plus the +0.2 fog penalty.
+            alpha = Math.min(edgeCell.darkness / 255 + 0.2, 0.8);
           }
         } else {
           if (cell.state === MapCellState.Empty) continue;

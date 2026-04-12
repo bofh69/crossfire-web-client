@@ -414,16 +414,6 @@ function expandSetBigface(x: number, y: number, layer: number, face: number, cle
 
     if (clear) {
         expandClearBigfaceFromLayer(x, y, layer, true);
-
-        // Clear any stale cells[] face data at the outside-view head position.
-        // When this position was last inside the view, expandSetFace wrote head
-        // data here; that data is now stale and must not be drawn by the HEAD
-        // path in the renderer.
-        const px = pl_pos.x + x;
-        const py = pl_pos.y + y;
-        if (px >= 0 && py >= 0 && px < mapWidth && py < mapHeight) {
-            expandClearFaceFromLayer(px, py, layer);
-        }
     }
 
     if (face !== 0) {
