@@ -339,6 +339,13 @@ function expandSetFace(x: number, y: number, layer: number, face: number, clear:
 
     if (clear) {
         expandClearFaceFromLayer(x, y, layer);
+        // Also clear any stale tail data at this position (e.g. mirrored from a
+        // bigface).  This cell is becoming a head, so it must not also appear as
+        // a tail of another object on the same layer.
+        const t = cell.tails[layer]!;
+        t.face = 0;
+        t.sizeX = 0;
+        t.sizeY = 0;
     }
 
     const { w, h } = getImageSize(face);
@@ -364,7 +371,7 @@ function expandSetFace(x: number, y: number, layer: number, face: number, clear:
 // Big face expansion (outside the view area – bigfaces[])
 // ──────────────────────────────────────────────────────────────────────────────
 
-function expandClearBigface(x: number, y: number, w: number, h: number, layer: number, setNeedUpdate: boolean): void {
+function expandClearBigface(x: number, y: number, w: number, h: number, layer: number, setNeedUpdate: boolean, clearCells: boolean): void {
     const head = bigfaceAt(x, y, layer).head;
 
     for (let dx = 0; dx < w && dx <= x; dx++) {
@@ -384,6 +391,37 @@ function expandClearBigface(x: number, y: number, w: number, h: number, layer: n
                     }
                 }
             }
+
+            // Also clear the mirrored tail from cells[] when a server-side clear is
+            // requested (but not on scroll, where cells[] data should survive).
+            if (clearCells) {
+                const tailAbsX = pl_pos.x + x - dx;
+                const tailAbsY = pl_pos.y + y - dy;
+                if (tailAbsX >= 0 && tailAbsX < mapWidth && tailAbsY >= 0 && tailAbsY < mapHeight) {
+                    const ct = cellAt(tailAbsX, tailAbsY).tails[layer]!;
+                    if (ct.face === head.face && ct.sizeX === dx && ct.sizeY === dy) {
+                        ct.face = 0;
+                        ct.sizeX = 0;
+                        ct.sizeY = 0;
+                    }
+                }
+            }
+        }
+    }
+
+    // Clear the mirrored head from cells[] when explicitly requested.
+    // Also verify the size matches to avoid accidentally clearing a head from a
+    // different object that happens to share the same face ID.
+    if (clearCells) {
+        const headAbsX = pl_pos.x + x;
+        const headAbsY = pl_pos.y + y;
+        if (headAbsX >= 0 && headAbsX < mapWidth && headAbsY >= 0 && headAbsY < mapHeight) {
+            const ch = cellAt(headAbsX, headAbsY).heads[layer]!;
+            if (ch.face === head.face && ch.sizeX === head.sizeX && ch.sizeY === head.sizeY) {
+                ch.face = 0;
+                ch.sizeX = 1;
+                ch.sizeY = 1;
+            }
         }
     }
 
@@ -392,12 +430,12 @@ function expandClearBigface(x: number, y: number, w: number, h: number, layer: n
     head.sizeY = 1;
 }
 
-function expandClearBigfaceFromLayer(x: number, y: number, layer: number, setNeedUpdate: boolean): void {
+function expandClearBigfaceFromLayer(x: number, y: number, layer: number, setNeedUpdate: boolean, clearCells: boolean): void {
     const headcell = bigfaceAt(x, y, layer);
     const head = headcell.head;
     if (head.face !== 0) {
         activeBigfaces.delete(headcell);
-        expandClearBigface(x, y, head.sizeX, head.sizeY, layer, setNeedUpdate);
+        expandClearBigface(x, y, head.sizeX, head.sizeY, layer, setNeedUpdate, clearCells);
     }
 }
 
@@ -406,7 +444,7 @@ function expandSetBigface(x: number, y: number, layer: number, face: number, cle
     const head = headcell.head;
 
     if (clear) {
-        expandClearBigfaceFromLayer(x, y, layer, true);
+        expandClearBigfaceFromLayer(x, y, layer, true, true);
     }
 
     if (face !== 0) {
@@ -418,12 +456,34 @@ function expandSetBigface(x: number, y: number, layer: number, face: number, cle
     head.sizeX = w;
     head.sizeY = h;
 
+    // Mirror head data to cells[] using absolute coords.  cells[] survives
+    // virtual-map scrolls (copyCellData preserves it), so the renderer can
+    // find the face after bigfaces[] is cleared on each map scroll.
+    const headAbsX = pl_pos.x + x;
+    const headAbsY = pl_pos.y + y;
+    if (headAbsX >= 0 && headAbsX < mapWidth && headAbsY >= 0 && headAbsY < mapHeight) {
+        const ch = cellAt(headAbsX, headAbsY).heads[layer]!;
+        ch.face = face;
+        ch.sizeX = w;
+        ch.sizeY = h;
+    }
+
     for (let dx = 0; dx < w && dx <= x; dx++) {
         for (let dy = dx === 0 ? 1 : 0; dy < h && dy <= y; dy++) {
             const tail = bigfaceAt(x - dx, y - dy, layer).tail;
             tail.face = face;
             tail.sizeX = dx;
             tail.sizeY = dy;
+
+            // Mirror tail data to cells[] for the same reason as the head.
+            const tailAbsX = pl_pos.x + x - dx;
+            const tailAbsY = pl_pos.y + y - dy;
+            if (tailAbsX >= 0 && tailAbsX < mapWidth && tailAbsY >= 0 && tailAbsY < mapHeight) {
+                const ct = cellAt(tailAbsX, tailAbsY).tails[layer]!;
+                ct.face = face;
+                ct.sizeX = dx;
+                ct.sizeY = dy;
+            }
 
             if (x - dx >= 0 && x - dx < viewWidth &&
                 y - dy >= 0 && y - dy < viewHeight) {
@@ -960,6 +1020,16 @@ export function mapdata_clear_old(x: number, y: number): void {
         cellAt(px, py).darkness = 0;
     }
 
+    // Clear any stale tail data that may have been mirrored here by a bigface
+    // object.  The server is about to provide fresh data for this tile, so any
+    // leftover tail pointers would cause spurious multi-tile draws.
+    for (let i = 0; i < MAXLAYERS; i++) {
+        const t = cellAt(px, py).tails[i]!;
+        t.face = 0;
+        t.sizeX = 0;
+        t.sizeY = 0;
+    }
+
     cellAt(px, py).state = MapCellState.Visible;
 }
 
@@ -1084,9 +1154,12 @@ export function mapdata_scroll(dx: number, dy: number): void {
         }
     }
 
-    // Remove all big faces outside the view area.
+    // Remove all big faces outside the view area.  Pass clearCells=false so
+    // the face data mirrored to cells[] is preserved across the scroll; the
+    // renderer uses those absolute-coordinate entries to keep objects visible
+    // even between scroll and the next server Map2 update.
     for (const bc of activeBigfaces) {
-        expandClearBigfaceFromLayer(bc.x, bc.y, bc.layer, false);
+        expandClearBigfaceFromLayer(bc.x, bc.y, bc.layer, false, false);
     }
 
     runMoveToInternal();
@@ -1109,9 +1182,10 @@ export function mapdata_newmap(): void {
         }
     }
 
-    // Clear bigfaces.
+    // Clear bigfaces.  cells[] is already fully reset above, so no need to
+    // mirror-clear cells[] here (clearCells=false).
     for (const bc of activeBigfaces) {
-        expandClearBigfaceFromLayer(bc.x, bc.y, bc.layer, false);
+        expandClearBigfaceFromLayer(bc.x, bc.y, bc.layer, false, false);
     }
 
     clearMoveToInternal();

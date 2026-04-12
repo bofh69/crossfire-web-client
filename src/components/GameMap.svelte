@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { mapdata_cell, mapdata_can_smooth, mapdata_contains, getViewSize, getPlayerPosition, getActiveBigfaces } from '../lib/mapdata';
+  import { mapdata_cell, mapdata_can_smooth, mapdata_contains, getViewSize, getPlayerPosition } from '../lib/mapdata';
   import { getFaceUrl, getSmoothFace } from '../lib/image';
   import { lookAt } from '../lib/player';
   import { set_move_to, moveToX, moveToY } from '../lib/mapdata';
@@ -392,25 +392,39 @@
     // Tiles outside the server view but inside the fog map may have Fog state
     // with previously received face data; these ARE drawn (with fog overlay in
     // Pass 3) so previously-seen areas remain visible when zoomed out.
+    //
+    // Bigface (multi-tile) heads outside the server view are mirrored into
+    // cells[] by expandSetBigface, so the normal cell loop already finds them.
+    // For heads that are outside the *display* canvas (but within cells[]), the
+    // tail→head detection below draws them from their off-screen position and
+    // lets the canvas clip the invisible portion.
     const imgScale = scale;
+    // Reuse a single Set across all layers (cleared per layer) to track
+    // off-screen head positions already drawn by the tail-detection path,
+    // preventing duplicate rendering when multiple visible tails point to the
+    // same head.  String keys avoid integer-arithmetic collision edge-cases.
+    const offscreenHeadsDrawn = new Set<string>();
     for (let layer = 0; layer < MAXLAYERS; layer++) {
+      offscreenHeadsDrawn.clear();
+
       for (let vy = 0; vy < displayH; vy++) {
         for (let vx = 0; vx < displayW; vx++) {
           const ax = mx_start + vx;
           const ay = my_start + vy;
           if (!mapdata_contains(ax, ay)) continue;
           const cell = mapdata_cell(ax, ay);
-          if (cell.state === MapCellState.Empty) continue;
-
           const head = cell.heads[layer]!;
+          const tail = cell.tails[layer]!;
+
+          // Skip cells with no face data at all: Empty cells that have neither
+          // a head face nor a tail pointing to an off-screen head.
+          if (cell.state === MapCellState.Empty && head.face === 0 && tail.face === 0) continue;
 
           const px = vx * tileSize;
           const py = vy * tileSize;
 
-          // Tail cell: skip face drawing — the head cell draws the full multi-tile image.
-          // Cells with no face at this layer also skip face drawing.
-          // Both cases still participate in smooth rendering below.
           if (head.face !== 0) {
+            // This cell is a head.  Draw the face image bottom-right-aligned.
             const url = getFaceUrl(head.face);
             if (url) {
               const img = imageCache.get(url);
@@ -437,6 +451,42 @@
               ctx.fillRect(px + 1, py + 1, tileSize - 2, tileSize - 2);
               placeholders++;
             }
+          } else if (tail.face !== 0) {
+            // This cell is a tail of a multi-tile object whose head is
+            // elsewhere.  If the head is within the display the cells loop
+            // will draw it when it reaches that cell; skip here to avoid
+            // duplicate rendering.  If the head is outside the display
+            // (either because displayW < vw or because the object is a
+            // bigface) draw the image now at the head's off-screen position
+            // and let the canvas clip the invisible portion.
+            const headAx = ax + tail.sizeX;
+            const headAy = ay + tail.sizeY;
+            const headVx = headAx - mx_start;
+            const headVy = headAy - my_start;
+            if (headVx >= 0 && headVx < displayW && headVy >= 0 && headVy < displayH) {
+              // Head is in display range; the cells loop handles it.
+            } else {
+              const key = `${headAx},${headAy}`;
+              if (!offscreenHeadsDrawn.has(key)) {
+                offscreenHeadsDrawn.add(key);
+                const url = getFaceUrl(tail.face);
+                if (url) {
+                  const img = imageCache.get(url);
+                  if (img) {
+                    const drawW = img.naturalWidth * imgScale;
+                    const drawH = img.naturalHeight * imgScale;
+                    ctx.drawImage(img,
+                      headVx * tileSize + tileSize - drawW,
+                      headVy * tileSize + tileSize - drawH,
+                      drawW, drawH);
+                    imagesDrawn++;
+                  } else {
+                    if (!loadingUrls.has(url) && !failedUrls.has(url)) loadsStarted++;
+                    loadImage(url);
+                  }
+                }
+              }
+            }
           }
 
           if (useConfig.smooth) {
@@ -444,35 +494,24 @@
           }
         }
       }
+    }
 
-      // Also draw big-face heads for this layer.  These are multi-tile objects
-      // whose heads are outside the server-confirmed view (to the right or below).
-      // Their head data lives in activeBigfaces, not in cells[], so the cells
-      // loop above skips them.  We compute the display position from the
-      // view-relative coords stored in each BigCell and draw the full image.
-      for (const bc of getActiveBigfaces()) {
-        if (bc.layer !== layer || bc.head.face === 0) continue;
-        // Convert view-relative bigface coords to display tile position.
-        const bvx = bc.x + Math.floor(displayW / 2) - Math.floor(vw / 2);
-        const bvy = bc.y + Math.floor(displayH / 2) - Math.floor(vh / 2);
-        // bvx/bvy will always be >= 0 for bigfaces (heads to the right/below
-        // the server view), but guard against unexpected values.
-        if (bvx < 0 || bvy < 0) continue;
-        const bpx = bvx * tileSize;
-        const bpy = bvy * tileSize;
-        const url = getFaceUrl(bc.head.face);
-        if (url) {
-          const img = imageCache.get(url);
-          if (img) {
-            const drawW = img.naturalWidth * imgScale;
-            const drawH = img.naturalHeight * imgScale;
-            ctx.drawImage(img, bpx + tileSize - drawW, bpy + tileSize - drawH, drawW, drawH);
-            imagesDrawn++;
-          } else {
-            if (!loadingUrls.has(url) && !failedUrls.has(url)) loadsStarted++;
-            loadImage(url);
-          }
-        }
+    // Pass 2 cleanup: re-cover Empty tiles so that multi-tile images drawn from
+    // an off-screen or Empty-state head position cannot bleed into unexplored
+    // territory.  The canvas may have received image pixels in the region of
+    // those tiles during Pass 2; painting the background colour on top erases
+    // them while leaving properly-visible (non-Empty) tiles intact.
+    for (let vy = 0; vy < displayH; vy++) {
+      for (let vx = 0; vx < displayW; vx++) {
+        const ax = mx_start + vx;
+        const ay = my_start + vy;
+        if (!mapdata_contains(ax, ay)) continue;
+        const cell = mapdata_cell(ax, ay);
+        if (cell.state !== MapCellState.Empty) continue;
+        // Inside the server view, empty tiles are pure black.
+        // Outside the server view, empty tiles use the fog background.
+        ctx.fillStyle = inServerView(ax, ay) ? '#111' : '#1a1a1a';
+        ctx.fillRect(vx * tileSize, vy * tileSize, tileSize, tileSize);
       }
     }
 
