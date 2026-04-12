@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { mapdata_cell, mapdata_can_smooth, mapdata_contains, getViewSize, getPlayerPosition, getBigfaceTail } from '../lib/mapdata';
+  import { mapdata_cell, mapdata_can_smooth, mapdata_contains, getViewSize, getPlayerPosition, getBigfaceTail, getBigfaceHead } from '../lib/mapdata';
   import { getFaceUrl, getSmoothFace } from '../lib/image';
   import { lookAt } from '../lib/player';
   import { set_move_to, moveToX, moveToY } from '../lib/mapdata';
@@ -415,30 +415,30 @@
           const head = cell.heads[layer]!;
           let tail = cell.tails[layer]!;
 
-          // When cells[] has no face data for this tile, also check bigfaces[]
-          // for tail data.  This covers two cases:
-          //   1. The bigface head is outside the server view (expandSetBigface
-          //      stores only in bigfaces[], not cells[]), so an in-view tail
-          //      position has cells[].tails = 0 but bigfaces[].tail is set.
-          //   2. An outside-server-view tile that is a tail of an in-view head
-          //      via bigfaces[] (e.g. the head is at the view edge with sizeX>1
-          //      and the tail falls in the extended display area).
-          let bigfaceTailData: { face: number; sizeX: number; sizeY: number } | null = null;
-          if (head.face === 0 && tail.face === 0) {
-            const bx = ax - plPos.x;
-            const by = ay - plPos.y;
-            bigfaceTailData = getBigfaceTail(bx, by, layer);
-          }
+          // Always check bigfaces[] for tail data at this position.  The
+          // bigface tail in bigfaces[] is always current (set by expandSetBigface
+          // when the server sends data), while cells[].heads[N] may contain stale
+          // data from a previous frame when the bigface head was inside the view.
+          // bigfaceTailData takes priority over stale cells[] head data.
+          const bx = ax - plPos.x;
+          const by = ay - plPos.y;
+          const bigfaceTailData = getBigfaceTail(bx, by, layer);
+
+          // Suppress stale cells[] head data when a bigface tail is present for
+          // the same layer.  The head data at this position is from a previous
+          // frame; the bigface has since moved outside the server view and the
+          // server may not have explicitly cleared the old cells[] entry.
+          const effectiveHeadFace = (bigfaceTailData !== null) ? 0 : head.face;
 
           // Skip cells with no face data at all.
-          if (cell.state === MapCellState.Empty && head.face === 0 && tail.face === 0 && bigfaceTailData === null) continue;
+          if (cell.state === MapCellState.Empty && effectiveHeadFace === 0 && tail.face === 0 && bigfaceTailData === null) continue;
 
           const px = vx * tileSize;
           const py = vy * tileSize;
 
-          if (head.face !== 0) {
+          if (effectiveHeadFace !== 0) {
             // HEAD: draw the face image bottom-right-aligned at this tile.
-            const url = getFaceUrl(head.face);
+            const url = getFaceUrl(effectiveHeadFace);
             if (url) {
               const img = imageCache.get(url);
               if (img) {
@@ -567,6 +567,10 @@
           const by = ay - plPos.y;
           for (let i = 0; i < MAXLAYERS && !hasFaceData; i++) {
             if (getBigfaceTail(bx, by, i)) hasFaceData = true;
+            // Also skip re-cover if this tile is the canvas-area of a bigface
+            // head stored in bigfaces[].  The tail path already drew the image
+            // here; painting over it would erase the head portion of the sprite.
+            if (getBigfaceHead(bx, by, i) !== 0) hasFaceData = true;
           }
         }
         if (hasFaceData) continue;
@@ -601,12 +605,18 @@
         let alpha = 0;
 
         if (!inServerView(ax, ay)) {
-          // Outside server view: Fog cells get their stored darkness plus the
-          // +0.2 fog penalty.  All other states (Empty/Visible) still get the
-          // +0.2 fog penalty so the area always looks distinctly foggy.
-          if (cell.state === MapCellState.Fog) {
-            alpha = Math.min(cell.darkness / 255 + 0.2, 0.8);
+          // Outside server view: use the nearest server-view cell's darkness so
+          // that multi-tile images whose head is just beyond the edge appear at
+          // the same brightness as their in-view tail tiles.  This mirrors the
+          // C client, which clamps the light-map coordinates to [0, nx]×[0, ny].
+          const cax = Math.max(plPos.x, Math.min(plPos.x + vw - 1, ax));
+          const cay = Math.max(plPos.y, Math.min(plPos.y + vh - 1, ay));
+          const edgeCell = mapdata_cell(cax, cay);
+          if (edgeCell.state === MapCellState.Fog) {
+            alpha = Math.min(edgeCell.darkness / 255 + 0.2, 0.8);
           } else {
+            // Visible or Empty edge cell: apply the base fog overlay so the
+            // extended display area always looks distinctly foggy.
             alpha = 0.2;
           }
         } else {

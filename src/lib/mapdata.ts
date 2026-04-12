@@ -414,6 +414,16 @@ function expandSetBigface(x: number, y: number, layer: number, face: number, cle
 
     if (clear) {
         expandClearBigfaceFromLayer(x, y, layer, true);
+
+        // Clear any stale cells[] face data at the outside-view head position.
+        // When this position was last inside the view, expandSetFace wrote head
+        // data here; that data is now stale and must not be drawn by the HEAD
+        // path in the renderer.
+        const px = pl_pos.x + x;
+        const py = pl_pos.y + y;
+        if (px >= 0 && py >= 0 && px < mapWidth && py < mapHeight) {
+            expandClearFaceFromLayer(px, py, layer);
+        }
     }
 
     if (face !== 0) {
@@ -756,6 +766,19 @@ export function getBigfaceTail(
         return { face: tail.face, sizeX: tail.sizeX, sizeY: tail.sizeY };
     }
     return null;
+}
+
+/**
+ * Return the bigface head face number at view-relative coordinates, or 0 if
+ * none.  Used by the renderer to detect positions that are the canvas-area of
+ * a bigface head so that the re-cover pass does not erase the image there.
+ */
+export function getBigfaceHead(x: number, y: number, layer: number): number {
+    if (x < 0 || x >= MAX_VIEW || y < 0 || y >= MAX_VIEW ||
+        layer < 0 || layer >= MAXLAYERS) {
+        return 0;
+    }
+    return bigfaceAt(x, y, layer).head.face;
 }
 
 /**
