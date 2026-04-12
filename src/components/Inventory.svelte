@@ -13,6 +13,7 @@
     tag: number;
     name: string;
     dName: string;
+    sName: string;
     weight: number;
     nrof: number;
     face: number;
@@ -48,6 +49,7 @@
         tag: item.tag,
         name: item.nrof > 1 ? `${item.nrof} ${item.pName || item.dName}` : item.dName,
         dName: item.dName,
+        sName: item.sName,
         weight: item.weight,
         nrof: item.nrof,
         face: item.face,
@@ -189,9 +191,10 @@
     if (contextMenu) {
       const item = contextMenu.item;
       setHotbarSlot(index, {
-        label: item.dName,
-        command: `apply ${item.dName}`,
+        label: item.sName,
+        command: `apply ${item.sName}`,
         face: item.face,
+        tag: item.tag,
       });
     }
     closeContextMenu();
