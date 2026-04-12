@@ -462,17 +462,21 @@
             }
           } else if (tail.face !== 0) {
             // CELLS[] TAIL: head is stored in cells[] at another position.
-            // If that head position is within the display the cells loop will
-            // draw the image when it reaches the head; skip here to avoid
-            // duplicate rendering.  If the head is outside the display draw
-            // from the head's off-screen canvas position and let the browser
-            // clip the invisible portion.
+            // If that head position is within the display AND within the
+            // server view, the cells loop will draw the image when it reaches
+            // the head; skip here to avoid duplicate rendering.  If the head
+            // is outside the display, or inside the display but outside the
+            // server view (extended-area tile where cells[].heads may be empty
+            // or stale), draw from this tail position so the bigface is always
+            // visible when any of its tiles are on screen.
             const headAx = ax + tail.sizeX;
             const headAy = ay + tail.sizeY;
             const headVx = headAx - mx_start;
             const headVy = headAy - my_start;
-            if (headVx >= 0 && headVx < displayW && headVy >= 0 && headVy < displayH) {
-              // Head is in display range; the cells loop handles it.
+            if (headVx >= 0 && headVx < displayW && headVy >= 0 && headVy < displayH &&
+                inServerView(headAx, headAy)) {
+              // Head is in display range and inside the server view; the cells
+              // loop handles it.
             } else {
               const key = `${headAx}:${headAy}`;
               if (!offscreenHeadsDrawn.has(key)) {
@@ -504,12 +508,11 @@
           //   (b) the bigface image is drawn on top of whatever Phase 1 placed,
           //       which is the correct visual layering (bigface overlaps tiles
           //       it occupies);
-          //   (c) when the extended-area head position has cells[].state=Empty
-          //       (never visited), the bigface still appears because this path
-          //       draws the full image from an in-view tail tile, not relying on
-          //       the head position's cells[] data at all.
-          // offscreenHeadsDrawn prevents multiple in-view tails of the same
-          // bigface from drawing the same image more than once per layer pass.
+          //   (c) when cells[].tails has no data for this position (expandSetBigface
+          //       never writes to cells[]), bigfaces[] provides the tail data so
+          //       Phase 2 can render the bigface even when Phase 1 has nothing.
+          // offscreenHeadsDrawn prevents multiple tails of the same bigface from
+          // drawing the same image more than once per layer pass.
           if (bigfaceTailData !== null) {
             const headAx = ax + bigfaceTailData.sizeX;
             const headAy = ay + bigfaceTailData.sizeY;
@@ -593,15 +596,13 @@
     //   opacity = cell.darkness / 192 * 0.6
     //   if (fogWar && state == FOG) opacity += 0.2
     //
-    // For tiles outside the server-confirmed view, a minimum 0.2 fog overlay
-    // is always applied regardless of state.  This ensures:
-    //  (a) Unvisited (Empty) tiles look foggy rather than fully bright.
-    //  (b) Multi-tile images whose head is inside the view but whose tails
-    //      extend into the extended display area are dimmed uniformly, instead
-    //      of the tail portions appearing at full brightness next to the
-    //      correctly-darkened head tile.
-    // This matches the visual intent of the old C client where the extended
-    // area is always rendered as fog-of-war territory.
+    // For tiles outside the server-confirmed view:
+    //  - Fog state (previously visited): use the cell's own darkness + 0.2
+    //    fog penalty, identical to the in-view fog formula.  This gives the
+    //    correct brightness when a multi-tile object's head is in a visited
+    //    extended-area tile.
+    //  - Empty (never visited) or any other state: apply a flat 0.2 overlay
+    //    so unvisited territory always looks appropriately dark/foggy.
     for (let vy = 0; vy < displayH; vy++) {
       for (let vx = 0; vx < displayW; vx++) {
         const ax = mx_start + vx;
@@ -612,24 +613,17 @@
         let alpha = 0;
 
         if (!inServerView(ax, ay)) {
-          // Outside server view: mirror the nearest in-view border cell's
-          // darkness formula so that multi-tile images whose head is just beyond
-          // the server-view edge receive the same overlay as their in-view tail
-          // tiles.  This matches the C client's light-map coordinate clamping
-          // (C client: dx = MIN(MAX(0, x), nx)).
-          const cax = Math.max(plPos.x, Math.min(plPos.x + vw - 1, ax));
-          const cay = Math.max(plPos.y, Math.min(plPos.y + vh - 1, ay));
-          const edgeCell = mapdata_cell(cax, cay);
-          if (edgeCell.state === MapCellState.Empty) {
-            // Border cell is completely unexplored: apply minimum fog.
-            alpha = 0.2;
-          } else if (edgeCell.state === MapCellState.Visible) {
-            // Border cell is currently visible: use its darkness directly,
-            // matching what the in-view darkness pass produces for Visible cells.
-            alpha = edgeCell.darkness > 0 ? Math.min(edgeCell.darkness / 255, 0.8) : 0;
+          // Outside the server view: apply fog-of-war darkness.
+          // Use the cell's own previously-recorded data when available (Fog
+          // state), so that multi-tile images whose head sits in a previously-
+          // visited extended-area tile receive the correct brightness matching
+          // the in-view fog formula.  For unvisited (Empty) territory apply a
+          // flat minimum overlay so it always looks appropriately dark/foggy.
+          if (cell.state === MapCellState.Fog) {
+            alpha = Math.min(cell.darkness / 255 + 0.2, 0.8);
           } else {
-            // Border cell is Fog: use its darkness plus the +0.2 fog penalty.
-            alpha = Math.min(edgeCell.darkness / 255 + 0.2, 0.8);
+            // Empty (never visited) or any other state.
+            alpha = 0.2;
           }
         } else {
           if (cell.state === MapCellState.Empty) continue;
