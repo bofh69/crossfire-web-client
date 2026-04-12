@@ -16,7 +16,7 @@
     getHotbarGamepadHighlight,
   } from '../lib/hotbar';
   import { getFaceUrl } from '../lib/image';
-  import { findPlayerItemFaceByName } from '../lib/item';
+  import { locateItem } from '../lib/item';
   import { gameEvents } from '../lib/events';
 
   let currentSlots = $state([...getHotbarSlots()]);
@@ -39,12 +39,13 @@
     return () => { for (const unsub of unsubs) unsub(); };
   });
 
-  function getSlotFace(slot: { command: string; face?: number }): number | undefined {
-    const match = slot.command.match(/^apply (.+)$/);
-    if (match) {
+  function getSlotFace(slot: { command: string; face?: number; tag?: number }): number | undefined {
+    if (slot.tag !== undefined) {
       // inventoryVersion is read here so Svelte tracks it as a dependency.
       void inventoryVersion;
-      return findPlayerItemFaceByName(match[1]!);
+      // Fall back to the stored face when the item is not currently in inventory,
+      // so the slot still shows a recognisable icon even when the item is unavailable.
+      return locateItem(slot.tag)?.face ?? slot.face;
     }
     return slot.face;
   }

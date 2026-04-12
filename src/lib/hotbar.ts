@@ -11,6 +11,7 @@
 
 import { loadConfig, saveConfig } from "./storage";
 import { extendedCommand } from "./p_cmd";
+import { clientSendApply } from "./player";
 import { gameEvents } from "./events";
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -23,6 +24,8 @@ export interface HotbarSlot {
     command: string;
     /** Optional face number used to show a sprite icon. */
     face?: number;
+    /** Item tag; when set, activating the slot calls clientSendApply(tag). */
+    tag?: number;
 }
 
 // ── Module state ─────────────────────────────────────────────────────────────
@@ -83,7 +86,11 @@ export function activateHotbarSlot(index: number): void {
     if (index < 0 || index >= HOTBAR_SLOT_COUNT) return;
     const slot = slots[index];
     if (slot) {
-        extendedCommand(slot.command);
+        if (slot.tag !== undefined) {
+            clientSendApply(slot.tag);
+        } else {
+            extendedCommand(slot.command);
+        }
     }
 }
 
