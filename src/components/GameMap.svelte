@@ -19,15 +19,6 @@
   const MAX_SCALE = 8;
   const ZOOM_STORAGE_KEY = 'tileScale';
   /**
-   * Extra tiles requested from the server beyond the visible display area,
-   * matching MAX_FACE_SIZE in mapdata.ts.  Half of this margin is added on
-   * each side of the view so that multi-tile objects near the display boundary
-   * still have their head tile within the server's confirmed map data.  The
-   * extra tiles are rendered but immediately clipped; they never appear on
-   * screen.  Must be an even number.
-   */
-  const MAP_PADDING = 16;
-  /**
    * Minimum number of tiles that must be visible in each dimension.
    * computeScale() only increases the scale when at least this many tiles
    * would still fit at the next step, so that scale-up only happens on large
@@ -72,11 +63,12 @@
   let currentDrawOffsetX = 0;
   let currentDrawOffsetY = 0;
   /**
-   * Half of the actual padding applied in the last draw.  The display tile
-   * index of a server tile vx is (vx − paddingHalf); used in click handlers
-   * to convert a display-tile index to a player-relative offset.
+   * Display tile count in the last draw.  The player is always at display tile
+   * ⌊currentDisplayW/2⌋, so click handlers use this to compute the dx/dy
+   * offset from the player.
    */
-  let currentPaddingHalf = MAP_PADDING / 2;
+  let currentDisplayW = 1;
+  let currentDisplayH = 1;
 
   /**
    * Track the last tile-count dimensions sent to the server so we only send a
@@ -88,10 +80,10 @@
 
   /**
    * Whenever the container is resized or the zoom level changes, recompute the
-   * ideal tile count and notify the server.  We request MAP_PADDING extra tiles
-   * beyond the visible area so that multi-tile objects near the display boundary
-   * still have their head tile within the server's confirmed data.  The extra
-   * tiles are rendered but clipped by the canvas clip region.
+   * ideal tile count and notify the server.  We request exactly as many tiles as
+   * fit in the display.  If the server caps the confirmed view at a smaller size,
+   * the renderer still shows the full displayW × displayH grid — tiles outside
+   * the server-confirmed area are drawn as fog of war from the local fog map.
    *
    * We also keep wantConfig up to date so that reconnects negotiate the same
    * dimensions without needing to wait for another resize event.
@@ -100,18 +92,14 @@
     if (containerW <= 0 || containerH <= 0) return;
     const scale = storedScale ?? computeScale(containerW, containerH);
     const tileSize = TILE_SIZE * scale;
-    const displayW = Math.ceil(containerW / tileSize);
-    const displayH = Math.ceil(containerH / tileSize);
-    // Request extra tiles so multi-tile object heads near the display edge are
-    // always within the server's confirmed map data.
-    const serverW = displayW + MAP_PADDING;
-    const serverH = displayH + MAP_PADDING;
-    if (serverW === lastRequestedW && serverH === lastRequestedH) return;
-    lastRequestedW = serverW;
-    lastRequestedH = serverH;
-    wantConfig.mapWidth = serverW;
-    wantConfig.mapHeight = serverH;
-    clientMapsize(serverW, serverH);
+    const desiredW = Math.ceil(containerW / tileSize);
+    const desiredH = Math.ceil(containerH / tileSize);
+    if (desiredW === lastRequestedW && desiredH === lastRequestedH) return;
+    lastRequestedW = desiredW;
+    lastRequestedH = desiredH;
+    wantConfig.mapWidth = desiredW;
+    wantConfig.mapHeight = desiredH;
+    clientMapsize(desiredW, desiredH);
   });
 
   /** Whether a requestAnimationFrame callback is already pending. */
@@ -317,17 +305,23 @@
     const tileSize = TILE_SIZE * scale;
     currentTileSize = tileSize;
 
-    // The server sends MAP_PADDING extra tiles beyond the visible display area
-    // (half on each side in each dimension) so that multi-tile object heads
-    // near the display boundary are still within the confirmed server data.
-    // When the server has not yet confirmed the padded map size for BOTH
-    // dimensions (e.g. during the negotiation round-trip, or if the server
-    // capped the map size), fall back to zero padding so nothing breaks.
-    const effectivePadding = (vw > MAP_PADDING && vh > MAP_PADDING) ? MAP_PADDING : 0;
-    const paddingHalf = effectivePadding / 2;
-    const displayW = vw - effectivePadding;
-    const displayH = vh - effectivePadding;
-    currentPaddingHalf = paddingHalf;
+    // How many tiles fit in the display.  Using ceil ensures we always cover
+    // the full container with no black gaps.  The server may have confirmed a
+    // smaller view (vw × vh); in that case tiles beyond the server view are
+    // drawn from the local fog map and rendered as fog of war.
+    const displayW = Math.max(1, Math.ceil(containerW / tileSize));
+    const displayH = Math.max(1, Math.ceil(containerH / tileSize));
+    currentDisplayW = displayW;
+    currentDisplayH = displayH;
+
+    // The player is always at the centre of the server-confirmed view.  To
+    // centre the player on the display we start rendering at:
+    //   mx_start = plPos.x + ⌊vw/2⌋ − ⌊displayW/2⌋
+    // When displayW > vw this is to the left of the server view, so some
+    // display tiles fall outside the server view and show as fog.
+    // When displayW < vw we crop inward, showing only the central portion.
+    const mx_start = plPos.x + Math.floor(vw / 2) - Math.floor(displayW / 2);
+    const my_start = plPos.y + Math.floor(vh / 2) - Math.floor(displayH / 2);
 
     // Canvas always fills the full container.
     const canvasW = Math.max(containerW, 1);
@@ -335,50 +329,54 @@
     if (c.width !== canvasW) c.width = canvasW;
     if (c.height !== canvasH) c.height = canvasH;
 
-    // Centre the display tile grid within the canvas.  Any gap between the
-    // display area and the canvas edge remains the #111 background colour.
-    const tilesPixW = displayW * tileSize;
-    const tilesPixH = displayH * tileSize;
-    const drawOffsetX = tilesPixW < canvasW ? Math.floor((canvasW - tilesPixW) / 2) : 0;
-    const drawOffsetY = tilesPixH < canvasH ? Math.floor((canvasH - tilesPixH) / 2) : 0;
-    currentDrawOffsetX = drawOffsetX;
-    currentDrawOffsetY = drawOffsetY;
+    // displayW * tileSize >= containerW (by the ceil above), so tiles always
+    // cover the canvas; no centering offset is needed.
+    currentDrawOffsetX = 0;
+    currentDrawOffsetY = 0;
 
     ctx.fillStyle = '#111';
     ctx.fillRect(0, 0, canvasW, canvasH);
-
-    // Translate so (0, 0) is the top-left of the display tile grid.
-    ctx.save();
-    ctx.translate(drawOffsetX, drawOffsetY);
-
-    // Clip to the display area.  The padding tiles (rendered with negative or
-    // large pixel offsets) are clipped here so they never appear on screen.
-    // Multi-tile images whose head is in the padding zone but whose body
-    // extends into the display are naturally visible through this clip region.
-    ctx.beginPath();
-    ctx.rect(0, 0, tilesPixW, tilesPixH);
-    ctx.clip();
 
     let tilesDrawn = 0;
     let imagesDrawn = 0;
     let placeholders = 0;
     let loadsStarted = 0;
 
+    /** Returns true when (ax, ay) is within the server-confirmed view. */
+    const inServerView = (ax: number, ay: number): boolean =>
+      ax >= plPos.x && ax < plPos.x + vw &&
+      ay >= plPos.y && ay < plPos.y + vh;
+
     // Iterate layer by layer (matching the old C client's map_draw_layer approach).
     // This ensures correct z-ordering: all tiles for layer N are fully drawn before
     // any tile at layer N+1, so large multi-tile images never overdraw objects on a
     // higher layer that happen to sit on an earlier tile in scan order.
 
-    // Pass 1: fog-of-war background and per-tile setup (collect cell info).
-    for (let vy = 0; vy < vh; vy++) {
-      for (let vx = 0; vx < vw; vx++) {
-        const ax = plPos.x + vx;
-        const ay = plPos.y + vy;
+    // Pass 1: fog-of-war background.
+    // Tiles outside the server-confirmed view are always shown as fog, even if the
+    // local fog map has them in the Empty state (unvisited territory still reads as
+    // unknown/fog from the player's perspective).
+    for (let vy = 0; vy < displayH; vy++) {
+      for (let vx = 0; vx < displayW; vx++) {
+        const ax = mx_start + vx;
+        const ay = my_start + vy;
+        const px = vx * tileSize;
+        const py = vy * tileSize;
+
+        // Tile falls outside the local fog map — leave as black background.
+        if (!mapdata_contains(ax, ay)) continue;
+
+        if (!inServerView(ax, ay)) {
+          // Outside server view: always draw fog background.
+          tilesDrawn++;
+          ctx.fillStyle = '#1a1a1a';
+          ctx.fillRect(px, py, tileSize, tileSize);
+          continue;
+        }
+
         const cell = mapdata_cell(ax, ay);
         if (cell.state === MapCellState.Empty) continue;
         tilesDrawn++;
-        const px = (vx - paddingHalf) * tileSize;
-        const py = (vy - paddingHalf) * tileSize;
         if (cell.state === MapCellState.Fog) {
           ctx.fillStyle = '#1a1a1a';
           ctx.fillRect(px, py, tileSize, tileSize);
@@ -391,24 +389,23 @@
     // pixel art crisp.  imageSmoothingEnabled=false (set above) ensures the
     // canvas does not interpolate when drawing at non-1× sizes.
     //
-    // The loop covers the full server view (vw × vh tiles), including the
-    // MAP_PADDING buffer zone.  Heads in the buffer zone are drawn with pixel
-    // positions outside the display area, but their images extend leftward /
-    // upward into the clipped display region — making multi-tile objects
-    // partially visible at the display boundary just as the old GTK client did.
+    // Tiles outside the server view but inside the fog map may have Fog state
+    // with previously received face data; these ARE drawn (with fog overlay in
+    // Pass 3) so previously-seen areas remain visible when zoomed out.
     const imgScale = scale;
     for (let layer = 0; layer < MAXLAYERS; layer++) {
-      for (let vy = 0; vy < vh; vy++) {
-        for (let vx = 0; vx < vw; vx++) {
-          const ax = plPos.x + vx;
-          const ay = plPos.y + vy;
+      for (let vy = 0; vy < displayH; vy++) {
+        for (let vx = 0; vx < displayW; vx++) {
+          const ax = mx_start + vx;
+          const ay = my_start + vy;
+          if (!mapdata_contains(ax, ay)) continue;
           const cell = mapdata_cell(ax, ay);
           if (cell.state === MapCellState.Empty) continue;
 
           const head = cell.heads[layer]!;
 
-          const px = (vx - paddingHalf) * tileSize;
-          const py = (vy - paddingHalf) * tileSize;
+          const px = vx * tileSize;
+          const py = vy * tileSize;
 
           // Tail cell: skip face drawing — the head cell draws the full multi-tile image.
           // Cells with no face at this layer also skip face drawing.
@@ -450,47 +447,62 @@
     }
 
     // Pass 3: darkness overlay (applied on top of all layers).
-    for (let vy = 0; vy < vh; vy++) {
-      for (let vx = 0; vx < vw; vx++) {
-        const ax = plPos.x + vx;
-        const ay = plPos.y + vy;
-        const cell = mapdata_cell(ax, ay);
-        if (cell.state === MapCellState.Empty) continue;
+    // Tiles outside the server-confirmed view always receive the fog-of-war
+    // opacity (+0.2) regardless of their local fog-map state.
+    for (let vy = 0; vy < displayH; vy++) {
+      for (let vx = 0; vx < displayW; vx++) {
+        const ax = mx_start + vx;
+        const ay = my_start + vy;
+        if (!mapdata_contains(ax, ay)) continue;
 
         let alpha = 0;
-        if (cell.state === MapCellState.Visible) {
-          if (cell.darkness > 0) {
-            alpha = Math.min(cell.darkness / 255, 0.8);
+        if (!inServerView(ax, ay)) {
+          // Outside server view: always apply fog opacity.
+          alpha = 0.2;
+        } else {
+          const cell = mapdata_cell(ax, ay);
+          if (cell.state === MapCellState.Empty) continue;
+          if (cell.state === MapCellState.Visible) {
+            if (cell.darkness > 0) {
+              alpha = Math.min(cell.darkness / 255, 0.8);
+            }
+          } else if (cell.state === MapCellState.Fog) {
+            // Dim out-of-sight tiles to indicate they're no longer visible,
+            // matching the old client which added +0.2 opacity for fog-of-war cells.
+            alpha = Math.min(cell.darkness / 255 + 0.2, 0.8);
           }
-        } else if (cell.state === MapCellState.Fog) {
-          // Dim out-of-sight tiles to indicate they're no longer visible,
-          // matching the old client which added +0.2 opacity for fog-of-war cells.
-          alpha = Math.min(cell.darkness / 255 + 0.2, 0.8);
         }
 
         if (alpha > 0) {
           ctx.fillStyle = `rgba(0, 0, 0, ${alpha})`;
-          ctx.fillRect((vx - paddingHalf) * tileSize, (vy - paddingHalf) * tileSize, tileSize, tileSize);
+          ctx.fillRect(vx * tileSize, vy * tileSize, tileSize, tileSize);
         }
       }
     }
 
     // Pass 4: draw labels on top of everything (matching old C client's map_draw_labels).
+    // Labels are only shown for tiles inside the server-confirmed view.
     const fontSize = Math.round(BASE_FONT_SIZE * scale);
     ctx.font = `${fontSize}px sans-serif`;
     // The player is always centred in the server view; skip their own name label there.
-    const playerVX = Math.floor(vw / 2);
-    const playerVY = Math.floor(vh / 2);
-    for (let vy = 0; vy < vh; vy++) {
-      for (let vx = 0; vx < vw; vx++) {
-        const ax = plPos.x + vx;
-        const ay = plPos.y + vy;
+    // In display coords, the player tile is at ⌊displayW/2⌋.
+    const playerDisplayX = Math.floor(displayW / 2);
+    const playerDisplayY = Math.floor(displayH / 2);
+    for (let vy = 0; vy < displayH; vy++) {
+      for (let vx = 0; vx < displayW; vx++) {
+        const ax = mx_start + vx;
+        const ay = my_start + vy;
+        if (!mapdata_contains(ax, ay)) continue;
+
+        // Labels are only visible inside the confirmed server view.
+        if (!inServerView(ax, ay)) continue;
+
         const cell = mapdata_cell(ax, ay);
         if (cell.state !== MapCellState.Visible || cell.labels.length === 0) continue;
 
-        const isPlayerTile = vx === playerVX && vy === playerVY;
-        const px = (vx - paddingHalf) * tileSize;
-        const py = (vy - paddingHalf) * tileSize;
+        const isPlayerTile = vx === playerDisplayX && vy === playerDisplayY;
+        const px = vx * tileSize;
+        const py = vy * tileSize;
         // The first label is drawn above the tile (its bottom edge at py).
         // Additional labels stack downward from the tile top (py), over the tile.
         let aboveLabelBottomY = py;
@@ -545,24 +557,21 @@
     // player can see where they right-clicked.  Cleared automatically when
     // the player arrives or when move-to is cancelled by manual input.
     if (moveToX !== 0 || moveToY !== 0) {
-      const tvx = moveToX - plPos.x;
-      const tvy = moveToY - plPos.y;
-      if (tvx >= 0 && tvx < vw && tvy >= 0 && tvy < vh) {
+      const tmx = moveToX - mx_start;
+      const tmy = moveToY - my_start;
+      if (tmx >= 0 && tmx < displayW && tmy >= 0 && tmy < displayH) {
         ctx.save();
         ctx.strokeStyle = 'rgba(255, 255, 0, 0.85)';
         ctx.lineWidth = Math.max(1, Math.round(scale));
         ctx.strokeRect(
-          (tvx - paddingHalf) * tileSize + ctx.lineWidth / 2,
-          (tvy - paddingHalf) * tileSize + ctx.lineWidth / 2,
+          tmx * tileSize + ctx.lineWidth / 2,
+          tmy * tileSize + ctx.lineWidth / 2,
           tileSize - ctx.lineWidth,
           tileSize - ctx.lineWidth,
         );
         ctx.restore();
       }
     }
-
-    // Restore canvas transform (undoes the ctx.translate applied before Pass 1).
-    ctx.restore();
 
     performance.mark('drawMap-end');
     performance.measure('drawMap', 'drawMap-start', 'drawMap-end');
@@ -613,17 +622,12 @@
   function handleClick(e: MouseEvent) {
     if (!canvas) return;
     const rect = canvas.getBoundingClientRect();
-    // Convert canvas pixel position to a display-tile index (0 = left/top of
-    // visible area), then offset back to server-view tile index by adding
-    // currentPaddingHalf.  The player sits at the server-view centre.
-    const tileX = Math.floor((e.clientX - rect.left - currentDrawOffsetX) / currentTileSize) + currentPaddingHalf;
-    const tileY = Math.floor((e.clientY - rect.top - currentDrawOffsetY) / currentTileSize) + currentPaddingHalf;
-    const view = getViewSize();
-    // Player is always at the centre of the server view.
-    const centerX = Math.floor(view.width / 2);
-    const centerY = Math.floor(view.height / 2);
-    const dx = tileX - centerX;
-    const dy = tileY - centerY;
+    // Convert canvas pixel position to a display-tile index, then compute the
+    // offset from the player who is always at ⌊currentDisplayW/2⌋.
+    const tileX = Math.floor((e.clientX - rect.left - currentDrawOffsetX) / currentTileSize);
+    const tileY = Math.floor((e.clientY - rect.top - currentDrawOffsetY) / currentTileSize);
+    const dx = tileX - Math.floor(currentDisplayW / 2);
+    const dy = tileY - Math.floor(currentDisplayH / 2);
     lookAt(dx, dy);
   }
 
@@ -631,13 +635,10 @@
     e.preventDefault();
     if (!canvas) return;
     const rect = canvas.getBoundingClientRect();
-    const tileX = Math.floor((e.clientX - rect.left - currentDrawOffsetX) / currentTileSize) + currentPaddingHalf;
-    const tileY = Math.floor((e.clientY - rect.top - currentDrawOffsetY) / currentTileSize) + currentPaddingHalf;
-    const view = getViewSize();
-    const centerX = Math.floor(view.width / 2);
-    const centerY = Math.floor(view.height / 2);
-    const dx = tileX - centerX;
-    const dy = tileY - centerY;
+    const tileX = Math.floor((e.clientX - rect.left - currentDrawOffsetX) / currentTileSize);
+    const tileY = Math.floor((e.clientY - rect.top - currentDrawOffsetY) / currentTileSize);
+    const dx = tileX - Math.floor(currentDisplayW / 2);
+    const dy = tileY - Math.floor(currentDisplayH / 2);
     set_move_to(dx, dy);
   }
 </script>
