@@ -59,6 +59,15 @@
 
   /** Effective tile size used in the last draw — kept for click-to-tile mapping. */
   let currentTileSize = TILE_SIZE;
+  /**
+   * Display offset saved from the last drawMap call.  When the container needs
+   * more tiles than the server viewport provides, the server viewport is
+   * centred in the canvas and these record how many tile-columns/rows were
+   * added to the left/top.  Click handlers use these to convert canvas tile
+   * positions to server-viewport-relative positions.
+   */
+  let currentStartOffsetX = 0;
+  let currentStartOffsetY = 0;
 
   /**
    * Track the last tile-count dimensions sent to the server so we only send a
@@ -292,14 +301,31 @@
     // Use the largest integer scale factor that still fits MIN_TILES tiles in
     // each dimension, unless the user has chosen an explicit zoom level.
     // Integer multiples keep pixel art crisp (32 → 64 → 96 → …).
-    // The server fills the view with more or fewer tiles (via clientMapsize);
-    // we request enough tiles to cover the container so no black border appears.
     const scale = storedScale ?? computeScale(containerW, containerH);
     const tileSize = TILE_SIZE * scale;
     currentTileSize = tileSize;
 
-    const canvasW = vw * tileSize;
-    const canvasH = vh * tileSize;
+    // Number of tiles required to fill the container.  This may be larger than
+    // the server viewport (vw × vh) when the server caps its supported mapsize.
+    // Strategy (matching old GTK client map.c): when the display needs more tiles
+    // than the server sent, centre the server viewport in the canvas and fill the
+    // surrounding area from the fog-of-war virtual map so there is no black border.
+    // containerW/H can be 0 before the first browser layout; fall back to the
+    // server viewport size in that case so the canvas still has a valid size.
+    const displayW = containerW > 0 ? Math.ceil(containerW / tileSize) : vw;
+    const displayH = containerH > 0 ? Math.ceil(containerH / tileSize) : vh;
+
+    // When the display is wider/taller than the server viewport, shift the
+    // drawing origin so the server viewport stays centred.  When the display
+    // is smaller than the server viewport the offset is 0 (the left/top of the
+    // server viewport aligns with the left/top of the canvas).
+    const startOffsetX = displayW > vw ? Math.floor((displayW - vw) / 2) : 0;
+    const startOffsetY = displayH > vh ? Math.floor((displayH - vh) / 2) : 0;
+    currentStartOffsetX = startOffsetX;
+    currentStartOffsetY = startOffsetY;
+
+    const canvasW = displayW * tileSize;
+    const canvasH = displayH * tileSize;
     if (c.width !== canvasW) c.width = canvasW;
     if (c.height !== canvasH) c.height = canvasH;
 
@@ -317,10 +343,11 @@
     // higher layer that happen to sit on an earlier tile in scan order.
 
     // Pass 1: fog-of-war background and per-tile setup (collect cell info).
-    for (let vy = 0; vy < vh; vy++) {
-      for (let vx = 0; vx < vw; vx++) {
-        const ax = plPos.x + vx;
-        const ay = plPos.y + vy;
+    for (let vy = 0; vy < displayH; vy++) {
+      for (let vx = 0; vx < displayW; vx++) {
+        const ax = plPos.x + vx - startOffsetX;
+        const ay = plPos.y + vy - startOffsetY;
+        if (!mapdata_contains(ax, ay)) continue;
         const cell = mapdata_cell(ax, ay);
         if (cell.state === MapCellState.Empty) continue;
         tilesDrawn++;
@@ -339,10 +366,11 @@
     // canvas does not interpolate when drawing at non-1× sizes.
     const imgScale = scale;
     for (let layer = 0; layer < MAXLAYERS; layer++) {
-      for (let vy = 0; vy < vh; vy++) {
-        for (let vx = 0; vx < vw; vx++) {
-          const ax = plPos.x + vx;
-          const ay = plPos.y + vy;
+      for (let vy = 0; vy < displayH; vy++) {
+        for (let vx = 0; vx < displayW; vx++) {
+          const ax = plPos.x + vx - startOffsetX;
+          const ay = plPos.y + vy - startOffsetY;
+          if (!mapdata_contains(ax, ay)) continue;
           const cell = mapdata_cell(ax, ay);
           if (cell.state === MapCellState.Empty) continue;
 
@@ -391,10 +419,11 @@
     }
 
     // Pass 3: darkness overlay (applied on top of all layers).
-    for (let vy = 0; vy < vh; vy++) {
-      for (let vx = 0; vx < vw; vx++) {
-        const ax = plPos.x + vx;
-        const ay = plPos.y + vy;
+    for (let vy = 0; vy < displayH; vy++) {
+      for (let vx = 0; vx < displayW; vx++) {
+        const ax = plPos.x + vx - startOffsetX;
+        const ay = plPos.y + vy - startOffsetY;
+        if (!mapdata_contains(ax, ay)) continue;
         const cell = mapdata_cell(ax, ay);
         if (cell.state === MapCellState.Empty) continue;
 
@@ -419,13 +448,16 @@
     // Pass 4: draw labels on top of everything (matching old C client's map_draw_labels).
     const fontSize = Math.round(BASE_FONT_SIZE * scale);
     ctx.font = `${fontSize}px sans-serif`;
-    // The player is always centred in the view; skip their own name label there.
-    const playerVX = Math.floor(vw / 2);
-    const playerVY = Math.floor(vh / 2);
-    for (let vy = 0; vy < vh; vy++) {
-      for (let vx = 0; vx < vw; vx++) {
-        const ax = plPos.x + vx;
-        const ay = plPos.y + vy;
+    // The player is always centred in the server viewport; skip their own name
+    // label there.  Account for the display offset so the check still works
+    // when the canvas is larger than the server viewport.
+    const playerVX = startOffsetX + Math.floor(vw / 2);
+    const playerVY = startOffsetY + Math.floor(vh / 2);
+    for (let vy = 0; vy < displayH; vy++) {
+      for (let vx = 0; vx < displayW; vx++) {
+        const ax = plPos.x + vx - startOffsetX;
+        const ay = plPos.y + vy - startOffsetY;
+        if (!mapdata_contains(ax, ay)) continue;
         const cell = mapdata_cell(ax, ay);
         if (cell.state !== MapCellState.Visible || cell.labels.length === 0) continue;
 
@@ -493,8 +525,8 @@
         ctx.strokeStyle = 'rgba(255, 255, 0, 0.85)';
         ctx.lineWidth = Math.max(1, Math.round(scale));
         ctx.strokeRect(
-          tvx * tileSize + ctx.lineWidth / 2,
-          tvy * tileSize + ctx.lineWidth / 2,
+          (tvx + startOffsetX) * tileSize + ctx.lineWidth / 2,
+          (tvy + startOffsetY) * tileSize + ctx.lineWidth / 2,
           tileSize - ctx.lineWidth,
           tileSize - ctx.lineWidth,
         );
@@ -554,9 +586,11 @@
     const tileX = Math.floor((e.clientX - rect.left) / currentTileSize);
     const tileY = Math.floor((e.clientY - rect.top) / currentTileSize);
     const view = getViewSize();
-    // Player is always at the centre of the view.
-    const centerX = Math.floor(view.width / 2);
-    const centerY = Math.floor(view.height / 2);
+    // Player is always at the centre of the server viewport.  When the canvas
+    // is larger than the server viewport (startOffsetX/Y > 0), the player's
+    // canvas tile position is offset accordingly.
+    const centerX = currentStartOffsetX + Math.floor(view.width / 2);
+    const centerY = currentStartOffsetY + Math.floor(view.height / 2);
     const dx = tileX - centerX;
     const dy = tileY - centerY;
     lookAt(dx, dy);
@@ -569,8 +603,8 @@
     const tileX = Math.floor((e.clientX - rect.left) / currentTileSize);
     const tileY = Math.floor((e.clientY - rect.top) / currentTileSize);
     const view = getViewSize();
-    const centerX = Math.floor(view.width / 2);
-    const centerY = Math.floor(view.height / 2);
+    const centerX = currentStartOffsetX + Math.floor(view.width / 2);
+    const centerY = currentStartOffsetY + Math.floor(view.height / 2);
     const dx = tileX - centerX;
     const dy = tileY - centerY;
     set_move_to(dx, dy);
