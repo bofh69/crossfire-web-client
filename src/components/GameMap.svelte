@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { mapdata_cell, mapdata_can_smooth, mapdata_contains, getViewSize, getPlayerPosition } from '../lib/mapdata';
+  import { mapdata_cell, mapdata_can_smooth, mapdata_contains, getViewSize, getPlayerPosition, getBigfaceTail } from '../lib/mapdata';
   import { getFaceUrl, getSmoothFace } from '../lib/image';
   import { lookAt } from '../lib/player';
   import { set_move_to, moveToX, moveToY } from '../lib/mapdata';
@@ -393,11 +393,10 @@
     // with previously received face data; these ARE drawn (with fog overlay in
     // Pass 3) so previously-seen areas remain visible when zoomed out.
     //
-    // Bigface (multi-tile) heads outside the server view are mirrored into
-    // cells[] by expandSetBigface, so the normal cell loop already finds them.
-    // For heads that are outside the *display* canvas (but within cells[]), the
-    // tail→head detection below draws them from their off-screen position and
-    // lets the canvas clip the invisible portion.
+    // For tiles outside the server view, cells[] may have tail data set by an
+    // in-view expandSetFace call (when a multi-tile face's head is inside the
+    // view and its tails extend beyond it).  For positions entirely outside the
+    // server view, bigfaces[] may have tail data; getBigfaceTail() reads that.
     const imgScale = scale;
     // Reuse a single Set across all layers (cleared per layer) to track
     // off-screen head positions already drawn by the tail-detection path,
@@ -414,11 +413,25 @@
           if (!mapdata_contains(ax, ay)) continue;
           const cell = mapdata_cell(ax, ay);
           const head = cell.heads[layer]!;
-          const tail = cell.tails[layer]!;
+          let tail = cell.tails[layer]!;
 
-          // Skip cells with no face data at all: Empty cells that have neither
-          // a head face nor a tail pointing to an off-screen head.
-          if (cell.state === MapCellState.Empty && head.face === 0 && tail.face === 0) continue;
+          // For tiles outside the server view with no cells[] face data, also
+          // check bigfaces[] for tail data (objects whose head is just beyond
+          // the display edge).  Only read bigfaces[] when cells[] has nothing,
+          // to avoid double-drawing objects that straddle the view boundary.
+          let bigfaceTailData: { face: number; sizeX: number; sizeY: number } | null = null;
+          if (head.face === 0 && tail.face === 0 && !inServerView(ax, ay)) {
+            const bx = ax - plPos.x;
+            const by = ay - plPos.y;
+            bigfaceTailData = getBigfaceTail(bx, by, layer);
+          }
+
+          const effectiveTailFace = tail.face !== 0 ? tail.face : (bigfaceTailData?.face ?? 0);
+          const effectiveTailSizeX = tail.face !== 0 ? tail.sizeX : (bigfaceTailData?.sizeX ?? 0);
+          const effectiveTailSizeY = tail.face !== 0 ? tail.sizeY : (bigfaceTailData?.sizeY ?? 0);
+
+          // Skip cells with no face data at all.
+          if (cell.state === MapCellState.Empty && head.face === 0 && effectiveTailFace === 0) continue;
 
           const px = vx * tileSize;
           const py = vy * tileSize;
@@ -451,7 +464,7 @@
               ctx.fillRect(px + 1, py + 1, tileSize - 2, tileSize - 2);
               placeholders++;
             }
-          } else if (tail.face !== 0) {
+          } else if (effectiveTailFace !== 0) {
             // This cell is a tail of a multi-tile object whose head is
             // elsewhere.  If the head is within the display the cells loop
             // will draw it when it reaches that cell; skip here to avoid
@@ -459,8 +472,8 @@
             // (either because displayW < vw or because the object is a
             // bigface) draw the image now at the head's off-screen position
             // and let the canvas clip the invisible portion.
-            const headAx = ax + tail.sizeX;
-            const headAy = ay + tail.sizeY;
+            const headAx = ax + effectiveTailSizeX;
+            const headAy = ay + effectiveTailSizeY;
             const headVx = headAx - mx_start;
             const headVy = headAy - my_start;
             if (headVx >= 0 && headVx < displayW && headVy >= 0 && headVy < displayH) {
@@ -469,7 +482,7 @@
               const key = `${headAx},${headAy}`;
               if (!offscreenHeadsDrawn.has(key)) {
                 offscreenHeadsDrawn.add(key);
-                const url = getFaceUrl(tail.face);
+                const url = getFaceUrl(effectiveTailFace);
                 if (url) {
                   const img = imageCache.get(url);
                   if (img) {
@@ -497,14 +510,17 @@
     }
 
     // Pass 2 cleanup: re-cover Empty tiles so that multi-tile images drawn from
-    // an off-screen or Empty-state head position cannot bleed into unexplored
-    // territory.  The canvas may have received image pixels in the region of
-    // those tiles during Pass 2; painting the background colour on top erases
-    // them while leaving properly-visible (non-Empty) tiles intact.
+    // an off-screen head position cannot bleed into completely unexplored
+    // territory.  The canvas may have received image pixels in those tiles during
+    // Pass 2; painting the background colour on top erases them, while leaving
+    // tiles that actually have face data intact.
     //
-    // Exception: Empty cells that carry a mirrored bigface head (any layer has
-    // head.face !== 0) must NOT be re-covered — their image was drawn
-    // intentionally and should remain visible.
+    // A tile must NOT be re-covered when:
+    //  - Any layer has a head face (in-view head; image is intentional here).
+    //  - Any layer has a tail face in cells[] (image from an in-view head that
+    //    extends into this tile — the old C client also keeps this visible).
+    //  - Any layer has a bigface tail in bigfaces[] (object whose head is just
+    //    beyond the display edge).
     for (let vy = 0; vy < displayH; vy++) {
       for (let vx = 0; vx < displayW; vx++) {
         const ax = mx_start + vx;
@@ -512,11 +528,20 @@
         if (!mapdata_contains(ax, ay)) continue;
         const cell = mapdata_cell(ax, ay);
         if (cell.state !== MapCellState.Empty) continue;
-        let hasHeadFace = false;
+        let hasFaceData = false;
         for (let i = 0; i < MAXLAYERS; i++) {
-          if (cell.heads[i]!.face !== 0) { hasHeadFace = true; break; }
+          if (cell.heads[i]!.face !== 0 || cell.tails[i]!.face !== 0) {
+            hasFaceData = true; break;
+          }
         }
-        if (hasHeadFace) continue;
+        if (!hasFaceData && !inServerView(ax, ay)) {
+          const bx = ax - plPos.x;
+          const by = ay - plPos.y;
+          for (let i = 0; i < MAXLAYERS && !hasFaceData; i++) {
+            if (getBigfaceTail(bx, by, i)) hasFaceData = true;
+          }
+        }
+        if (hasFaceData) continue;
         // Inside the server view, empty tiles are pure black.
         // Outside the server view, empty tiles use the fog background.
         ctx.fillStyle = inServerView(ax, ay) ? '#111' : '#1a1a1a';
@@ -525,37 +550,28 @@
     }
 
     // Pass 3: darkness overlay (applied on top of all layers).
-    // Tiles outside the server-confirmed view always receive the fog-of-war
-    // opacity (+0.2) regardless of their local fog-map state.
+    // Matching the old C client's mapcell_darkness():
+    //   opacity = cell.darkness / 192 * 0.6
+    //   if (fogWar && state == FOG) opacity += 0.2
+    // Empty cells (unvisited, state == 0) have darkness=0 and are not FOG, so
+    // they receive no overlay (alpha=0) in both the old client and here.
     for (let vy = 0; vy < displayH; vy++) {
       for (let vx = 0; vx < displayW; vx++) {
         const ax = mx_start + vx;
         const ay = my_start + vy;
         if (!mapdata_contains(ax, ay)) continue;
 
+        const cell = mapdata_cell(ax, ay);
         let alpha = 0;
+
         if (!inServerView(ax, ay)) {
-          // Outside server view: apply the fog overlay.  If the tile was
-          // previously seen (Fog state), preserve its stored darkness and add
-          // the +0.2 fog penalty (same formula as in-view fog tiles).
-          // Unvisited tiles (Empty state) get a flat 0.2 — but if the Empty
-          // cell carries a mirrored bigface head, it is part of a visible
-          // object and should not receive the fog overlay (so it matches the
-          // adjacent in-view tail tiles that have no darkness).
-          const cell = mapdata_cell(ax, ay);
+          // Outside server view: apply fog only for FOG state (previously seen
+          // tiles).  Empty (unvisited) tiles get no overlay, matching the old
+          // client where Empty state has darkness=0 and no FOG penalty.
           if (cell.state === MapCellState.Fog) {
             alpha = Math.min(cell.darkness / 255 + 0.2, 0.8);
-          } else {
-            // Check whether this Empty cell is a bigface head mirrored by
-            // expandSetBigface.  If so, skip the fog overlay.
-            let isBigfaceHead = false;
-            for (let i = 0; i < MAXLAYERS; i++) {
-              if (cell.heads[i]!.face !== 0) { isBigfaceHead = true; break; }
-            }
-            if (!isBigfaceHead) alpha = 0.2;
           }
         } else {
-          const cell = mapdata_cell(ax, ay);
           if (cell.state === MapCellState.Empty) continue;
           if (cell.state === MapCellState.Visible) {
             if (cell.darkness > 0) {
