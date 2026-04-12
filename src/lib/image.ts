@@ -13,6 +13,7 @@ import { BinaryReader } from './binary_reader.js';
 import { saveCacheData, loadCacheData } from './storage.js';
 import { LOG } from './misc.js';
 import { LogLevel, MAXPIXMAPNUM, MAX_FACE_SETS } from './protocol.js';
+import { TILE_SIZE } from './constants.js';
 
 import type { FaceInformation } from './protocol.js';
 
@@ -63,6 +64,22 @@ export function getFaceUrl(face: number): string | null {
 /** Return the pixel dimensions of a face image ({w, h}). Defaults to 32×32. */
 export function getMapImageSize(face: number): { w: number; h: number } {
     return faceSizes.get(face) ?? { w: 32, h: 32 };
+}
+
+/**
+ * Return the size of a face in tiles ({w, h}).  Divides the stored pixel
+ * dimensions by {@link TILE_SIZE} and rounds, so a 160×96 px face becomes
+ * 5×3 tiles.  Always returns at least 1×1.
+ *
+ * Pass this to {@link setGetMapImageSize} so that mapdata correctly tracks
+ * multi-tile (bigface) objects.
+ */
+export function getFaceTileSize(face: number): { w: number; h: number } {
+    const { w, h } = getMapImageSize(face);
+    return {
+        w: Math.max(1, Math.round(w / TILE_SIZE)),
+        h: Math.max(1, Math.round(h / TILE_SIZE)),
+    };
 }
 
 /** Return the smoothing face number for `face`, or 0 if none is set. */

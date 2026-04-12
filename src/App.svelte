@@ -6,7 +6,8 @@
   import { gameEvents } from './lib/events';
   import { animateObjects } from './lib/item';
   import { sendReply, walkDir, runDir, stopRun } from './lib/player';
-  import { setWalkDir, setRunDir, setStopRun } from './lib/mapdata';
+  import { setWalkDir, setRunDir, setStopRun, setGetMapImageSize } from './lib/mapdata';
+  import { getFaceTileSize } from './lib/image';
   import {
     keybindingsInit, setKeyCallbacks, parseKey, parseKeyRelease,
     configureKeys, handleFocusLost,
@@ -137,6 +138,11 @@
     setWalkDir(walkDir);
     setRunDir(runDir);
     setStopRun(stopRun);
+
+    // Wire the image-cache size function so mapdata correctly tracks multi-tile
+    // (bigface) objects.  Without this, all faces are treated as 1×1 tiles and
+    // tail cells are never populated.
+    setGetMapImageSize(getFaceTileSize);
 
     // Listen for keyboard events on the window.
     window.addEventListener('keydown', handleGlobalKeyDown);

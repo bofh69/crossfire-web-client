@@ -106,6 +106,12 @@ export const DEFAULT_FIRE_THRESHOLD = 0.7;
 // ---------------------------------------------------------------------------
 
 /**
+ * Base tile size in pixels.  Crossfire face images are always exact multiples
+ * of this value in each dimension (32 px, 64 px, 96 px, …).
+ */
+export const TILE_SIZE = 32;
+
+/**
  * Maximum food value used by the Crossfire protocol.
  * The food stat ranges 0–999; 999 is full (no hunger).
  */

@@ -726,6 +726,16 @@ export function mapdata_face(x: number, y: number, layer: number): number {
 /**
  * Return the face at absolute map coordinates and set dx/dy offsets for
  * drawing.  Returns 0 if nothing to draw.
+ *
+ * dx/dy are in tile units relative to the current tile's view position.
+ * The caller should compute the draw origin as:
+ *   drawX = (vx + dx) * tileSize + tileSize - imageWidth
+ *   drawY = (vy + dy) * tileSize + tileSize - imageHeight
+ * This bottom-right-aligns the image to the head tile regardless of whether
+ * the current tile is the head or a tail.
+ *
+ * Falls back to bigfaces[] when the face data lives outside the server
+ * viewport (bigface head is at view coordinates ≥ viewWidth/viewHeight).
  */
 export function mapdata_face_info(
     mx: number, my: number, layer: number,
@@ -740,13 +750,58 @@ export function mapdata_face_info(
             dy: 1 - head.sizeY,
         };
     } else if (tail.face !== 0) {
-        const headPtr = cellAt(mx + tail.sizeX, my + tail.sizeY).heads[layer]!;
+        const hx = mx + tail.sizeX;
+        const hy = my + tail.sizeY;
+        if (!mapdata_contains(hx, hy)) {
+            // Head cell is outside the virtual map — skip to avoid an OOB access.
+            return { face: 0, dx: 0, dy: 0 };
+        }
+        const headPtr = cellAt(hx, hy).heads[layer]!;
         return {
             face: tail.face,
             dx: tail.sizeX - headPtr.sizeX + 1,
             dy: tail.sizeY - headPtr.sizeY + 1,
         };
     }
+
+    // Fallback: check bigfaces[] for tiles whose bigface head is outside the
+    // server viewport.  expandSetBigface() stores head/tail data only in
+    // bigfaces[], not in cells[], so the branches above return nothing for
+    // in-viewport tail tiles that belong to an out-of-viewport bigface head.
+    const viewX = mx - pl_pos.x;
+    const viewY = my - pl_pos.y;
+    if (viewX >= 0 && viewX < MAX_VIEW && viewY >= 0 && viewY < MAX_VIEW) {
+        // Case A: this tile is the bigface HEAD (outside the server viewport
+        // but still within the extended-fog canvas).
+        const bigHead = bigfaceAt(viewX, viewY, layer).head;
+        if (bigHead.face !== 0) {
+            return {
+                face: bigHead.face,
+                dx: 1 - bigHead.sizeX,
+                dy: 1 - bigHead.sizeY,
+            };
+        }
+
+        // Case B: this tile is a bigface TAIL whose head is outside the
+        // server viewport.
+        const bigTail = bigfaceAt(viewX, viewY, layer).tail;
+        if (bigTail.face !== 0) {
+            const hdx = bigTail.sizeX;
+            const hdy = bigTail.sizeY;
+            const headViewX = viewX + hdx;
+            const headViewY = viewY + hdy;
+            if (headViewX >= 0 && headViewX < MAX_VIEW &&
+                headViewY >= 0 && headViewY < MAX_VIEW) {
+                const bigHeadPtr = bigfaceAt(headViewX, headViewY, layer).head;
+                return {
+                    face: bigTail.face,
+                    dx: hdx - bigHeadPtr.sizeX + 1,
+                    dy: hdy - bigHeadPtr.sizeY + 1,
+                };
+            }
+        }
+    }
+
     return { face: 0, dx: 0, dy: 0 };
 }
 
