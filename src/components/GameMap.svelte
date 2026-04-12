@@ -415,29 +415,29 @@
           const head = cell.heads[layer]!;
           let tail = cell.tails[layer]!;
 
-          // For tiles outside the server view with no cells[] face data, also
-          // check bigfaces[] for tail data (objects whose head is just beyond
-          // the display edge).  Only read bigfaces[] when cells[] has nothing,
-          // to avoid double-drawing objects that straddle the view boundary.
+          // When cells[] has no face data for this tile, also check bigfaces[]
+          // for tail data.  This covers two cases:
+          //   1. The bigface head is outside the server view (expandSetBigface
+          //      stores only in bigfaces[], not cells[]), so an in-view tail
+          //      position has cells[].tails = 0 but bigfaces[].tail is set.
+          //   2. An outside-server-view tile that is a tail of an in-view head
+          //      via bigfaces[] (e.g. the head is at the view edge with sizeX>1
+          //      and the tail falls in the extended display area).
           let bigfaceTailData: { face: number; sizeX: number; sizeY: number } | null = null;
-          if (head.face === 0 && tail.face === 0 && !inServerView(ax, ay)) {
+          if (head.face === 0 && tail.face === 0) {
             const bx = ax - plPos.x;
             const by = ay - plPos.y;
             bigfaceTailData = getBigfaceTail(bx, by, layer);
           }
 
-          const effectiveTailFace = tail.face !== 0 ? tail.face : (bigfaceTailData?.face ?? 0);
-          const effectiveTailSizeX = tail.face !== 0 ? tail.sizeX : (bigfaceTailData?.sizeX ?? 0);
-          const effectiveTailSizeY = tail.face !== 0 ? tail.sizeY : (bigfaceTailData?.sizeY ?? 0);
-
           // Skip cells with no face data at all.
-          if (cell.state === MapCellState.Empty && head.face === 0 && effectiveTailFace === 0) continue;
+          if (cell.state === MapCellState.Empty && head.face === 0 && tail.face === 0 && bigfaceTailData === null) continue;
 
           const px = vx * tileSize;
           const py = vy * tileSize;
 
           if (head.face !== 0) {
-            // This cell is a head.  Draw the face image bottom-right-aligned.
+            // HEAD: draw the face image bottom-right-aligned at this tile.
             const url = getFaceUrl(head.face);
             if (url) {
               const img = imageCache.get(url);
@@ -464,25 +464,24 @@
               ctx.fillRect(px + 1, py + 1, tileSize - 2, tileSize - 2);
               placeholders++;
             }
-          } else if (effectiveTailFace !== 0) {
-            // This cell is a tail of a multi-tile object whose head is
-            // elsewhere.  If the head is within the display the cells loop
-            // will draw it when it reaches that cell; skip here to avoid
-            // duplicate rendering.  If the head is outside the display
-            // (either because displayW < vw or because the object is a
-            // bigface) draw the image now at the head's off-screen position
-            // and let the canvas clip the invisible portion.
-            const headAx = ax + effectiveTailSizeX;
-            const headAy = ay + effectiveTailSizeY;
+          } else if (tail.face !== 0) {
+            // CELLS[] TAIL: head is stored in cells[] at another position.
+            // If that head position is within the display the cells loop will
+            // draw the image when it reaches the head; skip here to avoid
+            // duplicate rendering.  If the head is outside the display draw
+            // from the head's off-screen canvas position and let the browser
+            // clip the invisible portion.
+            const headAx = ax + tail.sizeX;
+            const headAy = ay + tail.sizeY;
             const headVx = headAx - mx_start;
             const headVy = headAy - my_start;
             if (headVx >= 0 && headVx < displayW && headVy >= 0 && headVy < displayH) {
               // Head is in display range; the cells loop handles it.
             } else {
-              const key = `${headAx},${headAy}`;
+              const key = `${headAx}:${headAy}`;
               if (!offscreenHeadsDrawn.has(key)) {
                 offscreenHeadsDrawn.add(key);
-                const url = getFaceUrl(effectiveTailFace);
+                const url = getFaceUrl(tail.face);
                 if (url) {
                   const img = imageCache.get(url);
                   if (img) {
@@ -497,6 +496,35 @@
                     if (!loadingUrls.has(url) && !failedUrls.has(url)) loadsStarted++;
                     loadImage(url);
                   }
+                }
+              }
+            }
+          } else if (bigfaceTailData !== null) {
+            // BIGFACE TAIL: head is in bigfaces[], not cells[].  The head
+            // position in cells[] has no face data so it will NOT draw itself.
+            // We must always render here — do not skip even when the head's
+            // canvas position is within the display range.
+            const headAx = ax + bigfaceTailData.sizeX;
+            const headAy = ay + bigfaceTailData.sizeY;
+            const headVx = headAx - mx_start;
+            const headVy = headAy - my_start;
+            const key = `${headAx}:${headAy}`;
+            if (!offscreenHeadsDrawn.has(key)) {
+              offscreenHeadsDrawn.add(key);
+              const url = getFaceUrl(bigfaceTailData.face);
+              if (url) {
+                const img = imageCache.get(url);
+                if (img) {
+                  const drawW = img.naturalWidth * imgScale;
+                  const drawH = img.naturalHeight * imgScale;
+                  ctx.drawImage(img,
+                    headVx * tileSize + tileSize - drawW,
+                    headVy * tileSize + tileSize - drawH,
+                    drawW, drawH);
+                  imagesDrawn++;
+                } else {
+                  if (!loadingUrls.has(url) && !failedUrls.has(url)) loadsStarted++;
+                  loadImage(url);
                 }
               }
             }
@@ -534,7 +562,7 @@
             hasFaceData = true; break;
           }
         }
-        if (!hasFaceData && !inServerView(ax, ay)) {
+        if (!hasFaceData) {
           const bx = ax - plPos.x;
           const by = ay - plPos.y;
           for (let i = 0; i < MAXLAYERS && !hasFaceData; i++) {
@@ -553,8 +581,16 @@
     // Matching the old C client's mapcell_darkness():
     //   opacity = cell.darkness / 192 * 0.6
     //   if (fogWar && state == FOG) opacity += 0.2
-    // Empty cells (unvisited, state == 0) have darkness=0 and are not FOG, so
-    // they receive no overlay (alpha=0) in both the old client and here.
+    //
+    // For tiles outside the server-confirmed view, a minimum 0.2 fog overlay
+    // is always applied regardless of state.  This ensures:
+    //  (a) Unvisited (Empty) tiles look foggy rather than fully bright.
+    //  (b) Multi-tile images whose head is inside the view but whose tails
+    //      extend into the extended display area are dimmed uniformly, instead
+    //      of the tail portions appearing at full brightness next to the
+    //      correctly-darkened head tile.
+    // This matches the visual intent of the old C client where the extended
+    // area is always rendered as fog-of-war territory.
     for (let vy = 0; vy < displayH; vy++) {
       for (let vx = 0; vx < displayW; vx++) {
         const ax = mx_start + vx;
@@ -565,11 +601,13 @@
         let alpha = 0;
 
         if (!inServerView(ax, ay)) {
-          // Outside server view: apply fog only for FOG state (previously seen
-          // tiles).  Empty (unvisited) tiles get no overlay, matching the old
-          // client where Empty state has darkness=0 and no FOG penalty.
+          // Outside server view: Fog cells get their stored darkness plus the
+          // +0.2 fog penalty.  All other states (Empty/Visible) still get the
+          // +0.2 fog penalty so the area always looks distinctly foggy.
           if (cell.state === MapCellState.Fog) {
             alpha = Math.min(cell.darkness / 255 + 0.2, 0.8);
+          } else {
+            alpha = 0.2;
           }
         } else {
           if (cell.state === MapCellState.Empty) continue;
