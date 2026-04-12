@@ -740,7 +740,13 @@ export function mapdata_face_info(
             dy: 1 - head.sizeY,
         };
     } else if (tail.face !== 0) {
-        const headPtr = cellAt(mx + tail.sizeX, my + tail.sizeY).heads[layer]!;
+        const hx = mx + tail.sizeX;
+        const hy = my + tail.sizeY;
+        if (!mapdata_contains(hx, hy)) {
+            // Head cell is outside the virtual map — skip to avoid an OOB access.
+            return { face: 0, dx: 0, dy: 0 };
+        }
+        const headPtr = cellAt(hx, hy).heads[layer]!;
         return {
             face: tail.face,
             dx: tail.sizeX - headPtr.sizeX + 1,

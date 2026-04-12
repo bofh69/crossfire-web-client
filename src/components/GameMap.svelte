@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { mapdata_cell, mapdata_can_smooth, mapdata_contains, getViewSize, getPlayerPosition } from '../lib/mapdata';
+  import { mapdata_cell, mapdata_can_smooth, mapdata_contains, mapdata_face_info, getViewSize, getPlayerPosition } from '../lib/mapdata';
   import { getFaceUrl, getSmoothFace } from '../lib/image';
   import { lookAt } from '../lib/player';
   import { set_move_to, moveToX, moveToY } from '../lib/mapdata';
@@ -285,6 +285,11 @@
     const ctx = c.getContext('2d');
     if (!ctx) return;
 
+    function drawPlaceholder(px: number, py: number, ts: number, layer: number) {
+      ctx.fillStyle = layer === 0 ? '#222' : '#333';
+      ctx.fillRect(px + 1, py + 1, ts - 2, ts - 2);
+    }
+
     // Disable image smoothing so pixel art tiles remain crisp at any integer
     // scale (2×, 3×, …).  Sub-pixel interpolation is what made the previous
     // fractional-scaling approach look blurry.
@@ -301,6 +306,8 @@
     // Use the largest integer scale factor that still fits MIN_TILES tiles in
     // each dimension, unless the user has chosen an explicit zoom level.
     // Integer multiples keep pixel art crisp (32 → 64 → 96 → …).
+    // The server fills the view with more or fewer tiles (via clientMapsize);
+    // we request enough tiles to cover the container (see the $effect above).
     const scale = storedScale ?? computeScale(containerW, containerH);
     const tileSize = TILE_SIZE * scale;
     currentTileSize = tileSize;
@@ -379,34 +386,44 @@
           const px = vx * tileSize;
           const py = vy * tileSize;
 
-          // Tail cell: skip face drawing — the head cell draws the full multi-tile image.
-          // Cells with no face at this layer also skip face drawing.
-          // Both cases still participate in smooth rendering below.
-          if (head.face !== 0) {
-            const url = getFaceUrl(head.face);
+          // Use mapdata_face_info to handle both head and tail cells correctly.
+          // For a head cell it returns the face with offset (1-sizeX, 1-sizeY) so
+          // the image is bottom-right-aligned to the head tile.  For a tail cell it
+          // looks up the head's face and returns the offset that places the full
+          // image at the same canvas position — matching the old GTK client's
+          // map_draw_layer which calls mapdata_face_info for every tile.
+          // dx and dy are in tile units and may be negative; the canvas clips
+          // any out-of-bounds portions automatically.
+          const { face, dx, dy } = mapdata_face_info(ax, ay, layer);
+          if (face !== 0) {
+            const url = getFaceUrl(face);
             if (url) {
               const img = imageCache.get(url);
               if (img) {
-                // Scale the image by the integer scale factor so it fills the
-                // larger tile exactly.  The formula aligns the image's
-                // bottom-right corner with the head tile's bottom-right corner,
-                // matching the C client's convention.
                 const drawW = img.naturalWidth * imgScale;
                 const drawH = img.naturalHeight * imgScale;
-                const drawX = px + tileSize - drawW;
-                const drawY = py + tileSize - drawH;
-                ctx.drawImage(img, drawX, drawY, drawW, drawH);
-                imagesDrawn++;
+                const drawX = (vx + dx) * tileSize;
+                const drawY = (vy + dy) * tileSize;
+                // Skip drawing if the image lies entirely outside the canvas.
+                if (drawX + drawW > 0 && drawY + drawH > 0 &&
+                    drawX < canvasW && drawY < canvasH) {
+                  ctx.drawImage(img, drawX, drawY, drawW, drawH);
+                  imagesDrawn++;
+                }
               } else {
+                // Start loading the image from every cell that references it, but
+                // show a placeholder rectangle only for head cells so that the
+                // placeholder appears at the correct tile and is not duplicated.
                 if (!loadingUrls.has(url) && !failedUrls.has(url)) loadsStarted++;
                 loadImage(url);
-                ctx.fillStyle = layer === 0 ? '#222' : '#333';
-                ctx.fillRect(px + 1, py + 1, tileSize - 2, tileSize - 2);
-                placeholders++;
+                if (head.face !== 0) {
+                  drawPlaceholder(px, py, tileSize, layer);
+                  placeholders++;
+                }
               }
-            } else {
-              ctx.fillStyle = layer === 0 ? '#222' : '#333';
-              ctx.fillRect(px + 1, py + 1, tileSize - 2, tileSize - 2);
+            } else if (head.face !== 0) {
+              // No URL available; show placeholder only for head cells.
+              drawPlaceholder(px, py, tileSize, layer);
               placeholders++;
             }
           }
