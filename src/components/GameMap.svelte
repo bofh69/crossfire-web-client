@@ -501,6 +501,10 @@
     // territory.  The canvas may have received image pixels in the region of
     // those tiles during Pass 2; painting the background colour on top erases
     // them while leaving properly-visible (non-Empty) tiles intact.
+    //
+    // Exception: Empty cells that carry a mirrored bigface head (any layer has
+    // head.face !== 0) must NOT be re-covered — their image was drawn
+    // intentionally and should remain visible.
     for (let vy = 0; vy < displayH; vy++) {
       for (let vx = 0; vx < displayW; vx++) {
         const ax = mx_start + vx;
@@ -508,6 +512,11 @@
         if (!mapdata_contains(ax, ay)) continue;
         const cell = mapdata_cell(ax, ay);
         if (cell.state !== MapCellState.Empty) continue;
+        let hasHeadFace = false;
+        for (let i = 0; i < MAXLAYERS; i++) {
+          if (cell.heads[i]!.face !== 0) { hasHeadFace = true; break; }
+        }
+        if (hasHeadFace) continue;
         // Inside the server view, empty tiles are pure black.
         // Outside the server view, empty tiles use the fog background.
         ctx.fillStyle = inServerView(ax, ay) ? '#111' : '#1a1a1a';
@@ -529,12 +538,21 @@
           // Outside server view: apply the fog overlay.  If the tile was
           // previously seen (Fog state), preserve its stored darkness and add
           // the +0.2 fog penalty (same formula as in-view fog tiles).
-          // Unvisited tiles (Empty state) get a flat 0.2.
+          // Unvisited tiles (Empty state) get a flat 0.2 — but if the Empty
+          // cell carries a mirrored bigface head, it is part of a visible
+          // object and should not receive the fog overlay (so it matches the
+          // adjacent in-view tail tiles that have no darkness).
           const cell = mapdata_cell(ax, ay);
           if (cell.state === MapCellState.Fog) {
             alpha = Math.min(cell.darkness / 255 + 0.2, 0.8);
           } else {
-            alpha = 0.2;
+            // Check whether this Empty cell is a bigface head mirrored by
+            // expandSetBigface.  If so, skip the fog overlay.
+            let isBigfaceHead = false;
+            for (let i = 0; i < MAXLAYERS; i++) {
+              if (cell.heads[i]!.face !== 0) { isBigfaceHead = true; break; }
+            }
+            if (!isBigfaceHead) alpha = 0.2;
           }
         } else {
           const cell = mapdata_cell(ax, ay);
