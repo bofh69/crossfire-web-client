@@ -166,7 +166,7 @@
         addMeSuccessReceived = true;
         if (queryPrompt) {
           // A query is still on screen – wait until the user answers it.
-          statusMessage = 'Connected.';
+          statusMessage = '';
         } else {
           checkLoginComplete();
         }
@@ -204,11 +204,12 @@
     href="https://github.com/bofh69/crossfire-web-client"
     target="_blank"
     rel="noopener noreferrer"
-  >Fork me on GitHub</a>
+  >Fork me</a>
 {/if}
 
 <div class="login-container">
-  <h1>⚔ Crossfire Web Client</h1>
+  <h1>⚔ Welcome to Crossfire ⚔</h1>
+  <h2>The Multiplayer Adventure Game</h2>
 
   {#if !connected}
     <div class="login-form">
@@ -224,7 +225,7 @@
         </label>
       {/if}
       <button onclick={handleConnect} disabled={connecting}>
-        {connecting ? 'Connecting...' : 'Connect'}
+        {connecting ? 'Connecting...' : 'Enter'}
       </button>
     </div>
     {#if statusMessage}
@@ -304,6 +305,13 @@
   h1 {
     color: var(--text-warm);
     font-size: 2rem;
+    margin-bottom: -1rem;
+  }
+
+  h2 {
+    color: var(--text-warm);
+    font-size: 1rem;
+    margin-top: 0rem;
     margin-bottom: 1rem;
   }
 
@@ -312,7 +320,7 @@
     gap: 2rem;
     align-items: flex-start;
     width: 100%;
-    max-width: 960px;
+    max-width: 70%;
   }
 
   .server-info {
@@ -438,8 +446,8 @@
 
   .github-ribbon {
     position: fixed;
-    top: 2.5rem;
-    right: -3rem;
+    top: 0.5rem;
+    right: -4.5rem;
     z-index: 100;
     display: block;
     width: 12rem;
