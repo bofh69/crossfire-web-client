@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { mapdata_cell, mapdata_can_smooth, mapdata_contains, getViewSize, getPlayerPosition } from '../lib/mapdata';
+  import { mapdata_cell, mapdata_can_smooth, mapdata_contains, mapdata_bigface_render_info, getViewSize, getPlayerPosition } from '../lib/mapdata';
   import { getFaceUrl, getSmoothFace } from '../lib/image';
   import { lookAt } from '../lib/player';
   import { set_move_to, moveToX, moveToY } from '../lib/mapdata';
@@ -59,6 +59,9 @@
 
   /** Effective tile size used in the last draw — kept for click-to-tile mapping. */
   let currentTileSize = TILE_SIZE;
+  /** Draw offsets used in the last draw — kept for click-to-tile mapping. */
+  let currentDrawOffsetX = 0;
+  let currentDrawOffsetY = 0;
 
   /**
    * Track the last tile-count dimensions sent to the server so we only send a
@@ -298,13 +301,33 @@
     const tileSize = TILE_SIZE * scale;
     currentTileSize = tileSize;
 
-    const canvasW = vw * tileSize;
-    const canvasH = vh * tileSize;
+    // Always size the canvas to fill the full container so there is no black
+    // border around the map.  When the server has not yet confirmed the new
+    // map size (e.g. right after a zoom change), we will have fewer tiles than
+    // pixels; the tile grid is centred within the canvas and the surrounding
+    // area stays the #111 background, which is visually identical to the
+    // container background.
+    const canvasW = Math.max(containerW, 1);
+    const canvasH = Math.max(containerH, 1);
     if (c.width !== canvasW) c.width = canvasW;
     if (c.height !== canvasH) c.height = canvasH;
 
+    // Centre the tile grid within the canvas (only has visible effect when the
+    // server has not yet confirmed a larger map size).
+    const tilesPixW = vw * tileSize;
+    const tilesPixH = vh * tileSize;
+    const drawOffsetX = tilesPixW < canvasW ? Math.floor((canvasW - tilesPixW) / 2) : 0;
+    const drawOffsetY = tilesPixH < canvasH ? Math.floor((canvasH - tilesPixH) / 2) : 0;
+    currentDrawOffsetX = drawOffsetX;
+    currentDrawOffsetY = drawOffsetY;
+
     ctx.fillStyle = '#111';
     ctx.fillRect(0, 0, canvasW, canvasH);
+
+    // Apply translation so all tile drawing is relative to the top-left of
+    // the tile grid rather than the canvas origin.
+    ctx.save();
+    ctx.translate(drawOffsetX, drawOffsetY);
 
     let tilesDrawn = 0;
     let imagesDrawn = 0;
@@ -380,6 +403,32 @@
               ctx.fillStyle = layer === 0 ? '#222' : '#333';
               ctx.fillRect(px + 1, py + 1, tileSize - 2, tileSize - 2);
               placeholders++;
+            }
+          }
+
+          // Draw bigface tail: the head of this multi-tile object is outside the
+          // view (to the right or bottom).  The head cell is never iterated, so
+          // the image would otherwise be skipped entirely.  We draw it here,
+          // aligned as if the head tile were visible; the canvas clips whatever
+          // falls outside its bounds.
+          const bf = mapdata_bigface_render_info(vx, vy, layer);
+          if (bf.face !== 0) {
+            const headPx = (vx + bf.headDX) * tileSize;
+            const headPy = (vy + bf.headDY) * tileSize;
+            const bfUrl = getFaceUrl(bf.face);
+            if (bfUrl) {
+              const bfImg = imageCache.get(bfUrl);
+              if (bfImg) {
+                const drawW = bfImg.naturalWidth * imgScale;
+                const drawH = bfImg.naturalHeight * imgScale;
+                const drawX = headPx + tileSize - drawW;
+                const drawY = headPy + tileSize - drawH;
+                ctx.drawImage(bfImg, drawX, drawY, drawW, drawH);
+                imagesDrawn++;
+              } else {
+                if (!loadingUrls.has(bfUrl) && !failedUrls.has(bfUrl)) loadsStarted++;
+                loadImage(bfUrl);
+              }
             }
           }
 
@@ -502,6 +551,9 @@
       }
     }
 
+    // Restore canvas transform (undoes the ctx.translate applied before Pass 1).
+    ctx.restore();
+
     performance.mark('drawMap-end');
     performance.measure('drawMap', 'drawMap-start', 'drawMap-end');
     const elapsed = performance.now() - t0;
@@ -551,8 +603,8 @@
   function handleClick(e: MouseEvent) {
     if (!canvas) return;
     const rect = canvas.getBoundingClientRect();
-    const tileX = Math.floor((e.clientX - rect.left) / currentTileSize);
-    const tileY = Math.floor((e.clientY - rect.top) / currentTileSize);
+    const tileX = Math.floor((e.clientX - rect.left - currentDrawOffsetX) / currentTileSize);
+    const tileY = Math.floor((e.clientY - rect.top - currentDrawOffsetY) / currentTileSize);
     const view = getViewSize();
     // Player is always at the centre of the view.
     const centerX = Math.floor(view.width / 2);
@@ -566,8 +618,8 @@
     e.preventDefault();
     if (!canvas) return;
     const rect = canvas.getBoundingClientRect();
-    const tileX = Math.floor((e.clientX - rect.left) / currentTileSize);
-    const tileY = Math.floor((e.clientY - rect.top) / currentTileSize);
+    const tileX = Math.floor((e.clientX - rect.left - currentDrawOffsetX) / currentTileSize);
+    const tileY = Math.floor((e.clientY - rect.top - currentDrawOffsetY) / currentTileSize);
     const view = getViewSize();
     const centerX = Math.floor(view.width / 2);
     const centerY = Math.floor(view.height / 2);
@@ -589,9 +641,7 @@
 
 <style>
   .game-map {
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    position: relative;
     background: #111;
     overflow: hidden;
     width: 100%;
@@ -599,6 +649,7 @@
   }
 
   canvas {
+    display: block;
     image-rendering: pixelated;
     cursor: crosshair;
   }

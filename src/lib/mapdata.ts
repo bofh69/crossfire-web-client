@@ -1207,6 +1207,32 @@ function mapdataHasTile(x: number, y: number, layer: number): boolean {
         layer >= 0 && layer < MAXLAYERS;
 }
 
+/**
+ * Return rendering info for a bigface (multi-tile object whose head is outside
+ * the view) at the given view-relative coordinates and layer.
+ *
+ * When the returned `face` is non-zero, the image should be drawn with its
+ * bottom-right corner aligned to the head tile.  The head tile's view-relative
+ * position is `(x + headDX, y + headDY)` – which is outside the view, so the
+ * image will be partially (or fully) clipped by the canvas boundary.
+ *
+ * Returns `{ face: 0, headDX: 0, headDY: 0 }` when no bigface is present.
+ */
+export function mapdata_bigface_render_info(
+    x: number, y: number, layer: number,
+): { face: number; headDX: number; headDY: number } {
+    if (layer < 0 || layer >= MAXLAYERS ||
+        x < 0 || x >= MAX_VIEW ||
+        y < 0 || y >= MAX_VIEW) {
+        return { face: 0, headDX: 0, headDY: 0 };
+    }
+    const tail = bigfaces[x]?.[y]?.[layer]?.tail;
+    if (!tail || tail.face === 0) {
+        return { face: 0, headDX: 0, headDY: 0 };
+    }
+    return { face: tail.face, headDX: tail.sizeX, headDY: tail.sizeY };
+}
+
 /** Expose the internal player position (top-left of view). */
 export function getPlayerPosition(): PlayerPosition {
     return { x: pl_pos.x, y: pl_pos.y };
