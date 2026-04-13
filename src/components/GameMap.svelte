@@ -386,14 +386,13 @@
           const px = vx * tileSize;
           const py = vy * tileSize;
 
-          // Use mapdata_face_info to handle both head and tail cells correctly.
-          // For a head cell it returns dx=0 (sizeX is always 1 in the current
-          // data model), so the formula below reduces to the original
-          // `px + tileSize - drawW` which bottom-right-aligns the image to the
-          // head tile.  For a tail cell it returns dx = tail.sizeX, shifting the
-          // draw reference to the head tile's screen position so the image lands
-          // at the same canvas position regardless of which tile triggers the
-          // draw — matching the old GTK client's map_draw_layer convention.
+          // Use mapdata_face_info to handle both head and tail cells correctly,
+          // including bigface objects whose head tile is outside the server
+          // viewport.  For a head cell dx=1-sizeX (typically 0) and for a tail
+          // cell dx=tail.sizeX, so (vx+dx) is always the head tile's canvas x.
+          // The formula below therefore bottom-right-aligns the full image to
+          // the head tile regardless of which tile triggers the draw, matching
+          // the old GTK client's map_draw_layer convention.
           // The canvas clips any out-of-bounds portions automatically.
           const { face, dx, dy } = mapdata_face_info(ax, ay, layer);
           if (face !== 0) {
