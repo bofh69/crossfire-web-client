@@ -387,13 +387,14 @@
           const py = vy * tileSize;
 
           // Use mapdata_face_info to handle both head and tail cells correctly.
-          // For a head cell it returns the face with offset (1-sizeX, 1-sizeY) so
-          // the image is bottom-right-aligned to the head tile.  For a tail cell it
-          // looks up the head's face and returns the offset that places the full
-          // image at the same canvas position — matching the old GTK client's
-          // map_draw_layer which calls mapdata_face_info for every tile.
-          // dx and dy are in tile units and may be negative; the canvas clips
-          // any out-of-bounds portions automatically.
+          // For a head cell it returns dx=0 (sizeX is always 1 in the current
+          // data model), so the formula below reduces to the original
+          // `px + tileSize - drawW` which bottom-right-aligns the image to the
+          // head tile.  For a tail cell it returns dx = tail.sizeX, shifting the
+          // draw reference to the head tile's screen position so the image lands
+          // at the same canvas position regardless of which tile triggers the
+          // draw — matching the old GTK client's map_draw_layer convention.
+          // The canvas clips any out-of-bounds portions automatically.
           const { face, dx, dy } = mapdata_face_info(ax, ay, layer);
           if (face !== 0) {
             const url = getFaceUrl(face);
@@ -402,8 +403,12 @@
               if (img) {
                 const drawW = img.naturalWidth * imgScale;
                 const drawH = img.naturalHeight * imgScale;
-                const drawX = (vx + dx) * tileSize;
-                const drawY = (vy + dy) * tileSize;
+                // Align the image's bottom-right corner to the head tile's
+                // bottom-right corner.  dx/dy shift vx/vy to the head tile
+                // position when this cell is a tail, so both cases use one
+                // formula: (vx+dx)*ts + ts - drawW.
+                const drawX = (vx + dx) * tileSize + tileSize - drawW;
+                const drawY = (vy + dy) * tileSize + tileSize - drawH;
                 // Skip drawing if the image lies entirely outside the canvas.
                 if (drawX + drawW > 0 && drawY + drawH > 0 &&
                     drawX < canvasW && drawY < canvasH) {
