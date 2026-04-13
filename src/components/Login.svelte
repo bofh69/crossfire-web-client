@@ -12,8 +12,12 @@
 
   let { onLoggedIn }: Props = $props();
 
-  /** Server address provided via the `?server=` URL parameter, if any. */
-  const urlParamServer = new URLSearchParams(window.location.search).get('server') ?? '';
+  /** Server address provided via the `?server=` URL parameter, if any.
+   *  Only `ws://` and `wss://` schemes are accepted; other values are ignored. */
+  const urlParamServer = (() => {
+    const raw = new URLSearchParams(window.location.search).get('server') ?? '';
+    return (raw.startsWith('ws://') || raw.startsWith('wss://')) ? raw : '';
+  })();
 
   /** True when the page was loaded on a standard HTTP/HTTPS port (80 or 443).
    *  In that case the server address is derived automatically and the input
@@ -42,9 +46,11 @@
   let connecting = $state(false);
 
   // Auto-connect immediately when the server address is supplied via URL param.
+  // A brief timeout ensures that all $effects (event subscriptions) have been
+  // registered before the connection attempt begins.
   onMount(() => {
     if (urlParamServer) {
-      handleConnect();
+      setTimeout(() => handleConnect(), 0);
     }
   });
   let errorMessage = $state('');
