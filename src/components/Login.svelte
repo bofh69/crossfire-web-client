@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { onMount } from 'svelte';
   import { clientConnect, clientNegotiate, sendAddMe } from '../lib/client';
   import { gameEvents } from '../lib/events';
   import { sendReply } from '../lib/player';
@@ -11,6 +12,9 @@
 
   let { onLoggedIn }: Props = $props();
 
+  /** Server address provided via the `?server=` URL parameter, if any. */
+  const urlParamServer = new URLSearchParams(window.location.search).get('server') ?? '';
+
   /** True when the page was loaded on a standard HTTP/HTTPS port (80 or 443).
    *  In that case the server address is derived automatically and the input
    *  field is hidden. */
@@ -19,7 +23,13 @@
     return port === '' || port === '80' || port === '443';
   })();
 
+  /** True when the address input should be hidden (standard port or URL param). */
+  const hideAddressInput = standardPort || urlParamServer !== '';
+
   function defaultServerAddress(): string {
+    if (urlParamServer) {
+      return urlParamServer;
+    }
     if (standardPort) {
       const scheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
       return `${scheme}://${window.location.host}/ws`;
@@ -30,6 +40,13 @@
   let serverAddress = $state(defaultServerAddress());
   let connected = $state(false);
   let connecting = $state(false);
+
+  // Auto-connect immediately when the server address is supplied via URL param.
+  onMount(() => {
+    if (urlParamServer) {
+      handleConnect();
+    }
+  });
   let errorMessage = $state('');
   let queryPrompt = $state('');
   let lastQueryPrompt = '';
@@ -213,7 +230,7 @@
 
   {#if !connected}
     <div class="login-form">
-      {#if !standardPort}
+      {#if !hideAddressInput}
         <label>
           Server Address
           <input

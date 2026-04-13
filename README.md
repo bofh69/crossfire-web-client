@@ -13,6 +13,18 @@ testing and can go down at any time.
 
 <img src="screenshots/game_ui.png" width="50%" alt="Screenshot of game">
 
+## Connecting to a specific server
+
+Append a `?server=` query parameter to the page URL to pre-fill (and
+automatically initiate) the connection to a particular server, e.g.:
+
+```
+https://example.com/?server=wss://crossfire.example.com/ws
+```
+
+When this parameter is present the server-address input field is hidden and
+the client connects automatically, bypassing the manual "Enter" step.
+
 ## Protocol changes
 
 Web pages can't use raw TCP sockets so WebSockets has to be used.
