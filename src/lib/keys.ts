@@ -211,6 +211,7 @@ function loadDefaultBindings(): void {
         // Nav cluster / numpad (numlock off)
         ['Home',     'A', 'northwest'], ['End',      'A', 'southwest'],
         ['PageUp',   'A', 'northeast'], ['PageDown', 'A', 'southeast'],
+        ['Clear',    'A', 'stay'],      // numpad 5 in nav mode (all platforms)
 
         // Action rotation
         ['+', 'A',  'rotateshoottype'],
@@ -283,6 +284,42 @@ function normaliseKey(key: string): string {
     return key;
 }
 
+/**
+ * Map of numpad e.code values to the navigation key values they should
+ * produce when NumLock is off (matching standard Web KeyboardEvent values).
+ */
+const NUMPAD_NAV_KEYS: Readonly<Record<string, string>> = {
+    'Numpad0': 'Insert',
+    'Numpad1': 'End',
+    'Numpad2': 'ArrowDown',
+    'Numpad3': 'PageDown',
+    'Numpad4': 'ArrowLeft',
+    'Numpad5': 'Clear',
+    'Numpad6': 'ArrowRight',
+    'Numpad7': 'Home',
+    'Numpad8': 'ArrowUp',
+    'Numpad9': 'PageUp',
+    'NumpadDecimal': 'Delete',
+};
+
+/**
+ * Normalise a KeyboardEvent to the keysym we use for lookups.
+ *
+ * On macOS, numpad keys in navigation mode (NumLock off) may report digit
+ * values for e.key instead of the expected navigation values (e.g. "7"
+ * instead of "Home").  This function uses e.code to force the correct
+ * navigation keysym whenever the key comes from the numpad and NumLock is
+ * not active, ensuring consistent behaviour across platforms.
+ */
+function normaliseKeyEvent(e: KeyboardEvent): string {
+    // e.location === 3 is DOM_KEY_LOCATION_NUMPAD.
+    if (e.location === 3 && !e.getModifierState('NumLock')) {
+        const navKey = NUMPAD_NAV_KEYS[e.code];
+        if (navKey !== undefined) return navKey;
+    }
+    return normaliseKey(e.key);
+}
+
 // Callback interface so keys.ts doesn't depend on UI modules directly.
 export interface KeyCallbacks {
     /** Show a message in the info panel. */
@@ -307,7 +344,7 @@ export function parseKey(e: KeyboardEvent): void {
     const cpl = cb?.getCpl();
     if (!cpl) return;
 
-    const keysym = normaliseKey(e.key);
+    const keysym = normaliseKeyEvent(e);
 
     // ── Command-mode key (apostrophe) ───────────────────────────────
     if (keysym === "'") {
@@ -563,7 +600,7 @@ export function configureKeys(e: KeyboardEvent): void {
     // Ignore pure modifier keys during configure
     if (["Shift", "Control", "Alt", "Meta"].includes(e.key)) return;
 
-    const keysym = normaliseKey(e.key);
+    const keysym = normaliseKeyEvent(e);
 
     // Add modifier flags based on what's currently held
     let flags = bindFlags;
@@ -685,7 +722,7 @@ export function keyEventToFlags(e: KeyboardEvent): number {
  * Returns the matching KeyBind or null.
  */
 export function findBindingForEvent(e: KeyboardEvent): KeyBind | null {
-    const keysym = normaliseKey(e.key);
+    const keysym = normaliseKeyEvent(e);
     const flags = keyEventToFlags(e);
     return keybindFind(keysym, flags);
 }
@@ -696,7 +733,7 @@ export function findBindingForEvent(e: KeyboardEvent): KeyBind | null {
  * Persists to localStorage.
  */
 export function bindCommandToEvent(e: KeyboardEvent, command: string): void {
-    const keysym = normaliseKey(e.key);
+    const keysym = normaliseKeyEvent(e);
     const flags = keyEventToFlags(e);
     keybindInsert(keysym, flags, command);
     saveBindings();
@@ -709,7 +746,7 @@ export function bindCommandToEvent(e: KeyboardEvent, command: string): void {
  * Persists to localStorage.
  */
 export function bindCommandWithFlags(e: KeyboardEvent, command: string, extraFlags: number): void {
-    const keysym = normaliseKey(e.key);
+    const keysym = normaliseKeyEvent(e);
     const flags = keyEventToFlags(e) | extraFlags;
     keybindInsert(keysym, flags, command);
     saveBindings();
@@ -721,7 +758,7 @@ export function bindCommandWithFlags(e: KeyboardEvent, command: string, extraFla
  * binding that would be replaced.
  */
 export function findBindingForEventWithFlags(e: KeyboardEvent, extraFlags: number): KeyBind | null {
-    const keysym = normaliseKey(e.key);
+    const keysym = normaliseKeyEvent(e);
     const flags = keyEventToFlags(e) | extraFlags;
     return keybindFind(keysym, flags);
 }
@@ -732,7 +769,7 @@ export function findBindingForEventWithFlags(e: KeyboardEvent, extraFlags: numbe
  * Persists to localStorage.
  */
 export function unbindEvent(e: KeyboardEvent): KeyBind | null {
-    const keysym = normaliseKey(e.key);
+    const keysym = normaliseKeyEvent(e);
     const flags = keyEventToFlags(e);
     const kb = keybindFind(keysym, flags);
     if (kb) {
