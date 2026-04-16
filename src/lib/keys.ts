@@ -313,9 +313,10 @@ const NUMPAD_NAV_KEYS: Readonly<Record<string, string>> = {
  */
 function normaliseKeyEvent(e: KeyboardEvent): string {
     // e.location === 3 is DOM_KEY_LOCATION_NUMPAD.
-    if (e.location === 3 && !e.getModifierState('NumLock')) {
+    if (e.location === 3) {
         const navKey = NUMPAD_NAV_KEYS[e.code];
         if (navKey !== undefined) return navKey;
+	console.log("Unknown key, e=", e)
     }
     return normaliseKey(e.key);
 }
