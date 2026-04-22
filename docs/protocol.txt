@@ -1,0 +1,2243 @@
+Crossfire Protocol Handbook
+===========================
+Crossfire Development Team <crossfire@metalforge.org>
+:numbered:
+:toc:
+:toclevels: 3
+
+
+Introduction
+------------
+This manual documents the Crossfire protocol, which is used between clients
+and servers to play Crossfire. This documentation is intended primarily for
+client implementers.
+
+This manual is the collective result of various authors compiled over the
+course of many years, most of the time several years after the actual code was
+written. As such it will surely contain errors, omit certain important
+details, and possibly make life miserable. Fortunately, many working
+open-source server and client implementations of this protocol are available.
+Fixes and improvements to this documentation are welcome.
+
+History
+~~~~~~~
+Originally, the communications plan was set to be a text based system. It
+was up to the server and client to parse these messages and determine what
+to do. These messages were assumed to be 1 line per message.
+
+At a reasonably early stage of development, Eric Anderson wrote a fairly
+(but not totally) complete client/server that used his eutl package. This
+package pretty much set up packets with subpackets - these subpackets would
+have a tag for the data type, then the data itself. Thus, you could send
+many data types, and after transmission, the other end could decode these
+commands.
+
+This works fairly well, but I think the creation of numerous sub packets has
+some performance hit. Also, the eutl was not especially well documented, so
+writing a client for a different platform became more difficult (you needed
+to first port over eutl.) An example such of this is the Java client. Also,
+Eric left to work on other products shortly after writing his client, which
+didn't really leave anyone with a full understanding of the socket code.
+
+The eutl dependency was later removed. At least one advantage is that
+having this network related code directly in the client and server makes
+error handling a bit easier/cleaner.
+
+Many of the design decisions, including byte order and mixed binary data come
+from the original implementation using eutl.
+
+
+Protocol
+--------
+Crossfire communicates using **TCP** using a **binary** protocol. By default,
+it uses **port 13327**, though in practice servers may use any port and
+include that port number in its metaserver advertisement.
+
+Framing
+~~~~~~~
+Since TCP is a stream-oriented protocol with no delineation between the end of
+one message and the start of another, Crossfire uses a length-prefixed frame
+format to frame messages.
+
+Each message transmitted over the wire begins with a 2 byte (16 bit) `length`
+field transmitted in network-byte order (MSB first).
+
+Messages
+~~~~~~~~
+Messages consist of a command name, transmitted in ASCII, followed by optional
+command data. The command name is used to determine how to parse the rest of
+the message. If data follows, it is separated from the command name by an
+ASCII space.
+
+Data Types
+^^^^^^^^^^
+The documentation for the individual commands below make reference to several
+data types that can be part of a command's data payload. They can be
+categorized into textual and binary data:
+
+===== Textual
+A command containing textual data has data fields separated by one ASCII space
+character.
+
+word:: A sequence of ASCII characters that does not contain the space or nul
+character. This is to distinguish it from the _string_, which may contain
+space characters. Not to be confused with a machine word.
+
+int:: A _word_ containing the textual representation of an integer. Not to be
+confused with any of the binary integers in the following section. Otherwise
+known as the "string value of integer data". Must be parsed, e.g. using
+`atoi()` to get the actual integer value.
+
+string:: A sequence of ASCII characters. This must only appear at the end of a
+command, since spaces are used to separate fields of a textual message.
+
+===== Binary
+All multi-byte integers are transmitted in network byte order (MSB first).
+
+int8:: 1-byte (8-bit) integer
+
+int16:: 2-byte (16-bit) integer
+
+int32:: 4-byte (32-bit) integer
+
+lstring:: A length-prefixed string, which consists of an `int8` followed by
+that many bytes of the actual string. This is used to transmit a string
+(that may contain spaces) in the middle of binary data.
+
+l2string:: Like _lstring_, but is prefixed with an `int16` to support longer
+strings
+
+Implementation Notes
+~~~~~~~~~~~~~~~~~~~~
+- Typical implementations read two bytes to determine the length of the
+  subsequent read for the actual message, then read and parse the data from
+  each message according to the commands described below. To send a message,
+  the sender builds the message in a buffer, counts the length of the message,
+  sends the length, and finally sends the actual message.
+
+TIP: Incorrectly transmitting or receiving the `length` field can lead to
+apparent "no response" issues as the client or server blocks to read the
+entire length of the message.
+
+- Since the protocol is highly interactive, it may be useful to set
+  `TCP_NODELAY` on both the client and server.
+
+- If you are using a language with a buffered output stream, remember to flush
+  the stream after a complete message.
+
+- If the connection is lost (which will also happen if the output buffer
+  overflowing), the player is saved and the server cleans up. This does open
+  up some abuses, but there is no perfect solution here.
+
+- The server only reads data from the socket if the player has an action.
+  This isn't really good, since many of the commands below might not be actual
+  commands for the player. The alternative is to look at the data, and if it
+  is a player command and there isn't time, store it away to be processed
+  later.  But this increases complexity, in that the server must start
+  buffering the commands. Fortunately, for now, there are few such client
+  commands.
+
+Commands
+--------
+In the documentation below, `S->C` represents a message to the client from the
+server, and `C->S` represents a message to the server from the client.
+
+Commands are documented in a brief format like:
+
+    C->S: version <csval> [scval [vinfo]]
+
+Fields are enclosed like `<this>`. Optional fields are denoted like `[this]`.
+Spaces that appear in the command are literal, i.e. the <<_version>> command
+above uses spaces to separate its fields, but the command below does not:
+
+    C->S: accountlogin <name><password>
+
+As described in <<_messages>>, if a command contains data, then the command is
+separated from the data by a literal space.
+
+Many of the commands below refer to 'object tags'. Whenever
+the server creates an object, it creates a unique tag for that object
+(starting at 1 when the server is first run, and ever increasing.)  Tags are
+unique, but are not consistent between runs. Thus, the client can not store
+tags when it exits and hope to re-use them when it joins the server at a
+later time - tags are only valid for the current connection.
+
+The protocol commands are broken into various sections which based somewhat
+on what the commands are for (ie, item related commands, map commands, image
+commands, etc.)  In this way, all the commands related to similar
+functionality is in the same place.
+
+Initialization
+~~~~~~~~~~~~~~
+version
+^^^^^^^
+    C->S: version <csval> [scval [vinfo]]
+    S->C: version <csval> [scval [vinfo]]
+
+Used by the client and server to exchange which version of the Crossfire
+protocol they understand. Neither send this in response to the other - they
+should both send this shortly after a connection is established.
+
+csval:: int, version level of C->S communications
+
+scval:: int, version level of S->C communications
+
+vinfo:: string, that is purely for informative that general client/server info
+(ie, javaclient, x11client, winclient, sinix server, etc). It is purely of
+interest of server admins who can see what type of clients people are using.
+
+===== Version ID
+If a new command is added to the protocol in the C->S direction, then the
+version number in csval will get increased. Likewise, the same is true for
+the scval.
+
+The version are currently integers, in the form ABCD. A = 1, and will
+likely for quite a while. This will only really change if needed from
+rollover of B.
+
+B represents major protocol changes - if B mismatches, the clients will be
+totally unusable. Such an example would be change of map or item sending
+commands (either new commands or new format.)
+
+C represents more minor but still significant changes - clients might still
+work together, but some features that used to work may now fail due to the
+mismatch. An example may be a change in the meaning of some field in some
+command - providing the field is the same size, it still should be decoded
+properly, but the meaning won't be processed properly.
+
+D represents very minor changes or new commands. Things should work no
+worse if D does not match, however if they do match, some new features might
+be included. An example of the would be the C->S mark command to mark
+items. Server not understanding this just means that the server can not
+process it, and will ignore it.
+
+===== Handling
+As far as the client is concerned, its _scval_ must be at least equal to the
+server, and its _csval_ should not be newer than the server.
+
+The server does not care about the version command it receives right now -
+all it currently does is log mismatches. In theory, the server should keep
+track of what the client has, and adjust the commands it sends respectively
+in the S->C direction. The server is resilant enough that it won't crash
+with a version mismatch (however, client may end up sending commands that
+the server just ignores). It is really up to the client to enforce
+versioning and quit if the versions don't match.
+
+NOTE:  Since all packets have the length as the first 2 bytes, all that
+either the client or server needs to be able to do is look at the first
+string and see if it understands it. If not, it knows how many bytes it can
+skip. As such, exact version matches should not be necessary for proper
+operation - however, both the client and server needs to be coded to handle
+such cases.
+
+===== History
+_scval_ and _vinfo_ were added in version 1020. Before then, there was only
+one version sent in the version command.
+
+NOTE: For the most part, this has been obsoleted by the setup command
+which always return status and whether it understood the command or not.
+However there are still some cases where using this versioning is useful -
+an example it the addition of the requestinfo/replyinfo commands - the
+client wants to wait for acknowledge of all the replyinfo commands it has
+issued before sending the addme command. However, if the server doesn't
+understand these options, the client will never get a response. With the
+versioning, the client can look at the version and know if it should wait
+for a response or if the server will never send back.
+
+setup
+^^^^^
+    C->S, S->C: setup <option1> <value1> <option2> <value2> ...
+
+Sent by the client to request protocol option changes. This can be at any
+point during the life of a connection, but usually sent at least once right
+after the <<_version>> command.
+
+The server responds with a message in the same format confirming what
+configuration options were set. The server only sends a setup command in
+response to one from the client. The sc_version should be updated in the
+server if commands have been obsoleted such that old clients may not be able
+to play.
+
+option:: word, name of configuration option
+
+value:: word, value of configuration option. May need further parsing
+according to the setup options below
+
+===== Setup Options
+
+There are really 2 set of setup commands here:
+
+. Those that control preferences of the client (how big is the map,
+what faceset to use, etc).
+. Those that describe capabilities of the client (client supports
+this protocol command or that)
+
+.Setup Options
+[options="autowidth,header"]
+|===========================
+|Command|
+        Description
+
+|beat|
+        Ask the server to enable heartbeat support. When heartbeat is enabled,
+        the client must send the server a command every three seconds.
+
+        If no commands need to be sent, use the `beat` no-op command. Clients
+        that do not contact the server within the interval are assumed to have
+        a temporary connection failure.
+
+|bot (0/1 value)|
+	    If set to 1, the client will not be considered a player when
+	    updating information to the metaserver. This is to avoid having
+	    a server with many bots appear more crowded than others.
+
+|darkness (0/1 value)|
+	    If set to 1 (default), the server will send darkness information
+	    in the map protocol commands. If 0, the server will not
+	    include darkness, thus saving a minor amount of bandwidth.
+	    Since the client is free to ignore the darkness information,
+	    this does not allow the client to cheat. In the case of the
+	    old 'map' protocol command, turning darkness off will result
+	    in the masking faces not getting sent to the client.
+
+|extended_stats (0/1 value)|
+	   If set to 1, the server will send the CS_STAT_RACE_xxx and
+	   CS_STAT_BASE_xxx values too, so the client can display
+	   various status related to statistics. Default is 0.
+
+|facecache (0/1)|
+	    Determines if the client is caching images (1) or wants the
+	    images sent to it without caching them (0). Default is 0. This
+	    replaces the setfacemode command.
+
+|faceset (8 bit)|
+	    Faceset the client wishes to use. If the faceset is not
+	    valid, the server returns the faceset the client will be
+	    using (default 0).
+
+|loginmethod (8 bit)|
+        Client sends this to server to note login support. This is basically
+        used as a subset of the csversion/scversion to find out what level of
+        login support the server and client support. Current defined values:
+        0: no advanced support - only legacy login method
+        1: account based login (described more below)
+        2: new character creation support
+
+        This list may grow - for example, advanced character creation could
+        become a feature.
+
+|map2cmd: (1)|
+            This indicates client support for the map2 protocol command.
+	    See the map2 protocol details above for the main differences.
+        Obsolete: This is the only supported mode now, but many clients use
+        it as a sanity check for protocol versions, so the server still
+        replies. It doesn't do anything with the data
+
+|mapsize (int x) X (int y)|
+        Sets the map size to x X y. Note the spaces here are only for
+        clarity - there should be no spaces when actually sent (it
+        should be 11x11 or 25x25). The default map size unless changed
+        is 11x11. The minimum map size the server will allow is 9x9
+        (no technical reason this could be smaller, but I don't think
+        the game would be smaller). The maximum map size supported in the
+        current protocol is 63x63. However, each server can have its
+        maximum map size sent to most any value.
+
+        If the client sends an invalid mapsize command or a mapsize of 0x0,
+        the server will respond with a mapsize that is the maximum size the
+        server supports. Thus, if the client wants to know the maximum
+        map size, it can just do a 'mapsize 0x0' or 'mapsize' and it will
+        get the maximum size back.
+
+        The server will constrain the provided mapsize x & y to the configured
+        minumum and maximums. For example, if the maximum map size is 25x25,
+        the minimum map size is 9x9, and the client sends a 31x7 mapsize
+        request, the mapsize will be set to 25x9 and the server will send back
+        a mapsize 25x9 setup command.
+
+        When the values are valid, the server will send back a mapsize
+        XxY setup command. Note that this is from its parsed values,
+        so it may not match stringwise with what the client sent, but will
+        match 0 wise. For example, the client may send a 'mapsize 025X025'
+        command, in which case the server will respond with a
+        'mapsize 25x25' command - the data is functionally the same.
+
+        The server will send an updated map view when this command is sent.
+
+|notifications (int value)|
+      Value indicating what notifications the client accepts.
+      It is incremental, a value means "all notifications till this level".
+      The following levels are supported:
+       1: quest-related notifications ("addquest" and "updquest")
+       2: knowledge-related notifications ("addknowledge")
+       3: character status flags (overloaded, blind, ...)
+
+|num_look_objects (int value)|
+	    The maximum number of objects shown in the ground view. If more
+	    objects are present, fake objects are created for selecting the
+	    previous/next group of items. Defaults to 50 if not set. The server
+	    may adjust the given value to a suitable one; this applies to both
+	    the lower and the upper limit. Returned is the number of items
+	    actually used; this value can differ from the given one if it has
+	    been adjusted.
+	    Updated ground view will be sent to the client if the connection
+	    is for a player.
+
+	    Note: the requested int value is the total number of objects
+	    including fake objects (prev/next group and transport icons). The
+	    intention for this option is to enable clients to use a fixed
+	    number of slots for displaying ground view objects.
+
+|sound2 (bitmask)|
+            New sound support. Check above for more information.
+	    1=send sound effects
+	    2=send music
+	    64=mute sound; same as "sound" ncom command
+
+|spellmon (0/1/2)|
+	    If set to 1 the client has indicated that it wishes to be
+	    sent the spell list and updated when it changes.
+	    If set to 2, like 1 but with extra information (see "addspell").
+
+|tick (0/1)|
+	    If set, the client want tick commands so it knows animation
+	    timing.
+
+|want_pickup (0/1)|
+	    If set, the client wants to be informed of pickup mode changes.
+	    Mode will be sent when the player successfully logs in, and
+	    afterward any time the value is changed (for instance by the
+	    player through the direct use of 'pickup' command).
+	    The value is the same bit format the client sends through menus
+	    and such.
+|===========================
+
+===== Deprecated Setup Options
+The setup command is still in use, but over time, many options have become
+defaults. This documents those now obsolete values.
+
+[options="autowidth,header"]
+|===========================
+|Command|
+        Description
+
+|exp64|
+        If true, client can handle the 64 bit exp values that
+	    are now used. Otherwise, values are sent as 32 bit. Setting
+	    this flag also means that skill exp will be sent, and it will
+	    be sent in revised method as described in the stats command.
+	    Value is an integer in string format.
+	    Deprecated: This is always the default on servers with protocol version >=1028.
+
+|extendedMapInfos (0/1)|
+	    Toggle sending from server of extended map informations.
+	    What lies in this extended info depended on what extended
+	    infos the client asked. See toggleextendedinfos command for
+	    details.
+        Deprecated - server will always including smoothing information
+        in map2 data.
+
+|extendedTextInfos (0/1)|
+	    Toggle sending from server of extended text informations.
+	    What lies in this extended info depended on what extended
+	    infos the client asked. See toggleextendedtext command for details.
+        Deprecated - server will always use drawextinfo
+
+|inscribe (0/1)|
+	    Client will probably always send 1. Server will reply with 1 if it
+	    supports the 'inscribe' command, 0 else.
+        Deprecated - client should presume all servers support this
+
+|newmapcmd (0/1)|
+	    This tells the server if the client understands the newmap
+	    protocol command. This is used by the client in the fog
+	    of war mode to receive newmap commands from the server each time
+	    the player changes maps.
+        Deprecated - server will assume clients support newmapcmd
+
+|sound (bitmask)|
+	    Obsolete, server will return FALSE.
+        Deprecated - replaced with sound2 setup command.
+|===========================
+
+
+General
+~~~~~~~
+failure
+^^^^^^^
+    S->C: failure <command> <reason>
+
+This command is used to denote failure in some way (as detailed in failure
+string) of a protocol command. This does not mean that there was an error
+in the protocol (which typically results in a command being dropped), but
+rather that the server was unable to complete the given protocol request.
+
+command:: word, the command (just the command name) that generated the
+failure.
+
+reason:: string, is a message which notes the failure - it will be displayed
+to the player, so should be informative to the player so they can take
+corrective action (omit illegal characters from their username, etc). See
+_Failure Reasons_ below
+
+As of this writing (Jan 2010), this is used only in the account login code -
+if the user enters incorrect login information, it will generate a failure
+message.
+
+The use of this protocol command, and it including the protocol command
+which failed, better informs the client it needs to retry. For example, if
+the user enters wrong account information, the server will send `failure
+accountlogin wrong user name or password`. With this, the client can
+display the message in the correct location, but also knows it needs to go
+back to the point of asking for login information. draw_info provides no
+mechanism to tell the client to retry an event.
+
+This command is really meant for areas where the client is interacting with
+the users. This command is not especially good in cases where the client
+has sent several protocol commands of the same type - this command will only
+tell that a command of that name failed, but may not include enough
+information to note which of several commands failed.
+
+===== Failure Reasons
+Note that the format of message, while text data, can contain other
+information. In particular, some messages may have the first 'word' be a
+number which denotes some type of status - this will be detailed in the
+protocol area for that command. For example:
+
+    failure accountaddplayer 0 That name is too long
+    failure accountaddplayer 1 That character is associated with another account
+
+The client should intercept that number and not display it, but this may
+indicate that the command is retriable by changing a parameter - in the case
+of accountaddplayer, if force is set, the second message there is not an
+error.
+
+accountlogin and accountnew
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+(requires <<_setup>> `loginmethod 2`)
+
+    C->S: accountlogin <name><password>
+    C->S: accountnew <name><password>
+
+name:: lstring, account name
+
+password:: lstring, password
+
+Under new login support (loginmethod >=1) the client will query the user for
+account information - this sends that information to the server. In the
+first place, the user is trying to log in with an established account, in
+the second, the user is trying to create a new account.
+
+It is up to the client to determine what is trying to be done - in general,
+this means that player should be hitting a 'new account' type button or a
+the like. It is up to the client to do double confirmation of passwords,
+etc.
+
+If this command is successful, the server sends the <<_accountplayers>> command.
+If it fails, it sends the <<_failure>> command.
+
+accountplayers
+^^^^^^^^^^^^^^
+(requires <<_setup>> `loginmethod 2`)
+
+    S->C: accountplayers <num characters><char data1><char data2>...
+
+[options="autowidth,header"]
+|===========================
+|Field|
+    Description
+
+|<num characters>|
+    8 bit binary value noting how many characters on this account. It may be
+    zero.
+
+|<char data>|
+    length prefixed data on character. The ACL_...  values in newclient.h
+    define these. The format of each data value is:
+
+    <len><type><value>
+
+    <len> is an 8 bit value which is the length of type + value - in this way,
+    the client can skip over the entire field in cases where it does not know
+    the type.  If len is 0, it notes that there is no more information for
+    this character.
+
+    <type> is an 8 bit value which is an ACL_ type value.
+
+|<value>|
+    type specific - if a string value, it is just a string value. If binary,
+    its length can be determined. Except for noted values, all value types are
+    strings. Exceptions:
+
+    ACL_LEVEL:: is a 16 bit binary value.
+    ACL_FACE_NUM:: is a 16 bit binary value.
+|===========================
+
+NOTE: There is no requirement that the server sends all fields (may choose
+to not send empty fields.) Likewise, there is no requirement they get sent
+in a specific order.
+
+This is a list of the players (characters) associated with this account. In
+the case of new accounts, the num characters will be zero.
+
+This is sent after the server receives a successful login or accountnew
+request. The client can thus use the receipt of this command, even if
+empty, to note that the user has logged in.
+
+accountplay
+^^^^^^^^^^^
+(requires <<_setup>> `loginmethod 2`)
+
+    C->S: accountplay <name>
+
+name:: string, name of character to play
+
+Play character of the given name. This must be one of the character names
+returned by the accountplayers command - otherwise it will generate an
+failure protocol command. On choosing a character, the game will log in and
+play will start.
+
+Upon receipt of this command, the server will do necessary setup to start
+play. This removes the need for the <<_addme>> command below.
+
+
+accountaddplayer
+^^^^^^^^^^^^^^^^
+(requires <<_setup>> `loginmethod 2`)
+
+    C->S: accountaddplayer <force> <char name> <char password>
+
+<force> - 8 bit binary data to force this association (see description
+      below. This is not an optional field - it must always be sent.)
+
+<char name> length prefixed string of the character name.
+
+<char password> length prefixed string of the characters password.
+
+Add a character to the logged in account. Both the name and password are
+needed. In the event that the given character is already associated with an
+account (and not this one), a failure message will be generated unless force
+is on.
+
+The flow in that case would be user enter name/password and hitting submit,
+client sends to server, server sends failure event to client saying
+character is already associated with account, client asks player if he wants
+to override that setting, and if they hit yes, command is then sent with
+force set to 1.
+
+On success, the server will send a new accountplayers command, with all
+characters for this account. On failure, a failure message will be
+generated.
+
+The failure message for accountaddplayer does include the optional integer
+parameter - if 0, the command is not retriable - if set to 1, then this
+account may succeed if force is set.
+
+createplayer
+^^^^^^^^^^^^
+    C->S: createplayer <name><password>
+
+The player wants to make a new player - this is done on the client -
+this basically tells the server to send the client information regarding
+making new characters (races, classes, etc).
+
+Loginmethod 1 supports following:
+<name>: Length prefixed string - desired character name.
+<password>: Length prefixed string - password
+
+Loginmethod 2 adds the following (each of these blocks are length
+prefixed so the server can easily skip lines). To make processing
+simpler, the null byte is included in the processing here.
+
+   race <race arch name>
+   class <class arch name>
+   <statname> <statvalue> (eg, Str 18)
+   starting_map <map arch>
+   choice <choice name> <choice value>
+
+The client should query the player for these values through some method.
+The statvalues that are sent are the values _before_ race and class
+adjustments.
+
+The <map arch> for starting_map is the value of INFO_MAP_ARCH_NAME as
+returned by the 'startingmap' requestinfo.
+
+The choice values are included in the race/class information as retrieved by
+requestinfo. If the server is providing choices, it must also accept them
+in return.
+
+createplayer can return failure in case of invalid name, name already in
+use, invalid race or class, stat value at of range, sum of stats too high,
+etc.etc.
+
+NOTE: Expected that this command will expand with new character creation
+method.
+
+accountpw
+^^^^^^^^^
+    C->S: accountpw <current account password><new account password>
+    S->C: failure accountpw <message>
+
+<current account password> is a length prefixed string of the current
+password.
+
+<account password> is a length prefixed string of the new password.
+
+Tells the server to change the password for the current account. A failure
+message is generated if something is wrong. If all goes well the server will
+send the character list for the account.
+
+addme
+^^^^^
+    C->S: addme
+
+Tells the server that it should add me (the client) to the game.
+Generally, the client will always send this command, but I suppose there
+can be actions the client wants to do before being added.
+
+Deprecated - this has been superseded by the accountplay command.
+
+    S->C: addme_failed
+    S->C: addme_success
+
+This are responses to the last addme command. I really think these should
+be discontinued, as they are one of the few messages which is just a
+confirmation of a previous message. The addme_failed should really be
+replaced with a terminate type of of message (player quits game, server
+could inform us nicely and exit out). addme_success is really of no use -
+client just throws it away.
+
+NOTE: With account based login method, server will send the addme_success in
+certain circumstances - this is really to tell the client that play has
+started and hide any login/character selection information. However the
+note above still applies - addme_failed could get replaced by a 'failure
+addme ...' type response, and there is probably some use for having a
+'success' type protocol response to tell the client that something has
+worked - right now, this is done by the client seeing the next message in a
+protocol state (eg, accountplayers follows an accountlogin request)
+
+goodbye
+^^^^^^^
+    S->C: goodbye (Added in SC protocol version 1022)
+
+Informs the client that the server has finished transmitting data to the
+client. This is a bit cleaner than the client detecting a read error. In
+theory, a C->S of the same type could be done, but I don't think it would
+make a big difference for the server (is going to do the same thing
+regardless of a clean connection drop or a bad one).
+
+Info Window Input/Output
+~~~~~~~~~~~~~~~~~~~~~~~~
+ncom
+^^^^
+    C->S: ncom <packet><repeat><command>
+
+New COMmand
+
+packet:: int16, a value the server will send back in <<_comc>> to inform the
+client of execution of this command. It is up to the client to determine how
+it wants to number these, but incrementing by one is the easiest way.
+
+repeat:: int32, repeat value, or a count value used for instance for dropping.
+
+command:: string, the actual command
+
+Client sends a command to the server. Ordinary commands (ie, north, west,
+apply, maps, etc), might be sent, commands with options may be sent (ie,
+'invoke create food of booze', 'cast medium fireball'). There are a few
+special commands that can also be sent.
+
+'fire' command is a special case. The server will handle repeat firing.
+
+'fire_stop' will be sent to inform the server to stop firing. A different
+command name has been chosen to make things easier on the server
+('fire_stop' should be a 0 time command, with the rest of the fire commands
+actually taking some time.)  In some cases, 'fire_stop' may be sent almost
+immediately after the first fire (in cases where the player only wants to
+fire once).
+
+comc
+^^^^
+    S->C: comc <packet><time>
+
+Confirm COMmand Completion
+
+packet:: int16, the same number that was sent in the _packet_ field of the
+<<_ncom>> command, used to confirm the completion of this command
+
+time:: int32, This is used in the window of the ncom command above.  how many
+milliseconds the player is currently taking to execute commands. This
+information can be used by the client to do some throttling.
+
+query
+^^^^^
+    S->C: query <flags> [text]
+
+Asks the client program for input. This is only used in a few places - mostly
+in creating a character and login with `loginmethod 0`, but in fact anyplace
+in the server that changes the input state (pl->contr->state, ST_*), should
+send a query.
+
+flags:: int, detailed in `newclient.h`. The flags of relevance to this command
+are the CS_QUERY flags. The client is free to ignore the flags. However, if
+the server just wants a single character as a reply, that is all it uses, even
+if the client sends a long string (Server will use the first character.)
+
+text:: string, optional prompt to the user. As of 0.94.2, this may contain
+multiple lines separated by the newline character.
+
+reply
+^^^^^
+    C->S: reply <text>
+
+text:: string, client's response to the server's last <<_query>>
+
+drawextinfo
+^^^^^^^^^^^
+    S->C: drawextinfo <color> <type> <subtype> message
+
+color:: int, color to draw text in
+
+type:: int, type of message
+
+subtype:: int, subtype (flavor) of message
+
+message:: string, message
+
+Tell the client to draw specific text. Color are specified in `newclient.h`,
+and is sent as a string (look for `NDI` values). The client is free to do
+whatever it wants with the color information (it may very well ignore it.) The
+list of types and subtypes is fully listed in the `newclient.h` file - look
+for the `MSG_TYPE` fields. The subtypes of a given type are listed with longer
+macro definition.
+
+It is up to the client on how it wants to display the different message
+types - it may have a nice graphic to display certain messages, route them
+to certain windows, change color, etc.
+
+Item Manipulation
+~~~~~~~~~~~~~~~~~
+move
+^^^^
+    C->S: move <to> <tag> <nrof>
+
+Move items from one place to another.
+
+to:: int, tag of destination object
+
+tag:: int, tag of object to move
+
+nrof:: int, number of objects to move, or 0 for all objects
+
+This can be used to transfer items from a container to the inventory and vice
+versa. A _to_ or_tag_ of zero represents the ground, and can be used to pick
+up or drop items to/from the ground.
+
+examine
+^^^^^^^
+    C->S: examine <val>
+
+Examine the object with the given tag.
+
+val:: int, tag of object to examine
+
+apply
+^^^^^
+    C->S: apply <val>
+
+Apply the object with the given tag.
+
+val:: int, tag of object to apply
+
+lock
+^^^^
+    C->S: lock <val><tag>
+
+val:: int8, 0=unlock, 1=lock
+
+tag:: int32, tag of object to lock/unlock
+
+Set/unset the inventory lock flag for the given object. The server should send
+an <<_upditem>> command with new flags to reflect this change.
+
+mark
+^^^^
+    C->S: mark <tag>
+
+mark an item for secondary usage.
+
+tag:: int32, tag of item to mark
+
+Some actions in Crossfire require an action that uses another item
+(improvement scrolls, flint & steel). In order not to rely on inventory
+ordering or other gimmicks, this marked item is used. Only one item can be
+marked at a time; the server will only keep track of the latest mark sent.
+The server will generally send a drawinfo command informing the player, but
+there is no easy way for the client to know what the marked item is (although,
+client knowing this is not strictly needed)
+
+inscribe
+^^^^^^^^
+    C->S: inscribe <version><spell><scroll>
+
+version:: int8, version of inscribe command. The only supported value is 0.
+
+spell:: int32, tag of spell object to write.
+
+scroll:: int32, tag of the scroll to write the spell onto
+
+Write a spell on a scroll. Roughly equivalent to manually marking an item,
+readying the spell, and using the inscription skill.
+
+item2
+^^^^^
+    S->C: item2 <location><tag1><flags1><weight1><face1><name1><anim1>
+	<animspeed1><nrof1><type1><object2>...
+
+Note that multiple items can be sent with a single item2 command - there is
+only 1 location for all items, so all items have to be in the same spot, but
+in the case of a players inventory, a single item2 with a large number of
+items can be sent.
+
+location:: int32, Location of the object. A value of 0 is special, meaning the
+floor under the player. Any other value is a tag of where the object is, which
+may be the <<_player>> object or a container.
+
+tag:: int32, tag for this object. The server will use this command to note
+that objects have moved locations, so the client should examine all objects it
+knows about for this tag - it should not assume this is a new item.
+
+flags:: int32, Various flags on the item (curse, applied, etc) detailed in
+`newclient.h`
+
+weight:: int32, The weight of a single one of these objects, in grams. The
+client will need to figure the total weight by multiplying by _nrof_. Note
+that for containers, weight will be the total weight (that of the container
+plus contents). Can be negative (not pick-able)
+
+face:: int32, face number of a previously sent <<_face2>> command.
+
+name:: lstring, name of the object. Starting at SC 1024, this name is two
+strings, with a null separation. The first of these strings is the singular
+form, the second is the name to use for multiple (plural version) The first
+byte (length) is the length for both of these strings. This name information
+is just the information of what the object is called. It does not include how
+many of the items there are.
+
+anim:: int16, animation sequence ID from a previous <<_anim>> command
+
+animspeed:: int8, how often the object should be animated, in ticks (1 means
+it should be animated every tick). 1 byte limits this to once every 255 ticks,
+I can't see anything being animated slower than that.
+
+nrof:: int32, number of objects in this stack
+
+type:: int16, client type, a numeric type ID to help the client sort similar
+items together. The client is free to ignore this.
+
+upditem
+^^^^^^^
+    S->C: upditem <flag><tag><data>
+
+Update one field of an existing item.
+
+flag:: int8, determines which field of the item to update (see the `UPD_`
+flags in `newclient.h`)
+
+tag:: int32, tag of object
+
+data:: depends on the _flag_, see the fields in the <<_item2>> command
+
+Only one item can be updated with the upditem command. An item command should
+have been sent by the server before an upditem command is set.
+
+delitem
+^^^^^^^
+    S->C: delitem <tag1>[tag2]...
+
+Tells the client to delete items with the tag values. These items are
+considered gone from the game, so the client should delete all reference it
+has to them.
+
+tag:: int32, tags of the items to delete. Multiple tags can be sent to delete
+multiple items, but as of this writing (Jan 2010), the server only ever sends
+a single tag
+
+delinv
+^^^^^^
+    S->C delinv <tag>
+
+tag:: int, tells the client to delete items carried in/by the object _tag_. If
+0, delete all items on the space the character is standing on.
+
+This command only affects the inventory of the object. To fully delete a
+container object, a _delinv_ followed by a <<_delitem>> should be issued.
+
+Spells
+~~~~~~
+
+addspell
+^^^^^^^^
+    S->C addspell <tag1> <level1> <casting time1> <mana1> <grace1> <damage1>
+    <skill> <path1> <name1> <display name1> <message1> <usage information>
+    <requirements> <spell2 ....>
+
+Tells the client to add the spell(s) listed to the list of spells
+the client knows about. This will be sent at login, and again whenever
+new spells are sent.
+
+[options="autowidth,header"]
+|===========================
+|Field|
+    Description
+
+|<tag> (4 bytes - int)|
+    The ID number for the spell item. This is going to be unique, for each
+    spell and will be used to refer to it henceforth. The string form of this
+    should also be appended to the cast/invoke commands in order to cast the
+    spell.
+
+|<level> (2 bytes, signed int)|
+    The level of the spell.
+
+|<casting time> (2 bytes, signed int)|
+    The time it will take to cast the spell, in server ticks.
+
+|<mana> (2 bytes, signed int)|
+    The mana cost to cast the spell (may be zero)
+
+|<grace> (2 bytes, signed int)|
+    The grace cost to cast the spell (may be zero)
+
+|<damage> (2 bytes, signed int)|
+    The current damage done by the spell. Note that the meaning of this number
+    is to a large part spell dependent, what damage it actually does will
+    depend on how the spell works.
+
+|<skill> (1 byte, unsigned int)|
+    The skill that the spell uses to be cast, if zero, no skill is used in the
+    casting of this spell.  The numbers are the same as for requestinfo
+    skill_info
+
+|<path> (4 bytes, unsigned int)|
+    The path that the spell belongs to.  The client should determine the
+    effect of this by comparing these values to both the spell_paths
+    requestinfo data and the stats info concerning attunement/repulsion, etc.
+
+|<face> (4 bytes, signed int)|
+    The number of the face that corresponds to the spell, the client can
+    request this facenumber if they want to show a graphical spell
+    representation.
+
+|<name> (1 (non-zero)|
+    length byte, followed by that many bytes of ASCII text) This is a name to
+    identify the spell, which the client can use for display purposes, it
+    should /NOT/ be used with the 'cast' command, whilst it might work, no
+    such guarantee is made by the server. - Use tag instead.
+
+|<message>|
+    (2 length bytes (which may be zero) followed by that many bytes of ASCII
+    text) The description of the spell. Note that this has an extra length
+    byte because the messages may well be longer than 256 bytes in length.
+
+|<usage information> (1 byte)|
+    Only sent if 'spellmon 2' was setup by the client.
+    Values are:
+    - 0: spell needs no argument.
+    - 1: spell needs the name of another spell.
+    - 2: spell can use a freeform string argument.
+    - 3: spell requires a freeform string argument.
+
+|<requirements> (1 byte of length, then that many bytes of ASCII text)|
+    Only sent if 'spellmon 2' was setup by the client.
+    If the spell required items to be cast, then this is the list of
+    those items. Comma-separated, potential number of items, singular
+    names (like the ingredients for alchemy).
+|===========================
+
+updspell
+^^^^^^^^
+    S->C updspell <flags><tag><vals>+
+
+<flags> 1 byte binary. Values include in this update. Uses the UPD_SP_.. from
+'newclient.h'
+
+<tag> 4 byte binary. Tag of the spell.
+
+This updates some spell (of tag) with new values. The flags are 1 byte and
+determine which values have been updated, and should be re-read.  Not all
+fields may be updated by this command, only those that can be changed.
+
+If new fields are added in future, they will extend the flags bitmask and the
+order will remain the LSB order of the flags - that is, the value associated
+with bit 1 set is sent first, then bit 2, etc.
+
+The format of the values is same as the `addspell` command above.
+
+Only one spell can be updated with the `updspell` command. A spell command
+should have been sent by the server before an `updspell` command is set.
+
+delspell
+^^^^^^^^
+    S->C delspell <tag>
+
+<tag> 4 byte binary data.
+
+Tells the client to remove its information about the spell. Tag is a 4 byte
+value, the same as the one sent when the spell was added.
+
+Knowledge/Quests
+~~~~~~~~~~~~~~~~
+addquest
+^^^^^^^^
+    S->C addquest <code1><title><face><replay><parent><end><step><code2>...
+
+Tells the client to add the quest(s) listed to the list of quests the player
+is doing. This will be sent at login, and again whenever new quests are
+started, if notifications is 1 or greater.
+
+code:: int32, a unique quest ID
+
+title:: l2string, the quest title
+
+face:: int32, a face with a quest icon
+
+replay:: int8, if 1, the quest is replayable, otherwise 0
+
+parent:: int32, quest ID of the parent quest, or 0 if this quest is a
+top-level quest
+
+end:: int8, if 1, the quest is complete
+
+step:: l2string, the description of the current quest step
+
+updquest
+^^^^^^^^
+    S->C updquest <code><end><step>
+
+<code> - (4 bytes - unsigned int) The ID number for the quest item.
+
+<end> (1 byte, unsigned int) If 1, the quest was completed.
+
+<step> (2 bytes length, unsigned int, then string of specified length) The
+current step's description, can be an empty string (length 0).
+
+This updates some quest (of tag) with new values, if notifications is 1 or
+greater.
+
+Only one quest can be updated with the `updquest` command. A `addquest`
+command should have been sent by the server before an `updquest` command is
+set with the same ID.
+
+addknowledge
+^^^^^^^^^^^^
+    S->C addknowledge <code1> <type> <title> <face> <code2 ...>
+
+Tells the client to add the knowledge item(s) listed to the list of things
+the player knows. This will be sent at login, and again whenever
+new knowledge is learnt, if 'notifications' is 2 or greater.
+
+<code> - (4 bytes - unsigned int) The ID number for the knowledge item. This
+is going to be unique, for each knowledge and will be used to refer to it
+henceforth. It is the same number the player sees with the 'knowledge'
+commands.
+
+<type> (2 bytes length, unsigned int, then string of specified length) The
+knowledge's type, as defined in the knowledge_info reply.
+
+<title> (2 bytes length, unsigned int, then string of specified length) The
+knowledge title.
+
+<face>  (4 bytes, signed int) The number of the face that corresponds to the
+knowledge item, which will be sent before this packet if needed.
+
+Player Object and Stats
+~~~~~~~~~~~~~~~~~~~~~~~
+player
+^^^^^^
+Identifies the player object to the client.
+
+    S->C: player <tag><weight><face><name>
+
+For field documentation, see the <<_item2>> command.
+
+stats
+^^^^^
+    S->C: stats <stat1><val1><stat2><val2>...
+
+Update the given statistics. Multiple stats can be sent in one command.
+
+stat:: int8, one of the `CS_STAT` values from `newclient.h`
+
+val:: variable-length binary data depending on the _stat_. int16 except for
+the following fields:
+
+** weight limit: int32
+
+** speed, weapon_sp: int32. This is a float converted to an integer by
+   multiplying by `FLOAT_MULTI`. The client needs to divide by `FLOAT_MULTI`
+   to get it back to a float.
+
+** range, title: lstring
+
+** experience: If `CS_STAT_EXP64` is sent, int64 experience value. 64 bit is
+   the only option now - 32 bit exp is no longer sent.
+
+** skill experience: int64
+
+** spellpaths: int32, only sent if `spellmon` is set in <<_setup>>.  The
+   `CS_STAT_RACE_xxx` and `CS_STAT_BASE_xxx` are only sent if
+   `extended_stats` was used in setup.
+
+Image Information
+~~~~~~~~~~~~~~~~~
+anim
+^^^^
+    S->C: anim <num><flags><face1><face2>...
+
+<num> 2 byte binary data. animation number we are defining.  The server will
+only send the anim command for a particular <num> once per run - the client
+needs to keep track what has been sent. On new runs, anim commands will be
+resent.
+
+
+<flags> 2 byte binary data. Currently unused, but is included because I think
+there may end up being cases were more about the animation than just the num
+and faces are needed.
+
+<face1>... 2 byte binary data. This is the various faces that comprise the
+animation sequence. The number of faces can be determined by checking the
+length of the packet. These values correspond in the same way as all
+references to face do.
+
+This command informs the client of an animation sequence. The client is
+responsible for animating the objects in the inventory window, and upditem and
+other items command will refer to the animation number with num above. All
+values are 2 byte binary values.
+
+Note that how fast the object is animated is contained in the item commands.
+
+image2
+^^^^^^
+    S->C: image2 <face><set><len><data>
+
+<face> 4 byte binary data - face number.
+<set> 1 byte binary data. Which faceset the image belongs to.
+<len> 4 byte binary data. Length of face data.
+<data> Binary data - actual face (png) information.
+
+Sends a png version of an image to the client.
+
+face2
+^^^^^
+    S->C: face2 <num><setnum><checksum><name>
+
+num:: int16, face number
+
+setnum:: int8, the set that the face belongs to
+
+checksum:: int32, checksum of face data
+
+name:: string name of face
+
+Informs the client that image <num> of faceset <setnum> is associated with
+<name>. This is used when the client is caching images. In normal operation,
+when the server runs across a face that it hasn't sent the client, it sends a
+png for that face. If the face mode is none, the server then sends this
+command. The client can then check to see if it might have cached this face,
+and if not, should then request it from the server. Note that the num to name
+mappings can change between server and different runs of the server. For this
+reason, this data needs to be sent each time it is run. The client should be
+able to load/determine what face to load via the name.
+
+These are not guaranteed to be the same across
+different runs of the game (however, in reality, they will only change on the
+one server if they make changes to the archetypes and rebuild.) Some face
+information will be sent from the server to the client before actually sending
+a face number.
+
+askface
+^^^^^^^
+    C->S: askface <num>
+
+<num> string of integer value.
+
+Requests that the server send the client face <num>. The server will
+use values from setup to determine what faceset to send.
+
+smooth
+^^^^^^
+    S->C: smooth <face><smoothpic>
+
+<face> 2 byte binary data - face number
+<smoothpic> 2 byte binary data. Face to use for smoothing.
+
+This command informs the client on how to smooth an image.  Following are the
+facenbr of the picture involved in the smoothing algorithm. See doc on
+smoothing on how to use them.  The server will send this to the client just
+like it sends faces, but client can also make explicit requests.
+
+asksmooth
+^^^^^^^^^
+    C->S: asksmooth <face>
+
+<face> string of integer value.
+
+Ask server to send a smooth sequence. Server will respond with a
+smooth command. <facenbr> is an integer telling server which face
+we want smooth information on.
+
+Map Update
+~~~~~~~~~~
+map2
+^^^^
+This replaces the old `map` command. It is meant to be extensible and
+incorporate the ideas of the extended map info command.
+
+    S->C map2 <coord1>[<type1>[<data>]...]<coord2>...
+
+coord:: int16, consisting of, from MSB to LSB:
+* 6 bits: _x_ coordinate
+* 6 bits: _y_ coordinate
+** Both coordinates are offset by `MAP2_COORD_OFFSET` (currently 15)
+from their actual value on the client map, i.e. (14, 14) represents (-1, -1).
+** This is necessary because there may be effects noticeable to the player such
+as light sources that to outside the visible map.
+* 4 bits: Type
+** 0 tile data. One or more _type_ fields follow for this coordinate.
+** 1 instructs the client to scroll the map by _x_ and _y_. This replaces the
+   old <<_mapscroll>> command. The next _coord_ follows immediately.
+
+type:: int8, present only if the previous _coord_ was for tile data. If it is
+equal to the termination byte 255, end data for the last _coord_. The next
+field should be a different _coord_. Otherwise, this consists of (from MSB to
+LSB):
+
+* 3 bits: Number of bytes that follow, or (only for SC >= 1030) 7. 0 indicates
+  no additional bytes, i.e.  all the relevant information is included in the
+  type. For SC >= 1030: If it is 7 (all bits set), then the next byte contains
+  a 1-byte length field that denotes the actual number of bytes that follow
+  (and the 7 should be ignored).
+
+* 5 bits: Type, which is one of:
+** 0x0: Clear: Clear this tile because it is no longer visible. The client may
+   opt to keep the data for rendering a fog of war. Length in this case should
+   also be zero, as there is no data that follows.
+
+** 0x1: Darkness: the following int8 contains tile darkness data. 0 is
+   completely dark and 255 is fully lit. Note that 0 will never be sent - if
+   the space is completely dark, players won't be able to see it.
+
+** (SC >= 1030) 0x2: Label, a textual label that describes the tile, e.g. a
+   place name, sign label, or player name. This must be sent with the 3-bit
+   length field set to 7 (all bits set). The data consists of:
+
+       <len><subtype><label>
+
+   *** len: _int8_, actual length of message, including 1-byte subtype, 1-byte label
+   prefix, and actual label text
+
+   *** subtype: _int8_, extra data about the type of label. The client can use
+   this to color the text or display it differently.
+
+   **** 0: None (clear labels from this tile, see below)
+   **** 1: Player
+   **** 2: Player in the same party
+   **** 3: DM
+   **** 4: NPC
+   **** 5: Sign
+   **** 6: Say message
+   **** 7: Chat message
+
+   *** label: _lstring_, the label text. Note that the length prefix is still
+   required even though it equals _len - 2_.
+
+   Labels are not attached to any layer. Multiple labels may be present on one
+   tile. All labels on a tile are sent at once within a coord block, i.e. if a
+   client receives a label, it should first clear all existing labels on that
+   tile.
+
+** 0x3 - 0xf: Reserved for future extensions.
+
+** 0x10 - 0x19: Image information. Layer 0x10 is the lowest, 0x19 is the
+   highest.
+
+data:: _N_ bytes of data, where _N_ is determined by the length bits in the
+previous _type_ field. For the encoding, see <<_layer_encoding>> below.
+
+===== Layer Encoding
+This encodes layer image data for one layer of one tile on the map. The
+encoding of this field depends on _N_:
+
+* 2: <face>
+* 3: <face>[<smooth>|<animspeed>]
+* 4: <face><animspeed><smooth>
+
+face:: int16, the face number or animation.
+
+- If 0, then this layer is no longer visible and the smooth and animation
+  information should be cleared.
+
+- If the high bit is set, then this is an animation. The type of animation is
+  denoted by the next two most significant bits:
+
+** 0: Normal animation - start at first phase, etc.
+** 1: Randomize - randomize the animation phase & timing.
+** 2: Synchronize - this animation should be in the same phase as other
+    animations with the same id. Used for things like oceans.
+
+- In the 3-byte encoding, a _smooth_ follows a regular face while a
+  _animspeed_ follows an animation. 
+
+smooth:: int8, smoothing information
+
+animspeed:: int8, How long, in ticks, between animations. 1 means it should be
+animated every tick. Like <<_item2>>
+
+===== Notes
+
+Coordinates outside the viewable map may be sent. In these cases, it means
+that a big image that extends onto the viewable map is on that space. For big
+images, only the bottom right coordinate is sent - this is why it may be off
+the viewable coordinates. For such spaces, only the actual big image itself
+will be sent for that space.
+
+Note that all operations are considered updates to the space (eg, new image,
+new light level, etc). The exception would be the clear command, which means
+clear all data with the space.
+
+Note that while not used now, order of these subpackets is important.  A clear
+(0x00) followed by other data should be parsed in that order - clear the data,
+then process the data. In contrast, sending data followed by a clear byte
+makes no sense. This functionality will likely be used in the future - for
+example, if 6 layers need to be cleared and the other 2 remain the same, it
+will be more efficient to send that clear byte followed by the 2 layers to
+redisplay instead of sending 6 layers with an empty face..
+
+Relative to the map1/map1a commands, this is more bandwidth intensive -
+basically, an additional byte is needed for each piece of data sent.  Thus, on
+a 25x25 map, if we presume 1.5 objects/space, this is an extra 940 bytes to
+send. OTOH, typically the entire map is not being sent - only those bits that
+change, so this may not be as costly as that.
+
+If the player is using smoothing, this may actually save bytes, as the
+redundant coordinates and type/length information does not need to be sent.
+With the map2 command, the mapextend command is deprecated and is not used.
+
+General design notes:  For data types that vary in length because of optional
+data, the required data should be sent first, followed by optional data if
+appropriate. An example of this is the face information - we send the 2 face
+bytes first, then follow that with optional data (smoothing and/or animation
+data). This makes parsing on the client easier - basically, the client should
+be able to parse the data a byte (or pairing at a time).
+
+tick
+^^^^
+    S->C: tick <tickno>
+
+<tickno> 4 byte binary data (unsigned)
+
+This just tells the client what the current tick is. Right now, the client
+only uses this to know when to animate the images that the client is
+responsible for animating. This will only be sent if negotiated with the setup
+command.
+
+newmap
+^^^^^^
+    S->C: newmap
+
+This tells the client to clear the map state. Used when player is moving
+between maps to invalidate all map state information in the client.
+
+magicmap
+^^^^^^^^
+    S->C: magicmap <width> <height> <px> <py> <data>
+
+<width> <height> string of integer values - width & height of magicmap
+
+<px> <py> string of integer values. Players position on magic map.
+
+<data> binary data - one byte per space. Low nibble contains color
+information, high nibble contains FACE_FLOOR and FACE_WALL (see newclient.h)
+to denote nature of object on that space. This string of data represents the
+space from left to right, then up to down.
+
+Sound
+~~~~~
+sound2
+^^^^^^
+    S->C: sound2 <x><y><dir><volume><type><action><name>
+
+Plays a sound. See the 'doc/Developers/sound' document for more information.
+
+x, y:: int8, location of the sound relative to the player
+
+dir:: int8, direction the sound is moving, using the standard direction map
+(values 0 through 8).
+
+volume:: int8, sound volume, limited between 1-100
+
+type:: int8, major sound type
+
+action:: lstring, sound subtype
+
+name:: lstring, name of the source of the sound, typically object name, but in
+the case of player generated sounds, will be the race of the player
+
+music
+^^^^^
+    S->C: music <song>
+
+Change background music. This song data is set in a map property.
+
+song:: string, name of sound to play, or "NONE" to stop any music from playing
+
+Miscellaneous
+~~~~~~~~~~~~~
+beat
+^^^^
+(requires <<_setup>> `beat`)
+
+    C->S: beat
+
+Inform the server that the client is still connected.
+
+lookat
+^^^^^^
+    C->S: lookat <dx> <dy>
+
+Look at the given relative coordinate.
+
+dx, dy:: int, a coordinate offset from the player object representing the
+position to look at. (0, 0) is the same tile as the player
+
+This is only a request to the server. A response will typically come back in
+drawinfo commands.
+
+requestinfo and replyinfo
+^^^^^^^^^^^^^^^^^^^^^^^^^
+This section describes the requestinfo and replyinfo commands.
+Because these commands may handle different types of data with different
+return formats, this section is formatted a bit differently to make
+it easier to read the different structures.
+
+    C->S: requestinfo <info_type> [options]
+    S->C: replyinfo <info_type> [options] <data>
+
+<info_type> is a string value, describing what information is wanted/sent
+[options] is string data - specific to the type of data.
+<data> is the actual data. The format of this data will vary based on
+what the info_type is.
+
+The requestinfo command is a general purpose way for the client to request
+some piece of data the server may have. The server still needs to be
+coded to respond to the specific info_type, but if the passed info_type is
+not supported, the server will still respond with the replyinfo, but with
+an empty data list.
+
+This mechanism allows the client to send requests for data and not need to
+do complicated checking if the server would understand the specific
+request - if the server understands it, the data gets sent back. If the
+server doesn't understand it, the client gets no data, but does get the
+replyinfo so that it knows that the server does not support that
+particular aspect.
+
+Only one info_type is allowed for each requestinfo. If the client
+requests many pieces of information (say image sets available, spell
+listings, etc), it should send multiple requestinfos.
+
+[options] is specific to the info_type - it could be a range of values, or
+empty.
+
+Requestinfo requests will not change any data on the server - the setup
+command should be used for that. The requestinfo just requests data.
+Note that since the requests can be made before a player logs in, the
+requestinfo command will not generally support getting information related
+to the player object.
+
+As a general rule, the information returned is static - if the
+client makes a second requestinfo with same parameters during the
+same session, it will get the same data back. Thus, the client
+can safely cache the data instead of making multiple requests.
+There could be rare cases where information changes (eg, server
+admin is updating the new file), but these would be rare and
+generally are not something that needs to be designed for.
+
+.Supported Info Types
+[options="autowidth,header"]
+|===========================
+|Type|
+        Description
+
+|image_info (no options)|
+         Request basic image information the server has. The data is
+         sent in text format - the replyinfo is newline terminated.
+         Since the packet length is sent in the header, that is used
+         to figure out the length of returned data.
+
+         Line 1: The last image number the server has. Note that
+         there is no image 0, so this also amounts to the number of
+         images if you start counting from one.
+
+         Line 2: checksum of all the image name information. This can
+         basically be used to determine if the number to name mapping
+         is the same, eg, if on server 1 the total is 123456, and the
+         player goes to server 2 and the total is the same, we can say
+         with a high degree of confidence that the name to number
+         mappings are the name. If instead the numbers differ, we
+         know we can't rely on using the same mappings.
+
+         Line 3+:The image set information the client has. The format
+         is the same as the format in the image_info file, sans
+         comments. The server will ignore any parameters the client
+         sends.
+
+         An example response:
+
+         replyinfo image_info
+         3512
+         1169234
+         0:base:standard:0:32x32:none:The standard image set.
+         1:clsc:classic:0:32x32:none:Classic and new styling.
+
+
+|image_sums <start> <stop>|
+    	Request the image number to name (and checksum) values - in
+      	this way, the client can build all images before play starts
+      	and also request any missing images. The returned data is
+
+       	image_sums <start> <stop> <imagenum><checksum><faceset><namelength><name>
+
+      	There is an initial space after the stop value, but no spaces
+       	after that point. The <start> and <stop> values are ASCII
+       	text (same format as it is sent to the server in). The start
+       	and stop values are inclusive - thus, if the start is 0 and
+       	the stop is 100, 101 checksums will be set.
+
+        imagenum is 16 bit binary data.
+        checksum is 32 bit binary data. It contains the checksum for
+             the image in the current selected set, and will use whatever
+             fallback logic the imagesets specify.
+        faceset is 8 bit binary data. It contains the actually selected
+             faceset.
+        namelength is 8 bit binary data. It is the length of the
+            name field below, including the null terminator.
+        name is character data. It is null terminated to make processing
+            easier - in this way, the client doesn't need to copy the data
+            to make it null terminated.
+
+        Note that due to possible OS system constraints on the maximum
+        single write supported to a socket, the complete set can not
+        be requested at once - instead, the images information should
+        be requested in blocks of less than 1000. The server will not
+        process a block larger than 1000 at a time. Smaller blocks
+        may be desired if the client wants to try to reduce the
+        potential lag caused.
+
+        Multiple requests for all the information can be sent at once,
+        as the server will buffer the response data, but constraints
+        prevent the server from sending the entire data back in one
+        replyinfo (one being that the data would be beyond 65535
+        bytes, so the length information in the packet would not be
+        accurate.)
+
+        If the client sends invalid data (stop is less than start,
+        missing stop parameter, stop is beyond the number of images,
+        or asking for more than 1000 at a time), the reply will just
+        be an empty list.
+
+        Note that the server will track that it has sent the face
+        information for the requested images, and thus will not send
+        it again (unless requested via requestinfo). Thus, this
+        request should always do the right thing with the returned
+        information.
+
+|exp_table|
+        This requests the experience table (what exp is needed for
+	    each level) from the server. With this data, the client can
+	    easily display how much experience is needed for the different
+	    skills or total exp value for next level. Data format:
+
+	    <num_levels>: uint16 - max level/how many exp values follow.
+        <level1> ... <level num_levels>: uint64 - amount of exp needed
+            for the level.
+
+       	Note that num_levels and the actual exp values are transmitted
+        as binary values.
+
+|knowledge_info|
+      This returns the list of knowledge types the server uses.
+      One item per line, in the format:
+        type:display name:face number:attempt
+
+      'type' and 'display name' are strings.
+      'attempt' is 0 if the knowledge type isn't alchemy-like, 1 if it can be 'attempted'.
+
+      The first line will always contain empty types and names, to indicate the
+      face of the 'generic' type.
+
+|skill_info (empty or '1')|
+
+    	This returns the skill number to skill name mappings. In this
+       	way, new skills can be added in the server, and the client can
+       	use this new skill information with no changes to the code.
+
+        All data below is in text format. If the additional value is empty then format is:
+
+        stat number:skill name
+
+        else format is
+
+        stat number:skill name:face number
+
+        Where stat number is the number that will be used to send
+        that skill information. Example:
+        141:lockpicking
+        142:hiding
+        143:smithery
+
+|skill_extra (optional level)|
+
+        This returns extra information about skills, in a binary format.
+        "level" should be 1 for the current version, and may be increased later when other
+        information is added.
+
+        For each skill, the following fields are sent:
+          <skill number>: uint16, same value as returned by skill_info
+          <description length>: uint16, length of the next field
+          <skill description>: string, description of the skill. It may contain newlines
+
+        The list ends when <skill number> is 0.
+
+|spell_paths|
+
+        This returns a list of all spell paths in the game, along with
+        the number associated with them. This should be used to parse
+        spell_path data in the stats command. The number is a bitmask
+        but is sent as a decimal value.
+
+      	All data is sent in text format. Format is:
+
+        number:name
+
+        eg
+
+        16:missiles
+
+|race_list|
+        Returns the races players can choose.
+        The names can be used to request more information with race_info.
+        Reply format is: replyinfo race_list :race1:race2:...:racen
+
+        Note that the names returned are archetype names, and thus not
+        really suitable to display to the player.
+
+|race_info|
+        Returns information about specified playable race (one from
+        race_list above). Format is:
+
+        name <namelen><namedata>
+
+        msg <desc len><description>
+
+        stats <statno1><adj1><statno2><adj2>....0
+
+        choice <len><choice name><len><choice description>
+             <len>arch name<len>arch_desc(repeat arch)0
+
+        name is the name that the player sees (data returned by
+        race_list above is archetype name). It is a length
+        prefixed string.
+
+        stats is a literal string value, and what follows are binary
+        statno and adjustment values. statno uses the CS_STAT value
+        that is used by the stats command, and the type of adjustment
+        matches that for stats (eg, if statno1 is a 32 bit type, a 32
+        bit type will be used here). Any/all of the CS_STAT types
+        could be sent, but in general only a subset will be sent. The
+        server will only send stats which are not zero, so the client
+        should assume all stats that are not sent have a zero value. 0
+        is used for a statno to denote there are no more stats.
+
+        description is a text description. It is length prefixed (2
+        bytes) to allow for possible expansion (with it having a known
+        length, additional fields could be set to follow the
+        description. NOTE: The length parameter here is unusual in
+        that most strings use only an 8 bit length value, but for
+        messages that would not be long enough, hence the 16 bit value.
+
+        choice is a choice of values to present the player for character
+        creation - it is a choice of one of many archetypes - it could
+        be skill, ability, or potentially even choice of items. All
+        of the field in the choice are 1 byte length prefixed, since
+        they may contain spaces. An example values (where : would
+        be the length value - : is used to improve readability):
+
+        choice :race_choice_1:Choose a racial skill:
+            skill_smithery:Smithery:skill_jeweler:jeweler0
+
+        When the client replies in the create player, it would include
+        the choice name and archetype name, eg:
+
+        choice race_choice_1 skill_smithery
+
+        This makes it easier for the server to check the returned values -
+        if it is a racial skill, it knows to check the race, if a class
+        skill, it checks the class, etc.
+
+        There is currently no way to do something like 'choose 2 out of
+        4 skills' - however, this could be done by using multiple choice
+        (choice race_choice_1 ... choice race_choice_2 ...)
+
+        For the choice command, all the passed values come in pairs -
+        choice name/choice description, arch_name/arch_description
+
+        Note that the race archetype name will be included in the replyinfo
+        header, eg, 'replyinfo race_info dwarf_pl'.
+
+        Note also that the order of the fields here is not fixed - the
+        server could send them in 'stats, msg, name' order - the
+        client should be able to handle any order. Note also that it
+        is conceivable that the server will send multiple stats
+        command if new stats are to be sent - in this way, the client
+        can process as much as possible, and then stop processing once it gets
+        something it does not understand.
+
+|class_list|
+
+|class_info <class name>|
+        The format of the data returned is exactly the same as for the
+        race_.. command of the same name - the only difference is this
+        is class information.
+
+|startingmap|
+        Sends data about starting map choices to the client. Format is:
+
+        <type><length><data>
+
+        <type> is a single byte binary - the INFO_MAP values define this.
+
+        <length> is a 2 byte binary - length of following data. This is
+                two bytes because some of the string data that can be
+                sent here will be beyond 255 that a single byte can handle.
+
+        <data> is actual data - as of now, this is all text data (name,
+                description, etc), but could potentially be binary data
+                (face number)
+
+        A single map info command will contain information on all the maps.
+        Once the client gets an INFO_MAP_ARCH_NAME, all following map information
+        that follows is for that map until the next INFO_MAP_ARCH_NAME is found
+        or the end of the packet is reached.
+
+|newcharinfo|
+        This sends information to the client for creating a new character through
+        the 'createplayer' command. The information sent multiple length prefixed
+        strings - each string corresponds to an entire line/variable set.
+
+        The idea behind this is that new types/options for character creation
+        can get added without needing to rewrite the entire protocol commands
+        or increase the protocol version - the client requests this information
+        and see if it understands all the data the server wants. If so, it
+        can then create a character.
+
+        While this setup looks fairly complicated, the simplest way
+        for the client to handle it is to just make sure it
+        understands all the variables present (ignoring type) and it
+        gets all the ones it expects, and if it doesn't, just throw up
+        an error that client needs to be updated in order to create a
+        character on that server. One reason for the extra complexity
+        here (instead of just making a set of assumptions that are
+        fixed in the protocol) is that lots of discussions have gone
+        on about character creation changes, so this allows for many
+        of them.
+
+        <type> <variable name> <values>
+
+            type is a single character which denotes the type of data
+            that is in this line, currently values are:
+
+            R: required - needed value in the createplayer command.
+
+            O: optional - if not present in createplayer, server can fill in
+                 some default value. If a client does not understand
+                 an Optional type but understands all the other types,
+                 it could still create the character.
+
+            V: values - this contains some values which are used in character
+                creation but may not be sent back in the actual
+                createplayer command. An example here is the number of
+                points the player has to spend on stats - the client
+                does not send that back, but rather sends the actual
+                stat values during the createplayer command, but it
+                needs this value to do so.
+
+            I: Informational - some piece of information that the
+                client should communicate to the player. An example
+                here could be a requestinfo that is related to class
+                or race choices for new characters - one may not want
+                to put it in the news since it is only relevant for
+                people creating new characters.
+
+        <variable name> name of variable - race, class, map, etc are
+            all possible names. The only constraint on name is that
+            it can not contain any spaces.
+
+            Short description of variables currently supported:
+
+            points: How many total points the character has to spend -
+                at current time these are just used for stats, but
+                possible in future they could get used for other
+                things.
+
+            race, class: Notes that race and class information need to
+                be sent to the server. This is a fixed assumption
+                now, but if at some point someone wanted to remove
+                either races or classes (or both) and reduce the
+                number of choices, this provides a mechanism to do so.
+
+            statrange: The minimum and maximum value for a stat.
+
+            statname: The name of the different statistics. Like race
+                & class above, this is a fixed assumption now, but if
+                a stat was to get removed, or a new one added, this
+                provides a mechanism for the client to know it.
+
+            startingmap: Provide choice of starting maps for the player.
+                List of maps is provided through the 'startingmap'
+                requestinfo command.
+
+        <values> value tends to be specific to the variable itself.
+            In general, the client will need to be able to parse each
+            required and value variable - if it is unable to do so, it
+            is likely it will not be able to properly generate a
+            character. requestinfo is used for some variables to note
+            that a requestinfo protocol command should be used to
+            retrieve additional data. Note that the client will have
+            to have support for that requestinfo command, and still
+            has know the actual mapping of variable name to
+            requestinfo name. In the case of race and class, it would
+            have to do the race_list/class_list, and when it gets the
+            response from that would then have to know to do the
+            race_info/class_info
+
+        Below is a sample for first set of supported values (note in
+        the actual protocol, each of these lines is prefixed by a
+        single length byte). Note that all values should be
+        considered case insensitive. Each line is also null
+        terminated by the server.
+
+        V points 200
+        V statrange 1 20
+        V statname Str Dex Con Wis Cha Int Pow
+        R race requestinfo
+        R class requestinfo
+
+        Possible future extensions (these are provided as an example):
+
+        V statpointcosts 0 1 2 3 4 ....
+
+          : If different stat points have different costs (nonlinear) this can
+          be used to return a list of the costs. Instead of values, this could
+          also point to a requestinfo.
+
+        O skill skill1 skill2 ...
+          If at some point the player can choose some of the skills for their
+          character, this would be used.
+
+|news/rules/motd|
+        Send the news/rules/motd file information to the client. This
+        is mainly useful as a way for the client to easily capture
+        this information instead of getting it from drawinfo commands.
+        This is most useful in that the client can more easily choose
+        where to display this information. The sent data is null terminated
+        to make string handling easier on the client.
+|===========================
+
+Deprecated Commands
+~~~~~~~~~~~~~~~~~~~
+These are no longer used in latest versions of the server and client, but a
+client that wants to play on older servers should continue to implement them.
+
+The reasons for them being deprecated is noted - in most cases it is because
+they have been replaced by a newer command, or have become de facto defaults.
+
+drawinfo
+^^^^^^^^
+    S->C: drawinfo <color> <text>
+
+Tell the client to draw whatever text in color. Replaced with
+<<_drawextinfo>>.
+
+color:: int, color code from `newclient.h` The client is free to do whatever
+it wants with the color information (which may very well mean ignore it.)
+
+text:: string, the message
+
+toggleextendedtext
+^^^^^^^^^^^^^^^^^^
+    C->S: toggleextendedtext <type>...
+
+Deprecated: Server will use <<_drawextinfo>> for all types, so
+requesting this type information is no longer needed.
+
+Ask the server to send extended text information for a given type.
+type is a list of decimal integers.
+
+ExtendedTextSet
+^^^^^^^^^^^^^^^
+    S->C: ExtendedTextSet <type1> <type2> .... <typen>
+
+Deprecated: Server will use <<_drawextinfo>> for all types, so
+requesting this type information is no longer needed.
+
+Tell client what actually are the extended infos server may
+send to the client when this is needed. All those infos will
+be related to the map and send through mapextended command.
+Each string represent an info which is enabled. Look
+at toggleextendedinfos and drawextinfo for details.
+
+setfacemode
+^^^^^^^^^^^
+    C->S: setfacemode <val>
+
+Deprecated: Only one facemode (PNG) is supported. Client uses setup
+to request caching (or not)
+
+This tells the server what type of display mode the client is using.
+<val> is a plaintext integer. 0=no faces, 1=bitmap, 2=xpm (pixmap).
+3=png (added in CS version 1022)
+If the 5'th bit is true (ie, 0x10 & val is true), that then informs
+the server that client is caching the images, and only send image
+names.
+
+toggleextendedinfos
+^^^^^^^^^^^^^^^^^^^
+    C->S: toggleextendedinfos <string1> <string2> .... <stringn>
+
+Deprecated: Rolled into <<_map2>> command, which is standard.
+
+Ask the server to send some additional information about the map.
+This command is followed by 1 or more strings. String are separated
+with spaces. Each string toggle an info. The server will respond
+with the command <<_ExtendedInfoSet>> telling client what actual
+extended infos will be send to the client.
+Valid extended infos are as follow:
+    smooth
+        send smoothlevel information to the client.
+
+ExtendedInfoSet
+^^^^^^^^^^^^^^^
+    S->C: ExtendedInfoSet <string1> <string2> .... <stringn>
+          Deprecated: Rolled into map2 protocol command, which is standard.
+
+Tell client what actually are the extended infos server may
+send to the client when this is needed. All those infos will
+be related to the map and send through mapextended command.
+Each string represent an info which is enabled. Look
+at toggleextendedinfos and mapextended for details.
+
+setsound
+^^^^^^^^
+    C->S: setsound <val>
+
+Deprecated: Replaced with <<_setup>> options
+
+sound
+^^^^^
+    S->C: sound <x><y><num><type>
+
+Deprecated: Replaced by <<_sound2>>
+
+map_scroll
+^^^^^^^^^^
+    S->C: map_scroll <dx> <dy>
+
+<dx><dy> string of integer value.
+
+This tells the client to scroll the map dx and dy direction. dx and dy will
+typically be -1, 0, or 1, depending on how the player moved.  <dx> and <dy>
+are sent as plaintext. positive values are down and to the right respectively,
+negative values are opposite.
+
+No longer sent, as this data is part of <<_map2>>.
+
+mapredraw
+^^^^^^^^^
+    C->S: mapredraw
+
+Requests that the server resend the entire map to the client - can be useful
+if the client or client player knows that the map is out of date/corrupted.
+Note that the server is not required to honor this command, and currently
+just ignores it.
+
+
+Programming Notes
+-----------------
+These are a few quick notes on how things work. Note that they really
+only apply to the code in the standard distribution, most of the direct
+i/o is handled by functions that are talked about. If writing a client
+from scratch, you will need to port this over (or write your own - it
+isn't very complicated.)
+
+For the server and the C client, a SockList structure is used for basic
+data handling. Basically, this is just a structure that has an unsigned
+character buffer and a length field (which contains the length of data in
+the buffer, not the actual buffer length.)
+
+As a side note, when sending a packet, you can supply the length of the
+data and the sending routines will take care of sending the 2 bytes of
+length information.
+
+When getting a packet, these 2 bytes are at the start of the buffer and
+not removed.
+
+In the client, there is a file called newsocket.c - except for the
+SockList data type, it could probably be used by itself. The
+newsocket.c file contains some routines to pack ints, shorts, and
+single chars into SockList structs, as well as functions for the
+reverse. It also contains a function to send socklists, as well as
+read them. The Add??? functions increase the len field of the
+socklist, the Get??? functions do not change the pointer in anyway.
+Thus, to get an int and move the buffer, you do something like:
+
+   int = GetIntString(data); data+=4
+
+As a side note, if you malloc the data for the buffer, make sure to free
+it when done.
+
+There is also the newclient.h file which is shared between the client and
+server. This file contains the definition of the SockList, as well as
+many defined values for constants of varying means (ie, that in the
+stats command, a stat value of 1 is hit points, etc.)  When porting to
+a new system, you will need to grab these constant values for yourself.
+Many of the constants in this file are used in the protocol to denote
+types.
+
+Image Caching
+~~~~~~~~~~~~~
+Image caching has been implemented on the client, with necessary server
+support to handle it. This section will briefly describe how image
+caching works on the protocol level, as well as how the current client does
+it.
+
+First, the client checks for an option denoting the image caching
+is desired. If so, we initialize all the images to a default value - this
+means we don't need to put special checks into the drawing code to see if
+we have an image - we just draw the default images (I use a question mark
+pixmap, since that makes it very easy to see what stuff is cached.)  We
+also initialize an array which will hold the number to name mapping so
+that when we actually get the image, we know what filename to store it
+as.
+
+Second, we request the server to do image caching. This is done
+by or-ing the cache directive to the image mode we want.
+
+    C->S: setup facecache 1
+
+Then, when the server finds an image number that it has not send to the
+client, it sends us a name command information us the number to name mapping:
+
+    S->C: face2 65 1 5264 CSword.115
+
+Note that this is not exactly how the data is sent - the numbers are
+actually sent in binary form, and there is no space between that the
+and the name. Such formating is difficult here, but the above example
+illustrates the data is sent.
+
+The client then checks for the existence of the image locally. It is
+up to the client to organize images appropriately (based on name,
+faceset, etc). The current client stores images in
+~/.crossfire/images, and then splits them into sub directories based
+on the first 2 letters - in the above example, the file would be
+~/.crossfire/images/CS/CSword.115
+
+If the client does not have the image or otherwise needs a copy from the
+server, it then requests it:
+
+    C->S: askface 65
+
+The server will then send the image via image2 protocol commands.
+
+    S->C:  image2 <face><set><len><data>
+
+Because image2 does not include the image name, the client must store
+the name & number mapping someplace before sending the askface. In
+the C client, this is done by using an array of character pointers, so
+then in position 65, we do a strdup of the name, store it, then use it
+when the pixmap/bitmap command comes in, and free that data.
+
+Also, the client does occasional redraws of all data if it has received
+new images and is running in cached mode. Otherwise, the map can remain
+out of date indefinitely (although, once the player moves, things will get
+redrawn.)
+
+This has the effect that first time running in cached mode, performance
+will actually be a little bit worse for the client (after all, it needs
+to still request all the images, but is still doing pretty constant redraws
+of the data.)  But times after that, performance is greatly improved.
+
+Changes
+-------
+This area documents changes in the protocol version and what happened between
+them. Note that this is not a complete list, as the setup command
+is used to control many cases.:
+
+Client
+~~~~~~
+CS version 1022 -> 1023: just to sync version with server
+
+CS version 1021 -> 1022: Client supports sending of verbal image type
+questions.
+
+Server
+~~~~~~
+SC version 1022 -> 1023: Server supports sending png images (addition of
+image command).
+
+SC version 1023 -> 1024: Server will send two part names (described in
+item command) which contains the singular & plural form of the name)
+
+SC version 1024 -> 1025: Support for sending all resistance
+values in the stats command.
+
+SC version 1025 -> 1026: Add face1 command that includes the image
+checksum.
+
+SC version 1026 -> 1027: Add requestinfo/replyinfo commands - client
+can check this to know if it should expect a replyinfo to its requestinfo.
+
+SC version 1027 -> 1028: mostly remove obsolete commands:
+ image, face, face1, map, map1, map1a, command
+
+SC version 1028 -> 1029: Changes the way weapon_speed is reported for
+  the player - version 1028 needed the client to divide weapon speed
+  by player speed to get actual value, version 1029 just reports weapon
+  speed as it should be displayed.
+
+SC version 1029 -> 1030: Clarify the additive length byte in the map2 command
+type field and add map text label support. This was needed because some
+clients did not correctly handle the additive length byte for map2 types that
+they did not support.
+
+Todo
+----
+It probably makes more sense to do a more preemptive handling of socket
+events. That is, instead of sleeping 120 ms, then checking all the
+sockets, we do a select on all the file descriptors with an appropriate
+sleep time.
+
+If we get input, we handle it at that time if the player has an action. In
+this way, instead of handling all the actions after sleeping for the 120ms,
+we can instead spread them out more. Only when the 120ms expire do we
+then do all the actions like move the monsters, regenerate HP, etc.
+
+The only potential problem I see with this right now is that select will
+return immediately if there is data on the socket (player has used up all
+their time, are paralyzed, etc.)  This would probably mean that the server
+needs to do internal buffering, which complicates things some. The
+potential advantage with this is that we could peek at the data, and
+if the command is not a player action (ie, maybe requesting an image, or
+a misc command like who), we could still execute it. Actually, we can
+get around the select problem by only adding the file descriptors from
+sockets that actually have time to perform actions.
