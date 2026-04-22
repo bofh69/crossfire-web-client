@@ -1457,3 +1457,45 @@ export function mapdata_debug_bigface(ax: number, ay: number): string[] {
 
     return lines;
 }
+
+/**
+ * Return a human-readable dump of all currently active bigface entries.
+ * Each entry in `activeBigfaces` corresponds to one multi-tile face whose
+ * head is outside the server's view area (stored in bigfaces[] rather than
+ * cells[]).  Returns an array of lines suitable for logging.
+ */
+export function mapdata_debug_all_bigfaces(): string[] {
+    const lines: string[] = [];
+    lines.push(`Active bigfaces: ${activeBigfaces.size} entr${activeBigfaces.size === 1 ? 'y' : 'ies'}`);
+    lines.push(`  pl_pos=(${pl_pos.x}, ${pl_pos.y}) view=${viewWidth}x${viewHeight}`);
+
+    if (activeBigfaces.size === 0) {
+        lines.push("  (none)");
+        return lines;
+    }
+
+    let index = 0;
+    for (const bc of activeBigfaces) {
+        const ax = pl_pos.x + bc.x;
+        const ay = pl_pos.y + bc.y;
+        lines.push(
+            `  [${index}] view=(${bc.x}, ${bc.y}) abs=(${ax}, ${ay})` +
+            ` layer=${bc.layer} face=${bc.head.face} size=${bc.head.sizeX}x${bc.head.sizeY}`,
+        );
+        // List which in-view cells this bigface covers as tails.
+        for (let dx = 0; dx < bc.head.sizeX; dx++) {
+            for (let dy = dx === 0 ? 1 : 0; dy < bc.head.sizeY; dy++) {
+                const tvx = bc.x - dx;
+                const tvy = bc.y - dy;
+                if (tvx >= 0 && tvx < viewWidth && tvy >= 0 && tvy < viewHeight) {
+                    const tax = ax - dx;
+                    const tay = ay - dy;
+                    lines.push(`    tail covers view=(${tvx}, ${tvy}) abs=(${tax}, ${tay}) offset=(${dx}, ${dy})`);
+                }
+            }
+        }
+        index++;
+    }
+
+    return lines;
+}

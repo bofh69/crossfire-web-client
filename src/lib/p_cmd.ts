@@ -10,7 +10,7 @@ import { resetBindings } from "./keys";
 import { getCpl } from "./init";
 import { gameEvents } from "./events";
 import { perfLogging, setPerfLogging, getWatchedCell, clearWatchedCell, setWatchedCell } from "./debug";
-import { mapdata_debug_tile, mapdata_debug_bigface } from "./mapdata";
+import { mapdata_debug_tile, mapdata_debug_bigface, mapdata_debug_all_bigfaces } from "./mapdata";
 
 // ---------------------------------------------------------------------------
 // Internal state
@@ -200,6 +200,11 @@ function commandDebug(args: string): void {
         debugPickAndLog('tile',
             "Click a tile on the map to inspect tile data…",
             mapdata_debug_tile);
+    } else if (sub === "bigfaces") {
+        for (const line of mapdata_debug_all_bigfaces()) {
+            LOG(LogLevel.Info, 'debug', line);
+        }
+        drawInfo("All active bigface data logged to the browser console.");
     } else if (sub === "watch") {
         const current = getWatchedCell();
         if (current !== null) {
@@ -216,7 +221,7 @@ function commandDebug(args: string): void {
                     { ax, ay },
                     (event) => LOG(LogLevel.Info, 'debug:watch', `(${ax},${ay}) ${event}`),
                 );
-                drawInfo(`Now watching cell at absolute (${ax}, ${ay}). Run /debug watch again to stop.`);
+                drawInfo(`Now watching cell at absolute (${ax}, ${ay}). Run debug watch again to stop.`);
             });
             gameEvents.emit('debugPickTile', 'tile');
         }
@@ -226,6 +231,7 @@ function commandDebug(args: string): void {
             "Subcommands:\n" +
             "  perf      Toggle performance logging on/off\n" +
             "  bigface   Click a tile to log bigface/multitile info\n" +
+            "  bigfaces  Log all currently active bigface entries to the console\n" +
             "  tile      Click a tile to log all tile info\n" +
             "  watch     Pick a tile to watch; logs all server updates to it (run again to stop)");
     }
@@ -277,11 +283,12 @@ const builtinCommands: ConsoleCommand[] = [
     {
         name: "debug",
         category: CommCat.Debug,
-        description: "Debugging tools (perf, bigface, tile, watch)",
+        description: "Debugging tools (perf, bigface, bigfaces, tile, watch)",
         longDescription:
             "Syntax:\n" +
             "  debug perf      Toggle periodic performance logging on/off\n" +
             "  debug bigface   Click a tile to log bigface/multitile info to the console\n" +
+            "  debug bigfaces  Log all currently active bigface entries to the console\n" +
             "  debug tile      Click a tile to log all tile data to the console\n" +
             "  debug watch     Click a tile to start watching; every server update to that\n" +
             "                  cell is logged at info level.  Run again to stop watching.\n" +
