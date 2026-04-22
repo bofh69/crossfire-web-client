@@ -1467,20 +1467,30 @@ export function mapdata_debug_bigface(ax: number, ay: number): string[] {
  * Return a human-readable dump of all currently active bigface entries.
  * This includes:
  *   - Entries in `activeBigfaces` (multi-tile faces whose head is OUTSIDE
- *     the server viewport, stored in bigfaces[]).
+ *     the server viewport on the right/bottom edge, stored in bigfaces[]).
  *   - Multi-tile heads found in cells[] (sizeX > 1 or sizeY > 1) for faces
- *     whose head is inside the server viewport.
+ *     whose head is within the server viewport or just outside its top/left
+ *     edge (up to MAX_FACE_SIZE-1 tiles before the visible area).
  * Returns an array of lines suitable for logging.
  */
 export function mapdata_debug_all_bigfaces(): string[] {
     const lines: string[] = [];
     lines.push(`  pl_pos=(${pl_pos.x}, ${pl_pos.y}) view=${viewWidth}x${viewHeight}`);
 
-    // --- Section 1: in-viewport bigfaces stored in cells[] ---
+    // --- Section 1: bigfaces stored in cells[] ---
+    // Scan from -(MAX_FACE_SIZE-1) to capture heads sitting just outside the
+    // top/left viewport edge (negative view-relative coords) as well as those
+    // inside the visible area.
+    const scanMin = -(MAX_FACE_SIZE - 1);
     const cellsBigfaces: Array<{ vx: number; vy: number; layer: number; face: number; sizeX: number; sizeY: number }> = [];
-    for (let vx = 0; vx < viewWidth; vx++) {
-        for (let vy = 0; vy < viewHeight; vy++) {
-            const cell = cellAt(pl_pos.x + vx, pl_pos.y + vy);
+    for (let vx = scanMin; vx < viewWidth; vx++) {
+        for (let vy = scanMin; vy < viewHeight; vy++) {
+            const ax = pl_pos.x + vx;
+            const ay = pl_pos.y + vy;
+            if (ax < 0 || ax >= mapWidth || ay < 0 || ay >= mapHeight) {
+                continue;
+            }
+            const cell = cellAt(ax, ay);
             for (let layer = 0; layer < MAXLAYERS; layer++) {
                 const h = cell.heads[layer]!;
                 if (h.face !== 0 && (h.sizeX > 1 || h.sizeY > 1)) {
@@ -1490,7 +1500,7 @@ export function mapdata_debug_all_bigfaces(): string[] {
         }
     }
 
-    lines.push(`In-viewport bigfaces (cells[]): ${cellsBigfaces.length} entr${cellsBigfaces.length === 1 ? 'y' : 'ies'}`);
+    lines.push(`Bigfaces in cells[] (view coords ${scanMin}..${viewWidth - 1}, ${scanMin}..${viewHeight - 1}): ${cellsBigfaces.length} entr${cellsBigfaces.length === 1 ? 'y' : 'ies'}`);
     if (cellsBigfaces.length === 0) {
         lines.push("  (none)");
     }
