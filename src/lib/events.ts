@@ -42,6 +42,8 @@ export interface GameEventMap {
   version:         [csVersion: number, scVersion: number, versionString: string];
   disconnect:      [];
   replyInfo:       [infoType: string, text: string];
+  /** Emitted when the server confirms heartbeat support via `setup beat 1`. */
+  beatEnabled:     [];
 
   // UI-internal events (component-to-component communication)
   /** Ask the InfoPanel to focus its command input field. */
