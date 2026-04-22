@@ -1,7 +1,9 @@
 <script lang="ts">
   import { tick, onMount } from 'svelte';
   import { clientSendApply, clientSendExamine, clientSendMove } from '../lib/player';
-  import { toggleLocked, locateItem, sendMarkObj } from '../lib/item';
+  import { toggleLocked, locateItem, sendMarkObj, sendInscribe } from '../lib/item';
+  import { spells } from '../lib/commands';
+  import type { Spell } from '../lib/protocol';
   import { getFaceUrl } from '../lib/image';
   import { getCpl } from '../lib/init';
   import type { Item } from '../lib/protocol';
@@ -33,6 +35,7 @@
   let fadeTimer: ReturnType<typeof setTimeout> | null = null;
   let itemCount = $state(0);
   let showSlotPicker = $state(false);
+  let showInscribeMenu = $state(false);
 
   /** Milliseconds after the cursor leaves the context menu before it closes. */
   const MENU_FADE_MS = 2000;
@@ -165,6 +168,7 @@
     clearFadeTimer();
     menuFading = false;
     showSlotPicker = false;
+    showInscribeMenu = false;
     // Place the menu so the cursor sits slightly inside the top-left corner.
     contextMenu = { x: e.clientX - 8, y: e.clientY - 8, item, isGround };
   }
@@ -181,10 +185,24 @@
     menuFading = false;
     contextMenu = null;
     showSlotPicker = false;
+    showInscribeMenu = false;
   }
 
   function handleAddToHotbar(_item: FlatItem) {
     showSlotPicker = true;
+  }
+
+  /** Show the spell submenu for inscribing onto this scroll. */
+  function handleInscribe(_item: FlatItem) {
+    showSlotPicker = false;
+    showInscribeMenu = true;
+  }
+
+  /** Send the inscribe command for the chosen spell onto the current item. */
+  function handleInscribeSpell(spell: Spell) {
+    if (!contextMenu) return;
+    sendInscribe(spell.tag, contextMenu.item.tag);
+    closeContextMenu();
   }
 
   function handleSlotSelected(index: number) {
@@ -348,6 +366,22 @@
           onclick={() => contextMenu && handleMark(contextMenu.item)}
           oncontextmenu={(e) => { e.preventDefault(); contextMenu && handleMark(contextMenu.item); }}
         >Mark</button>
+        {#if spells.length > 0}
+          <button
+            onclick={() => contextMenu && handleInscribe(contextMenu.item)}
+            oncontextmenu={(e) => { e.preventDefault(); contextMenu && handleInscribe(contextMenu.item); }}
+          >Inscribe…</button>
+          {#if showInscribeMenu}
+            <div class="submenu">
+              {#each spells as spell (spell.tag)}
+                <button
+                  onclick={() => handleInscribeSpell(spell)}
+                  oncontextmenu={(e) => { e.preventDefault(); handleInscribeSpell(spell); }}
+                >{spell.name}</button>
+              {/each}
+            </div>
+          {/if}
+        {/if}
         <button
           onclick={() => contextMenu && handleAddToHotbar(contextMenu.item)}
           oncontextmenu={(e) => { e.preventDefault(); contextMenu && handleAddToHotbar(contextMenu.item); }}
@@ -523,5 +557,18 @@
 
   .context-menu button:hover {
     background: var(--border-mid);
+  }
+
+  .submenu {
+    display: flex;
+    flex-direction: column;
+    border-top: 1px solid var(--border-mid);
+    max-height: 14rem;
+    overflow-y: auto;
+  }
+
+  .submenu button {
+    padding-left: 1.6rem;
+    font-style: italic;
   }
 </style>
