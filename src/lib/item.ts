@@ -612,6 +612,23 @@ export function sendMarkObj(op: Item): void {
     csocket.send(sl);
 }
 
+/**
+ * Send an "inscribe" command to write a spell onto a scroll.
+ *
+ * @param spellTag  Tag of the spell object to inscribe.
+ * @param scrollTag Tag of the scroll to write the spell onto.
+ */
+export function sendInscribe(spellTag: number, scrollTag: number): void {
+    if (!csocket) return;
+
+    const sl = new SockList();
+    sl.addString("inscribe ");
+    sl.addChar(0);       // version: only supported value is 0
+    sl.addInt(spellTag);
+    sl.addInt(scrollTag);
+    csocket.send(sl);
+}
+
 // ──────────────────────────────────────────────────────────────────────────────
 // Root item accessors
 // ──────────────────────────────────────────────────────────────────────────────

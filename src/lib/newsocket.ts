@@ -169,6 +169,8 @@ export class CrossfireSocket {
   commandReceived: number = 0;
   /** Human-readable server name / identifier. */
   serverName: string = "";
+  /** Timestamp (ms) of the most recent outgoing send, initialised to 0. */
+  lastSentAt: number = 0;
 
   /** Called when a complete packet arrives. `data` is the raw packet payload. */
   onPacket: ((data: Uint8Array) => void) | null = null;
@@ -239,6 +241,7 @@ export class CrossfireSocket {
     // Log the outgoing binary packet as a text preview (first 64 bytes decoded).
     const preview = new TextDecoder().decode(data.subarray(0, Math.min(64, data.length)));
     LOG(LogLevel.Debug, 'CrossfireSocket', `[TX binary ${data.length}B] ${preview}`);
+    this.lastSentAt = Date.now();
     this.ws.send(data);
     this.commandSent++;
   }
@@ -255,6 +258,7 @@ export class CrossfireSocket {
     }
     LOG(LogLevel.Debug, 'CrossfireSocket', `[TX] ${cmd}`);
     const encoded = new TextEncoder().encode(cmd);
+    this.lastSentAt = Date.now();
     this.ws.send(encoded);
     this.commandSent++;
   }

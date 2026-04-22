@@ -22,6 +22,50 @@ import { LOG } from "./misc";
 
 let csocket: CrossfireSocket | null = null;
 
+// ── Heartbeat ─────────────────────────────────────────────────────────────────
+
+/**
+ * Heartbeat interval in milliseconds.  A `beat` no-op is sent whenever no
+ * other command has been sent within this window.  Set to 2500 ms to provide
+ * a comfortable safety margin below the server's 3-second deadline.
+ */
+const HEARTBEAT_INTERVAL_MS = 2500;
+
+/** Interval handle for the active heartbeat timer, or null when inactive. */
+let beatTimer: ReturnType<typeof setInterval> | null = null;
+
+/** Unsubscribe function for the per-connection `beatEnabled` event listener. */
+let beatUnsubscribe: (() => void) | null = null;
+
+/**
+ * Start the heartbeat timer.
+ *
+ * Fires every 2500 ms.  If nothing has been sent to the server in the last
+ * 2500 ms, a `beat` no-op is sent to keep the connection alive.
+ */
+function startHeartbeat(): void {
+    stopHeartbeat();
+    LOG(LogLevel.Info, "client", "Heartbeat enabled");
+    beatTimer = setInterval(() => {
+        if (!csocket) {
+            stopHeartbeat();
+            return;
+        }
+        const elapsed = Date.now() - csocket.lastSentAt;
+        if (elapsed >= HEARTBEAT_INTERVAL_MS) {
+            csocket.sendString("beat");
+        }
+    }, HEARTBEAT_INTERVAL_MS);
+}
+
+/** Stop the heartbeat timer if it is running. */
+function stopHeartbeat(): void {
+    if (beatTimer !== null) {
+        clearInterval(beatTimer);
+        beatTimer = null;
+    }
+}
+
 // ── Public accessors ─────────────────────────────────────────────────────────
 
 /** Return the current socket, if any. */
@@ -59,9 +103,15 @@ export async function clientConnect(hostname: string, port?: number): Promise<vo
         dispatchPacket(data.buffer as ArrayBuffer);
     };
 
+    // Subscribe to the beatEnabled event for this connection.
+    beatUnsubscribe = gameEvents.on('beatEnabled', startHeartbeat);
+
     sock.onDisconnect = () => {
         LOG(LogLevel.Info, "client", "Server disconnected");
         csocket = null;
+        stopHeartbeat();
+        beatUnsubscribe?.();
+        beatUnsubscribe = null;
         gameEvents.emit('disconnect');
     };
 
@@ -90,6 +140,9 @@ export function clientDisconnect(): void {
         csocket.disconnect();
         csocket = null;
     }
+    stopHeartbeat();
+    beatUnsubscribe?.();
+    beatUnsubscribe = null;
 }
 
 // ── Protocol negotiation ─────────────────────────────────────────────────────
@@ -135,7 +188,7 @@ export function clientNegotiate(): void {
     const cache = wantConfig.cache ? 1 : 0;
 
     csocket.sendString(
-        `setup map2cmd 1 tick ${ticks} sound2 ${sound} darkness ${darkness} ` +
+        `setup beat 1 map2cmd 1 tick ${ticks} sound2 ${sound} darkness ${darkness} ` +
         `spellmon 1 spellmon 2 faceset 0 facecache ${cache} ` +
         `want_pickup 1 newmapcmd 1 extendedTextInfos 1`,
     );
@@ -150,3 +203,4 @@ export function clientNegotiate(): void {
 
     useConfig.download = wantConfig.download;
 }
+
