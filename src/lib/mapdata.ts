@@ -35,6 +35,7 @@ import {
     clear_move_to as clearMoveToInternal,
 } from "./mapdata_moveto";
 import { LOG } from "./misc";
+import { notifyWatchedCell } from "./debug";
 
 // Re-export types for consumers that import from mapdata.
 export type { MapCell, MapCellLayer, MapCellTailLayer, MapLabel };
@@ -347,6 +348,7 @@ function expandSetFace(x: number, y: number, layer: number, face: number, clear:
     cell.heads[layer]!.sizeY = h;
     cell.needUpdate = true;
     markResmooth(x, y, layer);
+    notifyWatchedCell(x, y, `layer ${layer} face=${face} size=${w}x${h}`);
 
     for (let dx = 0; dx < w; dx++) {
         for (let dy = dx === 0 ? 1 : 0; dy < h; dy++) {
@@ -356,6 +358,8 @@ function expandSetFace(x: number, y: number, layer: number, face: number, clear:
             tail.sizeY = dy;
             cellAt(x - dx, y - dy).needUpdate = true;
             markResmooth(x - dx, y - dy, layer);
+            notifyWatchedCell(x - dx, y - dy,
+                `layer ${layer} tail covered by face=${face} (head at +${dx},+${dy})`);
         }
     }
 }
@@ -417,6 +421,10 @@ function expandSetBigface(x: number, y: number, layer: number, face: number, cle
     head.face = face;
     head.sizeX = w;
     head.sizeY = h;
+    notifyWatchedCell(pl_pos.x + x, pl_pos.y + y,
+        face === 0
+            ? `layer ${layer} bigface cleared`
+            : `layer ${layer} bigface head face=${face} size=${w}x${h}`);
 
     for (let dx = 0; dx < w && dx <= x; dx++) {
         for (let dy = dx === 0 ? 1 : 0; dy < h && dy <= y; dy++) {
@@ -424,6 +432,8 @@ function expandSetBigface(x: number, y: number, layer: number, face: number, cle
             tail.face = face;
             tail.sizeX = dx;
             tail.sizeY = dy;
+            notifyWatchedCell(pl_pos.x + x - dx, pl_pos.y + y - dy,
+                `layer ${layer} bigface tail covered by face=${face} (head at +${dx},+${dy})`);
 
             if (x - dx >= 0 && x - dx < viewWidth &&
                 y - dy >= 0 && y - dy < viewHeight) {
@@ -876,6 +886,7 @@ export function mapdata_bigface_head(
 /** Clear a map space (called from Map2Cmd). View-relative coordinates. */
 export function mapdata_clear_space(x: number, y: number): void {
     if (x < viewWidth && y < viewHeight) {
+        notifyWatchedCell(pl_pos.x + x, pl_pos.y + y, 'space cleared (transitioning to fog)');
         mapdataClear(x, y);
     } else {
         for (let i = 0; i < MAXLAYERS; i++) {
@@ -923,6 +934,7 @@ export function mapdata_set_darkness(x: number, y: number, darkness: number): vo
     const py = pl_pos.y + y;
 
     if (darkness !== -1 && x < viewWidth && y < viewHeight) {
+        notifyWatchedCell(px, py, `darkness=${255 - darkness}`);
         setDarkness(px, py, 255 - darkness);
     }
 }
@@ -982,12 +994,14 @@ export function mapdata_add_label(x: number, y: number, subtype: number, label: 
     const py = pl_pos.y + y;
 
     if (subtype === 0) {
+        notifyWatchedCell(px, py, 'labels cleared');
         mapdata_clear_label(px, py);
         return;
     }
 
     cellAt(px, py).labels.push({ subtype, label });
     cellAt(px, py).needUpdate = true;
+    notifyWatchedCell(px, py, `label added: subtype=${subtype} "${label}"`);
 }
 
 /**
@@ -1011,6 +1025,7 @@ export function mapdata_clear_old(x: number, y: number): void {
     }
 
     cellAt(px, py).state = MapCellState.Visible;
+    notifyWatchedCell(px, py, 'server update start (cell entering visible state)');
 }
 
 /** Set a face on a specific layer.  View-relative coordinates. */
@@ -1023,6 +1038,7 @@ export function mapdata_set_face_layer(x: number, y: number, face: number, layer
         if (face > 0) {
             expandSetFace(px, py, layer, face, true);
         } else {
+            notifyWatchedCell(px, py, `layer ${layer} face cleared`);
             expandClearFaceFromLayer(px, py, layer);
         }
     } else {
@@ -1068,7 +1084,10 @@ export function mapdata_set_anim_layer(
             cellAt(px, py).heads[layer]!.animationPhase = phase;
             cellAt(px, py).heads[layer]!.animationSpeed = animSpeed;
             cellAt(px, py).heads[layer]!.animationLeft = speedLeft;
+            notifyWatchedCell(px, py,
+                `layer ${layer} animation=${animation} animSpeed=${animSpeed} phase=${phase} face=${face}`);
         } else {
+            notifyWatchedCell(px, py, `layer ${layer} animation face cleared`);
             expandClearFaceFromLayer(px, py, layer);
         }
     } else {
