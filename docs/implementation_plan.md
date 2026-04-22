@@ -42,24 +42,6 @@ Implementing the account login flow also requires:
 * Sending `loginmethod 1` (or `2` for full character creation) in the `setup` command.
 * Correctly parsing the binary `accountplayers` response — see §5 below.
 
-### 2b. Heartbeat
-
-| Command | Direction | Notes |
-|---|---|---|
-| `beat` | C→S | No-op keep-alive; must be sent at least once every three seconds when the server enables heartbeat via `setup beat` |
-
-The `setup` response for `beat` is currently ignored.  A timer should be
-started when the server confirms beat support, sending `beat` whenever no
-other command has been sent within the interval.
-
-### 2c. Item manipulation
-
-| Command | Direction | Notes |
-|---|---|---|
-| `inscribe` | C→S | Write a spell onto a scroll; format: `<version(int8)><spell tag(int32)><scroll tag(int32)>` |
-
-`lock` and `mark` are already implemented in `src/lib/item.ts`.
-
 ### 2d. Image / smoothing requests
 
 | Command | Direction | Notes |
@@ -183,8 +165,6 @@ but could be removed for cleanliness.
 
 ## Summary / Suggested implementation order
 
-1. **`beat` heartbeat** — small, self-contained, required for servers that
-   enable it.
 2. **`askface` fallback** — complete the face-caching loop so missing faces
    are fetched from the server instead of silently dropped.
 3. **Extended stats** — negotiate `extended_stats 1`, parse stat IDs 32–52,
