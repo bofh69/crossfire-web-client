@@ -394,8 +394,11 @@
 
           // Use mapdata_face_info to handle both head and tail cells correctly,
           // including bigface objects whose head tile is outside the server
-          // viewport.  For a head cell dx=1-sizeX (typically 0) and for a tail
-          // cell dx=tail.sizeX, so (vx+dx) is always the head tile's canvas x.
+          // viewport.  dx/dy are the offset FROM the current tile TO the head
+          // tile, so (vx+dx) is always the head tile's canvas column and
+          // (vy+dy) is always the head tile's canvas row.  For a head cell
+          // dx=dy=0 (it is its own head); for a tail cell dx=tail.sizeX and
+          // dy=tail.sizeY.
           // The formula below therefore bottom-right-aligns the full image to
           // the head tile regardless of which tile triggers the draw, matching
           // the old GTK client's map_draw_layer convention.
