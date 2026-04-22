@@ -1465,20 +1465,59 @@ export function mapdata_debug_bigface(ax: number, ay: number): string[] {
 
 /**
  * Return a human-readable dump of all currently active bigface entries.
- * Each entry in `activeBigfaces` corresponds to one multi-tile face whose
- * head is outside the server's view area (stored in bigfaces[] rather than
- * cells[]).  Returns an array of lines suitable for logging.
+ * This includes:
+ *   - Entries in `activeBigfaces` (multi-tile faces whose head is OUTSIDE
+ *     the server viewport, stored in bigfaces[]).
+ *   - Multi-tile heads found in cells[] (sizeX > 1 or sizeY > 1) for faces
+ *     whose head is inside the server viewport.
+ * Returns an array of lines suitable for logging.
  */
 export function mapdata_debug_all_bigfaces(): string[] {
     const lines: string[] = [];
-    lines.push(`Active bigfaces: ${activeBigfaces.size} entr${activeBigfaces.size === 1 ? 'y' : 'ies'}`);
     lines.push(`  pl_pos=(${pl_pos.x}, ${pl_pos.y}) view=${viewWidth}x${viewHeight}`);
 
-    if (activeBigfaces.size === 0) {
-        lines.push("  (none)");
-        return lines;
+    // --- Section 1: in-viewport bigfaces stored in cells[] ---
+    const cellsBigfaces: Array<{ vx: number; vy: number; layer: number; face: number; sizeX: number; sizeY: number }> = [];
+    for (let vx = 0; vx < viewWidth; vx++) {
+        for (let vy = 0; vy < viewHeight; vy++) {
+            const cell = cellAt(pl_pos.x + vx, pl_pos.y + vy);
+            for (let layer = 0; layer < MAXLAYERS; layer++) {
+                const h = cell.heads[layer]!;
+                if (h.face !== 0 && (h.sizeX > 1 || h.sizeY > 1)) {
+                    cellsBigfaces.push({ vx, vy, layer, face: h.face, sizeX: h.sizeX, sizeY: h.sizeY });
+                }
+            }
+        }
     }
 
+    lines.push(`In-viewport bigfaces (cells[]): ${cellsBigfaces.length} entr${cellsBigfaces.length === 1 ? 'y' : 'ies'}`);
+    if (cellsBigfaces.length === 0) {
+        lines.push("  (none)");
+    }
+    for (let index = 0; index < cellsBigfaces.length; index++) {
+        const { vx, vy, layer, face, sizeX, sizeY } = cellsBigfaces[index]!;
+        const ax = pl_pos.x + vx;
+        const ay = pl_pos.y + vy;
+        lines.push(
+            `  [${index}] view=(${vx}, ${vy}) abs=(${ax}, ${ay})` +
+            ` layer=${layer} face=${face} size=${sizeX}x${sizeY}`,
+        );
+        for (let dx = 0; dx < sizeX; dx++) {
+            for (let dy = dx === 0 ? 1 : 0; dy < sizeY; dy++) {
+                const tvx = vx - dx;
+                const tvy = vy - dy;
+                if (tvx >= 0 && tvx < viewWidth && tvy >= 0 && tvy < viewHeight) {
+                    lines.push(`    tail covers view=(${tvx}, ${tvy}) abs=(${ax - dx}, ${ay - dy}) offset=(${dx}, ${dy})`);
+                }
+            }
+        }
+    }
+
+    // --- Section 2: out-of-viewport bigfaces stored in bigfaces[] ---
+    lines.push(`Out-of-viewport bigfaces (bigfaces[]): ${activeBigfaces.size} entr${activeBigfaces.size === 1 ? 'y' : 'ies'}`);
+    if (activeBigfaces.size === 0) {
+        lines.push("  (none)");
+    }
     let index = 0;
     for (const bc of activeBigfaces) {
         const ax = pl_pos.x + bc.x;
