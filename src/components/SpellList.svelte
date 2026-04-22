@@ -5,6 +5,7 @@
   import type { Spell } from '../lib/protocol';
   import { gameEvents } from '../lib/events';
   import { setHotbarSlot } from '../lib/hotbar';
+  import { getFaceUrl } from '../lib/image';
   import HotbarSlotPicker from './HotbarSlotPicker.svelte';
 
   let spellList: Spell[] = $state([]);
@@ -61,6 +62,7 @@
       <table>
         <thead>
           <tr>
+            <th class="col-face"></th>
             <th>Name</th>
             <th>Lv</th>
             <th>Mana</th>
@@ -74,8 +76,16 @@
             <tr
               onclick={() => castSpell(spell)}
               oncontextmenu={(e: MouseEvent) => handleContextMenu(e, spell)}
+              title={spell.message || undefined}
               class="spell-row"
             >
+              <td class="col-face">
+                {#if getFaceUrl(spell.face)}
+                  <img src={getFaceUrl(spell.face)} alt="" class="spell-icon" />
+                {:else}
+                  <span class="spell-icon-placeholder"></span>
+                {/if}
+              </td>
               <td class="spell-name">{spell.name}</td>
               <td>{spell.level}</td>
               <td>{spell.sp > 0 ? spell.sp : '-'}</td>
@@ -178,6 +188,24 @@
 
   .spell-name {
     color: #aaccff;
+  }
+
+  .col-face {
+    width: 28px;
+    padding: 0.15rem 0.2rem;
+  }
+
+  .spell-icon {
+    width: 24px;
+    height: 24px;
+    image-rendering: pixelated;
+    display: block;
+  }
+
+  .spell-icon-placeholder {
+    width: 24px;
+    height: 24px;
+    display: block;
   }
 
   .context-menu {
