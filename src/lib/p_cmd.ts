@@ -153,11 +153,6 @@ function commandMagicmap(_args: string): void {
     pcmdCallbacks?.showMagicMap?.();
 }
 
-function commandInv(_args: string): void {
-    LOG(LogLevel.Info, "p_cmd::inv", "Requesting inventory display.");
-    sendCommand("inv", 0, 1);
-}
-
 function commandTake(args: string): void {
     const what = args.length > 0 ? args : "";
     sendCommand(`take ${what}`.trim(), 0, 1);
@@ -203,7 +198,6 @@ const builtinCommands: ConsoleCommand[] = [
         handler: commandGamepadBind,
     },
     { name: "help",         category: CommCat.Misc,  description: "Show help on commands",            handler: commandHelp },
-    { name: "inv",          category: CommCat.Misc,  description: "Request inventory from server",    handler: commandInv },
     { name: "magicmap",     category: CommCat.Misc,  description: "Show last received magic map",     handler: commandMagicmap },
     { name: "resetkeys",    category: CommCat.Setup, description: "Reset all key bindings to default",handler: commandResetKeys },
     { name: "take",         category: CommCat.Misc,  description: "Take items from the ground",       handler: commandTake },
