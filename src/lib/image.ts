@@ -440,3 +440,41 @@ function applyFacePngBytes(pnum: number, pngBytes: Uint8Array): void {
     const dims = readPngDimensionsSync(pngBytes);
     faceSizes.set(pnum, dims);
 }
+
+// ---------------------------------------------------------------------------
+// Debug helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Return a human-readable dump of all known data for a single face number.
+ * Returns an array of lines suitable for logging to the browser console.
+ */
+export function image_debug_face(face: number): string[] {
+    const lines: string[] = [];
+    lines.push(`Face ${face}:`);
+
+    const name = faceToName.get(face);
+    if (name !== undefined) {
+        lines.push(`  name: ${name} (pending – image not yet loaded)`);
+    }
+
+    const checksum = faceChecksums.get(face);
+    if (checksum !== undefined) {
+        const hex = (checksum >>> 0).toString(16).padStart(8, '0');
+        lines.push(`  checksum: 0x${hex} (pending – image not yet loaded)`);
+    }
+
+    const hasSizeEntry = faceSizes.has(face);
+    const { w, h } = getMapImageSize(face);
+    lines.push(`  pixel size: ${w}×${h}${hasSizeEntry ? '' : ' (default – image not loaded)'}`);
+
+    const url = getFaceUrl(face);
+    lines.push(`  image URL: ${url !== null ? url : '(none – image not loaded)'}`);
+
+    const smooth = getSmoothFace(face);
+    if (smooth !== 0) {
+        lines.push(`  smooth face: ${smooth}`);
+    }
+
+    return lines;
+}

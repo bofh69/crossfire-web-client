@@ -11,6 +11,7 @@ import { getCpl } from "./init";
 import { gameEvents } from "./events";
 import { perfLogging, setPerfLogging, getWatchedCell, clearWatchedCell, setWatchedCell } from "./debug";
 import { mapdata_debug_tile, mapdata_debug_bigface, mapdata_debug_all_bigfaces } from "./mapdata";
+import { image_debug_face } from "./image";
 
 // ---------------------------------------------------------------------------
 // Internal state
@@ -187,7 +188,11 @@ function debugPickAndLog(
 }
 
 function commandDebug(args: string): void {
-    const sub = args.trim().toLowerCase();
+    const trimmed = args.trim();
+    const spaceIdx = trimmed.indexOf(' ');
+    const sub = (spaceIdx === -1 ? trimmed : trimmed.slice(0, spaceIdx)).toLowerCase();
+    const subArgs = spaceIdx === -1 ? '' : trimmed.slice(spaceIdx + 1).trim();
+
     if (sub === "perf") {
         const newState = !perfLogging;
         setPerfLogging(newState);
@@ -225,15 +230,26 @@ function commandDebug(args: string): void {
             });
             gameEvents.emit('debugPickTile', 'tile');
         }
+    } else if (sub === "face") {
+        const faceNum = parseInt(subArgs, 10);
+        if (subArgs === '' || isNaN(faceNum) || faceNum < 0) {
+            drawInfo("Usage: debug face <face-number>\nExample: debug face 1234");
+        } else {
+            for (const line of image_debug_face(faceNum)) {
+                LOG(LogLevel.Info, 'debug', line);
+            }
+            drawInfo(`Face ${faceNum} data logged to the browser console.`);
+        }
     } else {
         drawInfo(
             "Usage: debug <subcommand>\n" +
             "Subcommands:\n" +
-            "  perf      Toggle performance logging on/off\n" +
-            "  bigface   Click a tile to log bigface/multitile info\n" +
-            "  bigfaces  Log all currently active bigface entries to the console\n" +
-            "  tile      Click a tile to log all tile info\n" +
-            "  watch     Pick a tile to watch; logs all server updates to it (run again to stop)");
+            "  perf         Toggle performance logging on/off\n" +
+            "  bigface      Click a tile to log bigface/multitile info\n" +
+            "  bigfaces     Log all currently active bigface entries to the console\n" +
+            "  face <num>   Log all known data for face <num>, including pixel size\n" +
+            "  tile         Click a tile to log all tile info\n" +
+            "  watch        Pick a tile to watch; logs all server updates to it (run again to stop)");
     }
 }
 
@@ -283,15 +299,17 @@ const builtinCommands: ConsoleCommand[] = [
     {
         name: "debug",
         category: CommCat.Debug,
-        description: "Debugging tools (perf, bigface, bigfaces, tile, watch)",
+        description: "Debugging tools (perf, bigface, bigfaces, face, tile, watch)",
         longDescription:
             "Syntax:\n" +
-            "  debug perf      Toggle periodic performance logging on/off\n" +
-            "  debug bigface   Click a tile to log bigface/multitile info to the console\n" +
-            "  debug bigfaces  Log all currently active bigface entries to the console\n" +
-            "  debug tile      Click a tile to log all tile data to the console\n" +
-            "  debug watch     Click a tile to start watching; every server update to that\n" +
-            "                  cell is logged at info level.  Run again to stop watching.\n" +
+            "  debug perf         Toggle periodic performance logging on/off\n" +
+            "  debug bigface      Click a tile to log bigface/multitile info to the console\n" +
+            "  debug bigfaces     Log all currently active bigface entries to the console\n" +
+            "  debug face <num>   Log all known data for face <num>, including pixel size,\n" +
+            "                     image URL, smooth face mapping, and any pending name/checksum\n" +
+            "  debug tile         Click a tile to log all tile data to the console\n" +
+            "  debug watch        Click a tile to start watching; every server update to that\n" +
+            "                     cell is logged at info level.  Run again to stop watching.\n" +
             "\n" +
             "Performance logging is off by default.  The bigface, tile and watch\n" +
             "subcommands prompt you to click on the game map; the data is\n" +
