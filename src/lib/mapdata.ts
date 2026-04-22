@@ -754,10 +754,11 @@ export function mapdata_face_info(
     const tail = cellAt(mx, my).tails[layer]!;
 
     if (head.face !== 0) {
+        // dx/dy = 0: the head tile IS the head; no shift needed.
         return {
             face: head.face,
-            dx: 1 - head.sizeX,
-            dy: 1 - head.sizeY,
+            dx: 0,
+            dy: 0,
         };
     } else if (tail.face !== 0) {
         const hx = mx + tail.sizeX;
@@ -766,11 +767,13 @@ export function mapdata_face_info(
             // Head cell is outside the virtual map — skip to avoid an OOB access.
             return { face: 0, dx: 0, dy: 0 };
         }
-        const headPtr = cellAt(hx, hy).heads[layer]!;
+        // dx/dy = tail offset: adding these to the current view position gives
+        // the head tile's view position, which the renderer needs to bottom-right-
+        // align the image.
         return {
             face: tail.face,
-            dx: tail.sizeX - headPtr.sizeX + 1,
-            dy: tail.sizeY - headPtr.sizeY + 1,
+            dx: tail.sizeX,
+            dy: tail.sizeY,
         };
     }
 
@@ -785,10 +788,11 @@ export function mapdata_face_info(
         // but still within the extended-fog canvas).
         const bigHead = bigfaceAt(viewX, viewY, layer).head;
         if (bigHead.face !== 0) {
+            // dx/dy = 0: this tile is the head itself.
             return {
                 face: bigHead.face,
-                dx: 1 - bigHead.sizeX,
-                dy: 1 - bigHead.sizeY,
+                dx: 0,
+                dy: 0,
             };
         }
 
@@ -802,11 +806,12 @@ export function mapdata_face_info(
             const headViewY = viewY + hdy;
             if (headViewX >= 0 && headViewX < MAX_VIEW &&
                 headViewY >= 0 && headViewY < MAX_VIEW) {
-                const bigHeadPtr = bigfaceAt(headViewX, headViewY, layer).head;
+                // dx/dy = offset to the head tile so the renderer can bottom-right-
+                // align the image to the head tile's corner.
                 return {
                     face: bigTail.face,
-                    dx: hdx - bigHeadPtr.sizeX + 1,
-                    dy: hdy - bigHeadPtr.sizeY + 1,
+                    dx: hdx,
+                    dy: hdy,
                 };
             }
         }
