@@ -1276,3 +1276,165 @@ export function getScriptPosition(): PlayerPosition {
 export function getViewSize(): { width: number; height: number } {
     return { width: viewWidth, height: viewHeight };
 }
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Debug dump helpers
+// ──────────────────────────────────────────────────────────────────────────────
+
+function stateName(s: MapCellState): string {
+    switch (s) {
+        case MapCellState.Empty:   return "Empty";
+        case MapCellState.Visible: return "Visible";
+        case MapCellState.Fog:     return "Fog";
+        default:                   return `Unknown(${s})`;
+    }
+}
+
+function formatLayer(l: MapCellLayer, idx: number): string {
+    if (l.face === 0 && l.animation === 0) return "";
+    const parts = [`  layer ${idx}: face=${l.face} size=${l.sizeX}x${l.sizeY}`];
+    if (l.animation !== 0) {
+        parts.push(`anim=${l.animation} speed=${l.animationSpeed} left=${l.animationLeft} phase=${l.animationPhase}`);
+    }
+    return parts.join(" ");
+}
+
+function formatTail(t: MapCellTailLayer, idx: number): string {
+    if (t.face === 0) return "";
+    return `  tail ${idx}: face=${t.face} offset=(${t.sizeX}, ${t.sizeY})`;
+}
+
+/**
+ * Return a human-readable dump of all cell data at the given absolute map
+ * coordinates.  Returns an array of lines.
+ */
+export function mapdata_debug_tile(ax: number, ay: number): string[] {
+    const lines: string[] = [];
+    const viewX = ax - pl_pos.x;
+    const viewY = ay - pl_pos.y;
+    lines.push(`Tile at absolute (${ax}, ${ay}), view-relative (${viewX}, ${viewY})`);
+    lines.push(`  pl_pos=(${pl_pos.x}, ${pl_pos.y}) view=${viewWidth}x${viewHeight}`);
+
+    if (!mapdata_contains(ax, ay)) {
+        lines.push("  Outside virtual map bounds.");
+        return lines;
+    }
+
+    const cell = cellAt(ax, ay);
+    lines.push(`  state=${stateName(cell.state)} darkness=${cell.darkness} needUpdate=${cell.needUpdate} needResmooth=${cell.needResmooth}`);
+
+    for (let i = 0; i < MAXLAYERS; i++) {
+        const hl = formatLayer(cell.heads[i]!, i);
+        if (hl) lines.push(hl);
+        const tl = formatTail(cell.tails[i]!, i);
+        if (tl) lines.push(tl);
+        if (cell.smooth[i] !== 0) {
+            lines.push(`  smooth ${i}: ${cell.smooth[i]}`);
+        }
+    }
+
+    if (cell.labels.length > 0) {
+        for (const lbl of cell.labels) {
+            lines.push(`  label: subtype=${lbl.subtype} "${lbl.label}"`);
+        }
+    }
+
+    // face_info per layer
+    for (let i = 0; i < MAXLAYERS; i++) {
+        const info = mapdata_face_info(ax, ay, i);
+        if (info.face !== 0) {
+            lines.push(`  face_info layer ${i}: face=${info.face} dx=${info.dx} dy=${info.dy}`);
+        }
+    }
+
+    return lines;
+}
+
+/**
+ * Return a human-readable dump of all bigface/multitile data at the given
+ * absolute map coordinates.  Returns an array of lines.
+ */
+export function mapdata_debug_bigface(ax: number, ay: number): string[] {
+    const lines: string[] = [];
+    const viewX = ax - pl_pos.x;
+    const viewY = ay - pl_pos.y;
+    lines.push(`Bigface info at absolute (${ax}, ${ay}), view-relative (${viewX}, ${viewY})`);
+    lines.push(`  pl_pos=(${pl_pos.x}, ${pl_pos.y}) view=${viewWidth}x${viewHeight}`);
+
+    if (!mapdata_contains(ax, ay)) {
+        lines.push("  Outside virtual map bounds.");
+        return lines;
+    }
+
+    const cell = cellAt(ax, ay);
+    lines.push(`  cell state=${stateName(cell.state)} darkness=${cell.darkness}`);
+
+    // Show head and tail info from cells[]
+    let hasCellData = false;
+    for (let i = 0; i < MAXLAYERS; i++) {
+        const h = cell.heads[i]!;
+        const t = cell.tails[i]!;
+        if (h.face !== 0 && (h.sizeX > 1 || h.sizeY > 1)) {
+            lines.push(`  cells[] HEAD layer ${i}: face=${h.face} size=${h.sizeX}x${h.sizeY}`);
+            hasCellData = true;
+        }
+        if (t.face !== 0) {
+            lines.push(`  cells[] TAIL layer ${i}: face=${t.face} offset=(${t.sizeX}, ${t.sizeY})`);
+            // Try to describe the head this tail points to
+            const hx = ax + t.sizeX;
+            const hy = ay + t.sizeY;
+            if (mapdata_contains(hx, hy)) {
+                const headCell = cellAt(hx, hy);
+                const headLayer = headCell.heads[i]!;
+                lines.push(`    -> head at (${hx}, ${hy}): face=${headLayer.face} size=${headLayer.sizeX}x${headLayer.sizeY} state=${stateName(headCell.state)}`);
+            } else {
+                lines.push(`    -> head at (${hx}, ${hy}): outside map`);
+            }
+            hasCellData = true;
+        }
+    }
+
+    // Show bigfaces[] data
+    let hasBigfaceData = false;
+    if (viewX >= 0 && viewX < MAX_VIEW && viewY >= 0 && viewY < MAX_VIEW) {
+        for (let i = 0; i < MAXLAYERS; i++) {
+            const bf = bigfaceAt(viewX, viewY, i);
+            if (bf.head.face !== 0) {
+                lines.push(`  bigfaces[] HEAD layer ${i}: face=${bf.head.face} size=${bf.head.sizeX}x${bf.head.sizeY}`);
+                hasBigfaceData = true;
+            }
+            if (bf.tail.face !== 0) {
+                lines.push(`  bigfaces[] TAIL layer ${i}: face=${bf.tail.face} offset=(${bf.tail.sizeX}, ${bf.tail.sizeY})`);
+                // Try to describe the head this tail points to
+                const hdx = bf.tail.sizeX;
+                const hdy = bf.tail.sizeY;
+                const headViewX = viewX + hdx;
+                const headViewY = viewY + hdy;
+                if (headViewX >= 0 && headViewX < MAX_VIEW &&
+                    headViewY >= 0 && headViewY < MAX_VIEW) {
+                    const bigHead = bigfaceAt(headViewX, headViewY, i);
+                    lines.push(`    -> bigface head at view (${headViewX}, ${headViewY}): face=${bigHead.head.face} size=${bigHead.head.sizeX}x${bigHead.head.sizeY}`);
+                } else {
+                    lines.push(`    -> bigface head at view (${headViewX}, ${headViewY}): outside MAX_VIEW`);
+                }
+                hasBigfaceData = true;
+            }
+        }
+    } else {
+        lines.push("  view position outside bigfaces[] range (0..MAX_VIEW)");
+    }
+
+    // face_info per layer
+    for (let i = 0; i < MAXLAYERS; i++) {
+        const info = mapdata_face_info(ax, ay, i);
+        if (info.face !== 0) {
+            lines.push(`  face_info layer ${i}: face=${info.face} dx=${info.dx} dy=${info.dy}`);
+        }
+    }
+
+    if (!hasCellData && !hasBigfaceData) {
+        lines.push("  No bigface/multitile data at this position.");
+    }
+
+    return lines;
+}

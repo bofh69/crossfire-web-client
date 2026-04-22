@@ -8,6 +8,9 @@ import { LOG } from "./misc";
 import { sendCommand, setLastCommand } from "./player";
 import { resetBindings } from "./keys";
 import { getCpl } from "./init";
+import { gameEvents } from "./events";
+import { perfLogging, setPerfLogging } from "./debug";
+import { mapdata_debug_tile, mapdata_debug_bigface } from "./mapdata";
 
 // ---------------------------------------------------------------------------
 // Internal state
@@ -159,6 +162,55 @@ function commandTake(args: string): void {
 }
 
 // ---------------------------------------------------------------------------
+// Debug command
+// ---------------------------------------------------------------------------
+
+/** Unsubscribe function for the current debug-tile-click listener. */
+let debugClickUnsub: (() => void) | null = null;
+
+/** Start a debug-pick flow: enter pick mode and log the result when clicked. */
+function debugPickAndLog(
+    mode: 'bigface' | 'tile',
+    prompt: string,
+    dumpFn: (ax: number, ay: number) => string[],
+): void {
+    drawInfo(prompt);
+    debugClickUnsub?.();
+    debugClickUnsub = gameEvents.on('debugTileClicked', (ax, ay, _mode) => {
+        debugClickUnsub?.();
+        debugClickUnsub = null;
+        for (const line of dumpFn(ax, ay)) {
+            LOG(LogLevel.Info, 'debug', line);
+        }
+    });
+    gameEvents.emit('debugPickTile', mode);
+}
+
+function commandDebug(args: string): void {
+    const sub = args.trim().toLowerCase();
+    if (sub === "perf") {
+        const newState = !perfLogging;
+        setPerfLogging(newState);
+        drawInfo(`Performance logging ${newState ? "enabled" : "disabled"}.`);
+    } else if (sub === "bigface") {
+        debugPickAndLog('bigface',
+            "Click a tile on the map to inspect bigface/multitile data…",
+            mapdata_debug_bigface);
+    } else if (sub === "tile") {
+        debugPickAndLog('tile',
+            "Click a tile on the map to inspect tile data…",
+            mapdata_debug_tile);
+    } else {
+        drawInfo(
+            "Usage: debug <subcommand>\n" +
+            "Subcommands:\n" +
+            "  perf      Toggle performance logging on/off\n" +
+            "  bigface   Click a tile to log bigface/multitile info\n" +
+            "  tile      Click a tile to log all tile info");
+    }
+}
+
+// ---------------------------------------------------------------------------
 // Command table
 // ---------------------------------------------------------------------------
 
@@ -201,6 +253,21 @@ const builtinCommands: ConsoleCommand[] = [
     { name: "magicmap",     category: CommCat.Misc,  description: "Show last received magic map",     handler: commandMagicmap },
     { name: "resetkeys",    category: CommCat.Setup, description: "Reset all key bindings to default",handler: commandResetKeys },
     { name: "take",         category: CommCat.Misc,  description: "Take items from the ground",       handler: commandTake },
+    {
+        name: "debug",
+        category: CommCat.Debug,
+        description: "Debugging tools (perf, bigface, tile)",
+        longDescription:
+            "Syntax:\n" +
+            "  debug perf      Toggle periodic performance logging on/off\n" +
+            "  debug bigface   Click a tile to log bigface/multitile info to the console\n" +
+            "  debug tile      Click a tile to log all tile data to the console\n" +
+            "\n" +
+            "Performance logging is off by default.  The bigface and tile\n" +
+            "subcommands prompt you to click on the game map; the data is\n" +
+            "written to the browser developer console at info level.",
+        handler: commandDebug,
+    },
 ];
 
 // ---------------------------------------------------------------------------

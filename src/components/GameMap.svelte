@@ -11,6 +11,7 @@
   import { LOG } from '../lib/misc';
   import { SLOW_DRAW_THRESHOLD_MS, DRAW_STATS_INTERVAL_MS, TILE_SIZE } from '../lib/constants';
   import { loadConfig, saveConfig } from '../lib/storage';
+  import { perfLogging } from '../lib/debug';
 
   const BASE_FONT_SIZE = 10;
   const LABEL_PAD = 3;
@@ -118,13 +119,16 @@
     rafPending = true;
     requestAnimationFrame(() => {
       rafPending = false;
-      if (pendingRedrawCount > 1) {
+      if (pendingRedrawCount > 1 && perfLogging) {
         LOG(LogLevel.Debug, 'GameMap', `coalesced ${pendingRedrawCount} redraw requests into 1 frame`);
       }
       pendingRedrawCount = 0;
       mapVersion++;
     });
   }
+
+  /** Debug pick mode: when set, the next left-click reports tile info instead of lookAt. */
+  let debugPickMode: 'bigface' | 'tile' | null = $state(null);
 
   onMount(() => {
     const cleanups = [
@@ -142,6 +146,9 @@
         storedScale = Math.max(current - 1, MIN_SCALE);
         saveConfig(ZOOM_STORAGE_KEY, storedScale);
         scheduleRedraw();
+      }),
+      gameEvents.on('debugPickTile', (mode) => {
+        debugPickMode = mode;
       }),
     ];
     return () => { for (const unsub of cleanups) unsub(); };
@@ -559,14 +566,16 @@
     const elapsed = performance.now() - t0;
     drawCount++;
 
-    if (elapsed > SLOW_DRAW_THRESHOLD_MS) {
+    if (perfLogging && elapsed > SLOW_DRAW_THRESHOLD_MS) {
       LOG(LogLevel.Warning, 'perf:map', `drawMap took ${elapsed.toFixed(1)}ms — tiles:${tilesDrawn} imgs:${imagesDrawn} placeholders:${placeholders} loadsStarted:${loadsStarted}`);
     }
 
     const now = performance.now();
     if (now - lastStatsTime > DRAW_STATS_INTERVAL_MS) {
       const dt = (now - lastStatsTime) / 1000;
-      LOG(LogLevel.Info, 'perf:map', `${drawCount} draws in ${dt.toFixed(1)}s (${(drawCount / dt).toFixed(1)} draws/s), imageCache:${imageCache.size} loading:${loadingUrls.size} failed:${failedUrls.size}`);
+      if (perfLogging) {
+        LOG(LogLevel.Info, 'perf:map', `${drawCount} draws in ${dt.toFixed(1)}s (${(drawCount / dt).toFixed(1)} draws/s), imageCache:${imageCache.size} loading:${loadingUrls.size} failed:${failedUrls.size}`);
+      }
       drawCount = 0;
       lastStatsTime = now;
     }
@@ -587,7 +596,7 @@
       const elapsed = performance.now() - loadStart;
       loadingUrls.delete(url);
       imageCache.set(url, img);
-      if (elapsed > 100) {
+      if (perfLogging && elapsed > 100) {
         LOG(LogLevel.Debug, 'perf:map', `image load took ${elapsed.toFixed(0)}ms: ${url}`);
       }
       scheduleRedraw();
@@ -613,6 +622,18 @@
     const centerY = currentStartOffsetY + Math.floor(view.height / 2);
     const dx = tileX - centerX;
     const dy = tileY - centerY;
+
+    // Debug pick mode: report tile info instead of sending lookAt.
+    if (debugPickMode !== null) {
+      const plPos = getPlayerPosition();
+      const ax = plPos.x + tileX - currentStartOffsetX;
+      const ay = plPos.y + tileY - currentStartOffsetY;
+      const mode = debugPickMode;
+      debugPickMode = null;
+      gameEvents.emit('debugTileClicked', ax, ay, mode);
+      return;
+    }
+
     lookAt(dx, dy);
   }
 
