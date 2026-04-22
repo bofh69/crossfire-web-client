@@ -23,6 +23,7 @@ import { useConfig, getCpl } from './init.js';
 import { LOG } from './misc.js';
 import { LogLevel } from './protocol.js';
 import { gameEvents } from './events.js';
+import { perfLogging } from '../lib/debug';
 
 export function SetupCmd(data: string): void {
   const parts = data.split(' ');
@@ -132,7 +133,7 @@ export function Map2Cmd(data: DataView, len: number): void {
     }
   }
   const elapsed = performance.now() - t0;
-  if (elapsed > 1 || tileCount > 10) {
+  if (perfLogging && (elapsed > 1 || tileCount > 10)) {
     LOG(LogLevel.Debug, 'perf:map2', `parsed ${tileCount} tiles from ${len}B in ${elapsed.toFixed(1)}ms`);
   }
   gameEvents.emit('mapUpdate');

@@ -56,6 +56,13 @@ export interface GameEventMap {
   zoomIn:            [];
   /** Decrease the tile zoom level by one step. */
   zoomOut:           [];
+
+  // Debug events
+  /** Request the GameMap to enter "pick a tile" mode for debugging. */
+  debugPickTile:     [mode: 'bigface' | 'tile'];
+  /** Fired by the GameMap when the user clicks a tile in debug-pick mode.
+   *  Coordinates are absolute (virtual-map) positions. */
+  debugTileClicked:  [ax: number, ay: number, mode: 'bigface' | 'tile'];
 }
 
 // ── Event bus implementation ───────────────────────────────────────────────
