@@ -292,8 +292,8 @@
     if (!ctx) return;
 
     function drawPlaceholder(px: number, py: number, ts: number, layer: number) {
-      ctx.fillStyle = layer === 0 ? '#222' : '#333';
-      ctx.fillRect(px + 1, py + 1, ts - 2, ts - 2);
+      ctx!.fillStyle = layer === 0 ? '#222' : '#333';
+      ctx!.fillRect(px + 1, py + 1, ts - 2, ts - 2);
     }
 
     // Disable image smoothing so pixel art tiles remain crisp at any integer
