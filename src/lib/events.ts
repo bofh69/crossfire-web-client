@@ -31,6 +31,8 @@ export interface GameEventMap {
   mapUpdate:       [];
   playerUpdate:    [];
   spellUpdate:     [];
+  questUpdate:     [];
+  knowledgeUpdate: [];
   pickupUpdate:    [mode: number];
   accountPlayers:  [players: AccountPlayer[]];
   failure:         [command: string, message: string];
