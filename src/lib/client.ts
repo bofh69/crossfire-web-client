@@ -194,6 +194,7 @@ export function clientNegotiate(): void {
     );
 
     csocket.sendString("requestinfo skill_info");
+    csocket.sendString("requestinfo skill_extra 1");
     csocket.sendString("requestinfo exp_table");
     csocket.sendString("requestinfo motd");
     csocket.sendString("requestinfo news");
