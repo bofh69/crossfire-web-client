@@ -646,6 +646,28 @@ export interface Stats {
     golemMaxhp: number;
     range: string;
     title: string;
+    // Extended stats (only sent when extended_stats 1 is negotiated)
+    raceStr: number;
+    raceInt: number;
+    raceWis: number;
+    raceDex: number;
+    raceCon: number;
+    raceCha: number;
+    racePow: number;
+    baseStr: number;
+    baseInt: number;
+    baseWis: number;
+    baseDex: number;
+    baseCon: number;
+    baseCha: number;
+    basePow: number;
+    appliedStr: number;
+    appliedInt: number;
+    appliedWis: number;
+    appliedDex: number;
+    appliedCon: number;
+    appliedCha: number;
+    appliedPow: number;
 }
 
 export interface Spell {

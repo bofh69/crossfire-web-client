@@ -12,6 +12,12 @@ import {
   CS_STAT_EXP64, CS_STAT_SPELL_ATTUNE, CS_STAT_SPELL_REPEL, CS_STAT_SPELL_DENY,
   CS_STAT_RESIST_START, CS_STAT_RESIST_END, CS_STAT_SKILLINFO, CS_NUM_SKILLS,
   CS_STAT_GOLEM_HP, CS_STAT_GOLEM_MAXHP,
+  CS_STAT_RACE_STR, CS_STAT_RACE_INT, CS_STAT_RACE_WIS, CS_STAT_RACE_DEX,
+  CS_STAT_RACE_CON, CS_STAT_RACE_CHA, CS_STAT_RACE_POW,
+  CS_STAT_BASE_STR, CS_STAT_BASE_INT, CS_STAT_BASE_WIS, CS_STAT_BASE_DEX,
+  CS_STAT_BASE_CON, CS_STAT_BASE_CHA, CS_STAT_BASE_POW,
+  CS_STAT_APPLIED_STR, CS_STAT_APPLIED_INT, CS_STAT_APPLIED_WIS, CS_STAT_APPLIED_DEX,
+  CS_STAT_APPLIED_CON, CS_STAT_APPLIED_CHA, CS_STAT_APPLIED_POW,
   type Stats,
 } from './protocol.js';
 import { BinaryReader } from './binary_reader.js';
@@ -32,6 +38,9 @@ export const playerStats: Stats = {
   golemHp: 0, golemMaxhp: 0,
   range: '',
   title: '',
+  raceStr: 0, raceInt: 0, raceWis: 0, raceDex: 0, raceCon: 0, raceCha: 0, racePow: 0,
+  baseStr: 0, baseInt: 0, baseWis: 0, baseDex: 0, baseCon: 0, baseCha: 0, basePow: 0,
+  appliedStr: 0, appliedInt: 0, appliedWis: 0, appliedDex: 0, appliedCon: 0, appliedCha: 0, appliedPow: 0,
 };
 
 /**
@@ -97,6 +106,27 @@ export function StatsCmd(data: DataView, len: number): void {
       case CS_STAT_SPELL_DENY: playerStats.denied = reader.readInt32(); break;
       case CS_STAT_GOLEM_HP: playerStats.golemHp = reader.readInt32(); break;
       case CS_STAT_GOLEM_MAXHP: playerStats.golemMaxhp = reader.readInt32(); break;
+      case CS_STAT_RACE_STR: playerStats.raceStr = reader.readInt16(); break;
+      case CS_STAT_RACE_INT: playerStats.raceInt = reader.readInt16(); break;
+      case CS_STAT_RACE_WIS: playerStats.raceWis = reader.readInt16(); break;
+      case CS_STAT_RACE_DEX: playerStats.raceDex = reader.readInt16(); break;
+      case CS_STAT_RACE_CON: playerStats.raceCon = reader.readInt16(); break;
+      case CS_STAT_RACE_CHA: playerStats.raceCha = reader.readInt16(); break;
+      case CS_STAT_RACE_POW: playerStats.racePow = reader.readInt16(); break;
+      case CS_STAT_BASE_STR: playerStats.baseStr = reader.readInt16(); break;
+      case CS_STAT_BASE_INT: playerStats.baseInt = reader.readInt16(); break;
+      case CS_STAT_BASE_WIS: playerStats.baseWis = reader.readInt16(); break;
+      case CS_STAT_BASE_DEX: playerStats.baseDex = reader.readInt16(); break;
+      case CS_STAT_BASE_CON: playerStats.baseCon = reader.readInt16(); break;
+      case CS_STAT_BASE_CHA: playerStats.baseCha = reader.readInt16(); break;
+      case CS_STAT_BASE_POW: playerStats.basePow = reader.readInt16(); break;
+      case CS_STAT_APPLIED_STR: playerStats.appliedStr = reader.readInt16(); break;
+      case CS_STAT_APPLIED_INT: playerStats.appliedInt = reader.readInt16(); break;
+      case CS_STAT_APPLIED_WIS: playerStats.appliedWis = reader.readInt16(); break;
+      case CS_STAT_APPLIED_DEX: playerStats.appliedDex = reader.readInt16(); break;
+      case CS_STAT_APPLIED_CON: playerStats.appliedCon = reader.readInt16(); break;
+      case CS_STAT_APPLIED_CHA: playerStats.appliedCha = reader.readInt16(); break;
+      case CS_STAT_APPLIED_POW: playerStats.appliedPow = reader.readInt16(); break;
       case CS_STAT_RANGE: {
         // 1-byte length prefix + string (not null-terminated)
         const rlen = reader.readUint8();
