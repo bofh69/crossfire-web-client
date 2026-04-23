@@ -124,6 +124,15 @@ export class BinaryReader {
   }
 
   /**
+   * Read a length-prefixed string where the length is a uint16 (big-endian).
+   * This is the "l2string" format used in several Crossfire protocol commands.
+   */
+  readL2String(): string {
+    const len = this.readUint16();
+    return this.readString(len);
+  }
+
+  /**
    * Skip `n` bytes without reading them.
    */
   skip(n: number): void {

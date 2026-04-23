@@ -27,6 +27,8 @@
   import SpellList from './components/SpellList.svelte';
   import SkillList from './components/SkillList.svelte';
   import ProtectionList from './components/ProtectionList.svelte';
+  import QuestList from './components/QuestList.svelte';
+  import KnowledgeList from './components/KnowledgeList.svelte';
   import MenuBar from './components/MenuBar.svelte';
   import MagicMap from './components/MagicMap.svelte';
   import Hotbar from './components/Hotbar.svelte';
@@ -34,7 +36,7 @@
 
   type AppState = 'login' | 'playing';
   let appState = $state<AppState>('login');
-  let activeTab = $state<'inventory' | 'spells' | 'skills' | 'protections'>('inventory');
+  let activeTab = $state<'inventory' | 'spells' | 'skills' | 'protections' | 'quests' | 'knowledge'>('inventory');
 
   /** Self-tick timer (fallback when the server doesn't send ticks). */
   let selfTickTimer: ReturnType<typeof setInterval> | null = null;
@@ -445,6 +447,8 @@
         <button class:active={activeTab === 'spells'} onclick={() => activeTab = 'spells'}>Spells</button>
         <button class:active={activeTab === 'skills'} onclick={() => activeTab = 'skills'}>Skills</button>
         <button class:active={activeTab === 'protections'} onclick={() => activeTab = 'protections'}>Protect</button>
+        <button class:active={activeTab === 'quests'} onclick={() => activeTab = 'quests'}>Quests</button>
+        <button class:active={activeTab === 'knowledge'} onclick={() => activeTab = 'knowledge'}>Know</button>
       </div>
       <div class="tab-content">
         <div hidden={activeTab !== 'inventory'} class="tab-panel">
@@ -458,6 +462,12 @@
         </div>
         <div hidden={activeTab !== 'protections'} class="tab-panel">
           <ProtectionList />
+        </div>
+        <div hidden={activeTab !== 'quests'} class="tab-panel">
+          <QuestList />
+        </div>
+        <div hidden={activeTab !== 'knowledge'} class="tab-panel">
+          <KnowledgeList />
         </div>
       </div>
     </div>

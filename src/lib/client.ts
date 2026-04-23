@@ -13,6 +13,7 @@ import { CrossfireSocket } from "./newsocket";
 import {
     dispatchPacket,
     setSocket as setCommandsSocket,
+    clearNotifications,
 } from "./commands";
 import { gameEvents } from "./events";
 import { wantConfig, useConfig } from "./init";
@@ -112,6 +113,7 @@ export async function clientConnect(hostname: string, port?: number): Promise<vo
         stopHeartbeat();
         beatUnsubscribe?.();
         beatUnsubscribe = null;
+        clearNotifications();
         gameEvents.emit('disconnect');
     };
 
@@ -190,12 +192,13 @@ export function clientNegotiate(): void {
     csocket.sendString(
         `setup map2cmd 1 tick ${ticks} sound2 ${sound} darkness ${darkness} ` +
         `spellmon 1 spellmon 2 faceset 0 facecache ${cache} ` +
-        `want_pickup 1 newmapcmd 1 extendedTextInfos 1 extended_stats 1`,
+        `want_pickup 1 newmapcmd 1 extendedTextInfos 1 extended_stats 1 notifications 2`,
     );
 
     csocket.sendString("requestinfo skill_info");
     csocket.sendString("requestinfo skill_extra 1");
     csocket.sendString("requestinfo exp_table");
+    csocket.sendString("requestinfo knowledge_info");
     csocket.sendString("requestinfo motd");
     csocket.sendString("requestinfo news");
     csocket.sendString("requestinfo rules");

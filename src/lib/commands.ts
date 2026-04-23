@@ -27,6 +27,8 @@ import { gameEvents, type AccountPlayer } from './events.js';
 
 export { playerStats, skillNames, skillDescriptions, expTable, expBarPercent } from './cmd_stats.js';
 export { spells } from './cmd_items.js';
+export { quests, knowledgeItems, knowledgeTypeInfos, clearNotifications } from './cmd_notifications.js';
+export type { Quest, KnowledgeItem, KnowledgeTypeInfo } from './cmd_notifications.js';
 
 // ── Handlers from split modules ────────────────────────────────────────────
 
@@ -41,6 +43,7 @@ import {
   AnimCmd, SmoothCmd,
 } from './cmd_map.js';
 import { Sound2Cmd, MusicCmd } from './cmd_sound.js';
+import { AddQuestCmd, UpdQuestCmd, AddKnowledgeCmd, parseKnowledgeInfo } from './cmd_notifications.js';
 
 // ── Socket management ──────────────────────────────────────────────────────
 
@@ -203,6 +206,9 @@ function ReplyInfoCmd(data: DataView, len: number): void {
   } else if (infoType === 'motd' || infoType === 'news' || infoType === 'rules') {
     const text = new TextDecoder().decode(bytes.subarray(spaceIdx + 1));
     gameEvents.emit('replyInfo', infoType, text);
+  } else if (infoType === 'knowledge_info') {
+    const text = new TextDecoder().decode(bytes.subarray(spaceIdx + 1));
+    parseKnowledgeInfo(text);
   }
   LOG(LogLevel.Debug, 'ReplyInfoCmd', `Info type: ${infoType}`);
 }
@@ -267,6 +273,9 @@ const commandTable = new Map<string, CommandEntry>([
   ['image2', { type: 'binary', handler: imageImage2Cmd }],
   ['sound2', { type: 'binary', handler: Sound2Cmd }],
   ['music', { type: 'text', handler: MusicCmd }],
+  ['addquest', { type: 'binary', handler: AddQuestCmd }],
+  ['updquest', { type: 'binary', handler: UpdQuestCmd }],
+  ['addknowledge', { type: 'binary', handler: AddKnowledgeCmd }],
 ]);
 
 let logReceivedCommands = false;
