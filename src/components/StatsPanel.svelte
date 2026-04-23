@@ -83,15 +83,36 @@
   </div>
 
   <div class="attributes">
-    <div class="attr-grid">
-      <span class="attr">Str <strong>{stats.Str}</strong></span>
-      <span class="attr">Dex <strong>{stats.Dex}</strong></span>
-      <span class="attr">Con <strong>{stats.Con}</strong></span>
-      <span class="attr">Int <strong>{stats.Int}</strong></span>
-      <span class="attr">Wis <strong>{stats.Wis}</strong></span>
-      <span class="attr">Pow <strong>{stats.Pow}</strong></span>
-      <span class="attr">Cha <strong>{stats.Cha}</strong></span>
+    <div class="attr-header">
+      <span></span>
+      <span class="attr-col-label">Total</span>
+      <span class="attr-col-label">Base</span>
+      <span class="attr-col-label">Race</span>
+      <span class="attr-col-label">Applied</span>
     </div>
+    {#each [
+      { name: 'Str', total: stats.Str, base: stats.baseStr, race: stats.raceStr, applied: stats.appliedStr },
+      { name: 'Dex', total: stats.Dex, base: stats.baseDex, race: stats.raceDex, applied: stats.appliedDex },
+      { name: 'Con', total: stats.Con, base: stats.baseCon, race: stats.raceCon, applied: stats.appliedCon },
+      { name: 'Int', total: stats.Int, base: stats.baseInt, race: stats.raceInt, applied: stats.appliedInt },
+      { name: 'Wis', total: stats.Wis, base: stats.baseWis, race: stats.raceWis, applied: stats.appliedWis },
+      { name: 'Pow', total: stats.Pow, base: stats.basePow, race: stats.racePow, applied: stats.appliedPow },
+      { name: 'Cha', total: stats.Cha, base: stats.baseCha, race: stats.raceCha, applied: stats.appliedCha },
+    ] as attr}
+      <div class="attr-row">
+        <span class="attr-name">{attr.name}</span>
+        <span class="attr-total">{attr.total}</span>
+        {#if attr.base !== 0 || attr.race !== 0 || attr.applied !== 0}
+          <span class="attr-sub">{attr.base}</span>
+          <span class="attr-sub">{attr.race > 0 ? '+' : ''}{attr.race}</span>
+          <span class="attr-sub">{attr.applied > 0 ? '+' : ''}{attr.applied}</span>
+        {:else}
+          <span class="attr-sub attr-unavail">—</span>
+          <span class="attr-sub attr-unavail"></span>
+          <span class="attr-sub attr-unavail"></span>
+        {/if}
+      </div>
+    {/each}
   </div>
 
   <div class="combat-stats">
@@ -180,19 +201,47 @@
     margin-bottom: 0.75rem;
   }
 
-  .attr-grid {
+  .attr-header {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 0.2rem;
+    grid-template-columns: 40px 1fr 1fr 1fr 1fr;
+    gap: 0.1rem;
+    color: #666;
+    font-size: 0.7rem;
+    padding: 0 0 0.2rem;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 0.15rem;
   }
 
-  .attr {
+  .attr-col-label {
+    text-align: right;
+  }
+
+  .attr-row {
+    display: grid;
+    grid-template-columns: 40px 1fr 1fr 1fr 1fr;
+    gap: 0.1rem;
     font-size: 0.75rem;
+    line-height: 1.4;
+  }
+
+  .attr-name {
     color: #999;
   }
 
-  .attr strong {
+  .attr-total {
+    text-align: right;
     color: #ddd;
+    font-weight: bold;
+  }
+
+  .attr-sub {
+    text-align: right;
+    color: #778;
+    font-size: 0.7rem;
+  }
+
+  .attr-unavail {
+    color: #444;
   }
 
   .combat-stats {
