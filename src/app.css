@@ -102,6 +102,26 @@ body {
   border-top: 1px solid var(--border);
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
+  overflow: hidden;
+  position: relative;
+}
+
+/* Hidden measurement row: all 6 tab labels at their natural (non-flex) size.
+   scrollWidth vs clientWidth determines whether overflow mode is needed. */
+.tab-bar-measure {
+  position: absolute;
+  top: 0;
+  left: 0;
+  visibility: hidden;
+  pointer-events: none;
+  display: flex;
+  white-space: nowrap;
+}
+
+.tab-bar-measure span {
+  padding: 0.3rem 0.5rem;
+  font-size: 0.75rem;
+  flex: 0 0 auto;
 }
 
 .tab-bar button {
@@ -112,6 +132,7 @@ body {
   color: var(--text-dim);
   cursor: pointer;
   font-size: 0.75rem;
+  white-space: nowrap;
 }
 
 .tab-bar button:hover {
@@ -122,6 +143,37 @@ body {
   color: var(--text-bright);
   background: var(--bg-lighter);
   border-bottom: 2px solid var(--accent);
+}
+
+.tab-overflow-menu {
+  position: fixed;
+  z-index: 200;
+  background: var(--bg-mid);
+  border: 1px solid var(--border);
+  box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.5);
+  min-width: 80px;
+}
+
+.tab-overflow-menu button {
+  display: block;
+  width: 100%;
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  padding: 0.3rem 0.8rem;
+  text-align: left;
+  cursor: pointer;
+  font-size: 0.75rem;
+}
+
+.tab-overflow-menu button:hover {
+  color: var(--text);
+  background: var(--bg-lighter);
+}
+
+.tab-overflow-menu button.active {
+  color: var(--text-bright);
+  background: var(--bg-lighter);
 }
 
 .tab-content {
