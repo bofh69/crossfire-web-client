@@ -25,13 +25,13 @@ import { gameEvents, type AccountPlayer } from './events.js';
 // Keep the public API surface compatible so downstream files don't need to
 // change their import paths.
 
-export { playerStats, skillNames, expTable, expBarPercent } from './cmd_stats.js';
+export { playerStats, skillNames, skillDescriptions, expTable, expBarPercent } from './cmd_stats.js';
 export { spells } from './cmd_items.js';
 
 // ── Handlers from split modules ────────────────────────────────────────────
 
 import { StatsCmd } from './cmd_stats.js';
-import { playerStats, skillNames, expTable } from './cmd_stats.js';
+import { playerStats, skillNames, skillDescriptions, expTable } from './cmd_stats.js';
 import {
   PlayerCmd, Item2Cmd, UpdateItemCmd, DeleteItemCmd, DeleteInventoryCmd,
   AddspellCmd, UpdspellCmd, DeleteSpellCmd,
@@ -163,6 +163,28 @@ function ReplyInfoCmd(data: DataView, len: number): void {
       const idx = statNum - CS_STAT_SKILLINFO;
       if (idx >= 0 && idx < CS_NUM_SKILLS && name.length > 0) {
         skillNames[idx] = name;
+      }
+    }
+    gameEvents.emit('statsUpdate', playerStats);
+  } else if (infoType === 'skill_extra') {
+    // Binary format: repeated { uint16 skill_number, uint16 desc_len, string desc }
+    // terminated by skill_number == 0
+    const rest = bytes.subarray(spaceIdx + 1);
+    const dv = new DataView(rest.buffer, rest.byteOffset, rest.byteLength);
+    let pos = 0;
+    while (pos + 2 <= rest.length) {
+      const skillNum = dv.getUint16(pos, false);
+      pos += 2;
+      if (skillNum === 0) break;
+      if (pos + 2 > rest.length) break;
+      const descLen = dv.getUint16(pos, false);
+      pos += 2;
+      if (pos + descLen > rest.length) break;
+      const desc = new TextDecoder().decode(rest.subarray(pos, pos + descLen));
+      pos += descLen;
+      const idx = skillNum - CS_STAT_SKILLINFO;
+      if (idx >= 0 && idx < CS_NUM_SKILLS) {
+        skillDescriptions[idx] = desc;
       }
     }
     gameEvents.emit('statsUpdate', playerStats);

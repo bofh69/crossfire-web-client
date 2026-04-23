@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { skillNames, playerStats, expBarPercent } from '../lib/commands';
+  import { skillNames, playerStats, expBarPercent, skillDescriptions } from '../lib/commands';
   import type { Stats } from '../lib/protocol';
   import { extendedCommand } from '../lib/p_cmd';
   import { gameEvents } from '../lib/events';
@@ -12,6 +12,7 @@
     name: string;
     level: number;
     exp: bigint;
+    description: string;
   }
 
   let skills: SkillEntry[] = $state([]);
@@ -27,6 +28,7 @@
           name: skillNames[i] || `skill_${i}`,
           level: stats.skillLevel[i]!,
           exp: stats.skillExp[i]!,
+          description: skillDescriptions[i] || '',
         });
       }
     }
@@ -97,7 +99,10 @@
         <tbody>
           {#each skills as skill (skill.index)}
             <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-            <tr oncontextmenu={(e: MouseEvent) => handleContextMenu(e, skill)}>
+            <tr
+              oncontextmenu={(e: MouseEvent) => handleContextMenu(e, skill)}
+              title={skill.description || undefined}
+            >
               <td class="skill-name">{skill.name}</td>
               <td>{skill.level}</td>
               <td class="exp-cell">

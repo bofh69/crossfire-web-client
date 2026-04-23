@@ -50,6 +50,12 @@ export const playerStats: Stats = {
 export const skillNames: string[] = new Array(CS_NUM_SKILLS).fill('');
 
 /**
+ * Skill descriptions populated from the server's skill_extra reply.
+ * Index i corresponds to CS_STAT_SKILLINFO + i.
+ */
+export const skillDescriptions: string[] = new Array(CS_NUM_SKILLS).fill('');
+
+/**
  * Experience table populated from the server's exp_table reply.
  * expTable[level] is the total experience required to reach that level.
  * expTable[0] = 0n (level 0 requires 0 exp, used as base for level 1).
