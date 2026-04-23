@@ -2219,25 +2219,3 @@ SC version 1029 -> 1030: Clarify the additive length byte in the map2 command
 type field and add map text label support. This was needed because some
 clients did not correctly handle the additive length byte for map2 types that
 they did not support.
-
-Todo
-----
-It probably makes more sense to do a more preemptive handling of socket
-events. That is, instead of sleeping 120 ms, then checking all the
-sockets, we do a select on all the file descriptors with an appropriate
-sleep time.
-
-If we get input, we handle it at that time if the player has an action. In
-this way, instead of handling all the actions after sleeping for the 120ms,
-we can instead spread them out more. Only when the 120ms expire do we
-then do all the actions like move the monsters, regenerate HP, etc.
-
-The only potential problem I see with this right now is that select will
-return immediately if there is data on the socket (player has used up all
-their time, are paralyzed, etc.)  This would probably mean that the server
-needs to do internal buffering, which complicates things some. The
-potential advantage with this is that we could peek at the data, and
-if the command is not a player action (ie, maybe requesting an image, or
-a misc command like who), we could still execute it. Actually, we can
-get around the select problem by only adding the file descriptors from
-sockets that actually have time to perform actions.
