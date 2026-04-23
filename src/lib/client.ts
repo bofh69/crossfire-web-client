@@ -190,7 +190,7 @@ export function clientNegotiate(): void {
     csocket.sendString(
         `setup beat 1 map2cmd 1 tick ${ticks} sound2 ${sound} darkness ${darkness} ` +
         `spellmon 1 spellmon 2 faceset 0 facecache ${cache} ` +
-        `want_pickup 1 newmapcmd 1 extendedTextInfos 1`,
+        `want_pickup 1 newmapcmd 1 extendedTextInfos 1 extended_stats 1`,
     );
 
     csocket.sendString("requestinfo skill_info");

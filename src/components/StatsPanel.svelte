@@ -15,6 +15,9 @@
     weightLimit: 0, golemHp: 0, golemMaxhp: 0,
     range: '',
     title: '',
+    raceStr: 0, raceInt: 0, raceWis: 0, raceDex: 0, raceCon: 0, raceCha: 0, racePow: 0,
+    baseStr: 0, baseInt: 0, baseWis: 0, baseDex: 0, baseCon: 0, baseCha: 0, basePow: 0,
+    appliedStr: 0, appliedInt: 0, appliedWis: 0, appliedDex: 0, appliedCon: 0, appliedCha: 0, appliedPow: 0,
   });
 
   function updateStats(newStats: Partial<Stats>) {
