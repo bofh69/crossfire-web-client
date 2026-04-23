@@ -28,7 +28,7 @@
 
   function showInfo(item: KnowledgeItem) {
     gameEvents.emit('drawInfo', NDI_NAVY, item.title);
-    sendCommand(`knowledge ${item.code}`, 0, 1);
+    sendCommand(`knowledge show ${item.code}`, 0, 1);
   }
 
   function attemptKnowledge(item: KnowledgeItem) {
@@ -102,9 +102,15 @@
     tabindex="-1"
     onclick={(e) => e.stopPropagation()}
   >
-    <button onclick={() => { showInfo(item); closeContextMenu(); }}>Info</button>
+    <button
+      onclick={() => { showInfo(item); closeContextMenu(); }}
+      oncontextmenu={(e) => { e.preventDefault(); showInfo(item); closeContextMenu(); }}
+    >Info</button>
     {#if canAttempt(item.type)}
-      <button onclick={() => { attemptKnowledge(item); closeContextMenu(); }}>Attempt</button>
+      <button
+        onclick={() => { attemptKnowledge(item); closeContextMenu(); }}
+        oncontextmenu={(e) => { e.preventDefault(); attemptKnowledge(item); closeContextMenu(); }}
+      >Attempt</button>
     {/if}
   </div>
 {/if}

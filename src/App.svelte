@@ -38,6 +38,73 @@
   let appState = $state<AppState>('login');
   let activeTab = $state<'inventory' | 'spells' | 'skills' | 'protections' | 'quests' | 'knowledge'>('inventory');
 
+  type SecondaryTab = 'protections' | 'quests' | 'knowledge';
+  const secondaryTabs: { id: SecondaryTab; label: string }[] = [
+    { id: 'protections', label: 'Protect' },
+    { id: 'quests', label: 'Quests' },
+    { id: 'knowledge', label: 'Know' },
+  ];
+
+  /** Whether the secondary tabs have been collapsed into the overflow button. */
+  let tabOverflow = $state(false);
+  /** Whether the overflow dropdown is open. */
+  let tabOverflowOpen = $state(false);
+  /** Position for the fixed-positioned overflow dropdown. */
+  let tabOverflowPos = $state<{ x: number; y: number } | null>(null);
+  /** Last-selected secondary tab (shown as overflow button label when a primary tab is active). */
+  let lastSecondaryTab = $state<SecondaryTab>('protections');
+  /** Bound to the tab-bar element for ResizeObserver. */
+  let tabBarEl = $state<HTMLDivElement | undefined>(undefined);
+
+  const isSecondaryActive = $derived(
+    activeTab === 'protections' || activeTab === 'quests' || activeTab === 'knowledge'
+  );
+  const overflowTabLabel = $derived(
+    isSecondaryActive
+      ? secondaryTabs.find(t => t.id === activeTab)!.label
+      : secondaryTabs.find(t => t.id === lastSecondaryTab)!.label
+  );
+
+  function selectSecondaryTab(tab: SecondaryTab) {
+    activeTab = tab;
+    lastSecondaryTab = tab;
+    tabOverflowOpen = false;
+    tabOverflowPos = null;
+  }
+
+  function handleOverflowBtnClick(e: MouseEvent) {
+    e.stopPropagation();
+    if (tabOverflowOpen) {
+      tabOverflowOpen = false;
+      tabOverflowPos = null;
+    } else {
+      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+      tabOverflowPos = { x: rect.left, y: rect.bottom };
+      tabOverflowOpen = true;
+    }
+  }
+
+  /** Use a hidden measurement div to check if all 6 tab buttons fit. */
+  $effect(() => {
+    const el = tabBarEl;
+    if (!el) return;
+
+    function checkTabOverflow() {
+      const measure = el!.querySelector<HTMLElement>('.tab-bar-measure');
+      if (!measure) return;
+      tabOverflow = measure.scrollWidth > el!.clientWidth;
+      if (!tabOverflow) {
+        tabOverflowOpen = false;
+        tabOverflowPos = null;
+      }
+    }
+
+    const ro = new ResizeObserver(checkTabOverflow);
+    ro.observe(el);
+    checkTabOverflow();
+    return () => ro.disconnect();
+  });
+
   /** Self-tick timer (fallback when the server doesn't send ticks). */
   let selfTickTimer: ReturnType<typeof setInterval> | null = null;
 
@@ -393,6 +460,8 @@
   }
 </script>
 
+<svelte:window onclick={() => { tabOverflowOpen = false; tabOverflowPos = null; }} />
+
 {#if appState === 'login'}
   <Login onLoggedIn={handleLoggedIn} />
 {:else}
@@ -442,13 +511,25 @@
       <div class="stats-section">
         <StatsPanel />
       </div>
-      <div class="tab-bar">
+      <div class="tab-bar" bind:this={tabBarEl}>
+        <!--
+          Hidden measurement div: all 6 labels at natural (non-flex) size.
+          scrollWidth vs clientWidth tells us whether all tabs fit.
+        -->
+        <div class="tab-bar-measure" aria-hidden="true">
+          <span>Items</span><span>Spells</span><span>Skills</span>
+          <span>Protect</span><span>Quests</span><span>Know</span>
+        </div>
         <button class:active={activeTab === 'inventory'} onclick={() => activeTab = 'inventory'}>Items</button>
         <button class:active={activeTab === 'spells'} onclick={() => activeTab = 'spells'}>Spells</button>
         <button class:active={activeTab === 'skills'} onclick={() => activeTab = 'skills'}>Skills</button>
-        <button class:active={activeTab === 'protections'} onclick={() => activeTab = 'protections'}>Protect</button>
-        <button class:active={activeTab === 'quests'} onclick={() => activeTab = 'quests'}>Quests</button>
-        <button class:active={activeTab === 'knowledge'} onclick={() => activeTab = 'knowledge'}>Know</button>
+        {#if !tabOverflow}
+          <button class:active={activeTab === 'protections'} onclick={() => activeTab = 'protections'}>Protect</button>
+          <button class:active={activeTab === 'quests'} onclick={() => activeTab = 'quests'}>Quests</button>
+          <button class:active={activeTab === 'knowledge'} onclick={() => activeTab = 'knowledge'}>Know</button>
+        {:else}
+          <button class:active={isSecondaryActive} onclick={handleOverflowBtnClick}>{overflowTabLabel} ▾</button>
+        {/if}
       </div>
       <div class="tab-content">
         <div hidden={activeTab !== 'inventory'} class="tab-panel">
@@ -482,6 +563,27 @@
         <p>⚠ Disconnected from server</p>
         <button onclick={handleDisconnect}>Back to Login</button>
       </div>
+    </div>
+  {/if}
+
+  {#if tabOverflow && tabOverflowOpen && tabOverflowPos}
+    <!-- svelte-ignore a11y_click_events_have_key_events -->
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
+    <div
+      class="tab-overflow-menu"
+      style:left="{tabOverflowPos.x}px"
+      style:top="{tabOverflowPos.y}px"
+      role="menu"
+      tabindex="-1"
+      onclick={(e) => e.stopPropagation()}
+    >
+      {#each secondaryTabs as tab}
+        <button
+          class:active={activeTab === tab.id}
+          role="menuitem"
+          onclick={() => selectSecondaryTab(tab.id)}
+        >{tab.label}</button>
+      {/each}
     </div>
   {/if}
 {/if}
