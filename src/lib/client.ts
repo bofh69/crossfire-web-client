@@ -188,7 +188,7 @@ export function clientNegotiate(): void {
     const cache = wantConfig.cache ? 1 : 0;
 
     csocket.sendString(
-        `setup beat 1 map2cmd 1 tick ${ticks} sound2 ${sound} darkness ${darkness} ` +
+        `setup map2cmd 1 tick ${ticks} sound2 ${sound} darkness ${darkness} ` +
         `spellmon 1 spellmon 2 faceset 0 facecache ${cache} ` +
         `want_pickup 1 newmapcmd 1 extendedTextInfos 1 extended_stats 1`,
     );
