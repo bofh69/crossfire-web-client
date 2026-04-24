@@ -63,11 +63,44 @@ body {
     "hotbar side"
     "map    side"
     "info   side";
-  grid-template-columns: 1fr clamp(280px, 20vw, 500px);
-  grid-template-rows: clamp(24px, 2.5vh, 28px) clamp(52px, 6vh, 64px) 1fr clamp(140px, 18vh, 320px);
+  grid-template-columns: 1fr var(--side-width, clamp(280px, 20vw, 500px));
+  grid-template-rows: clamp(24px, 2.5vh, 28px) clamp(52px, 6vh, 64px) 1fr var(--info-height, clamp(140px, 18vh, 320px));
   width: 100vw;
   height: 100vh;
   gap: 0;
+  position: relative;
+}
+
+/* Drag-to-resize handles */
+.resize-handle-col {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  right: calc(var(--side-width, clamp(280px, 20vw, 500px)) - 3px);
+  width: 6px;
+  cursor: col-resize;
+  z-index: 10;
+  background: transparent;
+  transition: background 0.15s;
+}
+
+.resize-handle-row {
+  position: absolute;
+  left: 0;
+  right: var(--side-width, clamp(280px, 20vw, 500px));
+  bottom: calc(var(--info-height, clamp(140px, 18vh, 320px)) - 3px);
+  height: 6px;
+  cursor: row-resize;
+  z-index: 10;
+  background: transparent;
+  transition: background 0.15s;
+}
+
+.resize-handle-col:hover,
+.resize-handle-col.dragging,
+.resize-handle-row:hover,
+.resize-handle-row.dragging {
+  background: rgba(122, 106, 74, 0.35);
 }
 
 .menu-area {
