@@ -33,6 +33,87 @@
   import MagicMap from './components/MagicMap.svelte';
   import Hotbar from './components/Hotbar.svelte';
   import { loadHotbar, activateHotbarSlot } from './lib/hotbar';
+  import { loadConfig, saveConfig } from './lib/storage';
+
+  // ── Layout resize ────────────────────────────────────────────────
+  const MIN_SIDE_WIDTH  = 180;
+  const MAX_SIDE_WIDTH_FRAC = 0.6;
+  const MIN_INFO_HEIGHT = 60;
+  const MAX_INFO_HEIGHT_FRAC = 0.5;
+
+  function loadLayoutSize(fracKey: string, viewportSize: number, min: number, maxFrac: number): number | null {
+    const frac = loadConfig<number | null>(fracKey, null);
+    if (frac === null) return null;
+    return Math.max(min, Math.min(Math.floor(maxFrac * viewportSize), Math.round(frac * viewportSize)));
+  }
+
+  let gameLayoutEl = $state<HTMLDivElement | undefined>();
+  let sideWidthPx  = $state(loadLayoutSize('layout_sideWidthFrac',  window.innerWidth,  MIN_SIDE_WIDTH,  MAX_SIDE_WIDTH_FRAC));
+  let infoHeightPx = $state(loadLayoutSize('layout_infoHeightFrac', window.innerHeight, MIN_INFO_HEIGHT, MAX_INFO_HEIGHT_FRAC));
+  let isDraggingCol = $state(false);
+  let isDraggingRow = $state(false);
+
+  function handleColResizeStart(e: MouseEvent) {
+    e.preventDefault();
+    const layout = gameLayoutEl!;
+    const startSideWidth = layout.querySelector<HTMLElement>('.side-area')!.getBoundingClientRect().width;
+    const startX = e.clientX;
+    const maxSide = Math.floor(layout.getBoundingClientRect().width * MAX_SIDE_WIDTH_FRAC);
+
+    isDraggingCol = true;
+    document.body.style.cursor = 'col-resize';
+    document.body.style.userSelect = 'none';
+
+    function onMove(me: MouseEvent) {
+      const delta = startX - me.clientX;
+      sideWidthPx = Math.max(MIN_SIDE_WIDTH, Math.min(maxSide, Math.round(startSideWidth + delta)));
+    }
+
+    function onUp() {
+      isDraggingCol = false;
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+      if (sideWidthPx !== null) {
+        saveConfig('layout_sideWidthFrac', sideWidthPx / layout.getBoundingClientRect().width);
+      }
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+    }
+
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+  }
+
+  function handleRowResizeStart(e: MouseEvent) {
+    e.preventDefault();
+    const layout = gameLayoutEl!;
+    const startInfoHeight = layout.querySelector<HTMLElement>('.info-area')!.getBoundingClientRect().height;
+    const startY = e.clientY;
+    const maxInfo = Math.floor(layout.getBoundingClientRect().height * MAX_INFO_HEIGHT_FRAC);
+
+    isDraggingRow = true;
+    document.body.style.cursor = 'row-resize';
+    document.body.style.userSelect = 'none';
+
+    function onMove(me: MouseEvent) {
+      const delta = startY - me.clientY;
+      infoHeightPx = Math.max(MIN_INFO_HEIGHT, Math.min(maxInfo, Math.round(startInfoHeight + delta)));
+    }
+
+    function onUp() {
+      isDraggingRow = false;
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+      if (infoHeightPx !== null) {
+        saveConfig('layout_infoHeightFrac', infoHeightPx / layout.getBoundingClientRect().height);
+      }
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+    }
+
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
+  }
 
   type AppState = 'login' | 'playing';
   let appState = $state<AppState>('login');
@@ -465,7 +546,11 @@
 {#if appState === 'login'}
   <Login onLoggedIn={handleLoggedIn} />
 {:else}
-  <div class="game-layout">
+  <div class="game-layout"
+    bind:this={gameLayoutEl}
+    style:--side-width={sideWidthPx !== null ? `${sideWidthPx}px` : undefined}
+    style:--info-height={infoHeightPx !== null ? `${infoHeightPx}px` : undefined}
+  >
     <div class="menu-area">
       <MenuBar bind:this={menuBar} onDisconnect={handleDisconnect} />
       <div class="status-indicators">
@@ -555,6 +640,24 @@
     <div class="info-area" class:query-active={!!gameQueryPrompt}>
       <InfoPanel inputDisabled={!!gameQueryPrompt} />
     </div>
+    <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+    <div
+      class="resize-handle-col"
+      class:dragging={isDraggingCol}
+      role="separator"
+      aria-label="Resize side panel"
+      aria-orientation="vertical"
+      onmousedown={handleColResizeStart}
+    ></div>
+    <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+    <div
+      class="resize-handle-row"
+      class:dragging={isDraggingRow}
+      role="separator"
+      aria-label="Resize info panel"
+      aria-orientation="horizontal"
+      onmousedown={handleRowResizeStart}
+    ></div>
   </div>
 
   {#if serverDisconnected}
