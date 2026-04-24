@@ -8,6 +8,7 @@
   import { gameEvents } from '../lib/events';
   import { setHotbarSlot } from '../lib/hotbar';
   import HotbarSlotPicker from './HotbarSlotPicker.svelte';
+  import { loadConfig, saveConfig } from '../lib/storage';
 
   interface FlatItem {
     tag: number;
@@ -24,6 +25,44 @@
     unpaid: boolean;
     open: boolean;
     depth: number;
+  }
+
+  // ── Inventory/ground split resize ────────────────────────────────
+  const MIN_INV_FRAC = 0.1;
+  const MAX_INV_FRAC = 0.9;
+
+  let invContainerEl = $state<HTMLDivElement | undefined>();
+  let invSplitFrac = $state(loadConfig<number>('layout_invSplitFrac', 0.5));
+  let isDraggingInv = $state(false);
+
+  function handleInvSplitStart(e: MouseEvent) {
+    e.preventDefault();
+    const container = invContainerEl!;
+    const startFrac = invSplitFrac;
+    const startY = e.clientY;
+    const containerH = container.getBoundingClientRect().height;
+
+    isDraggingInv = true;
+    document.body.style.cursor = 'row-resize';
+    document.body.style.userSelect = 'none';
+
+    function onMove(me: MouseEvent) {
+      const delta = me.clientY - startY;
+      const newFrac = startFrac + delta / containerH;
+      invSplitFrac = Math.max(MIN_INV_FRAC, Math.min(MAX_INV_FRAC, newFrac));
+    }
+
+    function onUp() {
+      isDraggingInv = false;
+      document.body.style.cursor = '';
+      document.body.style.userSelect = '';
+      saveConfig('layout_invSplitFrac', invSplitFrac);
+      window.removeEventListener('mousemove', onMove);
+      window.removeEventListener('mouseup', onUp);
+    }
+
+    window.addEventListener('mousemove', onMove);
+    window.addEventListener('mouseup', onUp);
   }
 
   let playerItems: FlatItem[] = $state([]);
@@ -236,8 +275,8 @@
 
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <!-- svelte-ignore a11y_no_static_element_interactions -->
-<div class="inventory" onclick={closeContextMenu}>
-  <div class="inv-section">
+<div class="inventory" onclick={closeContextMenu} bind:this={invContainerEl}>
+  <div class="inv-section" style:flex="{invSplitFrac} 0 0">
     <h3>
       Inventory ({playerItems.length})
       {#if itemCount > 0}
@@ -278,7 +317,17 @@
     </div>
   </div>
 
-  <div class="inv-section">
+  <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+  <div
+    class="inv-resize-handle"
+    class:dragging={isDraggingInv}
+    role="separator"
+    aria-label="Resize inventory split"
+    aria-orientation="horizontal"
+    onmousedown={handleInvSplitStart}
+  ></div>
+
+  <div class="inv-section" style:flex="{1 - invSplitFrac} 0 0">
     <h3>Ground ({groundItems.length})</h3>
     <div class="item-list" bind:this={groundListEl}>
       {#each groundItems as item (item.tag)}
@@ -386,16 +435,24 @@
   }
 
   .inv-section {
-    flex: 1;
     display: flex;
     flex-direction: column;
     min-height: 0;
+    overflow: hidden;
   }
 
-  .inv-section + .inv-section {
-    border-top: 1px solid var(--border-mid);
+  .inv-resize-handle {
+    height: 6px;
+    flex-shrink: 0;
+    cursor: row-resize;
+    background: transparent;
+    transition: background 0.15s;
   }
 
+  .inv-resize-handle:hover,
+  .inv-resize-handle.dragging {
+    background: rgba(122, 106, 74, 0.35);
+  }
   h3 {
     margin: 0;
     padding: 0.4rem 0.5rem;
