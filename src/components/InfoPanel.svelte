@@ -11,6 +11,9 @@
 
   interface Message {
     spans: MessageSpan[];
+    rawText: string;
+    rawColor: number;
+    count: number;
   }
 
   let messages: Message[] = $state([]);
@@ -27,11 +30,16 @@
 
   function addMessage(color: number, text: string) {
     const baseColor = colorForNdi(color);
-    const spans = parseMarkup(text, baseColor);
-    messages = [...messages, { spans }];
-    // Keep a reasonable buffer
-    if (messages.length > MSG_BUFFER_MAX) {
-      messages = messages.slice(-MSG_BUFFER_TRIM);
+    const lastMsg = messages[messages.length - 1];
+    if (lastMsg && lastMsg.rawText === text && lastMsg.rawColor === color) {
+      messages = [...messages.slice(0, -1), { ...lastMsg, count: lastMsg.count + 1 }];
+    } else {
+      const spans = parseMarkup(text, baseColor);
+      messages = [...messages, { spans, rawText: text, rawColor: color, count: 1 }];
+      // Keep a reasonable buffer
+      if (messages.length > MSG_BUFFER_MAX) {
+        messages = messages.slice(-MSG_BUFFER_TRIM);
+      }
     }
     scrollToBottom();
   }
@@ -172,7 +180,7 @@
 <div class="info-panel">
   <div class="messages" bind:this={messagesDiv}>
     {#each messages as msg}
-      <div class="message">{#each msg.spans as span}<span
+      <div class="message">{#if msg.count > 1}<span class="repeat-count">{msg.count}×</span>{/if}{#each msg.spans as span}<span
           style:color={span.color}
           style:font-weight={span.bold ? 'bold' : 'normal'}
           style:font-style={span.italic ? 'italic' : 'normal'}
@@ -215,6 +223,19 @@
   .message {
     padding: 1px 0;
     word-wrap: break-word;
+  }
+
+  .repeat-count {
+    display: inline-block;
+    font-weight: bold;
+    color: #999;
+    background: #2e2e2e;
+    border: 1px solid #555;
+    border-radius: 3px;
+    padding: 0 3px;
+    font-size: 0.75em;
+    margin-right: 0.35em;
+    vertical-align: middle;
   }
 
   .input-row {
