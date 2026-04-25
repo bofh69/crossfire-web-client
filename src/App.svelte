@@ -32,7 +32,7 @@
   import MenuBar from './components/MenuBar.svelte';
   import MagicMap from './components/MagicMap.svelte';
   import Hotbar from './components/Hotbar.svelte';
-  import { loadHotbar, activateHotbarSlot } from './lib/hotbar';
+  import { loadHotbar, activateHotbarSlot, setCurrentCharacter as setHotbarCurrentCharacter } from './lib/hotbar';
   import { loadConfig, saveConfig } from './lib/storage';
 
   // ── Layout resize ────────────────────────────────────────────────
@@ -470,6 +470,7 @@
         if (charName) {
           setKeyCurrentCharacter(charName);
           setGamepadCurrentCharacter(charName);
+          setHotbarCurrentCharacter(charName);
         }
       }),
 

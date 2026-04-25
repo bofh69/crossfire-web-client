@@ -30,11 +30,19 @@ export interface HotbarSlot {
 
 // ── Module state ─────────────────────────────────────────────────────────────
 
-const HOTBAR_STORAGE_KEY = "hotbar_slots";
+const HOTBAR_CHAR_STORAGE_KEY_PREFIX = "hotbar_slots_char_";
 const HOTBAR_SLOT_COUNT = 12;
+
+/** Sanitise a character name for use as a localStorage key segment. */
+function sanitiseName(name: string): string {
+    return name.replace(/[^a-zA-Z0-9_-]/g, "_").substring(0, 80);
+}
 
 /** The 12 hotbar slots.  null = empty. */
 let slots: (HotbarSlot | null)[] = Array(HOTBAR_SLOT_COUNT).fill(null);
+
+/** The name of the currently logged-in character (empty = no character). */
+let currentCharName = "";
 
 // ── Gamepad radial-select state ──────────────────────────────────────────────
 
@@ -45,17 +53,38 @@ let gamepadHighlight = -1;
 
 // ── Persistence ──────────────────────────────────────────────────────────────
 
-/** Load hotbar slots from localStorage.  Call once at startup. */
-export function loadHotbar(): void {
-    const saved = loadConfig<(HotbarSlot | null)[]>(HOTBAR_STORAGE_KEY, []);
+/** Load hotbar slots for the given character name from localStorage. */
+function loadHotbarForChar(charName: string): void {
+    const key = HOTBAR_CHAR_STORAGE_KEY_PREFIX + sanitiseName(charName);
+    const saved = loadConfig<(HotbarSlot | null)[]>(key, []);
     slots = Array(HOTBAR_SLOT_COUNT).fill(null);
     for (let i = 0; i < Math.min(saved.length, HOTBAR_SLOT_COUNT); i++) {
         slots[i] = saved[i] ?? null;
     }
 }
 
+/**
+ * Initialise the hotbar module.  Slots start empty until a character logs in
+ * and setCurrentCharacter() is called.
+ */
+export function loadHotbar(): void {
+    slots = Array(HOTBAR_SLOT_COUNT).fill(null);
+}
+
 function saveHotbar(): void {
-    saveConfig(HOTBAR_STORAGE_KEY, slots);
+    if (!currentCharName) return;
+    const key = HOTBAR_CHAR_STORAGE_KEY_PREFIX + sanitiseName(currentCharName);
+    saveConfig(key, slots);
+}
+
+/**
+ * Called when a character logs in.  Loads character-specific hotbar slots and
+ * emits a hotbarUpdate event so the UI refreshes.
+ */
+export function setCurrentCharacter(charName: string): void {
+    currentCharName = charName;
+    loadHotbarForChar(charName);
+    gameEvents.emit('hotbarUpdate');
 }
 
 // ── Slot accessors ────────────────────────────────────────────────────────────
