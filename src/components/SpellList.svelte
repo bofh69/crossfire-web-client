@@ -7,6 +7,7 @@
   import { setHotbarSlot } from '../lib/hotbar';
   import { getFaceUrl } from '../lib/image';
   import HotbarSlotPicker from './HotbarSlotPicker.svelte';
+  import ContextMenu from './ContextMenu.svelte';
 
   let spellList: Spell[] = $state([]);
   let contextMenu = $state<{ x: number; y: number; spell: Spell } | null>(null);
@@ -50,8 +51,6 @@
     closeContextMenu();
   }
 </script>
-
-<svelte:window onclick={closeContextMenu} />
 
 <div class="spell-list">
   <h3>Spells ({spellList.length})</h3>
@@ -101,16 +100,7 @@
 
 {#if contextMenu}
   {@const spell = contextMenu.spell}
-  <!-- svelte-ignore a11y_click_events_have_key_events -->
-  <!-- svelte-ignore a11y_no_static_element_interactions -->
-  <div
-    class="context-menu"
-    style:left="{contextMenu.x}px"
-    style:top="{contextMenu.y}px"
-    role="menu"
-    tabindex="-1"
-    onclick={(e) => e.stopPropagation()}
-  >
+  <ContextMenu x={contextMenu.x} y={contextMenu.y} onClose={closeContextMenu}>
     <button onclick={() => { castSpell(spell); closeContextMenu(); }}>
       Cast {spell.name}
     </button>
@@ -123,7 +113,7 @@
         onCancel={closeContextMenu}
       />
     {/if}
-  </div>
+  </ContextMenu>
 {/if}
 
 <style>
@@ -206,30 +196,5 @@
     width: 24px;
     height: 24px;
     display: block;
-  }
-
-  .context-menu {
-    position: fixed;
-    background: var(--border);
-    border: 1px solid var(--border-light);
-    border-radius: 4px;
-    display: flex;
-    flex-direction: column;
-    z-index: 100;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.5);
-  }
-
-  .context-menu button {
-    padding: 0.4rem 1rem;
-    border: none;
-    background: none;
-    color: #ddd;
-    text-align: left;
-    cursor: pointer;
-    font-size: 0.8rem;
-  }
-
-  .context-menu button:hover {
-    background: var(--border-mid);
   }
 </style>

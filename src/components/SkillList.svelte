@@ -6,6 +6,7 @@
   import { gameEvents } from '../lib/events';
   import { setHotbarSlot } from '../lib/hotbar';
   import HotbarSlotPicker from './HotbarSlotPicker.svelte';
+  import ContextMenu from './ContextMenu.svelte';
 
   interface SkillEntry {
     index: number;
@@ -80,8 +81,6 @@
   }
 </script>
 
-<svelte:window onclick={closeContextMenu} />
-
 <div class="skill-list">
   <h3>Skills ({skills.length})</h3>
   <div class="skills-scroll">
@@ -118,16 +117,7 @@
 </div>
 
 {#if contextMenu}
-  <!-- svelte-ignore a11y_click_events_have_key_events -->
-  <!-- svelte-ignore a11y_no_static_element_interactions -->
-  <div
-    class="context-menu"
-    style:left="{contextMenu.x}px"
-    style:top="{contextMenu.y}px"
-    role="menu"
-    tabindex="-1"
-    onclick={(e) => e.stopPropagation()}
-  >
+  <ContextMenu x={contextMenu.x} y={contextMenu.y} onClose={closeContextMenu}>
     <button onclick={() => contextMenu && useSkill(contextMenu.skill)}>
       Use skill: {contextMenu.skill.name}
     </button>
@@ -143,7 +133,7 @@
         onCancel={closeContextMenu}
       />
     {/if}
-  </div>
+  </ContextMenu>
 {/if}
 
 <style>
@@ -226,31 +216,6 @@
   .exp-text {
     position: relative;
     z-index: 1;
-  }
-
-  .context-menu {
-    position: fixed;
-    background: var(--border);
-    border: 1px solid var(--border-light);
-    border-radius: 4px;
-    display: flex;
-    flex-direction: column;
-    z-index: 100;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.5);
-  }
-
-  .context-menu button {
-    padding: 0.4rem 1rem;
-    border: none;
-    background: none;
-    color: #ddd;
-    text-align: left;
-    cursor: pointer;
-    font-size: 0.8rem;
-  }
-
-  .context-menu button:hover {
-    background: var(--border-mid);
   }
 </style>
 
