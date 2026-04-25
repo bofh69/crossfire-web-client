@@ -34,9 +34,16 @@
     clearFadeTimer();
     menuFading = false;
   }
+
+  function handleKeydown(e: KeyboardEvent) {
+    if (e.key === 'Escape') {
+      e.stopPropagation();
+      onClose();
+    }
+  }
 </script>
 
-<svelte:window onclick={onClose} />
+<svelte:window onclick={onClose} onkeydown={handleKeydown} />
 
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -85,8 +92,6 @@
     text-align: left;
     cursor: pointer;
     font-size: 0.8rem;
-    display: block;
-    width: 100%;
   }
 
   .context-menu :global(button:hover) {
