@@ -6,6 +6,7 @@
   import { getFaceUrl } from '../lib/image';
   import { sendCommand } from '../lib/player';
   import { NDI_NAVY } from '../lib/protocol';
+  import ContextMenu from './ContextMenu.svelte';
 
   let items: KnowledgeItem[] = $state([]);
   let contextMenu = $state<{ x: number; y: number; item: KnowledgeItem } | null>(null);
@@ -51,8 +52,6 @@
   });
 </script>
 
-<svelte:window onclick={closeContextMenu} />
-
 <div class="knowledge-list">
   <h3>Knowledge ({items.length})</h3>
   <div class="knowledge-scroll">
@@ -92,16 +91,7 @@
 
 {#if contextMenu}
   {@const item = contextMenu.item}
-  <!-- svelte-ignore a11y_click_events_have_key_events -->
-  <!-- svelte-ignore a11y_no_static_element_interactions -->
-  <div
-    class="context-menu"
-    style:left="{contextMenu.x}px"
-    style:top="{contextMenu.y}px"
-    role="menu"
-    tabindex="-1"
-    onclick={(e) => e.stopPropagation()}
-  >
+  <ContextMenu x={contextMenu.x} y={contextMenu.y} onClose={closeContextMenu}>
     <button
       onclick={() => { showInfo(item); closeContextMenu(); }}
       oncontextmenu={(e) => { e.preventDefault(); showInfo(item); closeContextMenu(); }}
@@ -112,7 +102,7 @@
         oncontextmenu={(e) => { e.preventDefault(); attemptKnowledge(item); closeContextMenu(); }}
       >Attempt</button>
     {/if}
-  </div>
+  </ContextMenu>
 {/if}
 
 <style>
@@ -195,31 +185,5 @@
   .knowledge-type {
     color: #999;
     font-size: 0.7rem;
-  }
-
-  .context-menu {
-    position: fixed;
-    z-index: 1000;
-    background: var(--bg-mid);
-    border: 1px solid var(--border);
-    padding: 0.2rem 0;
-    min-width: 120px;
-    box-shadow: 2px 2px 6px rgba(0, 0, 0, 0.5);
-  }
-
-  .context-menu button {
-    display: block;
-    width: 100%;
-    background: none;
-    border: none;
-    color: var(--text);
-    padding: 0.3rem 0.8rem;
-    text-align: left;
-    cursor: pointer;
-    font-size: 0.8rem;
-  }
-
-  .context-menu button:hover {
-    background: var(--bg-lighter);
   }
 </style>

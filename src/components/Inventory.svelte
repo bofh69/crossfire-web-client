@@ -8,6 +8,7 @@
   import { gameEvents } from '../lib/events';
   import { setHotbarSlot } from '../lib/hotbar';
   import HotbarSlotPicker from './HotbarSlotPicker.svelte';
+  import ContextMenu from './ContextMenu.svelte';
   import { loadConfig, saveConfig } from '../lib/storage';
 
   interface FlatItem {
@@ -68,13 +69,8 @@
   let playerItems: FlatItem[] = $state([]);
   let groundItems: FlatItem[] = $state([]);
   let contextMenu = $state<{ x: number; y: number; item: FlatItem; isGround: boolean } | null>(null);
-  let menuFading = $state(false);
-  let fadeTimer: ReturnType<typeof setTimeout> | null = null;
   let itemCount = $state(0);
   let showSlotPicker = $state(false);
-
-  /** Milliseconds after the cursor leaves the context menu before it closes. */
-  const MENU_FADE_MS = 2000;
 
   /** Element refs for preserving scroll positions across inventory updates. */
   let playerListEl: HTMLElement | null = null;
@@ -200,24 +196,12 @@
 
   function handleContextMenu(e: MouseEvent, item: FlatItem, isGround: boolean) {
     e.preventDefault();
-    // Cancel any pending fade from a previously open menu.
-    clearFadeTimer();
-    menuFading = false;
     showSlotPicker = false;
     // Place the menu so the cursor sits slightly inside the top-left corner.
     contextMenu = { x: e.clientX - 8, y: e.clientY - 8, item, isGround };
   }
 
-  function clearFadeTimer() {
-    if (fadeTimer !== null) {
-      clearTimeout(fadeTimer);
-      fadeTimer = null;
-    }
-  }
-
   function closeContextMenu() {
-    clearFadeTimer();
-    menuFading = false;
     contextMenu = null;
     showSlotPicker = false;
   }
@@ -237,20 +221,6 @@
       });
     }
     closeContextMenu();
-  }
-
-  function handleMenuMouseLeave() {
-    menuFading = true;
-    fadeTimer = setTimeout(() => {
-      contextMenu = null;
-      menuFading = false;
-      fadeTimer = null;
-    }, MENU_FADE_MS);
-  }
-
-  function handleMenuMouseEnter() {
-    clearFadeTimer();
-    menuFading = false;
   }
 
   function formatWeight(w: number): string {
@@ -275,7 +245,7 @@
 
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <!-- svelte-ignore a11y_no_static_element_interactions -->
-<div class="inventory" onclick={closeContextMenu} bind:this={invContainerEl}>
+<div class="inventory" bind:this={invContainerEl}>
   <div class="inv-section" style:flex="{invSplitFrac} 0 0">
     <h3>
       Inventory ({playerItems.length})
@@ -409,17 +379,9 @@
         {/if}
       {/if}
     {/snippet}
-    <div
-      class="context-menu"
-      class:fading={menuFading}
-      style:left="{contextMenu.x}px"
-      style:top="{contextMenu.y}px"
-      onmouseenter={handleMenuMouseEnter}
-      onmouseleave={handleMenuMouseLeave}
-      onclick={(e) => e.stopPropagation()}
-    >
+    <ContextMenu x={contextMenu.x} y={contextMenu.y} onClose={closeContextMenu}>
       {@render contextMenuContent()}
-    </div>
+    </ContextMenu>
   {/if}
 </div>
 
@@ -549,36 +511,5 @@
     color: var(--text-dim);
     font-size: 0.7rem;
     flex-shrink: 0;
-  }
-
-  .context-menu {
-    position: fixed;
-    background: var(--border);
-    border: 1px solid var(--border-light);
-    border-radius: 4px;
-    display: flex;
-    flex-direction: column;
-    z-index: 100;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.5);
-    opacity: 1;
-    transition: opacity 2s ease-out;
-  }
-
-  .context-menu.fading {
-    opacity: 0;
-  }
-
-  .context-menu button {
-    padding: 0.4rem 1rem;
-    border: none;
-    background: none;
-    color: #ddd;
-    text-align: left;
-    cursor: pointer;
-    font-size: 0.8rem;
-  }
-
-  .context-menu button:hover {
-    background: var(--border-mid);
   }
 </style>
