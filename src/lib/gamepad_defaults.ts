@@ -35,6 +35,8 @@ export interface StickAxes {
 export interface ButtonMapping {
     button: number;
     command: string;
+    /** true = applies to all characters; false (default) = current character only. */
+    global?: boolean;
 }
 
 /** A complete gamepad profile. */
@@ -73,16 +75,16 @@ const xboxProfile: GamepadProfile = {
     runThreshold: DEFAULT_RUN_THRESHOLD,
     fireThreshold: DEFAULT_FIRE_THRESHOLD,
     buttons: [
-        { button: 0,  command: "apply" },
-        { button: 1,  command: "disarm" },
-        { button: 2,  command: "use_skill pray" },
-        { button: 3,  command: "hotbar" },
-        { button: 11, command: "stay fire" },
-        { button: 12, command: "ready_skill throwing" },
-        { button: 13, command: "take" },
-        { button: 14, command: "rotateshoottype -1" },
-        { button: 15, command: "rotateshoottype" },
-        { button: 16, command: "brace" },
+        { button: 0,  command: "apply",               global: true },
+        { button: 1,  command: "disarm",               global: true },
+        { button: 2,  command: "use_skill pray",       global: true },
+        { button: 3,  command: "hotbar",               global: true },
+        { button: 11, command: "stay fire",            global: true },
+        { button: 12, command: "ready_skill throwing", global: true },
+        { button: 13, command: "take",                 global: true },
+        { button: 14, command: "rotateshoottype -1",   global: true },
+        { button: 15, command: "rotateshoottype",      global: true },
+        { button: 16, command: "brace",                global: true },
     ],
 };
 
@@ -108,10 +110,10 @@ export const fallbackProfile: GamepadProfile = {
     runThreshold: DEFAULT_RUN_THRESHOLD,
     fireThreshold: DEFAULT_FIRE_THRESHOLD,
     buttons: [
-        { button: 0,  command: "apply" },
-        { button: 1,  command: "hotbar" },
-        { button: 2,  command: "use_skill pray" },
-        { button: 3,  command: "search" },
+        { button: 0, command: "apply",         global: true },
+        { button: 1, command: "hotbar",         global: true },
+        { button: 2, command: "use_skill pray", global: true },
+        { button: 3, command: "search",         global: true },
     ],
 };
 

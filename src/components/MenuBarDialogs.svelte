@@ -2,6 +2,7 @@
   import {
     getBindings,
     flagsToDisplayString,
+    saveBindingScopes,
     type KeyBind,
   } from '../lib/keys';
   import type { HotbarSlot } from '../lib/hotbar';
@@ -10,8 +11,10 @@
     getButtonMappings,
     getStickConfig,
     directionName,
+    saveGamepadButtonScopes,
     type AxisConfigTarget,
     type AxisConfigStep,
+    type ButtonMapping,
   } from '../lib/gamepad';
 
   type DialogMode =
@@ -125,6 +128,112 @@
     onConfirmBindCmdHotbar,
     onCancelBindCmdHotbarConfirm,
   }: Props = $props();
+
+  // ── Show-bindings local state ──────────────────────────────────────────────
+  // Track pending scope changes (KeyBind reference → desired global value) for
+  // the key bindings table.  The player edits checkboxes, then clicks "Save".
+
+  /**
+   * Snapshot of the binding list, kept as $state so Svelte re-renders the
+   * #each block when it changes.  Refreshed every time the dialog opens and
+   * after every save.  (Plain getBindings() returns a non-reactive array from
+   * module state; the #each block would hold stale object references after a
+   * save if we called getBindings() directly.)
+   */
+  let bindingsSnapshot = $state<readonly KeyBind[]>([]);
+  /** Same idea for gamepad button mappings. */
+  let gpMappingsSnapshot = $state<readonly ButtonMapping[]>([]);
+
+  /** Pending scope changes for key bindings: maps KeyBind reference → newGlobal */
+  let pendingKeyScopes = $state(new Map<KeyBind, boolean>());
+
+  function isKeyGlobalPending(kb: KeyBind): boolean {
+    return pendingKeyScopes.has(kb) ? pendingKeyScopes.get(kb)! : kb.global;
+  }
+
+  function toggleKeyScope(kb: KeyBind) {
+    const current = isKeyGlobalPending(kb);
+    const newMap = new Map(pendingKeyScopes);
+    if (current === kb.global) {
+      // Flip from the original
+      newMap.set(kb, !current);
+    } else {
+      // Was pending; revert back to original
+      newMap.delete(kb);
+    }
+    pendingKeyScopes = newMap;
+  }
+
+  function saveKeyBindingScopes() {
+    const changes: Array<{ keysym: string; flags: number; newGlobal: boolean }> = [];
+    for (const [kb, newGlobal] of pendingKeyScopes) {
+      changes.push({ keysym: kb.keysym, flags: kb.flags, newGlobal });
+    }
+    saveBindingScopes(changes);
+    // Update global values in the snapshot in-place (preserving list order) so
+    // the checkboxes immediately reflect the saved state without resorting.
+    const saved = new Map(pendingKeyScopes);
+    pendingKeyScopes = new Map();
+    bindingsSnapshot = bindingsSnapshot.map((kb) =>
+      saved.has(kb) ? { ...kb, global: saved.get(kb)! } : kb
+    );
+  }
+
+  function resetPendingKeyScopes() {
+    pendingKeyScopes = new Map();
+  }
+
+  // ── Show-gamepad-bindings local state ─────────────────────────────────────
+  /** Pending scope changes for gamepad buttons: maps button number → newGlobal */
+  let pendingGpScopes = $state(new Map<number, boolean>());
+
+  function isGpGlobalPending(mapping: ButtonMapping): boolean {
+    return pendingGpScopes.has(mapping.button)
+      ? pendingGpScopes.get(mapping.button)!
+      : (mapping.global ?? false);
+  }
+
+  function toggleGpScope(mapping: ButtonMapping) {
+    const current = isGpGlobalPending(mapping);
+    const newMap = new Map(pendingGpScopes);
+    const originalGlobal = mapping.global ?? false;
+    if (current === originalGlobal) {
+      newMap.set(mapping.button, !current);
+    } else {
+      newMap.delete(mapping.button);
+    }
+    pendingGpScopes = newMap;
+  }
+
+  function saveGpButtonScopes() {
+    const changes: Array<{ button: number; newGlobal: boolean }> = [];
+    for (const [button, newGlobal] of pendingGpScopes) {
+      changes.push({ button, newGlobal });
+    }
+    saveGamepadButtonScopes(changes);
+    // Update global values in the snapshot in-place (preserving list order).
+    const saved = new Map(pendingGpScopes);
+    pendingGpScopes = new Map();
+    gpMappingsSnapshot = gpMappingsSnapshot.map((m) =>
+      saved.has(m.button) ? { ...m, global: saved.get(m.button)! } : m
+    );
+  }
+
+  function resetPendingGpScopes() {
+    pendingGpScopes = new Map();
+  }
+
+  // Refresh snapshots (and clear any pending edits) whenever a bindings dialog
+  // opens.  This ensures stale references from a previous open are discarded.
+  $effect(() => {
+    if (dialogMode === 'show-bindings') {
+      bindingsSnapshot = getBindings();
+      pendingKeyScopes = new Map();
+    } else if (dialogMode === 'gp-show-bindings') {
+      gpMappingsSnapshot = getButtonMappings();
+      pendingGpScopes = new Map();
+    }
+  });
 </script>
 
 {#if dialogMode === 'bind-capture'}
@@ -188,26 +297,42 @@
   </div>
 {:else if dialogMode === 'show-bindings'}
   <div class="dialog-overlay">
-    <div class="dialog dialog-wide">
+    <div class="dialog dialog-widest">
       <p class="dialog-title">Key Bindings</p>
       <div class="bindings-table-wrapper">
         <table class="bindings-table">
           <thead>
-            <tr><th>Key</th><th>Modifiers</th><th>Command</th></tr>
+            <tr>
+              <th>Key</th>
+              <th>Modifiers</th>
+              <th>Command</th>
+              <th title="When checked the binding applies to all characters; unchecked = this character only">Global</th>
+            </tr>
           </thead>
           <tbody>
-            {#each getBindings() as kb}
+            {#each bindingsSnapshot as kb}
               <tr>
                 <td>{kb.keysym}</td>
                 <td>{flagsToDisplayString(kb.flags)}</td>
-                <td>{kb.command}</td>
+                <td class="command-cell">{kb.command}</td>
+                <td>
+                  <input
+                    type="checkbox"
+                    checked={isKeyGlobalPending(kb)}
+                    onchange={() => toggleKeyScope(kb)}
+                    title={isKeyGlobalPending(kb) ? 'Global (all characters)' : 'This character only'}
+                  />
+                </td>
               </tr>
             {/each}
           </tbody>
         </table>
       </div>
       <div class="dialog-buttons">
-        <button onclick={onCloseBindings}>Close</button>
+        {#if pendingKeyScopes.size > 0}
+          <button class="btn-primary" onclick={saveKeyBindingScopes}>Save scope changes</button>
+        {/if}
+        <button onclick={() => { resetPendingKeyScopes(); onCloseBindings(); }}>Close</button>
       </div>
     </div>
   </div>
@@ -241,7 +366,7 @@
   </div>
 {:else if dialogMode === 'gp-show-bindings'}
   <div class="dialog-overlay">
-    <div class="dialog dialog-wide">
+    <div class="dialog dialog-widest">
       <p class="dialog-title">Gamepad Bindings — {getActiveProfileName()}</p>
       {#if getStickConfig()}
         {@const sticks = getStickConfig()}
@@ -251,15 +376,33 @@
       <div class="bindings-table-wrapper">
         <table class="bindings-table">
           <thead>
-            <tr><th>Button</th><th>Command</th><th></th></tr>
+            <tr>
+              <th>Button</th>
+              <th>Command</th>
+              <th title="When checked the binding applies to all characters; unchecked = this character only">Global</th>
+              <th>Delete</th>
+            </tr>
           </thead>
           <tbody>
-            {#each getButtonMappings() as mapping}
+            {#each gpMappingsSnapshot as mapping}
               <tr>
                 <td>B{mapping.button}</td>
-                <td>{mapping.command}</td>
+                <td class="command-cell">{mapping.command}</td>
                 <td>
-                  <button class="btn-small btn-danger" onclick={() => onRemoveGamepadButton(mapping.button)}>✕</button>
+                  <input
+                    type="checkbox"
+                    checked={isGpGlobalPending(mapping)}
+                    onchange={() => toggleGpScope(mapping)}
+                    title={isGpGlobalPending(mapping) ? 'Global (all characters)' : 'This character only'}
+                  />
+                </td>
+                <td>
+                  <button class="btn-small btn-danger" onclick={() => {
+                    if (confirm(`Remove binding for button B${mapping.button} (${mapping.command})?`)) {
+                      onRemoveGamepadButton(mapping.button);
+                      gpMappingsSnapshot = getButtonMappings();
+                    }
+                  }}>✕</button>
                 </td>
               </tr>
             {/each}
@@ -267,7 +410,10 @@
         </table>
       </div>
       <div class="dialog-buttons">
-        <button onclick={onCloseGamepadBindings}>Close</button>
+        {#if pendingGpScopes.size > 0}
+          <button class="btn-primary" onclick={saveGpButtonScopes}>Save scope changes</button>
+        {/if}
+        <button onclick={() => { resetPendingGpScopes(); onCloseGamepadBindings(); }}>Close</button>
       </div>
     </div>
   </div>
@@ -539,6 +685,12 @@
     max-width: 600px;
   }
 
+  .dialog-widest {
+    min-width: 520px;
+    max-width: min(950px, 95vw);
+    box-sizing: border-box;
+  }
+
   .dialog-buttons {
     display: flex;
     gap: 0.5rem;
@@ -591,6 +743,7 @@
 
   .bindings-table-wrapper {
     max-height: 300px;
+    overflow-x: hidden;
     overflow-y: auto;
     margin: 0.5rem 0;
     border: 1px solid var(--border-mid);
@@ -601,6 +754,7 @@
     width: 100%;
     border-collapse: collapse;
     font-size: 0.8rem;
+    table-layout: fixed;
   }
 
   .bindings-table th {
@@ -617,6 +771,10 @@
     padding: 0.25rem 0.5rem;
     border-top: 1px solid var(--border);
     color: var(--text);
+  }
+
+  .command-cell {
+    word-break: break-word;
   }
 
   .axis-test-direction {

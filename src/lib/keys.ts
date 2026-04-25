@@ -69,13 +69,24 @@ export interface KeyBind {
     flags: number;    // KEYF_* bitmask
     direction: number; // -1 for non-direction, 0-8 for direction
     command: string;
+    global: boolean;  // true = applies to all characters; false = current character only
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
-// Storage – flat array (simple alternative to the C hash table)
+// Storage – two arrays: global and per-character
 // ──────────────────────────────────────────────────────────────────────────────
 
-let bindings: KeyBind[] = [];
+/** Bindings shared across all characters. */
+let globalBindings: KeyBind[] = [];
+/** Bindings that apply only to the currently logged-in character. */
+let charBindings: KeyBind[] = [];
+/** The name of the currently logged-in character (empty = no character). */
+let currentCharName = '';
+
+/** Returns all bindings in lookup order: character-specific first, then global. */
+function allBindings(): readonly KeyBind[] {
+    return [...charBindings, ...globalBindings];
+}
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Lookup
@@ -89,7 +100,7 @@ let bindings: KeyBind[] = [];
  * Otherwise, the modifier bits (KEYF_MOD_MASK) must match exactly.
  */
 function keybindFind(keysym: string, flags: number): KeyBind | null {
-    for (const kb of bindings) {
+    for (const kb of allBindings()) {
         if (kb.keysym !== keysym) continue;
         if ((kb.flags & KEYF_ANY) || (flags & KEYF_ANY)) return kb;
         if ((kb.flags & KEYF_MOD_MASK) === (flags & KEYF_MOD_MASK)) return kb;
@@ -101,24 +112,39 @@ function keybindFind(keysym: string, flags: number): KeyBind | null {
 // Insert / remove
 // ──────────────────────────────────────────────────────────────────────────────
 
-function keybindInsert(keysym: string, flags: number, command: string): void {
-    // Remove any existing binding with same keysym & flags.
-    bindings = bindings.filter(kb => {
-        if (kb.keysym !== keysym) return true;
-        if ((kb.flags & KEYF_ANY) || (flags & KEYF_ANY)) return false;
-        if ((kb.flags & KEYF_MOD_MASK) === (flags & KEYF_MOD_MASK)) return false;
-        return true;
-    });
-    bindings.push({
+function keybindInsert(keysym: string, flags: number, command: string, isGlobal = false): void {
+    // Remove any existing binding with same keysym & flags from both arrays.
+    function removeSame(arr: KeyBind[]): KeyBind[] {
+        return arr.filter(kb => {
+            if (kb.keysym !== keysym) return true;
+            if ((kb.flags & KEYF_ANY) || (flags & KEYF_ANY)) return false;
+            if ((kb.flags & KEYF_MOD_MASK) === (flags & KEYF_MOD_MASK)) return false;
+            return true;
+        });
+    }
+    globalBindings = removeSame(globalBindings);
+    charBindings = removeSame(charBindings);
+
+    const kb: KeyBind = {
         keysym,
         flags,
         direction: directionFromCommand(command),
         command,
-    });
+        global: isGlobal,
+    };
+    if (isGlobal) {
+        globalBindings.push(kb);
+    } else {
+        charBindings.push(kb);
+    }
 }
 
-function keybindRemoveIndex(index: number): void {
-    bindings.splice(index, 1);
+function keybindRemove(kb: KeyBind): void {
+    if (kb.global) {
+        globalBindings = globalBindings.filter(b => b !== kb);
+    } else {
+        charBindings = charBindings.filter(b => b !== kb);
+    }
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -221,7 +247,7 @@ function loadDefaultBindings(): void {
     ];
 
     for (const [keysym, flagStr, command] of defs) {
-        keybindInsert(keysym, parseFlags(flagStr), command);
+        keybindInsert(keysym, parseFlags(flagStr), command, true); // global = true for defaults
     }
 }
 
@@ -236,24 +262,35 @@ interface SavedBinding {
 }
 
 const STORAGE_KEY = "cf_keybindings";
+const CHAR_STORAGE_KEY_PREFIX = "cf_keybindings_char_";
 
 function saveBindings(): void {
-    const data: SavedBinding[] = bindings.map(kb => ({
-        keysym: kb.keysym,
-        flags: flagsToString(kb.flags),
-        command: kb.command,
-    }));
-    saveConfig(STORAGE_KEY, data);
+    const toSaved = (arr: KeyBind[]): SavedBinding[] =>
+        arr.map(kb => ({ keysym: kb.keysym, flags: flagsToString(kb.flags), command: kb.command }));
+
+    saveConfig(STORAGE_KEY, toSaved(globalBindings));
+    if (currentCharName) {
+        saveConfig(CHAR_STORAGE_KEY_PREFIX + currentCharName, toSaved(charBindings));
+    }
 }
 
-function loadSavedBindings(): boolean {
+function loadGlobalBindings(): boolean {
     const data = loadConfig<SavedBinding[] | null>(STORAGE_KEY, null);
     if (!data || !Array.isArray(data)) return false;
-    bindings = [];
+    globalBindings = [];
     for (const entry of data) {
-        keybindInsert(entry.keysym, parseFlags(entry.flags), entry.command);
+        keybindInsert(entry.keysym, parseFlags(entry.flags), entry.command, true);
     }
     return true;
+}
+
+function loadCharBindingsForName(charName: string): void {
+    const data = loadConfig<SavedBinding[] | null>(CHAR_STORAGE_KEY_PREFIX + charName, null);
+    charBindings = [];
+    if (!data || !Array.isArray(data)) return;
+    for (const entry of data) {
+        keybindInsert(entry.keysym, parseFlags(entry.flags), entry.command, false);
+    }
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -263,14 +300,29 @@ function loadSavedBindings(): boolean {
 /**
  * Initialise the keybinding system.  If saved bindings exist in
  * localStorage they are loaded; otherwise the hardcoded defaults are used.
+ * Only global bindings are loaded here — character-specific bindings are
+ * loaded when the character name is known (see setCurrentCharacter()).
  */
 export function keybindingsInit(): void {
-    bindings = [];
-    if (!loadSavedBindings()) {
+    globalBindings = [];
+    charBindings = [];
+    currentCharName = '';
+    if (!loadGlobalBindings()) {
         loadDefaultBindings();
     }
     LOG(LogLevel.Debug, "keys::keybindingsInit",
-        `Loaded ${bindings.length} keybindings.`);
+        `Loaded ${globalBindings.length} global keybindings.`);
+}
+
+/**
+ * Called when a character logs in.  Loads character-specific bindings and
+ * merges them with the global bindings already in memory.
+ */
+export function setCurrentCharacter(charName: string): void {
+    currentCharName = charName;
+    loadCharBindingsForName(charName);
+    LOG(LogLevel.Debug, "keys::setCurrentCharacter",
+        `Loaded ${charBindings.length} char bindings for "${charName}".`);
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -612,11 +664,11 @@ export function configureKeys(e: KeyboardEvent): void {
         if (e.metaKey)  flags |= KEYF_MOD_META;
     }
 
-    keybindInsert(keysym, flags, bindCommand);
+    keybindInsert(keysym, flags, bindCommand, false); // character-specific by default
     saveBindings();
 
     const flagStr = flagsToString(flags);
-    cb?.drawInfo(`Bound key '${keysym}' [${flagStr}] to: ${bindCommand}`);
+    cb?.drawInfo(`Bound key '${keysym}' [${flagStr}] to: ${bindCommand} (character binding)`);
 
     cpl.inputState = InputState.Playing;
 }
@@ -634,29 +686,35 @@ export function unbindKey(params: string): void {
     if (arg.length === 0) {
         // List all bindings
         cb?.drawInfo("Current keybindings (use 'unbind <number>' to remove):");
-        for (let i = 0; i < bindings.length; i++) {
-            const kb = bindings[i]!;
+        const all = allBindings();
+        for (let i = 0; i < all.length; i++) {
+            const kb = all[i]!;
             const flagStr = flagsToString(kb.flags);
-            cb?.drawInfo(`  ${i}: [${flagStr}] ${kb.keysym} → ${kb.command}`);
+            const scope = kb.global ? '[global]' : '[char]';
+            cb?.drawInfo(`  ${i}: ${scope} [${flagStr}] ${kb.keysym} → ${kb.command}`);
         }
         return;
     }
 
+    const all = allBindings();
     const idx = parseInt(arg, 10);
-    if (!isNaN(idx) && idx >= 0 && idx < bindings.length) {
-        const kb = bindings[idx]!;
+    if (!isNaN(idx) && idx >= 0 && idx < all.length) {
+        const kb = all[idx]!;
         cb?.drawInfo(`Removed binding ${idx}: ${kb.keysym} → ${kb.command}`);
-        keybindRemoveIndex(idx);
+        keybindRemove(kb);
         saveBindings();
         return;
     }
 
     // Try to remove by key name
     const normalised = normaliseKey(arg);
-    const before = bindings.length;
-    bindings = bindings.filter(kb => kb.keysym !== normalised);
-    if (bindings.length < before) {
-        cb?.drawInfo(`Removed ${before - bindings.length} binding(s) for key '${normalised}'.`);
+    const beforeG = globalBindings.length;
+    const beforeC = charBindings.length;
+    globalBindings = globalBindings.filter(kb => kb.keysym !== normalised);
+    charBindings = charBindings.filter(kb => kb.keysym !== normalised);
+    const removed = (beforeG - globalBindings.length) + (beforeC - charBindings.length);
+    if (removed > 0) {
+        cb?.drawInfo(`Removed ${removed} binding(s) for key '${normalised}'.`);
         saveBindings();
     } else {
         cb?.drawInfo(`No binding found for '${arg}'. Try 'unbind' with no options to list.`);
@@ -667,15 +725,17 @@ export function unbindKey(params: string): void {
  * Reset all keybindings to defaults (removes saved bindings).
  */
 export function resetBindings(): void {
-    bindings = [];
+    globalBindings = [];
+    charBindings = [];
     loadDefaultBindings();
     saveBindings();
     cb?.drawInfo("Key bindings reset to defaults.");
 }
 
-/** Return a read-only view of the current bindings (for debug/display). */
+/** Return a read-only view of the current bindings (for debug/display).
+ *  Character-specific bindings are listed first, then global bindings. */
 export function getBindings(): readonly KeyBind[] {
-    return bindings;
+    return allBindings();
 }
 
 /**
@@ -774,8 +834,36 @@ export function unbindEvent(e: KeyboardEvent): KeyBind | null {
     const flags = keyEventToFlags(e);
     const kb = keybindFind(keysym, flags);
     if (kb) {
-        bindings = bindings.filter(b => b !== kb);
+        keybindRemove(kb);
         saveBindings();
     }
     return kb;
+}
+
+/**
+ * Change the global/character scope of one or more bindings, then persist.
+ *
+ * Each entry in `changes` identifies a binding by its `keysym` + `flags`
+ * (the same pair used for lookup) and the desired `newGlobal` value.
+ *
+ * If the binding cannot be found (e.g. it was already removed) the entry is
+ * silently skipped.
+ */
+export function saveBindingScopes(
+    changes: Array<{ keysym: string; flags: number; newGlobal: boolean }>,
+): void {
+    for (const { keysym, flags, newGlobal } of changes) {
+        const kb = keybindFind(keysym, flags);
+        if (!kb || kb.global === newGlobal) continue;
+
+        // Remove from current list, re-insert into the target list.
+        keybindRemove(kb);
+        const newKb: KeyBind = { ...kb, global: newGlobal };
+        if (newGlobal) {
+            globalBindings.push(newKb);
+        } else {
+            charBindings.push(newKb);
+        }
+    }
+    saveBindings();
 }

@@ -55,6 +55,8 @@ import {
 
 // Re-export types from gamepad_config.
 export type { AxisConfigTarget, AxisConfigStep } from "./gamepad_config";
+// Re-export ButtonMapping so consumers can use it without importing from gamepad_defaults.
+export type { ButtonMapping } from "./gamepad_defaults";
 
 /**
  * Hysteresis margin for walk↔run transitions.
@@ -152,6 +154,7 @@ function stickToDirection(x: number, y: number, threshold: number, prevDir: numb
 // ──────────────────────────────────────────────────────────────────────────────
 
 const STORAGE_KEY_PREFIX = "cf_gamepad_bindings_";
+const CHAR_BUTTON_KEY_PREFIX = "cf_gamepad_char_buttons_";
 
 /** Sanitise a gamepad name for use as a localStorage key suffix. */
 function sanitiseName(name: string): string {
@@ -203,6 +206,12 @@ interface GamepadState {
      * to prevent an unintentional step immediately after a hotbar activation.
      */
     needsWalkReset: boolean;
+    /** Global button mappings (shared across characters). */
+    globalButtons: ButtonMapping[];
+    /** Character-specific button mappings for the current character. */
+    charButtons: ButtonMapping[];
+    /** The name of the currently logged-in character (empty = none). */
+    currentCharName: string;
 }
 
 const gamepadState: GamepadState = {
@@ -221,6 +230,9 @@ const gamepadState: GamepadState = {
     callbacks: null,
     prevHotbarDir: 0,
     needsWalkReset: false,
+    globalButtons: [],
+    charButtons: [],
+    currentCharName: "",
 };
 
 interface SavedGamepadConfig {
@@ -230,6 +242,32 @@ interface SavedGamepadConfig {
     runThreshold: number;
     fireThreshold: number;
     buttons: ButtonMapping[];
+}
+
+/** Saved format for per-character button overrides. */
+type SavedCharButtons = ButtonMapping[];
+
+/**
+ * Rebuild `activeProfile.buttons` as the de-duplicated merged list used at
+ * runtime.  Character-specific buttons take priority over global ones for the
+ * same button number.
+ */
+function rebuildProfileButtons(): void {
+    if (!gamepadState.activeProfile) return;
+    const seen = new Set<number>();
+    const merged: ButtonMapping[] = [];
+
+    for (const b of gamepadState.charButtons) {
+        seen.add(b.button);
+        merged.push({ ...b, global: false });
+    }
+    for (const b of gamepadState.globalButtons) {
+        if (!seen.has(b.button)) {
+            seen.add(b.button);
+            merged.push({ ...b, global: true });
+        }
+    }
+    gamepadState.activeProfile.buttons = merged;
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -250,20 +288,37 @@ export function setGamepadCallbacks(c: GamepadCallbacks): void {
 
 function saveGamepadConfig(): void {
     if (!gamepadState.activeProfile || !gamepadState.activeControllerKey) return;
-    const data: SavedGamepadConfig = {
+    // Save global config (stick settings + global buttons).
+    const globalData: SavedGamepadConfig = {
         walkStick: gamepadState.activeProfile.walkStick,
         fireStick: gamepadState.activeProfile.fireStick,
         walkThreshold: gamepadState.activeProfile.walkThreshold,
         runThreshold: gamepadState.activeProfile.runThreshold,
         fireThreshold: gamepadState.activeProfile.fireThreshold,
-        buttons: gamepadState.activeProfile.buttons,
+        buttons: gamepadState.globalButtons,
     };
-    saveConfig(STORAGE_KEY_PREFIX + gamepadState.activeControllerKey, data);
+    saveConfig(STORAGE_KEY_PREFIX + gamepadState.activeControllerKey, globalData);
+
+    // Save character-specific buttons separately.
+    if (gamepadState.currentCharName) {
+        saveConfig(
+            charButtonStorageKey(gamepadState.activeControllerKey, gamepadState.currentCharName),
+            gamepadState.charButtons,
+        );
+    }
 }
 
 function loadSavedConfig(controllerKey: string): SavedGamepadConfig | null {
     return loadConfig<SavedGamepadConfig | null>(
         STORAGE_KEY_PREFIX + controllerKey, null);
+}
+
+function charButtonStorageKey(controllerKey: string, charName: string): string {
+    return CHAR_BUTTON_KEY_PREFIX + controllerKey + "_" + sanitiseName(charName);
+}
+
+function loadCharButtons(controllerKey: string, charName: string): SavedCharButtons {
+    return loadConfig<SavedCharButtons>(charButtonStorageKey(controllerKey, charName), []);
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -294,9 +349,23 @@ function onGamepadConnected(e: GamepadEvent): void {
         profile.walkThreshold = saved.walkThreshold;
         profile.runThreshold = saved.runThreshold;
         profile.fireThreshold = saved.fireThreshold;
-        profile.buttons = saved.buttons;
+        // Global buttons come from the saved config.
+        gamepadState.globalButtons = saved.buttons.map(b => ({ ...b, global: true }));
+    } else {
+        // Use built-in profile buttons as global defaults.
+        gamepadState.globalButtons = profile.buttons.map(b => ({ ...b, global: true }));
     }
+
+    // Load character-specific buttons if a character is already known.
+    if (gamepadState.currentCharName) {
+        gamepadState.charButtons = loadCharButtons(
+            gamepadState.activeControllerKey, gamepadState.currentCharName);
+    } else {
+        gamepadState.charButtons = [];
+    }
+
     gamepadState.activeProfile = profile;
+    rebuildProfileButtons();
 
     gamepadState.prevButtons = new Array(gp.buttons.length).fill(false);
     gamepadState.prevWalkDir = 0;
@@ -607,27 +676,36 @@ export function getAxisTestDirection(): number {
 // Public API – binding management
 // ──────────────────────────────────────────────────────────────────────────────
 
-/** Set or replace the command for a specific button. */
+/**
+ * Set or replace the command for a specific button.
+ * New bindings are always character-specific (global = false) by default.
+ */
 export function setButtonCommand(button: number, command: string): void {
     if (!gamepadState.activeProfile) return;
-    const existing = gamepadState.activeProfile.buttons.find(b => b.button === button);
-    if (existing) {
-        existing.command = command;
+
+    // Add/replace in charButtons (character-specific by default).
+    const existingChar = gamepadState.charButtons.find(b => b.button === button);
+    if (existingChar) {
+        existingChar.command = command;
     } else {
-        gamepadState.activeProfile.buttons.push({ button, command });
+        // Also remove from globalButtons if overriding a global binding.
+        gamepadState.globalButtons = gamepadState.globalButtons.filter(b => b.button !== button);
+        gamepadState.charButtons.push({ button, command, global: false });
     }
+    rebuildProfileButtons();
     saveGamepadConfig();
 }
 
-/** Remove the command mapping for a specific button. */
+/** Remove the command mapping for a specific button from both global and char lists. */
 export function removeButtonCommand(button: number): void {
     if (!gamepadState.activeProfile) return;
-    gamepadState.activeProfile.buttons = gamepadState.activeProfile.buttons.filter(
-        b => b.button !== button);
+    gamepadState.globalButtons = gamepadState.globalButtons.filter(b => b.button !== button);
+    gamepadState.charButtons = gamepadState.charButtons.filter(b => b.button !== button);
+    rebuildProfileButtons();
     saveGamepadConfig();
 }
 
-/** Get the current button mappings (read-only snapshot). */
+/** Get the current button mappings (merged, with global flag). */
 export function getButtonMappings(): readonly ButtonMapping[] {
     return gamepadState.activeProfile?.buttons ?? [];
 }
@@ -649,9 +727,53 @@ export function resetGamepadBindings(): void {
     const gp = gamepads[gamepadState.activeGamepadIndex];
     if (!gp) return;
 
-    gamepadState.activeProfile = findProfileForGamepad(gp.id);
+    const defaultProfile = findProfileForGamepad(gp.id);
+    gamepadState.activeProfile = defaultProfile;
+    gamepadState.globalButtons = defaultProfile.buttons.map(b => ({ ...b, global: true }));
+    gamepadState.charButtons = [];
+    rebuildProfileButtons();
     saveGamepadConfig();
     gamepadState.callbacks?.drawInfo("Gamepad bindings reset to defaults.");
+}
+
+/**
+ * Called when a character logs in.  Loads character-specific button bindings
+ * and rebuilds the merged profile.
+ */
+export function setCurrentCharacter(charName: string): void {
+    gamepadState.currentCharName = charName;
+    if (gamepadState.activeControllerKey && charName) {
+        gamepadState.charButtons = loadCharButtons(
+            gamepadState.activeControllerKey, charName);
+        rebuildProfileButtons();
+    } else {
+        gamepadState.charButtons = [];
+        rebuildProfileButtons();
+    }
+}
+
+/**
+ * Change the global/character scope of one or more button bindings, then
+ * persist.  Each entry identifies a button by number and the desired scope.
+ */
+export function saveGamepadButtonScopes(
+    changes: Array<{ button: number; newGlobal: boolean }>,
+): void {
+    for (const { button, newGlobal } of changes) {
+        // Find in whichever list currently owns it.
+        const inChar = gamepadState.charButtons.findIndex(b => b.button === button);
+        const inGlobal = gamepadState.globalButtons.findIndex(b => b.button === button);
+
+        if (newGlobal && inChar >= 0) {
+            const b = gamepadState.charButtons.splice(inChar, 1)[0]!;
+            gamepadState.globalButtons.push({ ...b, global: true });
+        } else if (!newGlobal && inGlobal >= 0) {
+            const b = gamepadState.globalButtons.splice(inGlobal, 1)[0]!;
+            gamepadState.charButtons.push({ ...b, global: false });
+        }
+    }
+    rebuildProfileButtons();
+    saveGamepadConfig();
 }
 
 /** Check whether a gamepad is currently connected and active. */
@@ -729,4 +851,7 @@ export function gamepadShutdown(): void {
     gamepadState.runStopSeq = -1;
     gamepadState.prevHotbarDir = 0;
     gamepadState.needsWalkReset = false;
+    gamepadState.globalButtons = [];
+    gamepadState.charButtons = [];
+    gamepadState.currentCharName = "";
 }
