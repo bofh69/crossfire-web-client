@@ -10,9 +10,9 @@
   import { getFaceTileSize } from './lib/image';
   import {
     keybindingsInit, setKeyCallbacks, parseKey, parseKeyRelease,
-    configureKeys, handleFocusLost,
+    configureKeys, handleFocusLost, setCurrentCharacter as setKeyCurrentCharacter,
   } from './lib/keys';
-  import { gamepadInit, gamepadShutdown, setGamepadCallbacks, notifyHpUpdate, resetHpTracking } from './lib/gamepad';
+  import { gamepadInit, gamepadShutdown, setGamepadCallbacks, notifyHpUpdate, resetHpTracking, setCurrentCharacter as setGamepadCurrentCharacter } from './lib/gamepad';
   import type { Stats } from './lib/protocol';
   import { InputState, CS_QUERY_HIDEINPUT, CS_QUERY_SINGLECHAR, CS_QUERY_YESNO, SHOWMAGIC_FLASH_BIT } from './lib/protocol';
   import { useConfig } from './lib/init';
@@ -460,6 +460,16 @@
       gameEvents.on('statsUpdate', (stats: Partial<Stats>) => {
         if (stats.hp !== undefined) {
           notifyHpUpdate(playerStats.hp, playerStats.maxhp);
+        }
+      }),
+
+      gameEvents.on('playerUpdate', () => {
+        // When the player object is received, load character-specific bindings.
+        const cpl = getCpl();
+        const charName = cpl?.ob?.dName ?? '';
+        if (charName) {
+          setKeyCurrentCharacter(charName);
+          setGamepadCurrentCharacter(charName);
         }
       }),
 
