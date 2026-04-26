@@ -509,20 +509,14 @@
 
       gameEvents.on('raceInfoReceived', (info: RaceClassEntry) => {
         const idx = availableRaces.findIndex(r => r.archName === info.archName);
-        if (idx >= 0) {
-          availableRaces = availableRaces.with(idx, info);
-        } else {
-          availableRaces = [...availableRaces, info];
-        }
+        const updated = idx >= 0 ? availableRaces.with(idx, info) : [...availableRaces, info];
+        availableRaces = updated.toSorted((a, b) => a.publicName.localeCompare(b.publicName));
       }),
 
       gameEvents.on('classInfoReceived', (info: RaceClassEntry) => {
         const idx = availableClasses.findIndex(c => c.archName === info.archName);
-        if (idx >= 0) {
-          availableClasses = availableClasses.with(idx, info);
-        } else {
-          availableClasses = [...availableClasses, info];
-        }
+        const updated = idx >= 0 ? availableClasses.with(idx, info) : [...availableClasses, info];
+        availableClasses = updated.toSorted((a, b) => a.publicName.localeCompare(b.publicName));
       }),
 
       gameEvents.on('newCharInfoReceived', (info: NewCharInfo) => {
