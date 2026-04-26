@@ -1,10 +1,21 @@
+<script module lang="ts">
+  import type { InfoLine } from '../lib/markup';
+
+  /** Cached server info sections (motd, news, rules) that survive component
+   *  unmount/remount.  When the player returns to the login screen after a
+   *  bed-to-reality logout the server won't resend these, so we keep the last
+   *  known values here and restore them on the next mount. */
+  interface InfoSection { type: string; lines: InfoLine[]; }
+  let _cachedInfoSections: InfoSection[] = [];
+</script>
+
 <script lang="ts">
   import { onMount } from 'svelte';
   import { clientConnect, clientNegotiate, sendAddMe, sendAccountLogin, sendAccountNew, sendAccountPlay } from '../lib/client';
   import { gameEvents } from '../lib/events';
   import { sendReply } from '../lib/player';
   import { CS_QUERY_HIDEINPUT, CS_QUERY_SINGLECHAR, CS_QUERY_YESNO, EPORT } from '../lib/protocol';
-  import { type InfoLine, parseMarkupLines } from '../lib/markup';
+  import { parseMarkupLines } from '../lib/markup';
   import { wantConfig } from '../lib/init';
   import type { AccountPlayer } from '../lib/events';
 
@@ -86,9 +97,9 @@
   let queryInput = $state('');
   let statusMessage = $state('');
 
-  /** Sections received from replyinfo (motd, news, rules). */
-  interface InfoSection { type: string; lines: InfoLine[]; }
-  let serverInfoSections = $state<InfoSection[]>([]);
+  /** Sections received from replyinfo (motd, news, rules).
+   *  Initialised from the module-level cache so they survive logout/remount. */
+  let serverInfoSections = $state<InfoSection[]>(_cachedInfoSections);
 
   /** Set to true once the server sends addme_success. We only switch to the
    *  game screen when this is true AND no query prompt is pending, so that a
@@ -257,6 +268,8 @@
         } else {
           serverInfoSections = [...serverInfoSections, { type: infoType, lines }];
         }
+        // Keep the module-level cache in sync so sections survive unmount/remount.
+        _cachedInfoSections = serverInfoSections;
       }),
 
       gameEvents.on('version', (_cs: number, _sc: number, verStr: string) => {
