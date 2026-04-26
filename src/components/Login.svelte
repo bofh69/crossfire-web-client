@@ -436,11 +436,16 @@
       // ── Character-creation events ──────────────────────────────────────────
 
       gameEvents.on('raceListReceived', (archNames: string[]) => {
-        // Initialise with arch-name-only placeholders; detail arrives later.
+        // Initialise with arch-name-only placeholders; detail arrives via race_info.
         availableRaces = archNames.map(archName => ({
           archName, publicName: archName, description: '', statAdj: {}, choices: [],
         }));
         if (selectedRaceIdx >= availableRaces.length) selectedRaceIdx = 0;
+        // Request detailed info for every race so the UI can show public names,
+        // descriptions, stat bonuses, and optional choices.
+        for (const archName of archNames) {
+          sendRequestInfo(`race_info ${archName}`);
+        }
       }),
 
       gameEvents.on('classListReceived', (archNames: string[]) => {
@@ -448,6 +453,11 @@
           archName, publicName: archName, description: '', statAdj: {}, choices: [],
         }));
         if (selectedClassIdx >= availableClasses.length) selectedClassIdx = 0;
+        // Request detailed info for every class so the UI can show public names,
+        // descriptions, stat bonuses, and optional choices.
+        for (const archName of archNames) {
+          sendRequestInfo(`class_info ${archName}`);
+        }
       }),
 
       gameEvents.on('raceInfoReceived', (info: RaceClassEntry) => {
