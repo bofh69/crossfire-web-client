@@ -240,7 +240,7 @@
 
 <style>
   .pickup-menu {
-    max-height: 400px;
+    max-height: 100vh;
     overflow-y: auto;
     min-width: 180px;
   }
