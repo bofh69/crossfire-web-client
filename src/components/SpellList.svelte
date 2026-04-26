@@ -19,6 +19,10 @@
 
   onMount(() => {
     const unsub = gameEvents.on('spellUpdate', updateSpells);
+    // Snapshot spells that arrived before this component mounted (e.g. with
+    // loginmethod >= 2 the server sends addspell commands before addme_success,
+    // so spells[] is already populated by the time this component is created).
+    updateSpells();
     return unsub;
   });
 

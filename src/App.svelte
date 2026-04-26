@@ -4,6 +4,7 @@
   import { initCommands, setPCmdCallbacks } from './lib/p_cmd';
   import { playerStats } from './lib/commands';
   import { gameEvents } from './lib/events';
+  import type { AccountPlayer } from './lib/events';
   import { animateObjects } from './lib/item';
   import { sendReply, walkDir, runDir, stopRun } from './lib/player';
   import { setWalkDir, setRunDir, setStopRun, setGetMapImageSize } from './lib/mapdata';
@@ -117,6 +118,11 @@
 
   type AppState = 'login' | 'playing';
   let appState = $state<AppState>('login');
+
+  /** Character list received via `accountplayers` while in the playing state
+   *  (e.g. after "bed to reality").  Passed to Login so it shows the
+   *  character-select screen immediately on re-mount. */
+  let pendingCharacterList = $state<AccountPlayer[] | null>(null);
   let activeTab = $state<'inventory' | 'spells' | 'skills' | 'protections' | 'quests' | 'knowledge'>('inventory');
 
   type SecondaryTab = 'protections' | 'quests' | 'knowledge';
@@ -425,6 +431,7 @@
 
   function handleLoggedIn() {
     appState = 'playing';
+    pendingCharacterList = null;
     serverDisconnected = false;
     resetHpTracking();
     wireCallbacks();
@@ -519,6 +526,14 @@
         serverDisconnected = true;
       }),
 
+      // When the server sends accountplayers while in the playing state (e.g.
+      // after the player applies a "bed to reality" object), transition back to
+      // the login/character-select screen without closing the WebSocket.
+      gameEvents.on('accountPlayers', (players: AccountPlayer[]) => {
+        pendingCharacterList = players;
+        handleDisconnect();
+      }),
+
       // Wire addme_success for in-session reconnects (e.g. after the server
       // asks the user to reconnect when leaving the game).
       gameEvents.on('addMeSuccess', () => {
@@ -555,7 +570,7 @@
 <svelte:window onclick={() => { tabOverflowOpen = false; tabOverflowPos = null; }} />
 
 {#if appState === 'login'}
-  <Login onLoggedIn={handleLoggedIn} />
+  <Login onLoggedIn={handleLoggedIn} initialCharacters={pendingCharacterList} />
 {:else}
   <div class="game-layout"
     bind:this={gameLayoutEl}

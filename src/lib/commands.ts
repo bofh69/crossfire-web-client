@@ -20,6 +20,7 @@ import { notifyNcomAck } from './player.js';
 import { LOG } from './misc.js';
 import { LogLevel } from './protocol.js';
 import { gameEvents, type AccountPlayer } from './events.js';
+import { parseRaceClassList, parseRaceClassInfo, parseNewCharInfo, parseStartingMapInfo } from './cmd_chargen.js';
 
 // ── Re-exports from split modules ──────────────────────────────────────────
 // Keep the public API surface compatible so downstream files don't need to
@@ -112,21 +113,62 @@ function FailureCmd(data: string): void {
   gameEvents.emit('failure', command, message);
 }
 
-function AccountPlayersCmd(data: string): void {
+function AccountPlayersCmd(data: DataView, len: number): void {
+  const bytes = new Uint8Array(data.buffer, data.byteOffset, len);
   const players: AccountPlayer[] = [];
-  const lines = data.split('\n');
-  for (const line of lines) {
-    if (!line.trim()) continue;
-    const parts = line.split(':');
-    if (parts.length >= 6) {
-      players.push({
-        name: parts[0]!, charClass: parts[1]!, race: parts[2]!,
-        face: parts[3]!, party: parts[4]!, map: parts[5]!,
-        level: parts.length > 6 ? parseInt(parts[6]!) : 0,
-        faceNum: parts.length > 7 ? parseInt(parts[7]!) : 0,
-      });
+  const decoder = new TextDecoder();
+
+  // ACL_ type constants (from old/common/shared/newclient.h)
+  const ACL_NAME     = 1;
+  const ACL_CLASS    = 2;
+  const ACL_RACE     = 3;
+  const ACL_LEVEL    = 4;
+  const ACL_FACE     = 5;
+  const ACL_PARTY    = 6;
+  const ACL_MAP      = 7;
+  const ACL_FACE_NUM = 8;
+
+  // byte 0 is the number of characters; skip it and start reading fields.
+  let pos = 1;
+  let name = '', charClass = '', race = '', face = '', party = '', map = '';
+  let level = 0, faceNum = 0;
+
+  while (pos < len) {
+    const flen = bytes[pos]!;
+    if (flen === 0) {
+      // End of this character's data — emit the accumulated record.
+      players.push({ name, charClass, race, face, party, map, level, faceNum });
+      name = ''; charClass = ''; race = ''; face = ''; party = ''; map = '';
+      level = 0; faceNum = 0;
+      pos++;
+      continue;
     }
+    pos++;
+    if (pos + flen > len) {
+      LOG(LogLevel.Error, 'AccountPlayersCmd', 'data overran buffer');
+      break;
+    }
+    const fieldType  = bytes[pos]!;
+    // value bytes start after the type byte; flen includes the type byte itself.
+    const fieldValue = bytes.subarray(pos + 1, pos + flen);
+    if (fieldValue.length >= 2) {
+      const fieldDv = new DataView(fieldValue.buffer, fieldValue.byteOffset, fieldValue.byteLength);
+      switch (fieldType) {
+        case ACL_LEVEL:    level   = fieldDv.getInt16(0, false); break;
+        case ACL_FACE_NUM: faceNum = fieldDv.getUint16(0, false); break;
+      }
+    }
+    switch (fieldType) {
+      case ACL_NAME:  name      = decoder.decode(fieldValue); break;
+      case ACL_CLASS: charClass = decoder.decode(fieldValue); break;
+      case ACL_RACE:  race      = decoder.decode(fieldValue); break;
+      case ACL_FACE:  face      = decoder.decode(fieldValue); break;
+      case ACL_PARTY: party     = decoder.decode(fieldValue); break;
+      case ACL_MAP:   map       = decoder.decode(fieldValue); break;
+    }
+    pos += flen;
   }
+
   gameEvents.emit('accountPlayers', players);
 }
 
@@ -209,6 +251,20 @@ function ReplyInfoCmd(data: DataView, len: number): void {
   } else if (infoType === 'knowledge_info') {
     const text = new TextDecoder().decode(bytes.subarray(spaceIdx + 1));
     parseKnowledgeInfo(text);
+  } else if (infoType === 'race_list') {
+    const text = new TextDecoder().decode(bytes.subarray(spaceIdx + 1));
+    gameEvents.emit('raceListReceived', parseRaceClassList(text));
+  } else if (infoType === 'class_list') {
+    const text = new TextDecoder().decode(bytes.subarray(spaceIdx + 1));
+    gameEvents.emit('classListReceived', parseRaceClassList(text));
+  } else if (infoType === 'race_info') {
+    gameEvents.emit('raceInfoReceived', parseRaceClassInfo(bytes.subarray(spaceIdx + 1)));
+  } else if (infoType === 'class_info') {
+    gameEvents.emit('classInfoReceived', parseRaceClassInfo(bytes.subarray(spaceIdx + 1)));
+  } else if (infoType === 'newcharinfo') {
+    gameEvents.emit('newCharInfoReceived', parseNewCharInfo(bytes.subarray(spaceIdx + 1)));
+  } else if (infoType === 'startingmap') {
+    gameEvents.emit('startingMapReceived', parseStartingMapInfo(bytes.subarray(spaceIdx + 1)));
   }
   LOG(LogLevel.Debug, 'ReplyInfoCmd', `Info type: ${infoType}`);
 }
@@ -261,7 +317,7 @@ const commandTable = new Map<string, CommandEntry>([
   ['comc', { type: 'binary', handler: ComcCmd }],
   ['pickup', { type: 'binary', handler: PickupCmd }],
   ['failure', { type: 'text', handler: FailureCmd }],
-  ['accountplayers', { type: 'text', handler: AccountPlayersCmd }],
+  ['accountplayers', { type: 'binary', handler: AccountPlayersCmd }],
   ['anim', { type: 'binary', handler: AnimCmd }],
   ['smooth', { type: 'binary', handler: SmoothCmd }],
   ['version', { type: 'text', handler: VersionCmd }],

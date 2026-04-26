@@ -42,6 +42,11 @@ export function SetupCmd(data: string): void {
       // at least every three seconds or use the beat no-op.  The heartbeat
       // timer in client.ts fires every 2.5 s to provide a safety margin.
       gameEvents.emit('beatEnabled');
+    } else if (key === 'loginmethod' && value !== 'FALSE') {
+      const method = parseInt(value, 10);
+      if (!isNaN(method)) {
+        gameEvents.emit('loginMethodConfirmed', method);
+      }
     }
     LOG(LogLevel.Debug, 'SetupCmd', `${key} = ${value}`);
   }
