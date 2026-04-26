@@ -286,9 +286,6 @@
       // without requiring Enter. The typed character becomes the reply.
       sendQueryReply(e.key);
       e.preventDefault();
-    } else if (e.key === 'Enter') {
-      handleQuerySubmit();
-      e.stopPropagation();
     }
   }
 
@@ -732,7 +729,13 @@
 
             <label>
               Character Name
-              <input type="text" bind:value={newCharName} autocomplete="off" />
+              <!-- svelte-ignore a11y_autofocus -->
+              <input
+                type="text"
+                bind:value={newCharName}
+                autocomplete="off"
+                autofocus
+              />
             </label>
 
             {#if confirmedLoginMethod >= 2 && availableRaces.length > 0}
@@ -868,14 +871,16 @@
           </div>
         {:else if addExistingVisible}
           <!-- Add existing character form (loginmethod >= 1) -->
-          <div class="login-form">
+          <form class="login-form" onsubmit={(e) => { e.preventDefault(); handleAddExisting(); }}>
             <h3 class="panel-title">Add Existing Character</h3>
             <label>
               Character Name
+              <!-- svelte-ignore a11y_autofocus -->
               <input
                 type="text"
                 bind:value={addExistingName}
                 autocomplete="username"
+                autofocus
               />
             </label>
             <label>
@@ -886,33 +891,37 @@
                 autocomplete="current-password"
               />
             </label>
-            <button onclick={handleAddExisting}>Add Character</button>
+            <button type="submit">Add Character</button>
             {#if addExistingCanForce}
               <p class="error">{addExistingForceMessage}</p>
               <p class="query-text">This character is already linked to another account. Override the link?</p>
-              <button onclick={handleForceAddExisting}>Yes, override</button>
+              <button type="button" onclick={handleForceAddExisting}>Yes, override</button>
             {/if}
-            <button class="back-btn" onclick={handleCancelAddExisting}>← Back</button>
-          </div>
+            <button type="button" class="back-btn" onclick={handleCancelAddExisting}>← Back</button>
+          </form>
         {:else if accountLoginVisible}
           <!-- Account-based login / create form (loginmethod >= 1) -->
-          <div class="login-form">
+          <form class="login-form" onsubmit={(e) => { e.preventDefault(); showNewAccount ? handleAccountNew() : handleAccountLogin(); }}>
             <div class="tab-row">
               <button
+                type="button"
                 class:tab-active={!showNewAccount}
                 onclick={() => { showNewAccount = false; errorMessage = ''; }}
               >Log In</button>
               <button
+                type="button"
                 class:tab-active={showNewAccount}
                 onclick={() => { showNewAccount = true; errorMessage = ''; }}
               >New Account</button>
             </div>
             <label>
               Account Name
+              <!-- svelte-ignore a11y_autofocus -->
               <input
                 type="text"
                 bind:value={accountName}
                 autocomplete="username"
+                autofocus
               />
             </label>
             <label>
@@ -932,19 +941,19 @@
                   autocomplete="new-password"
                 />
               </label>
-              <button onclick={handleAccountNew}>Create Account</button>
+              <button type="submit">Create Account</button>
             {:else}
-              <button onclick={handleAccountLogin}>Log In</button>
+              <button type="submit">Log In</button>
             {/if}
-          </div>
+          </form>
         {:else if queryPrompt}
           <!-- Legacy query-based login (loginmethod 0) -->
-          <div class="login-form">
+          <form class="login-form" onsubmit={(e) => { e.preventDefault(); handleQuerySubmit(); }}>
             <p class="query-text" aria-live="polite">{queryPrompt}</p>
             {#if queryYesNo}
               <div class="yesno-buttons">
-                <button aria-keyshortcuts="y" onclick={() => sendQueryReply('y')}>Yes</button>
-                <button aria-keyshortcuts="n" onclick={() => sendQueryReply('n')}>No</button>
+                <button type="button" aria-keyshortcuts="y" onclick={() => sendQueryReply('y')}>Yes</button>
+                <button type="button" aria-keyshortcuts="n" onclick={() => sendQueryReply('n')}>No</button>
               </div>
             {:else}
               <label>
@@ -956,10 +965,10 @@
                 />
               </label>
               {#if !querySingleChar}
-                <button onclick={handleQuerySubmit}>Submit</button>
+                <button type="submit">Submit</button>
               {/if}
             {/if}
-          </div>
+          </form>
         {/if}
         {#if statusMessage}
           <p class="status">{statusMessage}</p>
