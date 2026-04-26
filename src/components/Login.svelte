@@ -136,6 +136,8 @@
 
   /** True when the character-creation form is visible. */
   let createCharVisible = $state(false);
+  /** True when the starting-map selection page is visible. */
+  let startingMapVisible = $state(false);
 
   /** True once we have sent the race/class/newcharinfo requests for this session. */
   let charInfoRequested = $state(false);
@@ -330,7 +332,36 @@
   /** Return from character-creation form to the character-select panel. */
   function handleCancelCreateChar() {
     createCharVisible = false;
+    startingMapVisible = false;
     characterSelectVisible = true;
+    errorMessage = '';
+    statusMessage = '';
+  }
+
+  /**
+   * Called when the user clicks "Next" on the character-creation form.
+   * If starting maps are available, show the starting-map page; otherwise
+   * submit the character immediately.
+   */
+  function handleProceedToStartingMap() {
+    errorMessage = '';
+    const name = newCharName.trim();
+    if (!name) {
+      errorMessage = 'Please enter a character name.';
+      return;
+    }
+    if (availableStartingMaps.length > 0) {
+      createCharVisible = false;
+      startingMapVisible = true;
+    } else {
+      handleCreateCharacter();
+    }
+  }
+
+  /** Return from the starting-map page to the character-creation form. */
+  function handleBackToCreateChar() {
+    startingMapVisible = false;
+    createCharVisible = true;
     errorMessage = '';
     statusMessage = '';
   }
@@ -705,23 +736,31 @@
               {/if}
             {/if}
 
-            <!-- Starting map selection -->
-            {#if availableStartingMaps.length > 0}
-              <label>
-                Starting Map
-                <select bind:value={selectedStartingMapIdx}>
-                  {#each availableStartingMaps as map, i}
-                    <option value={i}>{map.publicName}</option>
-                  {/each}
-                </select>
-              </label>
-              {#if availableStartingMaps[selectedStartingMapIdx]?.description}
-                <p class="entry-desc">{availableStartingMaps[selectedStartingMapIdx]?.description}</p>
-              {/if}
+            <button onclick={handleProceedToStartingMap} disabled={!ccCanCreate}>
+              {availableStartingMaps.length > 0 ? 'Next →' : 'Create Character'}
+            </button>
+            <button class="back-btn" onclick={handleCancelCreateChar}>← Back</button>
+          </div>
+
+        {:else if startingMapVisible}
+          <!-- Starting map selection page -->
+          <div class="login-form create-char-form">
+            <h3 class="panel-title">Choose Starting Map</h3>
+
+            <label>
+              Starting Map
+              <select bind:value={selectedStartingMapIdx}>
+                {#each availableStartingMaps as map, i}
+                  <option value={i}>{map.publicName}</option>
+                {/each}
+              </select>
+            </label>
+            {#if availableStartingMaps[selectedStartingMapIdx]?.description}
+              <p class="entry-desc">{availableStartingMaps[selectedStartingMapIdx]?.description}</p>
             {/if}
 
-            <button onclick={handleCreateCharacter} disabled={!ccCanCreate}>Create Character</button>
-            <button class="back-btn" onclick={handleCancelCreateChar}>← Back</button>
+            <button onclick={handleCreateCharacter}>Create Character</button>
+            <button class="back-btn" onclick={handleBackToCreateChar}>← Back</button>
           </div>
 
         {:else if characterSelectVisible}
