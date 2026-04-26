@@ -146,6 +146,8 @@
 
   /** newcharinfo data from the server. */
   let newCharStatPoints = $state(0);
+  let newCharStatMin = $state(1);
+  let newCharStatMax = $state(20);
   let newCharStatNames = $state<string[]>([]);
 
   /** Character-creation form: name input. */
@@ -171,7 +173,7 @@
     newCharStatNames.some(sn => {
       const rb = availableRaces[selectedRaceIdx]?.statAdj[sn] ?? 0;
       const cb = availableClasses[selectedClassIdx]?.statAdj[sn] ?? 0;
-      return rb + cb + (statAlloc[sn] ?? 0) < 1;
+      return rb + cb + (statAlloc[sn] ?? 0) < newCharStatMin;
     }),
   );
   const ccCanCreate = $derived(
@@ -330,7 +332,13 @@
 
   /**
    * Increment or decrement a stat allocation by `delta`.
-   * Clamps so the allocation can't go below 0 or make the stat total < 1.
+   * - Allocation can never go below 0.
+   * - Decreasing: the stat total (race + class bonus + alloc) must not drop
+   *   below statMin (from newcharinfo).
+   * - Increasing: the stat total must not exceed statMax, and the player must
+   *   have remaining points. Increasing is always allowed even when the current
+   *   total is still below statMin (e.g. a large race penalty), so the user
+   *   can work their way back to a valid value.
    */
   function adjustStat(statName: string, delta: number) {
     const current = statAlloc[statName] ?? 0;
@@ -338,7 +346,9 @@
     if (newVal < 0) return;
     const raceBonus = availableRaces[selectedRaceIdx]?.statAdj[statName] ?? 0;
     const classBonus = availableClasses[selectedClassIdx]?.statAdj[statName] ?? 0;
-    if (raceBonus + classBonus + newVal < 1) return;
+    const newTotal = raceBonus + classBonus + newVal;
+    if (delta < 0 && newTotal < newCharStatMin) return;
+    if (delta > 0 && newTotal > newCharStatMax) return;
     statAlloc = { ...statAlloc, [statName]: newVal };
   }
 
@@ -480,6 +490,8 @@
 
       gameEvents.on('newCharInfoReceived', (info: NewCharInfo) => {
         newCharStatPoints = info.statPoints;
+        newCharStatMin = info.statMin;
+        newCharStatMax = info.statMax;
         newCharStatNames = info.statNames;
         // Reset per-stat allocations to zero whenever the stat list changes.
         statAlloc = Object.fromEntries(info.statNames.map(n => [n, 0]));
@@ -662,9 +674,9 @@
                       <span class:bonus-pos={rb > 0} class:bonus-neg={rb < 0}>{rb > 0 ? '+' : ''}{rb}</span>
                       <span class:bonus-pos={cb > 0} class:bonus-neg={cb < 0}>{cb > 0 ? '+' : ''}{cb}</span>
                       <span class="stat-spin">
-                        <button class="spin-btn" onclick={() => adjustStat(sn, -1)} disabled={alloc <= 0 || rb + cb + alloc - 1 < 1}>−</button>
+                        <button class="spin-btn" onclick={() => adjustStat(sn, -1)} disabled={alloc <= 0 || rb + cb + alloc - 1 < newCharStatMin}>−</button>
                         <span class="spin-val">{alloc}</span>
-                        <button class="spin-btn" onclick={() => adjustStat(sn, +1)} disabled={ccRemaining <= 0}>+</button>
+                        <button class="spin-btn" onclick={() => adjustStat(sn, +1)} disabled={ccRemaining <= 0 || rb + cb + alloc + 1 > newCharStatMax}>+</button>
                       </span>
                       <span class:stat-bad={total < 1}>{total}</span>
                     </div>
