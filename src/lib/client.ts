@@ -259,6 +259,31 @@ export function sendAccountPlay(characterName: string): void {
     csocket?.sendString(`accountplay ${characterName}`);
 }
 
+/**
+ * Send an `accountaddplayer` command to associate an existing character with
+ * the logged-in account (loginmethod >= 1).
+ *
+ * @param force        0 for a normal request; 1 to override an existing
+ *                     account association (only valid when the server's
+ *                     failure response indicated force is allowed).
+ * @param charName     Name of the existing character to add.
+ * @param charPassword The character's own password.
+ */
+export function sendAccountAddPlayer(force: number, charName: string, charPassword: string): void {
+    if (!csocket) return;
+    const sl = new SockList();
+    const enc = new TextEncoder();
+    sl.addString('accountaddplayer ');
+    sl.addChar(force);
+    const nameBytes = enc.encode(charName);
+    sl.addChar(nameBytes.length);
+    sl.addString(charName);
+    const pwBytes = enc.encode(charPassword);
+    sl.addChar(pwBytes.length);
+    sl.addString(charPassword);
+    csocket.send(sl);
+}
+
 // ── Account password cache ───────────────────────────────────────────────────
 
 /** The most-recently used account password, kept for `createplayer`. */

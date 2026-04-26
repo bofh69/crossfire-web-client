@@ -19,7 +19,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { clientConnect, clientNegotiate, sendAddMe, sendAccountLogin, sendAccountNew, sendAccountPlay,
-           sendRequestInfo, sendCreatePlayer, setAccountPassword, getAccountPassword } from '../lib/client';
+           sendAccountAddPlayer, sendRequestInfo, sendCreatePlayer, setAccountPassword, getAccountPassword } from '../lib/client';
   import { gameEvents } from '../lib/events';
   import { sendReply } from '../lib/player';
   import { CS_QUERY_HIDEINPUT, CS_QUERY_SINGLECHAR, CS_QUERY_YESNO, EPORT } from '../lib/protocol';
@@ -135,6 +135,19 @@
   let accountPassword = $state('');
   /** Confirm-password field for new-account creation. */
   let accountPasswordConfirm = $state('');
+
+  // ── Add-existing-character state (loginmethod >= 1) ────────────────────────
+
+  /** True when the "add existing character" form is visible. */
+  let addExistingVisible = $state(false);
+  /** Character name input for add-existing flow. */
+  let addExistingName = $state('');
+  /** Character password input for add-existing flow. */
+  let addExistingPassword = $state('');
+  /** True when the server failure response said force=1 is allowed. */
+  let addExistingCanForce = $state(false);
+  /** The error text from the server when force is possible. */
+  let addExistingForceMessage = $state('');
 
   // ── Character-creation state (loginmethod >= 2) ────────────────────────────
 
@@ -322,7 +335,56 @@
     statusMessage = 'Starting game…';
   }
 
-  // ── Character-creation helpers ─────────────────────────────────────────────
+  // ── Add-existing-character helpers ─────────────────────────────────────────
+
+  /** Show the add-existing-character form. */
+  function handleShowAddExisting() {
+    addExistingVisible = true;
+    characterSelectVisible = false;
+    addExistingName = '';
+    addExistingPassword = '';
+    addExistingCanForce = false;
+    addExistingForceMessage = '';
+    errorMessage = '';
+    statusMessage = '';
+  }
+
+  /** Return from the add-existing form to the character-select panel. */
+  function handleCancelAddExisting() {
+    addExistingVisible = false;
+    characterSelectVisible = true;
+    addExistingName = '';
+    addExistingPassword = '';
+    addExistingCanForce = false;
+    addExistingForceMessage = '';
+    errorMessage = '';
+    statusMessage = '';
+  }
+
+  /** Submit the add-existing request (normal, force=0). */
+  function handleAddExisting() {
+    errorMessage = '';
+    const name = addExistingName.trim();
+    if (!name || !addExistingPassword) {
+      errorMessage = 'Please enter both a character name and password.';
+      return;
+    }
+    addExistingCanForce = false;
+    addExistingForceMessage = '';
+    sendAccountAddPlayer(0, name, addExistingPassword);
+    statusMessage = 'Adding character…';
+  }
+
+  /** Re-submit with force=1 when the server said it is allowed. */
+  function handleForceAddExisting() {
+    errorMessage = '';
+    addExistingCanForce = false;
+    addExistingForceMessage = '';
+    sendAccountAddPlayer(1, addExistingName.trim(), addExistingPassword);
+    statusMessage = 'Adding character…';
+  }
+
+
 
   /** Show the create-character form, requesting server data if needed. */
   function handleShowCreateChar() {
@@ -482,6 +544,7 @@
         characterList = players;
         characterSelectVisible = true;
         createCharVisible = false;
+        addExistingVisible = false;
         accountLoginVisible = false;
         statusMessage = '';
         errorMessage = '';
@@ -565,7 +628,20 @@
       }),
 
       gameEvents.on('failure', (command: string, message: string) => {
-        errorMessage = `${command}: ${message}`;
+        if (command === 'accountaddplayer') {
+          // The message starts with a force flag: "0 <text>" (not retriable)
+          // or "1 <text>" (can retry with force=1).
+          const spaceIdx = message.indexOf(' ');
+          const forceFlag = spaceIdx > 0 ? parseInt(message.substring(0, spaceIdx), 10) : 0;
+          const text = spaceIdx > 0 ? message.substring(spaceIdx + 1) : message;
+          errorMessage = text;
+          if (forceFlag === 1) {
+            addExistingCanForce = true;
+            addExistingForceMessage = text;
+          }
+        } else {
+          errorMessage = `${command}: ${message}`;
+        }
         statusMessage = '';
       }),
 
@@ -784,10 +860,39 @@
               <p class="status">No characters on this account yet.</p>
             {/if}
             <button onclick={handleShowCreateChar}>+ Create New Character</button>
+            <button onclick={handleShowAddExisting}>+ Add Existing Character</button>
             <button
               class="back-btn"
               onclick={() => { characterSelectVisible = false; accountLoginVisible = true; errorMessage = ''; statusMessage = ''; }}
             >← Back</button>
+          </div>
+        {:else if addExistingVisible}
+          <!-- Add existing character form (loginmethod >= 1) -->
+          <div class="login-form">
+            <h3 class="panel-title">Add Existing Character</h3>
+            <label>
+              Character Name
+              <input
+                type="text"
+                bind:value={addExistingName}
+                autocomplete="username"
+              />
+            </label>
+            <label>
+              Character Password
+              <input
+                type="password"
+                bind:value={addExistingPassword}
+                autocomplete="current-password"
+              />
+            </label>
+            <button onclick={handleAddExisting}>Add Character</button>
+            {#if addExistingCanForce}
+              <p class="error">{addExistingForceMessage}</p>
+              <p class="query-text">This character is already linked to another account. Override the link?</p>
+              <button onclick={handleForceAddExisting}>Yes, override</button>
+            {/if}
+            <button class="back-btn" onclick={handleCancelAddExisting}>← Back</button>
           </div>
         {:else if accountLoginVisible}
           <!-- Account-based login / create form (loginmethod >= 1) -->
