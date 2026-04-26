@@ -258,6 +258,16 @@
     closeMenu();
   }
 
+  function registerWebCrossfireHandler() {
+    try {
+      navigator.registerProtocolHandler('web+crossfire', '/?server=%s');
+    } catch (e) {
+      // Browser does not support registerProtocolHandler or blocked it.
+      console.warn('registerProtocolHandler failed:', e);
+    }
+    closeMenu();
+  }
+
   function closeAbout() {
     dialogMode = 'idle';
   }
@@ -663,6 +673,10 @@
           onclick={showAbout}
           oncontextmenu={(e) => { e.preventDefault(); showAbout(); }}
         >About Crossfire Web Client</button>
+        <button
+          onclick={registerWebCrossfireHandler}
+          oncontextmenu={(e) => { e.preventDefault(); registerWebCrossfireHandler(); }}
+        >Register as web+crossfire handler</button>
       </div>
     {/if}
   </div>
