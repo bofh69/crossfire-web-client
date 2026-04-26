@@ -11,13 +11,14 @@
 
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { clientConnect, clientNegotiate, sendAddMe, sendAccountLogin, sendAccountNew, sendAccountPlay } from '../lib/client';
+  import { clientConnect, clientNegotiate, sendAddMe, sendAccountLogin, sendAccountNew, sendAccountPlay,
+           sendRequestInfo, sendCreatePlayer, setAccountPassword, getAccountPassword } from '../lib/client';
   import { gameEvents } from '../lib/events';
   import { sendReply } from '../lib/player';
   import { CS_QUERY_HIDEINPUT, CS_QUERY_SINGLECHAR, CS_QUERY_YESNO, EPORT } from '../lib/protocol';
   import { parseMarkupLines } from '../lib/markup';
   import { wantConfig } from '../lib/init';
-  import type { AccountPlayer } from '../lib/events';
+  import type { AccountPlayer, RaceClassEntry, NewCharInfo } from '../lib/events';
 
   interface Props {
     onLoggedIn: () => void;
@@ -128,6 +129,60 @@
   /** Confirm-password field for new-account creation. */
   let accountPasswordConfirm = $state('');
 
+  // ── Character-creation state (loginmethod >= 2) ────────────────────────────
+
+  /** Login method confirmed by the server (0 = legacy, 1 or 2 = account). */
+  let confirmedLoginMethod = $state(0);
+
+  /** True when the character-creation form is visible. */
+  let createCharVisible = $state(false);
+
+  /** True once we have sent the race/class/newcharinfo requests for this session. */
+  let charInfoRequested = $state(false);
+
+  /** Race and class lists received from the server. */
+  let availableRaces = $state<RaceClassEntry[]>([]);
+  let availableClasses = $state<RaceClassEntry[]>([]);
+
+  /** newcharinfo data from the server. */
+  let newCharStatPoints = $state(0);
+  let newCharStatNames = $state<string[]>([]);
+
+  /** Character-creation form: name input. */
+  let newCharName = $state('');
+  /** Selected race index in availableRaces. */
+  let selectedRaceIdx = $state(0);
+  /** Selected class index in availableClasses. */
+  let selectedClassIdx = $state(0);
+  /** User's per-stat allocation (stat short name → extra points allocated). */
+  let statAlloc = $state<Record<string, number>>({});
+  /** Selected choice value indices for the chosen race's choices. */
+  let raceChoiceSel = $state<number[]>([]);
+  /** Selected choice value indices for the chosen class's choices. */
+  let classChoiceSel = $state<number[]>([]);
+
+  // ── Derived values for character creation ──────────────────────────────────
+
+  const ccSpent = $derived(
+    newCharStatNames.reduce((s, n) => s + (statAlloc[n] ?? 0), 0),
+  );
+  const ccRemaining = $derived(newCharStatPoints - ccSpent);
+  const ccHasNegStat = $derived(
+    newCharStatNames.some(sn => {
+      const rb = availableRaces[selectedRaceIdx]?.statAdj[sn] ?? 0;
+      const cb = availableClasses[selectedClassIdx]?.statAdj[sn] ?? 0;
+      return rb + cb + (statAlloc[sn] ?? 0) < 1;
+    }),
+  );
+  const ccCanCreate = $derived(
+    newCharName.trim().length > 0
+    && ccRemaining >= 0
+    && !ccHasNegStat
+    // Allow creation when: loginmethod 1 (no stats needed), or loginmethod 2
+    // data has arrived (statPoints set), or server didn't send any races.
+    && (confirmedLoginMethod < 2 || newCharStatPoints > 0 || availableRaces.length === 0),
+  );
+
   // Focus the query input whenever it (re-)appears in the DOM.
   $effect(() => {
     if (queryInputEl) {
@@ -223,6 +278,8 @@
       errorMessage = 'Please enter both an account name and password.';
       return;
     }
+    // Cache the password so it can be included in a future createplayer packet.
+    setAccountPassword(accountPassword);
     sendAccountLogin(accountName.trim(), accountPassword);
     statusMessage = 'Logging in…';
   }
@@ -237,6 +294,7 @@
       errorMessage = 'Passwords do not match.';
       return;
     }
+    setAccountPassword(accountPassword);
     sendAccountNew(accountName.trim(), accountPassword);
     statusMessage = 'Creating account…';
   }
@@ -244,6 +302,76 @@
   function handlePlayCharacter(name: string) {
     sendAccountPlay(name);
     statusMessage = 'Starting game…';
+  }
+
+  // ── Character-creation helpers ─────────────────────────────────────────────
+
+  /** Show the create-character form, requesting server data if needed. */
+  function handleShowCreateChar() {
+    createCharVisible = true;
+    characterSelectVisible = false;
+    errorMessage = '';
+    statusMessage = '';
+    if (!charInfoRequested) {
+      charInfoRequested = true;
+      sendRequestInfo('race_list');
+      sendRequestInfo('class_list');
+      sendRequestInfo('newcharinfo');
+    }
+  }
+
+  /** Return from character-creation form to the character-select panel. */
+  function handleCancelCreateChar() {
+    createCharVisible = false;
+    characterSelectVisible = true;
+    errorMessage = '';
+    statusMessage = '';
+  }
+
+  /**
+   * Increment or decrement a stat allocation by `delta`.
+   * Clamps so the allocation can't go below 0 or make the stat total < 1.
+   */
+  function adjustStat(statName: string, delta: number) {
+    const current = statAlloc[statName] ?? 0;
+    const newVal = current + delta;
+    if (newVal < 0) return;
+    const raceBonus = availableRaces[selectedRaceIdx]?.statAdj[statName] ?? 0;
+    const classBonus = availableClasses[selectedClassIdx]?.statAdj[statName] ?? 0;
+    if (raceBonus + classBonus + newVal < 1) return;
+    statAlloc = { ...statAlloc, [statName]: newVal };
+  }
+
+  /** Send the createplayer command to the server. */
+  function handleCreateCharacter() {
+    errorMessage = '';
+    const name = newCharName.trim();
+    if (!name) {
+      errorMessage = 'Please enter a character name.';
+      return;
+    }
+    const password = getAccountPassword();
+    if (confirmedLoginMethod >= 2 && availableRaces.length > 0 && availableClasses.length > 0) {
+      const race  = availableRaces[selectedRaceIdx]!;
+      const cls   = availableClasses[selectedClassIdx]!;
+      const rChoices = race.choices.map((ch, i) => {
+        const selIdx = raceChoiceSel[i] ?? 0;
+        return { choiceName: ch.name, valueArch: ch.values[selIdx]?.arch ?? '' };
+      }).filter(c => c.valueArch !== '');
+      const cChoices = cls.choices.map((ch, i) => {
+        const selIdx = classChoiceSel[i] ?? 0;
+        return { choiceName: ch.name, valueArch: ch.values[selIdx]?.arch ?? '' };
+      }).filter(c => c.valueArch !== '');
+      const sAlloc = newCharStatNames.map(sn => ({
+        statName: sn,
+        value: statAlloc[sn] ?? 0,
+      }));
+      sendCreatePlayer(name, password, race.archName, cls.archName, rChoices, cChoices, sAlloc);
+    } else {
+      // loginmethod 1 — just name + password.
+      sendCreatePlayer(name, password);
+    }
+    statusMessage = 'Creating character…';
   }
 
   $effect(() => {
@@ -282,6 +410,7 @@
       }),
 
       gameEvents.on('loginMethodConfirmed', (method: number) => {
+        confirmedLoginMethod = method;
         if (method === 0) {
           // Server only supports legacy login: fall back to addme + query flow.
           sendAddMe();
@@ -295,12 +424,55 @@
       gameEvents.on('accountPlayers', (players: AccountPlayer[]) => {
         characterList = players;
         characterSelectVisible = true;
+        createCharVisible = false;
         accountLoginVisible = false;
         statusMessage = '';
         errorMessage = '';
         if (players.length === 0) {
           statusMessage = 'No characters yet. Create one to start playing!';
         }
+      }),
+
+      // ── Character-creation events ──────────────────────────────────────────
+
+      gameEvents.on('raceListReceived', (archNames: string[]) => {
+        // Initialise with arch-name-only placeholders; detail arrives later.
+        availableRaces = archNames.map(archName => ({
+          archName, publicName: archName, description: '', statAdj: {}, choices: [],
+        }));
+        if (selectedRaceIdx >= availableRaces.length) selectedRaceIdx = 0;
+      }),
+
+      gameEvents.on('classListReceived', (archNames: string[]) => {
+        availableClasses = archNames.map(archName => ({
+          archName, publicName: archName, description: '', statAdj: {}, choices: [],
+        }));
+        if (selectedClassIdx >= availableClasses.length) selectedClassIdx = 0;
+      }),
+
+      gameEvents.on('raceInfoReceived', (info: RaceClassEntry) => {
+        const idx = availableRaces.findIndex(r => r.archName === info.archName);
+        if (idx >= 0) {
+          availableRaces = availableRaces.with(idx, info);
+        } else {
+          availableRaces = [...availableRaces, info];
+        }
+      }),
+
+      gameEvents.on('classInfoReceived', (info: RaceClassEntry) => {
+        const idx = availableClasses.findIndex(c => c.archName === info.archName);
+        if (idx >= 0) {
+          availableClasses = availableClasses.with(idx, info);
+        } else {
+          availableClasses = [...availableClasses, info];
+        }
+      }),
+
+      gameEvents.on('newCharInfoReceived', (info: NewCharInfo) => {
+        newCharStatPoints = info.statPoints;
+        newCharStatNames = info.statNames;
+        // Reset per-stat allocations to zero whenever the stat list changes.
+        statAlloc = Object.fromEntries(info.statNames.map(n => [n, 0]));
       }),
 
       gameEvents.on('addMeSuccess', () => {
@@ -399,7 +571,106 @@
         </div>
       {/if}
       <div class="query-panel">
-        {#if characterSelectVisible}
+        {#if createCharVisible}
+          <!-- Character creation form (loginmethod >= 1) -->
+          <div class="login-form create-char-form">
+            <h3 class="panel-title">Create New Character</h3>
+
+            {#if confirmedLoginMethod >= 2 && newCharStatPoints === 0}
+              <p class="status">Loading character options…</p>
+            {/if}
+
+            <label>
+              Character Name
+              <input type="text" bind:value={newCharName} autocomplete="off" />
+            </label>
+
+            {#if confirmedLoginMethod >= 2 && availableRaces.length > 0}
+              <!-- Race selection -->
+              <label>
+                Race
+                <select bind:value={selectedRaceIdx}>
+                  {#each availableRaces as race, i}
+                    <option value={i}>{race.publicName}</option>
+                  {/each}
+                </select>
+              </label>
+              {#if availableRaces[selectedRaceIdx]?.description}
+                <p class="rc-desc">{availableRaces[selectedRaceIdx]?.description}</p>
+              {/if}
+              {#each availableRaces[selectedRaceIdx]?.choices ?? [] as choice, ci}
+                <label>
+                  {choice.desc || choice.name}
+                  <select bind:value={raceChoiceSel[ci]}>
+                    {#each choice.values as val, vi}
+                      <option value={vi}>{val.desc || val.arch}</option>
+                    {/each}
+                  </select>
+                </label>
+              {/each}
+
+              <!-- Class selection -->
+              {#if availableClasses.length > 0}
+                <label>
+                  Class
+                  <select bind:value={selectedClassIdx}>
+                    {#each availableClasses as cls, i}
+                      <option value={i}>{cls.publicName}</option>
+                    {/each}
+                  </select>
+                </label>
+                {#if availableClasses[selectedClassIdx]?.description}
+                  <p class="rc-desc">{availableClasses[selectedClassIdx]?.description}</p>
+                {/if}
+                {#each availableClasses[selectedClassIdx]?.choices ?? [] as choice, ci}
+                  <label>
+                    {choice.desc || choice.name}
+                    <select bind:value={classChoiceSel[ci]}>
+                      {#each choice.values as val, vi}
+                        <option value={vi}>{val.desc || val.arch}</option>
+                      {/each}
+                    </select>
+                  </label>
+                {/each}
+              {/if}
+
+              <!-- Stat allocation table -->
+              {#if newCharStatPoints > 0}
+                <div class="stat-table">
+                  <div class="stat-header">
+                    <span>Stat</span><span title="Race bonus">Race</span>
+                    <span title="Class bonus">Class</span>
+                    <span>Pts</span><span>Total</span>
+                  </div>
+                  {#each newCharStatNames as sn}
+                    {@const rb = availableRaces[selectedRaceIdx]?.statAdj[sn] ?? 0}
+                    {@const cb = availableClasses[selectedClassIdx]?.statAdj[sn] ?? 0}
+                    {@const alloc = statAlloc[sn] ?? 0}
+                    {@const total = rb + cb + alloc}
+                    <div class="stat-row" class:stat-bad={total < 1}>
+                      <span class="stat-name">{sn}</span>
+                      <span class:bonus-pos={rb > 0} class:bonus-neg={rb < 0}>{rb > 0 ? '+' : ''}{rb}</span>
+                      <span class:bonus-pos={cb > 0} class:bonus-neg={cb < 0}>{cb > 0 ? '+' : ''}{cb}</span>
+                      <span class="stat-spin">
+                        <button class="spin-btn" onclick={() => adjustStat(sn, -1)} disabled={alloc <= 0 || rb + cb + alloc - 1 < 1}>−</button>
+                        <span class="spin-val">{alloc}</span>
+                        <button class="spin-btn" onclick={() => adjustStat(sn, +1)} disabled={ccRemaining <= 0}>+</button>
+                      </span>
+                      <span class:stat-bad={total < 1}>{total}</span>
+                    </div>
+                  {/each}
+                  <div class="stat-remaining" class:points-over={ccRemaining < 0}>
+                    Points remaining: {ccRemaining}
+                  </div>
+                </div>
+              {/if}
+            {/if}
+
+            <button onclick={handleCreateCharacter} disabled={!ccCanCreate}>Create Character</button>
+            <button class="back-btn" onclick={handleCancelCreateChar}>← Back</button>
+          </div>
+
+        {:else if characterSelectVisible}
           <!-- Character selection (loginmethod >= 1) -->
           <div class="login-form">
             <h3 class="panel-title">Choose Character</h3>
@@ -415,6 +686,7 @@
             {:else}
               <p class="status">No characters on this account yet.</p>
             {/if}
+            <button onclick={handleShowCreateChar}>+ Create New Character</button>
             <button
               class="back-btn"
               onclick={() => { characterSelectVisible = false; accountLoginVisible = true; errorMessage = ''; statusMessage = ''; }}
@@ -755,5 +1027,116 @@
     background: var(--bg-darker);
     color: var(--text-warm);
     border-color: var(--accent);
+  }
+
+  /* ── Character-creation styles ─────────────────────────────────────────── */
+
+  .create-char-form {
+    width: 360px;
+  }
+
+  select {
+    padding: 0.4rem 0.5rem;
+    border: 1px solid var(--border-light);
+    border-radius: 4px;
+    background: var(--bg-lighter);
+    color: var(--text-bright);
+    font-size: 0.95rem;
+  }
+
+  select:focus {
+    outline: none;
+    border-color: var(--accent);
+  }
+
+  .rc-desc {
+    font-size: 0.78rem;
+    color: var(--text-warm-dim);
+    max-height: 5em;
+    overflow-y: auto;
+    margin: 0;
+    padding: 0.25rem 0.4rem;
+    border-left: 2px solid var(--border);
+    line-height: 1.35;
+  }
+
+  .stat-table {
+    display: grid;
+    grid-template-columns: 2.5rem 2.5rem 2.5rem 1fr 2.5rem;
+    gap: 2px 0;
+    font-size: 0.85rem;
+  }
+
+  .stat-header {
+    display: contents;
+    font-weight: bold;
+    color: var(--text-warm-dim);
+  }
+
+  .stat-header span {
+    text-align: center;
+    padding: 0.15rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .stat-row {
+    display: contents;
+  }
+
+  .stat-row > span {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.15rem 0;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .stat-row .stat-name {
+    justify-content: flex-start;
+  }
+
+  .bonus-pos { color: #80d080; }
+  .bonus-neg { color: #e06060; }
+
+  .stat-bad {
+    color: #e06060;
+  }
+
+  .stat-spin {
+    display: flex !important;
+    align-items: center;
+    gap: 2px;
+  }
+
+  .spin-btn {
+    padding: 0 0.3rem;
+    font-size: 0.85rem;
+    border: 1px solid var(--border);
+    background: var(--bg-darker);
+    color: var(--text-warm);
+    border-radius: 3px;
+    line-height: 1.4;
+    min-width: 1.4rem;
+  }
+
+  .spin-val {
+    min-width: 1.5rem;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .stat-remaining {
+    grid-column: 1 / -1;
+    text-align: right;
+    font-size: 0.8rem;
+    color: var(--text-warm-dim);
+    border-top: 1px solid var(--border);
+    padding-top: 0.25rem;
+    margin-top: 0.1rem;
+  }
+
+  .points-over {
+    color: #e06060;
+    font-weight: bold;
   }
 </style>

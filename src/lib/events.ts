@@ -21,6 +21,38 @@ export interface AccountPlayer {
   faceNum: number;
 }
 
+// ── Character-creation types ───────────────────────────────────────────────
+
+/** A single optional choice within a race or class (e.g. preferred deity). */
+export interface ChargenChoice {
+  /** Internal name returned to the server (e.g. "skin"). */
+  name: string;
+  /** Human-readable description shown in the UI. */
+  desc: string;
+  /** Available option values — arch is sent to server, desc shown in UI. */
+  values: Array<{ arch: string; desc: string }>;
+}
+
+/** Race or class data received from `replyinfo race_info` / `replyinfo class_info`. */
+export interface RaceClassEntry {
+  archName: string;
+  publicName: string;
+  description: string;
+  /** Signed adjustments to each stat (keyed by short name, e.g. "Str"). */
+  statAdj: Record<string, number>;
+  choices: ChargenChoice[];
+}
+
+/** Stat constraints and names from `replyinfo newcharinfo`. */
+export interface NewCharInfo {
+  /** Total attribute points the player may distribute. */
+  statPoints: number;
+  statMin: number;
+  statMax: number;
+  /** Short stat names in the order the server uses them (e.g. ["Str","Dex",…]). */
+  statNames: string[];
+}
+
 /** Maps event name → handler signature. */
 export interface GameEventMap {
   drawInfo:        [color: number, message: string];
@@ -48,6 +80,18 @@ export interface GameEventMap {
   beatEnabled:     [];
   /** Emitted when the server confirms the negotiated login method via `setup loginmethod`. */
   loginMethodConfirmed: [method: number];
+
+  // Character-creation events (loginmethod >= 2)
+  /** Pipe-separated list of available race archetype names from `replyinfo race_list`. */
+  raceListReceived:    [archNames: string[]];
+  /** Pipe-separated list of available class archetype names from `replyinfo class_list`. */
+  classListReceived:   [archNames: string[]];
+  /** Detailed race data from `replyinfo race_info`. */
+  raceInfoReceived:    [info: RaceClassEntry];
+  /** Detailed class data from `replyinfo class_info`. */
+  classInfoReceived:   [info: RaceClassEntry];
+  /** Stat constraints from `replyinfo newcharinfo`. */
+  newCharInfoReceived: [info: NewCharInfo];
 
   // UI-internal events (component-to-component communication)
   /** Ask the InfoPanel to focus its command input field. */

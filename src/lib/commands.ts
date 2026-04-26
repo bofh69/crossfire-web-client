@@ -20,6 +20,7 @@ import { notifyNcomAck } from './player.js';
 import { LOG } from './misc.js';
 import { LogLevel } from './protocol.js';
 import { gameEvents, type AccountPlayer } from './events.js';
+import { parseRaceClassList, parseRaceClassInfo, parseNewCharInfo } from './cmd_chargen.js';
 
 // ── Re-exports from split modules ──────────────────────────────────────────
 // Keep the public API surface compatible so downstream files don't need to
@@ -250,6 +251,18 @@ function ReplyInfoCmd(data: DataView, len: number): void {
   } else if (infoType === 'knowledge_info') {
     const text = new TextDecoder().decode(bytes.subarray(spaceIdx + 1));
     parseKnowledgeInfo(text);
+  } else if (infoType === 'race_list') {
+    const text = new TextDecoder().decode(bytes.subarray(spaceIdx + 1));
+    gameEvents.emit('raceListReceived', parseRaceClassList(text));
+  } else if (infoType === 'class_list') {
+    const text = new TextDecoder().decode(bytes.subarray(spaceIdx + 1));
+    gameEvents.emit('classListReceived', parseRaceClassList(text));
+  } else if (infoType === 'race_info') {
+    gameEvents.emit('raceInfoReceived', parseRaceClassInfo(bytes.subarray(spaceIdx + 1)));
+  } else if (infoType === 'class_info') {
+    gameEvents.emit('classInfoReceived', parseRaceClassInfo(bytes.subarray(spaceIdx + 1)));
+  } else if (infoType === 'newcharinfo') {
+    gameEvents.emit('newCharInfoReceived', parseNewCharInfo(bytes.subarray(spaceIdx + 1)));
   }
   LOG(LogLevel.Debug, 'ReplyInfoCmd', `Info type: ${infoType}`);
 }

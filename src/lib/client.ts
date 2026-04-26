@@ -259,3 +259,101 @@ export function sendAccountPlay(characterName: string): void {
     csocket?.sendString(`accountplay ${characterName}`);
 }
 
+// ── Account password cache ───────────────────────────────────────────────────
+
+/** The most-recently used account password, kept for `createplayer`. */
+let _accountPassword = '';
+
+/** Store the account password so it can be included in `createplayer` packets. */
+export function setAccountPassword(password: string): void {
+    _accountPassword = password;
+}
+
+/** Return the stored account password. */
+export function getAccountPassword(): string {
+    return _accountPassword;
+}
+
+// ── Character creation (loginmethod >= 1) ────────────────────────────────────
+
+/**
+ * Send a `requestinfo` packet to the server.
+ *
+ * Used by the character-creation UI to fetch race_list, class_list, etc.
+ */
+export function sendRequestInfo(type: string): void {
+    csocket?.sendString(`requestinfo ${type}`);
+}
+
+/**
+ * Build and send a `createplayer` packet (loginmethod >= 1).
+ *
+ * For loginmethod 1 only `charName` and `accountPassword` are required.
+ * For loginmethod 2 pass `raceArch`, `classArch`, `raceChoices`,
+ * `classChoices`, and `statAlloc` as well.
+ *
+ * Binary format (mirroring send_create_player_to_server in
+ * old/gtk-v2/src/create_char.c):
+ *
+ *   "createplayer "
+ *   [1-byte name_len][name_bytes]
+ *   [1-byte password_len][password_bytes]
+ *   // loginmethod 2 only:
+ *   { [1-byte attr_str_len+1][attr_string][0x00] }…
+ *
+ * where each attr string is one of:
+ *   "race <arch>"
+ *   "choice <choice_name> <value_arch>"
+ *   "class <arch>"
+ *   "<StatName> <N>"  (e.g. "Str 5")
+ */
+export function sendCreatePlayer(
+    charName: string,
+    accountPassword: string,
+    raceArch?: string,
+    classArch?: string,
+    raceChoices?: Array<{ choiceName: string; valueArch: string }>,
+    classChoices?: Array<{ choiceName: string; valueArch: string }>,
+    statAlloc?: Array<{ statName: string; value: number }>,
+): void {
+    if (!csocket) return;
+
+    const sl = new SockList();
+    const enc = new TextEncoder();
+
+    sl.addString('createplayer ');
+
+    const nameBytes = enc.encode(charName);
+    sl.addChar(nameBytes.length);
+    sl.addString(charName);
+
+    const pwBytes = enc.encode(accountPassword);
+    sl.addChar(pwBytes.length);
+    sl.addString(accountPassword);
+
+    // loginmethod 2: append race, choices, class, and stat allocations.
+    if (raceArch && classArch) {
+        const addAttr = (str: string): void => {
+            const bytes = enc.encode(str);
+            // The length byte is strlen + 1 (one extra for the null terminator
+            // that follows the string bytes).
+            sl.addChar(bytes.length + 1);
+            sl.addString(str);
+            sl.addChar(0);  // null terminator
+        };
+
+        addAttr(`race ${raceArch}`);
+        for (const c of (raceChoices ?? [])) {
+            addAttr(`choice ${c.choiceName} ${c.valueArch}`);
+        }
+        addAttr(`class ${classArch}`);
+        for (const c of (classChoices ?? [])) {
+            addAttr(`choice ${c.choiceName} ${c.valueArch}`);
+        }
+        for (const s of (statAlloc ?? [])) {
+            addAttr(`${s.statName} ${s.value}`);
+        }
+    }
+
+    csocket.send(sl);
+}
