@@ -10,9 +10,12 @@
 
   interface Props {
     onLoggedIn: () => void;
+    /** When returning from gameplay (e.g. bed-to-reality), pre-populate the
+     *  character list and show the character-select screen immediately. */
+    initialCharacters?: AccountPlayer[] | null;
   }
 
-  let { onLoggedIn }: Props = $props();
+  let { onLoggedIn, initialCharacters = null }: Props = $props();
 
   /** Server address provided via the `?server=` URL parameter, if any.
    *  Accepts `ws://`, `wss://`, and `web+crossfire:wss?://` (protocol-handler)
@@ -56,7 +59,14 @@
   }
 
   let serverAddress = $state(defaultServerAddress());
-  let connected = $state(false);
+  // Capture the initial prop value once — we only need it for initial state.
+  // Using a local const avoids reactive-capture warnings from Svelte since we
+  // deliberately want the snapshot at mount time, not a live derived value.
+  // svelte-ignore state_referenced_locally
+  const initChars = initialCharacters;
+  // When initialCharacters is provided we're returning from gameplay with the
+  // socket still open, so start in the "connected" state.
+  let connected = $state(initChars !== null);
   let connecting = $state(false);
 
   // Auto-connect immediately when the server address is supplied via URL param.
@@ -97,9 +107,9 @@
   /** True when showing "create new account" form instead of login form. */
   let showNewAccount = $state(false);
   /** Characters returned by the server's accountplayers command. */
-  let characterList = $state<AccountPlayer[]>([]);
+  let characterList = $state<AccountPlayer[]>(initChars ?? []);
   /** True when the character selection panel is visible. */
-  let characterSelectVisible = $state(false);
+  let characterSelectVisible = $state(initChars !== null);
   /** Account name input. */
   let accountName = $state('');
   /** Account password input (login form). */
@@ -392,6 +402,10 @@
             {:else}
               <p class="status">No characters on this account yet.</p>
             {/if}
+            <button
+              class="back-btn"
+              onclick={() => { characterSelectVisible = false; accountLoginVisible = true; errorMessage = ''; statusMessage = ''; }}
+            >← Back</button>
           </div>
         {:else if accountLoginVisible}
           <!-- Account-based login / create form (loginmethod >= 1) -->
@@ -713,5 +727,20 @@
   .char-details {
     color: var(--text-warm-dim);
     font-size: 0.8rem;
+  }
+
+  .back-btn {
+    align-self: flex-start;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-warm-dim);
+    font-size: 0.85rem;
+    padding: 0.3rem 0.6rem;
+  }
+
+  .back-btn:hover {
+    background: var(--bg-darker);
+    color: var(--text-warm);
+    border-color: var(--accent);
   }
 </style>
