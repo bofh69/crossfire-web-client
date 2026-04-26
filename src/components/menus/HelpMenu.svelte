@@ -18,15 +18,6 @@
     showAboutDialog = false;
   }
 
-  function registerWebCrossfireHandler() {
-    try {
-      navigator.registerProtocolHandler('web+crossfire', '/?server=%s');
-    } catch (e) {
-      console.warn('registerProtocolHandler failed:', e);
-    }
-    onClose();
-  }
-
   export function isDialogActive(): boolean {
     return showAboutDialog;
   }
@@ -40,10 +31,6 @@
         onclick={showAbout}
         oncontextmenu={(e) => { e.preventDefault(); showAbout(); }}
       >About Crossfire Web Client</button>
-      <button
-        onclick={registerWebCrossfireHandler}
-        oncontextmenu={(e) => { e.preventDefault(); registerWebCrossfireHandler(); }}
-      >Register as web+crossfire handler</button>
     </div>
   {/if}
 </div>

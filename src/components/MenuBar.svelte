@@ -1,9 +1,8 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import PickupMenu from './PickupMenu.svelte';
-  import FileMenu from './menus/FileMenu.svelte';
-  import SoundMenu from './menus/SoundMenu.svelte';
-  import ViewMenu from './menus/ViewMenu.svelte';
+  import ConnectionMenu from './menus/ConnectionMenu.svelte';
+  import ConfigMenu from './menus/ConfigMenu.svelte';
   import HelpMenu from './menus/HelpMenu.svelte';
   import KeyboardMenu from './menus/KeyboardMenu.svelte';
   import GamepadMenu from './menus/GamepadMenu.svelte';
@@ -94,7 +93,7 @@
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div class="menu-bar" onclick={(e: MouseEvent) => e.stopPropagation()} onmouseenter={handleMenuBarMouseEnter} onmouseleave={handleMenuBarMouseLeave}>
-  <FileMenu fading={menuFading} isOpen={activeMenu === 'file'} onToggle={() => toggleMenu('file')} onClose={closeMenu} {onDisconnect} />
+  <ConnectionMenu fading={menuFading} isOpen={activeMenu === 'file'} onToggle={() => toggleMenu('file')} onClose={closeMenu} {onDisconnect} />
 
   <div class="menu-item">
     <button class="menu-button" onclick={() => toggleMenu('pickup')} oncontextmenu={(e) => { e.preventDefault(); toggleMenu('pickup'); }}>Pickup</button>
@@ -109,8 +108,7 @@
 
   <KeyboardMenu bind:this={keyboardMenu} fading={menuFading} isOpen={activeMenu === 'keyboard'} onToggle={() => toggleMenu('keyboard')} onClose={closeMenu} />
   <GamepadMenu bind:this={gamepadMenu} fading={menuFading} isOpen={activeMenu === 'gamepad'} onToggle={() => toggleMenu('gamepad')} onClose={closeMenu} />
-  <SoundMenu fading={menuFading} isOpen={activeMenu === 'sound'} onToggle={() => toggleMenu('sound')} onClose={closeMenu} />
-  <ViewMenu fading={menuFading} isOpen={activeMenu === 'view'} onToggle={() => toggleMenu('view')} onClose={closeMenu} />
+  <ConfigMenu fading={menuFading} isOpen={activeMenu === 'config'} onToggle={() => toggleMenu('config')} onClose={closeMenu} />
   <HelpMenu bind:this={helpMenu} fading={menuFading} isOpen={activeMenu === 'help'} onToggle={() => toggleMenu('help')} onClose={closeMenu} />
 
   <div class="spacer"></div>
