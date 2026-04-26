@@ -1,10 +1,12 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { clientConnect, clientNegotiate, sendAddMe } from '../lib/client';
+  import { clientConnect, clientNegotiate, sendAddMe, sendAccountLogin, sendAccountNew, sendAccountPlay } from '../lib/client';
   import { gameEvents } from '../lib/events';
   import { sendReply } from '../lib/player';
   import { CS_QUERY_HIDEINPUT, CS_QUERY_SINGLECHAR, CS_QUERY_YESNO, EPORT } from '../lib/protocol';
   import { type InfoLine, parseMarkupLines } from '../lib/markup';
+  import { wantConfig } from '../lib/init';
+  import type { AccountPlayer } from '../lib/events';
 
   interface Props {
     onLoggedIn: () => void;
@@ -21,6 +23,14 @@
     const HANDLER_PREFIX = 'web+crossfire:';
     const addr = raw.startsWith(HANDLER_PREFIX) ? raw.slice(HANDLER_PREFIX.length) : raw;
     return (addr.startsWith('ws://') || addr.startsWith('wss://')) ? addr : '';
+  })();
+
+  /** Login method override from the `?loginmethod=` URL parameter (0, 1, or 2). */
+  const urlParamLoginMethod = (() => {
+    const raw = new URLSearchParams(window.location.search).get('loginmethod');
+    if (raw === null) return null;
+    const v = parseInt(raw, 10);
+    return (!isNaN(v) && v >= 0 && v <= 2) ? v : null;
   })();
 
   /** True when the page was loaded on a standard HTTP/HTTPS port (80 or 443).
@@ -79,6 +89,24 @@
   /** Element reference for the query input, used for programmatic focus. */
   let queryInputEl: HTMLInputElement | undefined = $state();
 
+  // ── Account-based login state (loginmethod >= 1) ───────────────────────────
+
+  /** True when the server has confirmed loginmethod >= 1 and we should show
+   *  the account-based login form instead of the legacy query flow. */
+  let accountLoginVisible = $state(false);
+  /** True when showing "create new account" form instead of login form. */
+  let showNewAccount = $state(false);
+  /** Characters returned by the server's accountplayers command. */
+  let characterList = $state<AccountPlayer[]>([]);
+  /** True when the character selection panel is visible. */
+  let characterSelectVisible = $state(false);
+  /** Account name input. */
+  let accountName = $state('');
+  /** Account password input (login form). */
+  let accountPassword = $state('');
+  /** Confirm-password field for new-account creation. */
+  let accountPasswordConfirm = $state('');
+
   // Focus the query input whenever it (re-)appears in the DOM.
   $effect(() => {
     if (queryInputEl) {
@@ -107,6 +135,12 @@
     serverInfoSections = [];
     connecting = true;
     statusMessage = 'Connecting...';
+
+    // Apply URL-param login method override before negotiating.
+    if (urlParamLoginMethod !== null) {
+      wantConfig.loginMethod = urlParamLoginMethod;
+    }
+
     try {
       await clientConnect(serverAddress);
       connected = true;
@@ -160,6 +194,37 @@
     }
   }
 
+  // ── Account login handlers ─────────────────────────────────────────────────
+
+  function handleAccountLogin() {
+    errorMessage = '';
+    if (!accountName.trim() || !accountPassword) {
+      errorMessage = 'Please enter both an account name and password.';
+      return;
+    }
+    sendAccountLogin(accountName.trim(), accountPassword);
+    statusMessage = 'Logging in…';
+  }
+
+  function handleAccountNew() {
+    errorMessage = '';
+    if (!accountName.trim() || !accountPassword) {
+      errorMessage = 'Please fill in all fields.';
+      return;
+    }
+    if (accountPassword !== accountPasswordConfirm) {
+      errorMessage = 'Passwords do not match.';
+      return;
+    }
+    sendAccountNew(accountName.trim(), accountPassword);
+    statusMessage = 'Creating account…';
+  }
+
+  function handlePlayCharacter(name: string) {
+    sendAccountPlay(name);
+    statusMessage = 'Starting game…';
+  }
+
   $effect(() => {
     const cleanups = [
       gameEvents.on('query', (flags: number, prompt: string) => {
@@ -185,8 +250,34 @@
       }),
 
       gameEvents.on('version', (_cs: number, _sc: number, verStr: string) => {
-        statusMessage = `Server: ${verStr}. Handshaking...`;
-        sendAddMe();
+        statusMessage = `Server: ${verStr}. Handshaking…`;
+        // Do NOT call sendAddMe() here when using account-based login.
+        // The loginMethodConfirmed handler decides whether to send addme or
+        // show the account login form, based on what the server supports.
+        // When loginmethod 0 is requested the server will reply with loginmethod 0
+        // in the setup response and loginMethodConfirmed(0) will call sendAddMe().
+      }),
+
+      gameEvents.on('loginMethodConfirmed', (method: number) => {
+        if (method === 0) {
+          // Server only supports legacy login: fall back to addme + query flow.
+          sendAddMe();
+        } else {
+          // Server supports account-based login (method >= 1).
+          accountLoginVisible = true;
+          statusMessage = '';
+        }
+      }),
+
+      gameEvents.on('accountPlayers', (players: AccountPlayer[]) => {
+        characterList = players;
+        characterSelectVisible = true;
+        accountLoginVisible = false;
+        statusMessage = '';
+        errorMessage = '';
+        if (players.length === 0) {
+          statusMessage = 'No characters yet. Create one to start playing!';
+        }
       }),
 
       gameEvents.on('addMeSuccess', () => {
@@ -206,6 +297,7 @@
 
       gameEvents.on('failure', (command: string, message: string) => {
         errorMessage = `${command}: ${message}`;
+        statusMessage = '';
       }),
 
       gameEvents.on('drawInfo', (_color: number, message: string) => {
@@ -284,7 +376,68 @@
         </div>
       {/if}
       <div class="query-panel">
-        {#if queryPrompt}
+        {#if characterSelectVisible}
+          <!-- Character selection (loginmethod >= 1) -->
+          <div class="login-form">
+            <h3 class="panel-title">Choose Character</h3>
+            {#if characterList.length > 0}
+              <div class="character-list">
+                {#each characterList as char}
+                  <button class="character-entry" onclick={() => handlePlayCharacter(char.name)}>
+                    <span class="char-name">{char.name}</span>
+                    <span class="char-details">{char.charClass} {char.race} — Level {char.level}</span>
+                  </button>
+                {/each}
+              </div>
+            {:else}
+              <p class="status">No characters on this account yet.</p>
+            {/if}
+          </div>
+        {:else if accountLoginVisible}
+          <!-- Account-based login / create form (loginmethod >= 1) -->
+          <div class="login-form">
+            <div class="tab-row">
+              <button
+                class:tab-active={!showNewAccount}
+                onclick={() => { showNewAccount = false; errorMessage = ''; }}
+              >Log In</button>
+              <button
+                class:tab-active={showNewAccount}
+                onclick={() => { showNewAccount = true; errorMessage = ''; }}
+              >New Account</button>
+            </div>
+            <label>
+              Account Name
+              <input
+                type="text"
+                bind:value={accountName}
+                autocomplete="username"
+              />
+            </label>
+            <label>
+              Password
+              <input
+                type="password"
+                bind:value={accountPassword}
+                autocomplete={showNewAccount ? 'new-password' : 'current-password'}
+              />
+            </label>
+            {#if showNewAccount}
+              <label>
+                Confirm Password
+                <input
+                  type="password"
+                  bind:value={accountPasswordConfirm}
+                  autocomplete="new-password"
+                />
+              </label>
+              <button onclick={handleAccountNew}>Create Account</button>
+            {:else}
+              <button onclick={handleAccountLogin}>Log In</button>
+            {/if}
+          </div>
+        {:else if queryPrompt}
+          <!-- Legacy query-based login (loginmethod 0) -->
           <div class="login-form">
             <p class="query-text" aria-live="polite">{queryPrompt}</p>
             {#if queryYesNo}
@@ -492,5 +645,73 @@
 
   .github-ribbon:hover {
     background: #9a8a6a;
+  }
+
+  .panel-title {
+    color: var(--text-warm);
+    font-size: 1rem;
+    margin: 0 0 0.5rem 0;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0.25rem;
+  }
+
+  .tab-row {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 0.25rem;
+  }
+
+  .tab-row button {
+    flex: 1;
+    border: 1px solid var(--border);
+    border-bottom: none;
+    border-radius: 4px 4px 0 0;
+    background: var(--bg-darker);
+    color: var(--text-warm-dim);
+    font-size: 0.9rem;
+    padding: 0.4rem 0.75rem;
+  }
+
+  .tab-row button.tab-active {
+    background: var(--bg-warm);
+    color: var(--text-warm);
+  }
+
+  .character-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    max-height: 40vh;
+    overflow-y: auto;
+  }
+
+  .character-entry {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.1rem;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--bg-darker);
+    cursor: pointer;
+    text-align: left;
+  }
+
+  .character-entry:hover {
+    background: var(--bg-warm);
+    border-color: var(--accent);
+  }
+
+  .char-name {
+    color: var(--text-warm);
+    font-weight: bold;
+    font-size: 1rem;
+  }
+
+  .char-details {
+    color: var(--text-warm-dim);
+    font-size: 0.8rem;
   }
 </style>

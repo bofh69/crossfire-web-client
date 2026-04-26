@@ -46,6 +46,8 @@ export interface GameEventMap {
   replyInfo:       [infoType: string, text: string];
   /** Emitted when the server confirms heartbeat support via `setup beat 1`. */
   beatEnabled:     [];
+  /** Emitted when the server confirms the negotiated login method via `setup loginmethod`. */
+  loginMethodConfirmed: [method: number];
 
   // UI-internal events (component-to-component communication)
   /** Ask the InfoPanel to focus its command input field. */

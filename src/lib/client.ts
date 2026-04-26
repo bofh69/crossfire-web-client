@@ -9,7 +9,7 @@ import {
     VERSION_SC,
     LogLevel,
 } from "./protocol";
-import { CrossfireSocket } from "./newsocket";
+import { CrossfireSocket, SockList } from "./newsocket";
 import {
     dispatchPacket,
     setSocket as setCommandsSocket,
@@ -192,7 +192,8 @@ export function clientNegotiate(): void {
     csocket.sendString(
         `setup map2cmd 1 tick ${ticks} sound2 ${sound} darkness ${darkness} ` +
         `spellmon 1 spellmon 2 faceset 0 facecache ${cache} ` +
-        `want_pickup 1 newmapcmd 1 extendedTextInfos 1 extended_stats 1 notifications 2`,
+        `want_pickup 1 newmapcmd 1 extendedTextInfos 1 extended_stats 1 notifications 2 ` +
+        `loginmethod ${wantConfig.loginMethod}`,
     );
 
     csocket.sendString("requestinfo skill_info");
@@ -206,5 +207,55 @@ export function clientNegotiate(): void {
     clientMapsize(wantConfig.mapWidth, wantConfig.mapHeight);
 
     useConfig.download = wantConfig.download;
+}
+
+// ── Account-based login commands (loginmethod >= 1) ─────────────────────────
+
+/**
+ * Build and send a length-prefixed string pair used by accountlogin and
+ * accountnew packets.  Each string is preceded by a single byte giving its
+ * UTF-8 encoded byte length.
+ */
+function buildAccountAuthPacket(command: string, name: string, password: string): SockList {
+    const sl = new SockList();
+    const nameBytes = new TextEncoder().encode(name);
+    const pwBytes = new TextEncoder().encode(password);
+    sl.addString(`${command} `);
+    sl.addChar(nameBytes.length);
+    sl.addString(name);
+    sl.addChar(pwBytes.length);
+    sl.addString(password);
+    return sl;
+}
+
+/**
+ * Send an `accountlogin` command (loginmethod >= 1).
+ *
+ * @param name     Account name.
+ * @param password Account password.
+ */
+export function sendAccountLogin(name: string, password: string): void {
+    if (!csocket) return;
+    csocket.send(buildAccountAuthPacket("accountlogin", name, password));
+}
+
+/**
+ * Send an `accountnew` command to create a new account (loginmethod >= 1).
+ *
+ * @param name     Desired account name.
+ * @param password Desired account password.
+ */
+export function sendAccountNew(name: string, password: string): void {
+    if (!csocket) return;
+    csocket.send(buildAccountAuthPacket("accountnew", name, password));
+}
+
+/**
+ * Send an `accountplay` command to start playing a character (loginmethod >= 1).
+ *
+ * @param characterName Name of the character to play, as returned by accountplayers.
+ */
+export function sendAccountPlay(characterName: string): void {
+    csocket?.sendString(`accountplay ${characterName}`);
 }
 
