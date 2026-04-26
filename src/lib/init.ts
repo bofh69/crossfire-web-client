@@ -72,6 +72,15 @@ export interface ClientConfig {
     resists: number;            // CONFIG_RESISTS         = 25 (0/1/2 display mode)
     autoAfk: number;            // CONFIG_AUTO_AFK        = 32 (seconds)
     musicVol: number;           // CONFIG_MUSIC_VOL       = 34 (0-100)
+
+    // --- session-only settings (not persisted to localStorage) ---
+    /** Desired login method to request from the server:
+     *  0 = legacy addme/query flow,
+     *  1 = account-based login (accountlogin/accountplayers/accountplay),
+     *  2 = account-based login + enhanced character creation (createplayer with race/class).
+     *  The server may respond with a lower value if it does not support the requested level.
+     */
+    loginMethod: number;
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -184,6 +193,7 @@ function initConfig(): void {
     wantConfig.tooltips       = true;
     wantConfig.triminfo       = false;
     wantConfig.autoAfk        = 300;
+    wantConfig.loginMethod    = 2;
 
     Object.assign(useConfig, wantConfig);
 }
