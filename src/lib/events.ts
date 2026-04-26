@@ -51,6 +51,18 @@ export interface NewCharInfo {
   statMax: number;
   /** Short stat names in the order the server uses them (e.g. ["Str","Dex",…]). */
   statNames: string[];
+  /** True when the server's newcharinfo included a `startingmap requestinfo` line. */
+  wantsStartingMap: boolean;
+}
+
+/** A single starting-map option from `replyinfo startingmap`. */
+export interface StartingMapEntry {
+  /** Archetype name sent back in the `createplayer` packet. */
+  archName: string;
+  /** Human-readable name shown in the UI. */
+  publicName: string;
+  /** Longer description shown below the selector. */
+  description: string;
 }
 
 /** Maps event name → handler signature. */
@@ -92,6 +104,8 @@ export interface GameEventMap {
   classInfoReceived:   [info: RaceClassEntry];
   /** Stat constraints from `replyinfo newcharinfo`. */
   newCharInfoReceived: [info: NewCharInfo];
+  /** Starting map choices from `replyinfo startingmap`. */
+  startingMapReceived: [maps: StartingMapEntry[]];
 
   // UI-internal events (component-to-component communication)
   /** Ask the InfoPanel to focus its command input field. */

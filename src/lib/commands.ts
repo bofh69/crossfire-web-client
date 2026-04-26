@@ -20,7 +20,7 @@ import { notifyNcomAck } from './player.js';
 import { LOG } from './misc.js';
 import { LogLevel } from './protocol.js';
 import { gameEvents, type AccountPlayer } from './events.js';
-import { parseRaceClassList, parseRaceClassInfo, parseNewCharInfo } from './cmd_chargen.js';
+import { parseRaceClassList, parseRaceClassInfo, parseNewCharInfo, parseStartingMapInfo } from './cmd_chargen.js';
 
 // ── Re-exports from split modules ──────────────────────────────────────────
 // Keep the public API surface compatible so downstream files don't need to
@@ -263,6 +263,8 @@ function ReplyInfoCmd(data: DataView, len: number): void {
     gameEvents.emit('classInfoReceived', parseRaceClassInfo(bytes.subarray(spaceIdx + 1)));
   } else if (infoType === 'newcharinfo') {
     gameEvents.emit('newCharInfoReceived', parseNewCharInfo(bytes.subarray(spaceIdx + 1)));
+  } else if (infoType === 'startingmap') {
+    gameEvents.emit('startingMapReceived', parseStartingMapInfo(bytes.subarray(spaceIdx + 1)));
   }
   LOG(LogLevel.Debug, 'ReplyInfoCmd', `Info type: ${infoType}`);
 }

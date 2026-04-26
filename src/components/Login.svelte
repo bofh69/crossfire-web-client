@@ -18,7 +18,7 @@
   import { CS_QUERY_HIDEINPUT, CS_QUERY_SINGLECHAR, CS_QUERY_YESNO, EPORT } from '../lib/protocol';
   import { parseMarkupLines } from '../lib/markup';
   import { wantConfig } from '../lib/init';
-  import type { AccountPlayer, RaceClassEntry, NewCharInfo } from '../lib/events';
+  import type { AccountPlayer, RaceClassEntry, NewCharInfo, StartingMapEntry } from '../lib/events';
 
   interface Props {
     onLoggedIn: () => void;
@@ -143,6 +143,11 @@
   /** Race and class lists received from the server. */
   let availableRaces = $state<RaceClassEntry[]>([]);
   let availableClasses = $state<RaceClassEntry[]>([]);
+
+  /** Starting map options received from the server (empty = no choice needed). */
+  let availableStartingMaps = $state<StartingMapEntry[]>([]);
+  /** Selected index in availableStartingMaps. */
+  let selectedStartingMapIdx = $state(0);
 
   /** newcharinfo data from the server. */
   let newCharStatPoints = $state(0);
@@ -376,7 +381,8 @@
         statName: sn,
         value: statAlloc[sn] ?? 0,
       }));
-      sendCreatePlayer(name, password, race.archName, cls.archName, rChoices, cChoices, sAlloc);
+      const startingMapArch = availableStartingMaps[selectedStartingMapIdx]?.archName;
+      sendCreatePlayer(name, password, race.archName, cls.archName, rChoices, cChoices, sAlloc, startingMapArch);
     } else {
       // loginmethod 1 — just name + password.
       sendCreatePlayer(name, password);
@@ -495,6 +501,17 @@
         newCharStatNames = info.statNames;
         // Reset per-stat allocations to zero whenever the stat list changes.
         statAlloc = Object.fromEntries(info.statNames.map(n => [n, 0]));
+        // Server indicated starting-map selection is required.
+        if (info.wantsStartingMap) {
+          availableStartingMaps = [];
+          selectedStartingMapIdx = 0;
+          sendRequestInfo('startingmap');
+        }
+      }),
+
+      gameEvents.on('startingMapReceived', (maps: StartingMapEntry[]) => {
+        availableStartingMaps = maps;
+        selectedStartingMapIdx = 0;
       }),
 
       gameEvents.on('addMeSuccess', () => {
@@ -685,6 +702,21 @@
                     Points remaining: {ccRemaining}
                   </div>
                 </div>
+              {/if}
+            {/if}
+
+            <!-- Starting map selection -->
+            {#if availableStartingMaps.length > 0}
+              <label>
+                Starting Map
+                <select bind:value={selectedStartingMapIdx}>
+                  {#each availableStartingMaps as map, i}
+                    <option value={i}>{map.publicName}</option>
+                  {/each}
+                </select>
+              </label>
+              {#if availableStartingMaps[selectedStartingMapIdx]?.description}
+                <p class="entry-desc">{availableStartingMaps[selectedStartingMapIdx]?.description}</p>
               {/if}
             {/if}
 

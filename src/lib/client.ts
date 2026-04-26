@@ -315,6 +315,7 @@ export function sendCreatePlayer(
     raceChoices?: Array<{ choiceName: string; valueArch: string }>,
     classChoices?: Array<{ choiceName: string; valueArch: string }>,
     statAlloc?: Array<{ statName: string; value: number }>,
+    startingMapArch?: string,
 ): void {
     if (!csocket) return;
 
@@ -349,6 +350,9 @@ export function sendCreatePlayer(
         addAttr(`class ${classArch}`);
         for (const c of (classChoices ?? [])) {
             addAttr(`choice ${c.choiceName} ${c.valueArch}`);
+        }
+        if (startingMapArch) {
+            addAttr(`starting_map ${startingMapArch}`);
         }
         for (const s of (statAlloc ?? [])) {
             addAttr(`${s.statName} ${s.value}`);
