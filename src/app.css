@@ -24,7 +24,7 @@
   --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
   --mono: 'Courier New', ui-monospace, Consolas, monospace;
 
-  font: clamp(12px, 1.5vw, 28px)/1.4 var(--sans);
+  font: clamp(8px, 1vw, 19px)/1.4 var(--sans);
   color-scheme: dark;
   color: var(--text);
   background: var(--bg);
@@ -63,8 +63,8 @@ body {
     "hotbar side"
     "map    side"
     "info   side";
-  grid-template-columns: 1fr var(--side-width, clamp(280px, 20vw, 500px));
-  grid-template-rows: clamp(24px, 2.5vh, 28px) clamp(52px, 6vh, 64px) 1fr var(--info-height, clamp(140px, 18vh, 320px));
+  grid-template-columns: 1fr var(--side-width, clamp(188px, 13.4vw, 335px));
+  grid-template-rows: clamp(16px, 1.7vh, 19px) clamp(35px, 4vh, 43px) 1fr var(--info-height, clamp(94px, 12vh, 214px));
   width: 100vw;
   height: 100vh;
   gap: 0;
@@ -76,7 +76,7 @@ body {
   position: absolute;
   top: 0;
   bottom: 0;
-  right: calc(var(--side-width, clamp(280px, 20vw, 500px)) - 3px);
+  right: calc(var(--side-width, clamp(188px, 13.4vw, 335px)) - 3px);
   width: 6px;
   cursor: col-resize;
   z-index: 10;
@@ -87,8 +87,8 @@ body {
 .resize-handle-row {
   position: absolute;
   left: 0;
-  right: var(--side-width, clamp(280px, 20vw, 500px));
-  bottom: calc(var(--info-height, clamp(140px, 18vh, 320px)) - 3px);
+  right: var(--side-width, clamp(188px, 13.4vw, 335px));
+  bottom: calc(var(--info-height, clamp(94px, 12vh, 214px)) - 3px);
   height: 6px;
   cursor: row-resize;
   z-index: 10;
