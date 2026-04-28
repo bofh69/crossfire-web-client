@@ -1245,6 +1245,8 @@
 
   .create-char-form {
     width: 360px;
+    max-height: 80vh;
+    overflow-y: auto;
   }
 
   select {
@@ -1264,7 +1266,8 @@
   .rc-desc {
     font-size: 0.78rem;
     color: var(--text-warm-dim);
-    max-height: 5em;
+    min-height: 4em;
+    max-height: 8em;
     overflow-y: auto;
     margin: 0;
     padding: 0.25rem 0.4rem;
