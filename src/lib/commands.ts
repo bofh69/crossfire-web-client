@@ -42,6 +42,7 @@ import {
 import {
   SetupCmd, NewmapCmd, Map2Cmd, mapScrollCmd, MagicMapCmd,
   AnimCmd, SmoothCmd,
+  maybeCaptureMapinfoExtInfo, maybeProcessMapinfoComc,
 } from './cmd_map.js';
 import { Sound2Cmd, MusicCmd } from './cmd_sound.js';
 import { AddQuestCmd, UpdQuestCmd, AddKnowledgeCmd, parseKnowledgeInfo } from './cmd_notifications.js';
@@ -72,6 +73,10 @@ function DrawExtInfoCmd(data: string): void {
   const type = parseInt(data.substring(s1 + 1));
   const subtype = parseInt(data.substring(s2 + 1));
   const message = s3 >= 0 ? data.substring(s3 + 1) : '';
+  if (maybeCaptureMapinfoExtInfo(color, type, subtype, message)) {
+    // Captured for mapinfo comc processing — not forwarded to InfoPanel yet.
+    return;
+  }
   gameEvents.emit('drawExtInfo', color & NDI_COLOR_MASK, type, subtype, message);
 }
 
@@ -97,6 +102,16 @@ function ComcCmd(data: DataView, len: number): void {
   }
   const seq = new BinaryReader(data, len).readInt16();
   notifyNcomAck(seq);
+
+  // If this comc acknowledges the pending mapinfo command, process the
+  // buffered drawextinfo entries: extract the map path and forward any
+  // user-command responses that were captured alongside mapinfo's responses.
+  const toForward = maybeProcessMapinfoComc(seq);
+  if (toForward) {
+    for (const e of toForward) {
+      gameEvents.emit('drawExtInfo', e.color & NDI_COLOR_MASK, e.type, e.subtype, e.message);
+    }
+  }
 }
 
 function PickupCmd(data: DataView, len: number): void {

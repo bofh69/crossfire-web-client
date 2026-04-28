@@ -8,6 +8,9 @@ import {
   MAP2_LAYER_START, MAX_VIEW,
   FACE_IS_ANIM,
   MAXLAYERS,
+  MSG_TYPE_COMMAND,
+  SC_ALWAYS,
+  LogLevel,
   type Animation,
 } from './protocol.js';
 import { BinaryReader } from './binary_reader.js';
@@ -16,14 +19,162 @@ import {
   mapdata_set_darkness, mapdata_set_smooth, mapdata_clear_space,
   mapdata_set_check_space, mapdata_clear_old, mapdata_set_size,
   mapdata_clear_label_view, mapdata_add_label,
+  mapdata_save_fog, mapdata_restore_fog,
 } from './mapdata.js';
 import { animations } from './item.js';
 import { addSmooth } from './image.js';
 import { useConfig, getCpl } from './init.js';
 import { LOG } from './misc.js';
-import { LogLevel } from './protocol.js';
 import { gameEvents } from './events.js';
 import { perfLogging } from '../lib/debug';
+import { sendCommand, getLastNcomSeqSent } from './player.js';
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Mapinfo-based fog-cache key detection
+// ──────────────────────────────────────────────────────────────────────────────
+
+/**
+ * When true, the client sends a `mapinfo` command immediately after each
+ * `newmap` packet and uses the server's response to derive the LRU cache key
+ * for the fog-of-war snapshot.  Set to false to disable the feature entirely.
+ */
+export const USE_MAPINFO_FOR_FOG_CACHE = true;
+
+/**
+ * The server-supplied path of the map the player is currently on.
+ * Empty string means the path is not yet known (first login, or feature disabled).
+ */
+let currentMapKey = '';
+
+/** ncom sequence number of the pending `mapinfo` command, or -1 if not pending. */
+let mapinfoNcomSeq = -1;
+
+/** A captured drawextinfo entry (type=MSG_TYPE_COMMAND, subtype=0). */
+export interface DrawExtInfoEntry {
+  color: number;
+  type: number;
+  subtype: number;
+  message: string;
+}
+
+/**
+ * Drawextinfo messages with type=MSG_TYPE_COMMAND, subtype=0 that arrived
+ * while a mapinfo command is in flight.  The server sends up to three such
+ * messages before the comc ack: the first contains the map path in parens,
+ * an optional second has created/modified info, and an optional third is
+ * free-form.  Other player-command results that happen to use the same
+ * type/subtype are also captured and later forwarded to the InfoPanel.
+ */
+let mapinfoBuffer: DrawExtInfoEntry[] = [];
+
+/**
+ * Called by `DrawExtInfoCmd` while a mapinfo command is in flight.
+ * Returns true if the entry was captured (caller must NOT emit it to the
+ * InfoPanel immediately — it will be forwarded or suppressed when the comc
+ * arrives).
+ */
+export function maybeCaptureMapinfoExtInfo(
+  color: number, type: number, subtype: number, message: string,
+): boolean {
+  if (!USE_MAPINFO_FOR_FOG_CACHE) return false;
+  if (mapinfoNcomSeq === -1) return false;
+  if (type !== MSG_TYPE_COMMAND || subtype !== 0) return false;
+  mapinfoBuffer.push({ color, type, subtype, message });
+  return true;
+}
+
+/**
+ * Called by `ComcCmd` with every acknowledged ncom sequence number.
+ *
+ * If `seq` matches the pending mapinfo command this function:
+ *  1. Identifies which (if any) of the buffered drawextinfo entries contain
+ *     the map path and extracts it.
+ *  2. Saves `currentMapKey` to that path and restores fog for the new map.
+ *  3. Returns the entries that should be forwarded to the InfoPanel (those
+ *     that came from user commands, not from mapinfo itself).
+ *
+ * Returns null if `seq` does not match the pending mapinfo command.
+ */
+export function maybeProcessMapinfoComc(seq: number): DrawExtInfoEntry[] | null {
+  if (!USE_MAPINFO_FOR_FOG_CACHE) return null;
+  if (seq !== mapinfoNcomSeq) return null;
+
+  mapinfoNcomSeq = -1;
+  const buffer = mapinfoBuffer;
+  mapinfoBuffer = [];
+
+  const forInfoPanel: DrawExtInfoEntry[] = [];
+  const len = buffer.length;
+
+  if (len === 0) {
+    return forInfoPanel;
+  }
+
+  // The mapinfo response is at most 3 messages, always at the end of the
+  // buffer (most recently received).  Everything before the last 3 entries
+  // came from user commands and must be forwarded to the InfoPanel.
+  const candidateStart = Math.max(0, len - 3);
+  for (let i = 0; i < candidateStart; i++) {
+    forInfoPanel.push(buffer[i]!);
+  }
+
+  // candidates[0] = oldest of the last 3 ("third latest")
+  // candidates[1] = middle ("second latest")
+  // candidates[2] = newest, just before comc ("latest")
+  const candidates = buffer.slice(candidateStart); // length 1, 2, or 3
+
+  let mapKeyEntry: DrawExtInfoEntry | undefined;
+
+  if (candidates.length === 1) {
+    mapKeyEntry = candidates[0];
+  } else if (candidates.length === 2) {
+    // "If there are only two, use the second latest" = oldest of the pair (candidates[0]),
+    // since "latest" is candidates[1] (most recent before comc).
+    mapKeyEntry = candidates[0];
+    // candidates[1] (latest/most-recent) is a mapinfo response — suppress it.
+  } else {
+    // candidates.length === 3
+    const oldest  = candidates[0]!; // "third latest" — expected to contain map path
+    const middle  = candidates[1]!; // "second latest"
+    // candidates[2] is "latest" (free-form last message, always suppressed)
+
+    if (hasParens(middle.message)) {
+      // Unusual: map path ended up in the middle position.
+      // "Use it and send the third latest (oldest) to the InfoPanel."
+      mapKeyEntry = middle;
+      forInfoPanel.push(oldest);
+    } else {
+      // Normal: map path is in the oldest of the three.
+      // "If the second latest one doesn't have parenthesis, use the third latest."
+      mapKeyEntry = oldest;
+      // middle and latest are mapinfo responses — suppress them.
+    }
+  }
+
+  // Extract the map path from the chosen entry and restore fog.
+  if (mapKeyEntry) {
+    const key = extractMapPath(mapKeyEntry.message);
+    if (key) {
+      currentMapKey = key;
+      LOG(LogLevel.Info, 'mapinfo', `Map path: ${key}`);
+      mapdata_restore_fog(key);
+      gameEvents.emit('mapUpdate');
+    }
+  }
+
+  return forInfoPanel;
+}
+
+/** Return true if `message` contains a parenthesised substring. */
+function hasParens(message: string): boolean {
+  return message.includes('(');
+}
+
+/** Extract the first parenthesised substring from `message`, e.g. "/scorn/taverns/inn". */
+function extractMapPath(message: string): string {
+  const match = /\(([^)]+)\)/.exec(message);
+  return match ? match[1]! : '';
+}
 
 export function SetupCmd(data: string): void {
   const parts = data.split(' ');
@@ -53,8 +204,17 @@ export function SetupCmd(data: string): void {
 }
 
 export function NewmapCmd(): void {
+  mapdata_save_fog(currentMapKey);
   mapdata_newmap();
   gameEvents.emit('newMap');
+
+  if (USE_MAPINFO_FOR_FOG_CACHE) {
+    mapinfoBuffer = [];
+    mapinfoNcomSeq = -1;
+    if (sendCommand('mapinfo', -1, SC_ALWAYS)) {
+      mapinfoNcomSeq = getLastNcomSeqSent();
+    }
+  }
 }
 
 export function Map2Cmd(data: DataView, len: number): void {
