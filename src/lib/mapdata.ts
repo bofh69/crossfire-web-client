@@ -36,6 +36,7 @@ import {
 } from "./mapdata_moveto";
 import { LOG } from "./misc";
 import { notifyWatchedCell } from "./debug";
+import { cacheSaveFog, cacheGetFog, type FogSnapshot, type FogCacheCell } from "./map_fog_cache";
 
 // Re-export types for consumers that import from mapdata.
 export type { MapCell, MapCellLayer, MapCellTailLayer, MapLabel };
@@ -1189,6 +1190,295 @@ export function mapdata_newmap(): void {
     }
 
     clearMoveToInternal();
+}
+
+/**
+ * Snapshot all fog and visible cells in the virtual map and hand the result
+ * to the fog cache under `key`.
+ *
+ * Coordinates are stored map-relative:
+ *   map_x = abs_x − originX  (= view_x + script_pos.x)
+ *   map_y = abs_y − originY
+ *
+ * where `originX = pl_pos.x − script_pos.x` is the scroll-invariant virtual-map
+ * origin for this visit (the value pl_pos had when the player first entered the
+ * map).  Storing the origin in the snapshot lets the restore logic correctly
+ * compute the baseline alignment offset even when the player has scrolled many
+ * tiles before leaving.
+ */
+export function mapdata_save_fog(key: string): void {
+    // Skip if the current map path is not yet known (e.g. first login before
+    // the server's mapinfo response has been processed).  Nothing useful to cache.
+    if (!key) {
+        return;
+    }
+
+    // Scroll-invariant origin for this map visit.
+    const originX = pl_pos.x - script_pos.x;
+    const originY = pl_pos.y - script_pos.y;
+
+    const cells_to_save: FogCacheCell[] = [];
+
+    for (let ax = 0; ax < mapWidth; ax++) {
+        for (let ay = 0; ay < mapHeight; ay++) {
+            const cell = cellAt(ax, ay);
+            if (cell.state === MapCellState.Empty) {
+                continue;
+            }
+
+            // Check if the cell has any drawable content worth caching.
+            let hasContent = cell.darkness !== 0;
+            if (!hasContent) {
+                for (let i = 0; i < MAXLAYERS; i++) {
+                    if (cell.heads[i]!.face !== 0 || cell.tails[i]!.face !== 0) {
+                        hasContent = true;
+                        break;
+                    }
+                }
+            }
+            if (!hasContent) {
+                continue;
+            }
+
+            const map_x = ax - originX;
+            const map_y = ay - originY;
+
+            // MapCellLayer and MapCellTailLayer contain only number primitives,
+            // so the spread operator produces a fully independent copy.
+            const heads = cell.heads.map(h => ({ ...h }));
+            const tails = cell.tails.map(t => ({ ...t }));
+            const smooth = cell.smooth.slice();
+            const labels = cell.labels.map(l => ({ ...l }));
+
+            cells_to_save.push({ x: map_x, y: map_y, heads, tails, smooth, darkness: cell.darkness, labels });
+        }
+    }
+
+    cacheSaveFog(key, { meta: { originX, originY }, cells: cells_to_save });
+    LOG(LogLevel.Info, 'mapdata', `Saved ${cells_to_save.length} fog cells for map "${key}"`);
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Fog-of-war restoration: alignment search
+// ──────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Search radius (tiles) used when aligning a fog snapshot with the current
+ * visible map data.  The player's entry position can differ from the last
+ * visit by up to this many tiles in each axis.
+ */
+const FOG_ALIGN_SEARCH_RADIUS = 5;
+
+/**
+ * Minimum number of face-matched cells required to accept an alignment offset.
+ * Below this the snap is considered unrelated to the player's current location.
+ */
+const FOG_ALIGN_MIN_CELLS = 5;
+
+/**
+ * Minimum fraction of visible-with-content cells that must correlate with the
+ * snapshot (at the best offset) before the fog restore is accepted.
+ */
+const FOG_ALIGN_MIN_RATIO = 0.75;
+
+/**
+ * Number of layers (starting from layer 0) included in the correlation score.
+ * Layer 0 typically holds floor tiles; layer 1 holds walls, doors, etc.  Using
+ * both avoids over-counting maps whose floor is a single uniform tile.
+ */
+const FOG_ALIGN_LAYERS = 2;
+
+/**
+ * Find the (dx, dy) offset near the expected baseline that best aligns
+ * `snapshot` cells with the currently-visible map cells.
+ *
+ * The baseline is derived from the two scroll-invariant origins:
+ *   baseDx = snapshotOriginX − restoreOriginX
+ *   baseDy = snapshotOriginY − restoreOriginY
+ *
+ * The search covers [baseDx − R, baseDx + R] × [baseDy − R, baseDy + R],
+ * so the player may have entered up to R tiles away from where they left
+ * (in each axis) and the restore still succeeds.
+ *
+ * Visible cells are referenced by their scroll-stable coordinate
+ *   vx_adj = ax − restoreOriginX  (= view_x + script_pos.x)
+ * which matches the saved coordinate system regardless of how many
+ * map_scroll packets have arrived before this function is called.
+ *
+ * The correlation metric is the total number of (cell, layer) face matches
+ * across layers 0..FOG_ALIGN_LAYERS-1.  Using multiple layers avoids
+ * under-discriminating maps where layer 0 is a single uniform floor tile.
+ *
+ * Returns `null` if the best score is below the minimum threshold (the player
+ * has likely entered the map at an unrelated location and the snapshot should
+ * not be used).
+ */
+function findFogRestoreOffset(
+    snapshot: FogSnapshot,
+    restoreOriginX: number,
+    restoreOriginY: number,
+): { dx: number; dy: number } | null {
+    // Build a lookup from packed (x, y, layer) → face for layers 0..FOG_ALIGN_LAYERS-1.
+    // Coordinate range is bounded by the virtual map size (FOG_MAP_SIZE = 512).
+    // Pack as ((x + 1024) * 4096 + (y + 1024)) * MAXLAYERS + layer to get
+    // unique non-negative keys.
+    const snapFaces = new Map<number, number>();
+    for (const cell of snapshot.cells) {
+        for (let layer = 0; layer < FOG_ALIGN_LAYERS; layer++) {
+            const f = cell.heads[layer]?.face ?? 0;
+            if (f !== 0) {
+                snapFaces.set(
+                    ((cell.x + 1024) * 4096 + (cell.y + 1024)) * MAXLAYERS + layer,
+                    f,
+                );
+            }
+        }
+    }
+
+    // Collect scroll-stable coords and per-layer faces for all currently Visible
+    // cells that have at least one non-zero face in the tracked layers.
+    // vx_adj = ax − restoreOriginX matches the save-time coordinate system.
+    const visibleCells: Array<{ vx: number; vy: number; faces: (number | undefined)[] }> = [];
+    for (let ax = 0; ax < mapWidth; ax++) {
+        for (let ay = 0; ay < mapHeight; ay++) {
+            const cell = cellAt(ax, ay);
+            if (cell.state !== MapCellState.Visible) continue;
+            const faces: (number | undefined)[] = [];
+            let hasContent = false;
+            for (let layer = 0; layer < FOG_ALIGN_LAYERS; layer++) {
+                const f = cell.heads[layer]?.face ?? 0;
+                faces.push(f !== 0 ? f : undefined);
+                if (f !== 0) hasContent = true;
+            }
+            if (!hasContent) continue;
+            visibleCells.push({ vx: ax - restoreOriginX, vy: ay - restoreOriginY, faces });
+        }
+    }
+
+    if (visibleCells.length === 0 || snapFaces.size === 0) {
+        // No data available to determine alignment — skip restore.
+        LOG(LogLevel.Info, 'mapdata', 'Fog alignment: no correlation data; skipping restore');
+        return null;
+    }
+
+    // The expected offset between the two visits' coordinate systems.
+    // Search ±R around this baseline so small entry-point differences are tolerated.
+    const baseDx = snapshot.meta.originX - restoreOriginX;
+    const baseDy = snapshot.meta.originY - restoreOriginY;
+
+    let bestScore = 0;
+    let bestDx = baseDx;
+    let bestDy = baseDy;
+    const R = FOG_ALIGN_SEARCH_RADIUS;
+
+    for (let odx = baseDx - R; odx <= baseDx + R; odx++) {
+        for (let ody = baseDy - R; ody <= baseDy + R; ody++) {
+            let score = 0;
+            for (const { vx, vy, faces } of visibleCells) {
+                // At this offset, the snap coordinate that should underlie this
+                // visible cell is (vx − odx, vy − ody).
+                const sx = vx - odx;
+                const sy = vy - ody;
+                const base = ((sx + 1024) * 4096 + (sy + 1024)) * MAXLAYERS;
+                for (let layer = 0; layer < FOG_ALIGN_LAYERS; layer++) {
+                    const f = faces[layer];
+                    if (f !== undefined && snapFaces.get(base + layer) === f) {
+                        score++;
+                    }
+                }
+            }
+            // Prefer higher score; break ties in favour of the offset closest
+            // to the baseline — i.e. the player re-entered near the same spot
+            // they left, which is more likely than a large displacement.
+            const dist = Math.abs(odx - baseDx) + Math.abs(ody - baseDy);
+            const bestDist = Math.abs(bestDx - baseDx) + Math.abs(bestDy - baseDy);
+            if (score > bestScore || (score === bestScore && dist < bestDist)) {
+                bestScore = score;
+                bestDx = odx;
+                bestDy = ody;
+            }
+        }
+    }
+
+    const ratio = bestScore / visibleCells.length * FOG_ALIGN_LAYERS;
+    if (bestScore < FOG_ALIGN_MIN_CELLS || ratio < FOG_ALIGN_MIN_RATIO) {
+        LOG(LogLevel.Info, 'mapdata',
+            `Fog alignment: best score=${bestScore} ratio=${(ratio * 100).toFixed(0)}% ` +
+            `— below threshold; skipping restore`);
+        return null;
+    }
+
+    LOG(LogLevel.Info, 'mapdata',
+        `Fog alignment: offset=(${bestDx},${bestDy}) score=${bestScore} ` +
+        `ratio=${(ratio * 100).toFixed(0)}%`);
+    return { dx: bestDx, dy: bestDy };
+}
+
+/**
+ * Restore a previously saved fog snapshot for `key` into the virtual map.
+ *
+ * Must be called after the server's visible-area map2 packets have been
+ * processed (so the current Visible cells can be used for alignment).
+ *
+ * A correlation search over ±FOG_ALIGN_SEARCH_RADIUS tiles around the
+ * expected baseline offset finds the best alignment between the snapshot and
+ * the current visible data.  If the best correlation is too low the restore
+ * is skipped entirely — the player has entered the map at an unrelated
+ * location.
+ *
+ * Each accepted snapshot cell is placed at:
+ *   abs_x = restoreOriginX + map_x + dx
+ *   abs_y = restoreOriginY + map_y + dy
+ * where `restoreOriginX = pl_pos.x − script_pos.x` is the scroll-invariant
+ * virtual-map origin for the current visit.
+ * only if the target cell is still Empty (not yet written by map2).
+ */
+export function mapdata_restore_fog(key: string): void {
+    const snapshot = cacheGetFog(key);
+    if (!snapshot || snapshot.cells.length === 0) {
+        return;
+    }
+
+    // Scroll-invariant origin for the current map visit.
+    const restoreOriginX = pl_pos.x - script_pos.x;
+    const restoreOriginY = pl_pos.y - script_pos.y;
+
+    const offset = findFogRestoreOffset(snapshot, restoreOriginX, restoreOriginY);
+    if (offset === null) {
+        return;
+    }
+    const { dx: odx, dy: ody } = offset;
+
+    let restored = 0;
+    for (const entry of snapshot.cells) {
+        const ax = restoreOriginX + entry.x + odx;
+        const ay = restoreOriginY + entry.y + ody;
+
+        if (ax < 0 || ay < 0 || ax >= mapWidth || ay >= mapHeight) {
+            continue;
+        }
+
+        const cell = cellAt(ax, ay);
+        if (cell.state !== MapCellState.Empty) {
+            // Already written by map2 — don't overwrite live data.
+            continue;
+        }
+
+        for (let i = 0; i < MAXLAYERS; i++) {
+            // MapCellLayer and MapCellTailLayer contain only number primitives;
+            // Object.assign produces a fully independent copy.
+            Object.assign(cell.heads[i]!, entry.heads[i]!);
+            Object.assign(cell.tails[i]!, entry.tails[i]!);
+            cell.smooth[i] = entry.smooth[i]!;
+        }
+        cell.darkness = entry.darkness;
+        cell.labels = entry.labels.map(l => ({ ...l }));
+        cell.state = MapCellState.Fog;
+        cell.needUpdate = true;
+        restored++;
+    }
+
+    LOG(LogLevel.Info, 'mapdata', `Restored ${restored} fog cells for map "${key}"`);
 }
 
 /** Tick all map animations. */
