@@ -1,7 +1,15 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { extendedCommand, completeCommand, getCompletionMatches } from '../lib/p_cmd';
-  import { InputState } from '../lib/protocol';
+  import { InputState,
+    MSG_TYPE_COMMUNICATION,
+    MSG_TYPE_ATTACK, MSG_TYPE_VICTIM,
+    MSG_TYPE_SKILL, MSG_TYPE_SPELL,
+    MSG_TYPE_APPLY, MSG_TYPE_ITEM, MSG_TYPE_SHOP,
+    MSG_TYPE_ATTRIBUTE,
+    MSG_TYPE_BOOK, MSG_TYPE_CARD, MSG_TYPE_PAPER, MSG_TYPE_SIGN, MSG_TYPE_MONUMENT, MSG_TYPE_DIALOG,
+    MSG_TYPE_ADMIN, MSG_TYPE_COMMAND, MSG_TYPE_CLIENT, MSG_TYPE_MISC, MSG_TYPE_MOTD,
+  } from '../lib/protocol';
   import { getCpl } from '../lib/init';
   import { type MessageSpan, colorForNdi, parseMarkup } from '../lib/markup';
   import { gameEvents } from '../lib/events';
@@ -14,9 +22,86 @@
     rawText: string;
     rawColor: number;
     count: number;
+    /** MSG_TYPE_* value from drawExtInfo, or null for plain drawInfo messages. */
+    msgType: number | null;
+    msgSubtype: number | null;
   }
 
+  // ── Filter definitions ──────────────────────────────────────────────────────
+
+  interface FilterDef {
+    id: string;
+    icon: string;
+    label: string;
+    match: (msgType: number | null) => boolean;
+  }
+
+  /** The "All messages" toggle — not a category, handled separately. */
+  const ALL_FILTER = { id: 'all', icon: '📋', label: 'All messages' };
+
+  /** Per-category toggles. Each one can be independently enabled/disabled. */
+  const CATEGORY_FILTERS: FilterDef[] = [
+    {
+      id: 'communication',
+      icon: '💬',
+      label: 'Communication (chat, tells, party)',
+      match: (t) => t === MSG_TYPE_COMMUNICATION,
+    },
+    {
+      id: 'combat',
+      icon: '⚔️',
+      label: 'Combat (attacks, victim notifications)',
+      match: (t) => t === MSG_TYPE_ATTACK || t === MSG_TYPE_VICTIM,
+    },
+    {
+      id: 'skills',
+      icon: '🎯',
+      label: 'Skills & Spells',
+      match: (t) => t === MSG_TYPE_SKILL || t === MSG_TYPE_SPELL,
+    },
+    {
+      id: 'items',
+      icon: '🎒',
+      label: 'Items, Apply & Shop',
+      match: (t) => t === MSG_TYPE_APPLY || t === MSG_TYPE_ITEM || t === MSG_TYPE_SHOP,
+    },
+    {
+      id: 'attributes',
+      icon: '📊',
+      label: 'Attribute & stat changes',
+      match: (t) => t === MSG_TYPE_ATTRIBUTE,
+    },
+    {
+      id: 'reading',
+      icon: '📖',
+      label: 'Reading (books, signs, dialogs)',
+      match: (t) =>
+        t === MSG_TYPE_BOOK || t === MSG_TYPE_CARD || t === MSG_TYPE_PAPER ||
+        t === MSG_TYPE_SIGN || t === MSG_TYPE_MONUMENT || t === MSG_TYPE_DIALOG,
+    },
+    {
+      id: 'system',
+      icon: '⚙️',
+      label: 'System & Admin messages',
+      match: (t) =>
+        t === MSG_TYPE_ADMIN || t === MSG_TYPE_COMMAND || t === MSG_TYPE_CLIENT ||
+        t === MSG_TYPE_MISC || t === MSG_TYPE_MOTD,
+    },
+  ];
+
+  const ALL_CATEGORY_IDS = new Set(CATEGORY_FILTERS.map(f => f.id));
+
   let messages: Message[] = $state([]);
+  /**
+   * When true, all messages are shown regardless of `enabledCategories`.
+   * Starts true so the panel shows everything by default.
+   */
+  let showAll = $state(true);
+  /**
+   * Which category filters are currently toggled on.
+   * All categories start enabled so that switching off "All" is non-disruptive.
+   */
+  let enabledCategories = $state<Set<string>>(new Set(ALL_CATEGORY_IDS));
   let commandInput = $state('');
   let messagesDiv: HTMLDivElement | undefined = $state();
   let inputEl: HTMLInputElement | undefined = $state();
@@ -28,20 +113,56 @@
   // Current input saved before browsing so we can restore it on ArrowDown.
   let savedInput = $state('');
 
-  function addMessage(color: number, text: string) {
+  let displayMessages = $derived(
+    showAll
+      ? messages
+      : messages.filter(m =>
+          CATEGORY_FILTERS.some(f => enabledCategories.has(f.id) && f.match(m.msgType)),
+        ),
+  );
+
+  function toggleAll() {
+    showAll = !showAll;
+    scrollToBottom();
+  }
+
+  function toggleCategory(id: string) {
+    if (showAll) {
+      // Transition from "show everything" to filter mode.
+      // Restore all categories first so nothing unexpectedly disappears, then
+      // toggle the clicked one (i.e. the user is "clicking it off").
+      showAll = false;
+      enabledCategories = new Set(ALL_CATEGORY_IDS);
+    }
+    const next = new Set(enabledCategories);
+    if (next.has(id)) {
+      next.delete(id);
+    } else {
+      next.add(id);
+    }
+    enabledCategories = next;
+    scrollToBottom();
+  }
+
+  function addMessage(color: number, text: string, msgType: number | null = null, msgSubtype: number | null = null) {
     const baseColor = colorForNdi(color);
     const lastMsg = messages[messages.length - 1];
-    if (lastMsg && lastMsg.rawText === text && lastMsg.rawColor === color) {
+    if (lastMsg && lastMsg.rawText === text && lastMsg.rawColor === color && lastMsg.msgType === msgType) {
       messages = [...messages.slice(0, -1), { ...lastMsg, count: lastMsg.count + 1 }];
     } else {
       const spans = parseMarkup(text, baseColor);
-      messages = [...messages, { spans, rawText: text, rawColor: color, count: 1 }];
+      const newMsg: Message = { spans, rawText: text, rawColor: color, count: 1, msgType, msgSubtype };
+      messages = [...messages, newMsg];
       // Keep a reasonable buffer
       if (messages.length > MSG_BUFFER_MAX) {
         messages = messages.slice(-MSG_BUFFER_TRIM);
       }
     }
-    scrollToBottom();
+    // Only scroll if the new/updated message is visible under the current filter.
+    const isVisible = showAll || CATEGORY_FILTERS.some(f => enabledCategories.has(f.id) && f.match(msgType));
+    if (isVisible) {
+      scrollToBottom();
+    }
   }
 
   /**
@@ -63,8 +184,8 @@
 
   onMount(() => {
     const cleanups = [
-      gameEvents.on('drawInfo', addMessage),
-      gameEvents.on('drawExtInfo', (color, _type, _subtype, message) => addMessage(color, message)),
+      gameEvents.on('drawInfo', (color, message) => addMessage(color, message, null, null)),
+      gameEvents.on('drawExtInfo', (color, type, subtype, message) => addMessage(color, message, type, subtype)),
       gameEvents.on('focusCommandInput', (prefill) => focusInput(prefill)),
     ];
     return () => { for (const unsub of cleanups) unsub(); };
@@ -178,37 +299,123 @@
 </script>
 
 <div class="info-panel">
-  <div class="messages" bind:this={messagesDiv}>
-    {#each messages as msg}
-      <div class="message">{#if msg.count > 1}<span class="repeat-count">{msg.count}×</span>{/if}{#each msg.spans as span}<span
-          style:color={span.color}
-          style:font-weight={span.bold ? 'bold' : 'normal'}
-          style:font-style={span.italic ? 'italic' : 'normal'}
-          style:text-decoration={span.underline ? 'underline' : 'none'}
-        >{span.text}</span>{/each}</div>
+  <div class="filter-sidebar">
+    <button
+      class="filter-btn"
+      class:active={showAll}
+      title={ALL_FILTER.label}
+      onclick={toggleAll}
+      aria-label={ALL_FILTER.label}
+      aria-pressed={showAll}
+    >{ALL_FILTER.icon}</button>
+    {#each CATEGORY_FILTERS as filter}
+      <button
+        class="filter-btn"
+        class:active={enabledCategories.has(filter.id)}
+        class:dimmed={showAll}
+        title={filter.label}
+        onclick={() => toggleCategory(filter.id)}
+        aria-label={filter.label}
+        aria-pressed={enabledCategories.has(filter.id)}
+      >{filter.icon}</button>
     {/each}
   </div>
-  <div class="input-row" class:disabled={inputDisabled}>
-    <input
-      type="text"
-      bind:value={commandInput}
-      bind:this={inputEl}
-      onkeydown={handleKeydown}
-      onblur={handleBlur}
-      placeholder="Type command..."
-      disabled={inputDisabled}
-    />
-    <button onclick={submitCommand} disabled={inputDisabled}>Send</button>
+  <div class="main-content">
+    <div class="messages" bind:this={messagesDiv}>
+      {#each displayMessages as msg}
+        <div class="message">{#if msg.count > 1}<span class="repeat-count">{msg.count}×</span>{/if}{#each msg.spans as span}<span
+            style:color={span.color}
+            style:font-weight={span.bold ? 'bold' : 'normal'}
+            style:font-style={span.italic ? 'italic' : 'normal'}
+            style:text-decoration={span.underline ? 'underline' : 'none'}
+          >{span.text}</span>{/each}</div>
+      {/each}
+    </div>
+    <div class="input-row" class:disabled={inputDisabled}>
+      <input
+        type="text"
+        bind:value={commandInput}
+        bind:this={inputEl}
+        onkeydown={handleKeydown}
+        onblur={handleBlur}
+        placeholder="Type command..."
+        disabled={inputDisabled}
+      />
+      <button onclick={submitCommand} disabled={inputDisabled}>Send</button>
+    </div>
   </div>
 </div>
 
 <style>
   .info-panel {
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
     height: 100%;
     background: var(--bg-panel);
     border: 1px solid var(--border);
+  }
+
+  /* ── Filter sidebar ──────────────────────────────────────────── */
+
+  .filter-sidebar {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 3px 2px;
+    gap: 2px;
+    border-right: 1px solid var(--border);
+    background: var(--bg-panel);
+    flex-shrink: 0;
+  }
+
+  .filter-btn {
+    width: 28px;
+    height: 28px;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    background: transparent;
+    cursor: pointer;
+    font-size: 14px;
+    line-height: 1;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text);
+    /* Inactive: desaturate the emoji icon */
+    filter: grayscale(1) opacity(0.55);
+    transition: filter 0.1s, background 0.12s, border-color 0.1s;
+  }
+
+  .filter-btn:hover {
+    filter: grayscale(0) opacity(1);
+    border-color: var(--border-mid);
+  }
+
+  .filter-btn.active {
+    filter: grayscale(0) opacity(1);
+    background: rgba(100, 140, 255, 0.18);
+    border-color: transparent;
+  }
+
+  .filter-btn.active:hover {
+    border-color: var(--border-mid);
+  }
+
+  /* Category buttons are visually muted when "All" overrides them:
+     keep the grayscale/dim look even though they are technically "enabled". */
+  .filter-btn.dimmed:not(:hover) {
+    filter: grayscale(1) opacity(0.55);
+    background: transparent;
+  }
+
+  /* ── Main content (messages + input) ────────────────────────── */
+
+  .main-content {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-width: 0;
   }
 
   .messages {
