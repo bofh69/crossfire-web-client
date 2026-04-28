@@ -32,7 +32,6 @@
   }
 
   type InvFilter =
-    | 'all'
     | 'applied'
     | 'unapplied'
     | 'unpaid'
@@ -51,16 +50,15 @@
   }
 
   const FILTERS: FilterDef[] = [
-    { id: 'all',          icon: '⊞',  tooltip: 'All items',           test: () => true },
-    { id: 'applied',      icon: '✋',  tooltip: 'Applied items',        test: i => i.applied },
-    { id: 'unapplied',    icon: '🤚',  tooltip: 'Unapplied items',      test: i => !i.applied },
-    { id: 'unpaid',       icon: '💰',  tooltip: 'Unpaid items',         test: i => i.unpaid },
-    { id: 'cursed',       icon: '💀',  tooltip: 'Cursed / damned items', test: i => i.cursed || i.damned },
-    { id: 'magical',      icon: '✨',  tooltip: 'Magical items',        test: i => i.magical },
-    { id: 'nonmagical',   icon: '🔰',  tooltip: 'Non-magical items',    test: i => !i.magical },
-    { id: 'locked',       icon: '🔒',  tooltip: 'Locked items',         test: i => i.locked },
-    { id: 'unlocked',     icon: '🔓',  tooltip: 'Unlocked items (including open containers)', test: i => !i.locked || i.open },
-    { id: 'unidentified', icon: '❓',  tooltip: 'Unidentified items',   test: i => i.unidentified },
+    { id: 'applied',      icon: '✋',  tooltip: 'Applied items',                               test: i => i.applied },
+    { id: 'unapplied',    icon: '🤚',  tooltip: 'Unapplied items',                             test: i => !i.applied },
+    { id: 'unpaid',       icon: '💰',  tooltip: 'Unpaid items',                                test: i => i.unpaid },
+    { id: 'cursed',       icon: '💀',  tooltip: 'Cursed / damned items',                       test: i => i.cursed || i.damned },
+    { id: 'magical',      icon: '✨',  tooltip: 'Magical items',                               test: i => i.magical },
+    { id: 'nonmagical',   icon: '🔰',  tooltip: 'Non-magical items',                           test: i => !i.magical },
+    { id: 'locked',       icon: '🔒',  tooltip: 'Locked items',                                test: i => i.locked },
+    { id: 'unlocked',     icon: '🔓',  tooltip: 'Unlocked items (including open containers)',  test: i => !i.locked || i.open },
+    { id: 'unidentified', icon: '❓',  tooltip: 'Unidentified items',                          test: i => i.unidentified },
   ];
 
   // ── Inventory/ground split resize ────────────────────────────────
@@ -103,12 +101,45 @@
 
   let playerItems: FlatItem[] = $state([]);
   let groundItems: FlatItem[] = $state([]);
-  let invFilter = $state<InvFilter>('all');
+  let invFilters = $state<Set<InvFilter>>(new Set());
   let filteredPlayerItems = $derived(
-    invFilter === 'all'
+    invFilters.size === 0
       ? playerItems
-      : playerItems.filter(FILTERS.find(f => f.id === invFilter)!.test)
+      : playerItems.filter(item => FILTERS.some(f => invFilters.has(f.id) && f.test(item)))
   );
+
+  /** Key used to persist filters for a given character name. */
+  function filtersKey(charName: string): string {
+    return `inv_filters_${charName}`;
+  }
+
+  /** Load the saved filter set for `charName` from localStorage. */
+  function loadFiltersForChar(charName: string): void {
+    const saved = loadConfig<InvFilter[]>(filtersKey(charName), []);
+    const validIds = new Set(FILTERS.map(f => f.id));
+    invFilters = new Set(saved.filter((id): id is InvFilter => validIds.has(id)));
+  }
+
+  /** Persist the current filter set for the current character. */
+  function saveFilters(charName: string): void {
+    saveConfig(filtersKey(charName), [...invFilters]);
+  }
+
+  /** Toggle a single filter on/off and save. */
+  function toggleFilter(id: InvFilter): void {
+    const next = new Set(invFilters);
+    if (next.has(id)) {
+      next.delete(id);
+    } else {
+      next.add(id);
+    }
+    invFilters = next;
+    const charName = getCpl()?.ob?.dName ?? '';
+    if (charName) saveFilters(charName);
+  }
+
+  /** Track the last-seen character name so we load filters exactly once per character. */
+  let currentCharName = '';
   let contextMenu = $state<{ x: number; y: number; item: FlatItem; isGround: boolean } | null>(null);
   let itemCount = $state(0);
   let showSlotPicker = $state(false);
@@ -151,6 +182,13 @@
   async function refreshInventory() {
     const playerRoot = getCpl()?.ob ?? null;
     const groundRoot = locateItem(0);
+
+    // When the character name becomes available (or changes), load their saved filters.
+    const charName = getCpl()?.ob?.dName ?? '';
+    if (charName && charName !== currentCharName) {
+      currentCharName = charName;
+      loadFiltersForChar(charName);
+    }
 
     const playerScrollTop = playerListEl?.scrollTop ?? 0;
     const groundScrollTop = groundListEl?.scrollTop ?? 0;
@@ -291,7 +329,7 @@
 <div class="inventory" bind:this={invContainerEl}>
   <div class="inv-section" style:flex="{invSplitFrac} 0 0">
     <h3>
-      Inventory ({filteredPlayerItems.length}{invFilter !== 'all' ? `/${playerItems.length}` : ''})
+      Inventory ({filteredPlayerItems.length}{invFilters.size > 0 ? `/${playerItems.length}` : ''})
       {#if itemCount > 0}
         <span class="item-count">
           {itemCount}
@@ -305,11 +343,11 @@
       {#each FILTERS as f (f.id)}
         <button
           class="inv-filter-btn"
-          class:active={invFilter === f.id}
+          class:active={invFilters.has(f.id)}
           title={f.tooltip}
           aria-label={f.tooltip}
-          aria-pressed={invFilter === f.id}
-          onclick={() => { invFilter = f.id; }}
+          aria-pressed={invFilters.has(f.id)}
+          onclick={() => toggleFilter(f.id)}
         >{f.icon}</button>
       {/each}
     </div>
@@ -571,7 +609,7 @@
   .inv-filter-bar {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.0rem;
+    gap: 0;
     padding: 0.1rem 0.1rem;
     background: var(--bg-mid);
     border-bottom: 1px solid var(--border);
@@ -584,7 +622,7 @@
     border-radius: 3px;
     color: var(--text-dim);
     cursor: pointer;
-    font-size: 0.80rem;
+    font-size: 0.8rem;
     line-height: 1;
     padding: 0.15rem 0.16rem;
     transition: background 0.1s, color 0.1s, border-color 0.1s;
