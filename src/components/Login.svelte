@@ -91,8 +91,9 @@
   // Auto-connect immediately when the server address is supplied via URL param.
   // A brief timeout ensures that all $effects (event subscriptions) have been
   // registered before the connection attempt begins.
+  // Skip auto-connect when returning from gameplay: the socket is already open.
   onMount(() => {
-    if (urlParamServer) {
+    if (urlParamServer && !connected) {
       setTimeout(() => handleConnect(), 0);
     }
   });
