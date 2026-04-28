@@ -5,6 +5,7 @@
   import { getFaceUrl } from '../lib/image';
   import { getCpl } from '../lib/init';
   import type { Item } from '../lib/protocol';
+  import { F_UNIDENTIFIED } from '../lib/protocol';
   import { gameEvents } from '../lib/events';
   import { setHotbarSlot } from '../lib/hotbar';
   import HotbarSlotPicker from './HotbarSlotPicker.svelte';
@@ -23,10 +24,44 @@
     applied: boolean;
     magical: boolean;
     cursed: boolean;
+    damned: boolean;
     unpaid: boolean;
     open: boolean;
     depth: number;
+    unidentified: boolean;
   }
+
+  type InvFilter =
+    | 'all'
+    | 'applied'
+    | 'unapplied'
+    | 'unpaid'
+    | 'cursed'
+    | 'magical'
+    | 'nonmagical'
+    | 'locked'
+    | 'unlocked'
+    | 'unidentified';
+
+  interface FilterDef {
+    id: InvFilter;
+    icon: string;
+    tooltip: string;
+    test: (i: FlatItem) => boolean;
+  }
+
+  const FILTERS: FilterDef[] = [
+    { id: 'all',          icon: '⊞',  tooltip: 'All items',           test: () => true },
+    { id: 'applied',      icon: '✋',  tooltip: 'Applied items',        test: i => i.applied },
+    { id: 'unapplied',    icon: '🤚',  tooltip: 'Unapplied items',      test: i => !i.applied },
+    { id: 'unpaid',       icon: '💰',  tooltip: 'Unpaid items',         test: i => i.unpaid },
+    { id: 'cursed',       icon: '💀',  tooltip: 'Cursed / damned items', test: i => i.cursed || i.damned },
+    { id: 'magical',      icon: '✨',  tooltip: 'Magical items',        test: i => i.magical },
+    { id: 'nonmagical',   icon: '🔰',  tooltip: 'Non-magical items',    test: i => !i.magical },
+    { id: 'locked',       icon: '🔒',  tooltip: 'Locked items',         test: i => i.locked },
+    { id: 'unlocked',     icon: '🔓',  tooltip: 'Unlocked items (including open containers)', test: i => !i.locked || i.open },
+    { id: 'unidentified', icon: '❓',  tooltip: 'Unidentified items',   test: i => i.unidentified },
+  ];
 
   // ── Inventory/ground split resize ────────────────────────────────
   const MIN_INV_FRAC = 0.1;
@@ -68,6 +103,12 @@
 
   let playerItems: FlatItem[] = $state([]);
   let groundItems: FlatItem[] = $state([]);
+  let invFilter = $state<InvFilter>('all');
+  let filteredPlayerItems = $derived(
+    invFilter === 'all'
+      ? playerItems
+      : playerItems.filter(FILTERS.find(f => f.id === invFilter)!.test)
+  );
   let contextMenu = $state<{ x: number; y: number; item: FlatItem; isGround: boolean } | null>(null);
   let itemCount = $state(0);
   let showSlotPicker = $state(false);
@@ -92,9 +133,11 @@
         applied: item.applied,
         magical: item.magical,
         cursed: item.cursed,
+        damned: item.damned,
         unpaid: item.unpaid,
         open: item.open,
         depth,
+        unidentified: !!(item.flagsval & F_UNIDENTIFIED),
       });
       // If the container is open, show its contents indented below it.
       if (item.open && item.inv) {
@@ -248,7 +291,7 @@
 <div class="inventory" bind:this={invContainerEl}>
   <div class="inv-section" style:flex="{invSplitFrac} 0 0">
     <h3>
-      Inventory ({playerItems.length})
+      Inventory ({filteredPlayerItems.length}{invFilter !== 'all' ? `/${playerItems.length}` : ''})
       {#if itemCount > 0}
         <span class="item-count">
           {itemCount}
@@ -258,8 +301,20 @@
         </span>
       {/if}
     </h3>
+    <div class="inv-filter-bar" role="toolbar" aria-label="Inventory filter">
+      {#each FILTERS as f (f.id)}
+        <button
+          class="inv-filter-btn"
+          class:active={invFilter === f.id}
+          title={f.tooltip}
+          aria-label={f.tooltip}
+          aria-pressed={invFilter === f.id}
+          onclick={() => { invFilter = f.id; }}
+        >{f.icon}</button>
+      {/each}
+    </div>
     <div class="item-list" bind:this={playerListEl}>
-      {#each playerItems as item (item.tag)}
+      {#each filteredPlayerItems as item (item.tag)}
         <div
           class="item-row"
           class:applied={item.applied}
@@ -417,7 +472,7 @@
   }
   h3 {
     margin: 0;
-    padding: 0.4rem 0.5rem;
+    padding: 0.3rem 0.4rem;
     color: var(--text-warm);
     font-size: 0.8rem;
     background: var(--bg-mid);
@@ -511,5 +566,39 @@
     color: var(--text-dim);
     font-size: 0.7rem;
     flex-shrink: 0;
+  }
+
+  .inv-filter-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.0rem;
+    padding: 0.1rem 0.1rem;
+    background: var(--bg-mid);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .inv-filter-btn {
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 3px;
+    color: var(--text-dim);
+    cursor: pointer;
+    font-size: 0.80rem;
+    line-height: 1;
+    padding: 0.15rem 0.16rem;
+    transition: background 0.1s, color 0.1s, border-color 0.1s;
+  }
+
+  .inv-filter-btn:hover {
+    background: var(--bg-card);
+    color: var(--text-bright);
+    border-color: var(--border-mid);
+  }
+
+  .inv-filter-btn.active {
+    background: var(--bg-warm);
+    color: var(--text-warm);
+    border-color: var(--accent);
   }
 </style>
