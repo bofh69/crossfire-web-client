@@ -626,6 +626,7 @@
     line-height: 1;
     padding: 0.15rem 0.16rem;
     transition: background 0.1s, color 0.1s, border-color 0.1s;
+    filter: grayscale(1) opacity(0.55);
   }
 
   .inv-filter-btn:hover {
@@ -637,6 +638,7 @@
     background: var(--bg-lighter);
     color: var(--text);
     border-color: transparent;
+    filter: none;
   }
 
   .inv-filter-btn.active:hover {
