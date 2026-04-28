@@ -629,14 +629,17 @@
   }
 
   .inv-filter-btn:hover {
-    background: var(--bg-card);
-    color: var(--text-bright);
     border-color: var(--border-mid);
+    color: var(--text-bright);
   }
 
   .inv-filter-btn.active {
-    background: var(--bg-warm);
-    color: var(--text-warm);
-    border-color: var(--accent);
+    background: var(--bg-lighter);
+    color: var(--text);
+    border-color: transparent;
+  }
+
+  .inv-filter-btn.active:hover {
+    border-color: var(--border-mid);
   }
 </style>
