@@ -19,7 +19,7 @@ import {
   mapdata_set_darkness, mapdata_set_smooth, mapdata_clear_space,
   mapdata_set_check_space, mapdata_clear_old, mapdata_set_size,
   mapdata_clear_label_view, mapdata_add_label,
-  mapdata_save_fog, mapdata_restore_fog,
+  mapdata_save_fog, mapdata_restore_fog, mapdata_apply_magicmap,
 } from './mapdata.js';
 import { animations } from './item.js';
 import { addSmooth } from './image.js';
@@ -374,9 +374,17 @@ export function MagicMapCmd(data: DataView, len: number): void {
   cpl.magicmap = new Uint8Array(bytes.subarray(dataOffset, dataOffset + dataLen));
   cpl.showmagic = 1;
 
+  // Apply magicmap data to the virtual map: fill Empty cells with fog tiles
+  // derived from the magicmap colour palette.  This lets the game map render
+  // previously-explored areas even before map2 packets arrive for them.
+  mapdata_apply_magicmap(cpl.magicmap, mmapx, mmapy, pmapx, pmapy);
+
   LOG(LogLevel.Info, 'MagicMapCmd',
     `Received magic map ${mmapx}x${mmapy}, player at (${pmapx},${pmapy})`);
 
+  // Redraw the game map to show the newly filled fog cells.
+  gameEvents.emit('mapUpdate');
+  // Notify MagicMap.svelte to redraw if the overlay is currently open.
   gameEvents.emit('magicMap');
 }
 

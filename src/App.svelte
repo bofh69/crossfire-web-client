@@ -498,10 +498,6 @@
         showMagicMap = false;
       }),
 
-      gameEvents.on('magicMap', () => {
-        showMagicMap = true;
-      }),
-
       gameEvents.on('tick', (_tickNo: number) => {
         mapdata_animation();
         animateObjects();
