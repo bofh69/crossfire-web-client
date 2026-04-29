@@ -18,6 +18,139 @@ import { TILE_SIZE } from './constants.js';
 import type { FaceInformation } from './protocol.js';
 
 // ---------------------------------------------------------------------------
+// Magic-map synthetic face constants
+// ---------------------------------------------------------------------------
+
+/**
+ * Base face ID for client-generated magic-map color tiles.
+ * The face ID for color index `c` (0..12) is `MAGIC_MAP_FACE_BASE | c`.
+ * These IDs are deliberately far above MAXPIXMAPNUM so they never
+ * collide with server-assigned face numbers.
+ */
+export const MAGIC_MAP_FACE_BASE = 0xfffffe00;
+
+/**
+ * Base face ID for the 16 wall-shape faces.
+ * The face ID for a wall with neighbor bitmask `m` (0..15) is
+ * `MAGIC_MAP_WALL_FACE_BASE | m`.
+ *
+ * The four direction bits:
+ *   MAGIC_MAP_WALL_ABOVE = 0x8 – wall neighbor above
+ *   MAGIC_MAP_WALL_BELOW = 0x4 – wall neighbor below
+ *   MAGIC_MAP_WALL_LEFT  = 0x2 – wall neighbor to the left
+ *   MAGIC_MAP_WALL_RIGHT = 0x1 – wall neighbor to the right
+ */
+export const MAGIC_MAP_WALL_FACE_BASE = MAGIC_MAP_FACE_BASE | 0x10;
+
+/** Bit set in the wall neighbor mask when there is a wall above. */
+export const MAGIC_MAP_WALL_ABOVE = 0x8;
+/** Bit set in the wall neighbor mask when there is a wall below. */
+export const MAGIC_MAP_WALL_BELOW = 0x4;
+/** Bit set in the wall neighbor mask when there is a wall to the left. */
+export const MAGIC_MAP_WALL_LEFT  = 0x2;
+/** Bit set in the wall neighbor mask when there is a wall to the right. */
+export const MAGIC_MAP_WALL_RIGHT = 0x1;
+
+/**
+ * Colour palette for the 13 magic-map colour indices (0 = void/black).
+ * Matches the palette used in MagicMap.svelte and the original GTK client.
+ */
+const MAGIC_MAP_COLORS: readonly string[] = [
+    '#000000', // 0 – Black (empty/void)
+    '#ffffff', // 1 – White
+    '#000080', // 2 – Navy
+    '#ff0000', // 3 – Red
+    '#ffa500', // 4 – Orange
+    '#1e90ff', // 5 – DodgerBlue
+    '#ee9a00', // 6 – DarkOrange2
+    '#2e8b57', // 7 – SeaGreen
+    '#8fbc8f', // 8 – DarkSeaGreen
+    '#808080', // 9 – Grey50
+    '#a0522d', // 10 – Sienna
+    '#ffd700', // 11 – Gold
+    '#f0e68c', // 12 – Khaki
+];
+
+/**
+ * Register synthetic TILE_SIZE×TILE_SIZE solid-colour face URLs for each
+ * magic-map colour index (0..12), plus 16 wall-line faces for every
+ * combination of the four cardinal neighbor directions.
+ * Safe to call multiple times (idempotent).
+ * No-op outside a browser context (guards against SSR / unit-test environments).
+ */
+export function registerMagicMapFaces(): void {
+    if (typeof document === 'undefined') return;
+    const canvas = document.createElement('canvas');
+    canvas.width = TILE_SIZE;
+    canvas.height = TILE_SIZE;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    // --- Solid-colour tiles for each colour index ---
+    for (let i = 0; i < MAGIC_MAP_COLORS.length; i++) {
+        const faceId = MAGIC_MAP_FACE_BASE | i;
+        if (faceUrls.has(faceId)) continue; // already registered
+        ctx.clearRect(0, 0, TILE_SIZE, TILE_SIZE);
+        ctx.fillStyle = MAGIC_MAP_COLORS[i]!;
+        ctx.fillRect(0, 0, TILE_SIZE, TILE_SIZE);
+        faceUrls.set(faceId, canvas.toDataURL('image/png'));
+        faceSizes.set(faceId, { w: TILE_SIZE, h: TILE_SIZE });
+    }
+
+    const cx = TILE_SIZE / 2;
+    const cy = TILE_SIZE / 2;
+
+    // Helper: draw a line segment with a gray outline and a black inner stroke.
+    function drawSegment(
+        x1: number, y1: number,
+        x2: number, y2: number,
+    ): void {
+        ctx!.strokeStyle = '#808080';
+        ctx!.lineWidth = 5;
+        ctx!.beginPath();
+        ctx!.moveTo(x1, y1);
+        ctx!.lineTo(x2, y2);
+        ctx!.stroke();
+
+        ctx!.strokeStyle = '#000000';
+        ctx!.lineWidth = 3;
+        ctx!.beginPath();
+        ctx!.moveTo(x1, y1);
+        ctx!.lineTo(x2, y2);
+        ctx!.stroke();
+    }
+
+    // --- 16 wall faces, one per neighbor-bitmask (0..15) ---
+    for (let mask = 0; mask <= 0x0f; mask++) {
+        const faceId = MAGIC_MAP_WALL_FACE_BASE | mask;
+        if (faceUrls.has(faceId)) continue;
+
+        ctx.clearRect(0, 0, TILE_SIZE, TILE_SIZE);
+
+        if (mask === 0) {
+            // Isolated wall: draw a small dot at the center.
+            ctx.fillStyle = '#808080';
+            ctx.beginPath();
+            ctx.arc(cx, cy, 3, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#000000';
+            ctx.beginPath();
+            ctx.arc(cx, cy, 2, 0, Math.PI * 2);
+            ctx.fill();
+        } else {
+            // Draw a half-segment from the center toward each set neighbor.
+            if (mask & MAGIC_MAP_WALL_ABOVE) drawSegment(cx, cy, cx, 0);
+            if (mask & MAGIC_MAP_WALL_BELOW) drawSegment(cx, cy, cx, TILE_SIZE);
+            if (mask & MAGIC_MAP_WALL_LEFT)  drawSegment(cx, cy, 0,  cy);
+            if (mask & MAGIC_MAP_WALL_RIGHT) drawSegment(cx, cy, TILE_SIZE, cy);
+        }
+
+        faceUrls.set(faceId, canvas.toDataURL('image/png'));
+        faceSizes.set(faceId, { w: TILE_SIZE, h: TILE_SIZE });
+    }
+}
+
+// ---------------------------------------------------------------------------
 // Module state
 // ---------------------------------------------------------------------------
 
@@ -478,3 +611,8 @@ export function image_debug_face(face: number): string[] {
 
     return lines;
 }
+
+// ---------------------------------------------------------------------------
+// One-time initialisation of synthetic faces (runs at module load in browser)
+// ---------------------------------------------------------------------------
+registerMagicMapFaces();

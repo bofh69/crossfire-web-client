@@ -17,6 +17,8 @@ import {
     ANIM_SYNC,
     MapCellState,
     LogLevel,
+    FACE_COLOR_MASK,
+    FACE_WALL,
 } from "./protocol";
 
 import type {
@@ -37,6 +39,7 @@ import {
 import { LOG } from "./misc";
 import { notifyWatchedCell } from "./debug";
 import { cacheSaveFog, cacheGetFog, type FogSnapshot, type FogCacheCell } from "./map_fog_cache";
+import { MAGIC_MAP_FACE_BASE, MAGIC_MAP_WALL_FACE_BASE, MAGIC_MAP_WALL_ABOVE, MAGIC_MAP_WALL_BELOW, MAGIC_MAP_WALL_LEFT, MAGIC_MAP_WALL_RIGHT } from "./image";
 
 // Re-export types for consumers that import from mapdata.
 export type { MapCell, MapCellLayer, MapCellTailLayer, MapLabel };
@@ -1481,7 +1484,104 @@ export function mapdata_restore_fog(key: string): void {
     LOG(LogLevel.Info, 'mapdata', `Restored ${restored} fog cells for map "${key}"`);
 }
 
-/** Tick all map animations. */
+/**
+ * Fill empty virtual-map cells with data derived from a server magicmap packet.
+ *
+ * The magicmap is a `mmapx × mmapy` grid where each byte encodes a tile type
+ * (bits 7–4: FACE_WALL / FACE_FLOOR flags; bits 3–0: colour index).  The
+ * player's position within the magicmap is `(pmapx, pmapy)`.
+ *
+ * For each non-void cell (colour ≠ 0) that corresponds to an Empty slot in
+ * the virtual map, this function places a client-generated solid-colour face
+ * (at layer 0) and marks the cell as Fog so the game map renderer displays
+ * it as explored-but-not-currently-visible area.  Cells already in Visible
+ * or Fog state (written by map2) are left unchanged.
+ *
+ * Wall tiles additionally receive a wall-line face on layer 1 chosen from
+ * all 16 shapes that encode which of the four cardinal neighbors are also
+ * walls (above=bit3, below=bit2, left=bit1, right=bit0).
+ *
+ * Coordinate mapping:
+ *   playerAbsX = pl_pos.x + Math.floor(viewWidth / 2)
+ *   ax = playerAbsX + (mx - pmapx)
+ */
+export function mapdata_apply_magicmap(
+    data: Uint8Array,
+    mmapx: number,
+    mmapy: number,
+    pmapx: number,
+    pmapy: number,
+): void {
+    if (mmapx === 0 || mmapy === 0 || data.length < mmapx * mmapy) {
+        return;
+    }
+
+    /** Return true if the magicmap cell at (mx, my) is a wall. */
+    function isWall(mx: number, my: number): boolean {
+        if (mx < 0 || my < 0 || mx >= mmapx || my >= mmapy) return false;
+        return (data[my * mmapx + mx]! & FACE_WALL) !== 0;
+    }
+
+    // Player's centre position on the virtual map.
+    const vw = useConfig.mapWidth || viewWidth;
+    const vh = useConfig.mapHeight || viewHeight;
+    const playerAbsX = pl_pos.x + Math.floor(vw / 2);
+    const playerAbsY = pl_pos.y + Math.floor(vh / 2);
+
+    let applied = 0;
+    for (let my = 0; my < mmapy; my++) {
+        for (let mx = 0; mx < mmapx; mx++) {
+            const val = data[my * mmapx + mx]!;
+            const colorIdx = val & FACE_COLOR_MASK;
+            if (colorIdx === 0) {
+                // Index 0 = void/black — leave the cell empty.
+                continue;
+            }
+
+            const ax = playerAbsX + (mx - pmapx);
+            const ay = playerAbsY + (my - pmapy);
+
+            if (ax < 0 || ay < 0 || ax >= mapWidth || ay >= mapHeight) {
+                continue;
+            }
+
+            const cell = cellAt(ax, ay);
+            if (cell.state !== MapCellState.Empty) {
+                // Already set by map2 (Visible) or a previous fog restore — leave it.
+                continue;
+            }
+
+            // Place the synthetic solid-colour face in layer 0.
+            const head0 = cell.heads[0]!;
+            head0.face = MAGIC_MAP_FACE_BASE | colorIdx;
+            head0.sizeX = 1;
+            head0.sizeY = 1;
+
+            // Wall tiles: add a wall-line face on layer 1.
+            // Build a 4-bit neighbor mask and select the matching wall shape.
+            if (val & FACE_WALL) {
+                const neighborMask =
+                    (isWall(mx, my - 1) ? MAGIC_MAP_WALL_ABOVE : 0) |
+                    (isWall(mx, my + 1) ? MAGIC_MAP_WALL_BELOW : 0) |
+                    (isWall(mx - 1, my) ? MAGIC_MAP_WALL_LEFT  : 0) |
+                    (isWall(mx + 1, my) ? MAGIC_MAP_WALL_RIGHT : 0);
+
+                const head1 = cell.heads[1]!;
+                head1.face = MAGIC_MAP_WALL_FACE_BASE | neighborMask;
+                head1.sizeX = 1;
+                head1.sizeY = 1;
+            }
+
+            cell.state = MapCellState.Fog;
+            cell.needUpdate = true;
+            applied++;
+        }
+    }
+
+    LOG(LogLevel.Info, 'mapdata', `Applied ${applied} magicmap cells`);
+}
+
+
 export function mapdata_animation(): void {
     // Update synchronized animations.
     for (let a = 0; a < Math.min(animations.length, MAXANIM); a++) {
