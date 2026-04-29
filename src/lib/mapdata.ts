@@ -1665,6 +1665,19 @@ export function mapdata_debug_tile(ax: number, ay: number): string[] {
 }
 
 /**
+ * Return a human-readable dump of the player's current position in the
+ * virtual map.  Returns an array of lines suitable for logging.
+ */
+export function mapdata_debug_player_pos(): string[] {
+    const lines: string[] = [];
+    lines.push(`Player virtual-map position:`);
+    lines.push(`  pl_pos=(${pl_pos.x}, ${pl_pos.y})`);
+    lines.push(`  script_pos=(${script_pos.x}, ${script_pos.y})`);
+    lines.push(`  view=${viewWidth}x${viewHeight}  map=${mapWidth}x${mapHeight}`);
+    return lines;
+}
+
+/**
  * Return a human-readable dump of all bigface/multitile data at the given
  * absolute map coordinates.  Returns an array of lines.
  */
