@@ -180,7 +180,7 @@ function initConfig(): void {
     wantConfig.popups         = false;
     wantConfig.port           = EPORT;
     wantConfig.resists        = 0;
-    wantConfig.serverTicks    = true;
+    wantConfig.serverTicks    = false;
     wantConfig.showgrid       = false;
     wantConfig.showicon       = false;
     wantConfig.signpopup      = true;
