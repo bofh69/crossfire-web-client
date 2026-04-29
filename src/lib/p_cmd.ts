@@ -10,7 +10,7 @@ import { resetBindings } from "./keys";
 import { getCpl } from "./init";
 import { gameEvents } from "./events";
 import { perfLogging, setPerfLogging, getWatchedCell, clearWatchedCell, setWatchedCell } from "./debug";
-import { mapdata_debug_tile, mapdata_debug_bigface, mapdata_debug_all_bigfaces } from "./mapdata";
+import { mapdata_debug_tile, mapdata_debug_bigface, mapdata_debug_all_bigfaces, mapdata_debug_player_pos } from "./mapdata";
 import { image_debug_face } from "./image";
 
 // ---------------------------------------------------------------------------
@@ -240,6 +240,11 @@ function commandDebug(args: string): void {
             }
             drawInfo(`Face ${faceNum} data logged to the browser console.`);
         }
+    } else if (sub === "pos") {
+        for (const line of mapdata_debug_player_pos()) {
+            LOG(LogLevel.Info, 'debug', line);
+        }
+        drawInfo("Player virtual-map position logged to the browser console.");
     } else {
         drawInfo(
             "Usage: debug <subcommand>\n" +
@@ -248,6 +253,7 @@ function commandDebug(args: string): void {
             "  bigface      Click a tile to log bigface/multitile info\n" +
             "  bigfaces     Log all currently active bigface entries to the console\n" +
             "  face <num>   Log all known data for face <num>, including pixel size\n" +
+            "  pos          Log the player's current position in the virtual map\n" +
             "  tile         Click a tile to log all tile info\n" +
             "  watch        Pick a tile to watch; logs all server updates to it (run again to stop)");
     }
@@ -299,7 +305,7 @@ const builtinCommands: ConsoleCommand[] = [
     {
         name: "debug",
         category: CommCat.Debug,
-        description: "Debugging tools (perf, bigface, bigfaces, face, tile, watch)",
+        description: "Debugging tools (perf, bigface, bigfaces, face, pos, tile, watch)",
         longDescription:
             "Syntax:\n" +
             "  debug perf         Toggle periodic performance logging on/off\n" +
@@ -307,6 +313,7 @@ const builtinCommands: ConsoleCommand[] = [
             "  debug bigfaces     Log all currently active bigface entries to the console\n" +
             "  debug face <num>   Log all known data for face <num>, including pixel size,\n" +
             "                     image URL, smooth face mapping, and any pending name/checksum\n" +
+            "  debug pos          Log the player's current position in the virtual map\n" +
             "  debug tile         Click a tile to log all tile data to the console\n" +
             "  debug watch        Click a tile to start watching; every server update to that\n" +
             "                     cell is logged at info level.  Run again to stop watching.\n" +
