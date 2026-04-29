@@ -38,7 +38,7 @@ import { sendCommand, getLastNcomSeqSent } from './player.js';
  * `newmap` packet and uses the server's response to derive the LRU cache key
  * for the fog-of-war snapshot.  Set to false to disable the feature entirely.
  */
-export const USE_MAPINFO_FOR_FOG_CACHE = true;
+export const USE_MAPINFO_FOR_FOG_CACHE = false;
 
 /**
  * The server-supplied path of the map the player is currently on.
