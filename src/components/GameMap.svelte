@@ -9,7 +9,7 @@
   import { wantConfig, useConfig } from '../lib/init';
   import { gameEvents } from '../lib/events';
   import { LOG } from '../lib/misc';
-  import { SLOW_DRAW_THRESHOLD_MS, DRAW_STATS_INTERVAL_MS, TILE_SIZE } from '../lib/constants';
+  import { SLOW_DRAW_THRESHOLD_MS, DRAW_STATS_INTERVAL_MS, TILE_SIZE, SELF_TICK_INTERVAL_MS } from '../lib/constants';
   import { loadConfig, saveConfig } from '../lib/storage';
   import { perfLogging } from '../lib/debug';
 
@@ -112,6 +112,13 @@
   let drawCount = 0;
   /** Timestamp of the last stats log. */
   let lastStatsTime = performance.now();
+  /**
+   * Number of server tick events to skip before rendering again.
+   * Set after a slow drawMap() call so that tick-triggered redraws are
+   * suppressed until real-time and tick-time are back in sync.
+   * Each server tick represents SELF_TICK_INTERVAL_MS (125 ms / 8 fps).
+   */
+  let tickSkipsRemaining = 0;
 
   function scheduleRedraw() {
     pendingRedrawCount++;
@@ -134,7 +141,13 @@
     const cleanups = [
       gameEvents.on('mapUpdate', () => scheduleRedraw()),
       gameEvents.on('newMap', () => scheduleRedraw()),
-      gameEvents.on('tick', () => scheduleRedraw()),
+      gameEvents.on('tick', () => {
+        if (tickSkipsRemaining > 0) {
+          tickSkipsRemaining--;
+          return;
+        }
+        scheduleRedraw();
+      }),
       gameEvents.on('zoomIn', () => {
         const current = storedScale ?? computeScale(containerW, containerH);
         storedScale = Math.min(current + 1, MAX_SCALE);
@@ -569,8 +582,16 @@
     const elapsed = performance.now() - t0;
     drawCount++;
 
+    // If this draw took longer than one tick period, schedule tick skips so
+    // that tick-triggered redraws are suppressed until real-time and tick-time
+    // are back in sync.  Example: elapsed=500ms → skip 3 ticks (render on the
+    // 4th), because 500ms / 125ms = 4 ticks worth of time has already passed.
+    if (elapsed > SELF_TICK_INTERVAL_MS) {
+      tickSkipsRemaining = Math.floor(elapsed / SELF_TICK_INTERVAL_MS) - 1;
+    }
+
     if (perfLogging && elapsed > SLOW_DRAW_THRESHOLD_MS) {
-      LOG(LogLevel.Warning, 'perf:map', `drawMap took ${elapsed.toFixed(1)}ms — tiles:${tilesDrawn} imgs:${imagesDrawn} placeholders:${placeholders} loadsStarted:${loadsStarted}`);
+      LOG(LogLevel.Warning, 'perf:map', `drawMap took ${elapsed.toFixed(1)}ms — tiles:${tilesDrawn} imgs:${imagesDrawn} placeholders:${placeholders} loadsStarted:${loadsStarted}${tickSkipsRemaining > 0 ? ` — skipping ${tickSkipsRemaining} tick(s)` : ''}`);
     }
 
     const now = performance.now();
