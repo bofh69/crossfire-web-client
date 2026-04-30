@@ -176,8 +176,8 @@
 
   /** newcharinfo data from the server. */
   let newCharStatPoints = $state(0);
-  let newCharStatMin = $state(1);
-  let newCharStatMax = $state(20);
+  let newCharStatMin = $state(3);
+  let newCharStatMax = $state(18);
   let newCharStatNames = $state<string[]>([]);
 
   /** Character-creation form: name input. */
@@ -196,14 +196,14 @@
   // ── Derived values for character creation ──────────────────────────────────
 
   const ccSpent = $derived(
-    newCharStatNames.reduce((s, n) => s + (statAlloc[n] ?? 0), 0),
+    newCharStatNames.reduce((s, n) => s + (statAlloc[n] ?? newCharStatMin), 0),
   );
   const ccRemaining = $derived(newCharStatPoints - ccSpent);
   const ccHasNegStat = $derived(
     newCharStatNames.some(sn => {
       const rb = availableRaces[selectedRaceIdx]?.statAdj[sn] ?? 0;
       const cb = availableClasses[selectedClassIdx]?.statAdj[sn] ?? 0;
-      return rb + cb + (statAlloc[sn] ?? 0) < newCharStatMin;
+      return rb + cb + (statAlloc[sn] ?? newCharStatMin) < newCharStatMin;
     }),
   );
   const ccCanCreate = $derived(
@@ -437,23 +437,14 @@
 
   /**
    * Increment or decrement a stat allocation by `delta`.
-   * - Allocation can never go below 0.
-   * - Decreasing: the stat total (race + class bonus + alloc) must not drop
-   *   below statMin (from newcharinfo).
-   * - Increasing: the stat total must not exceed statMax, and the player must
-   *   have remaining points. Increasing is always allowed even when the current
-   *   total is still below statMin (e.g. a large race penalty), so the user
-   *   can work their way back to a valid value.
+   * - Allocation is clamped to [statMin, statMax] (from newcharinfo; defaults 3–18).
+   * - Increasing is also gated on the player having remaining points to spend.
    */
   function adjustStat(statName: string, delta: number) {
-    const current = statAlloc[statName] ?? 0;
+    const current = statAlloc[statName] ?? newCharStatMin;
     const newVal = current + delta;
-    if (newVal < 0) return;
-    const raceBonus = availableRaces[selectedRaceIdx]?.statAdj[statName] ?? 0;
-    const classBonus = availableClasses[selectedClassIdx]?.statAdj[statName] ?? 0;
-    const newTotal = raceBonus + classBonus + newVal;
-    if (delta < 0 && newTotal < newCharStatMin) return;
-    if (delta > 0 && newTotal > newCharStatMax) return;
+    if (newVal < newCharStatMin) return;
+    if (newVal > newCharStatMax) return;
     statAlloc = { ...statAlloc, [statName]: newVal };
   }
 
@@ -595,8 +586,8 @@
         newCharStatMin = info.statMin;
         newCharStatMax = info.statMax;
         newCharStatNames = info.statNames;
-        // Reset per-stat allocations to zero whenever the stat list changes.
-        statAlloc = Object.fromEntries(info.statNames.map(n => [n, 0]));
+        // Reset per-stat allocations to statMin whenever the stat list changes.
+        statAlloc = Object.fromEntries(info.statNames.map(n => [n, info.statMin]));
         // Server indicated starting-map selection is required.
         if (info.wantsStartingMap) {
           availableStartingMaps = [];
@@ -806,11 +797,11 @@
                       <span class:bonus-pos={rb > 0} class:bonus-neg={rb < 0}>{rb > 0 ? '+' : ''}{rb}</span>
                       <span class:bonus-pos={cb > 0} class:bonus-neg={cb < 0}>{cb > 0 ? '+' : ''}{cb}</span>
                       <span class="stat-spin">
-                        <button class="spin-btn" onclick={() => adjustStat(sn, -1)} disabled={alloc <= 0 || rb + cb + alloc - 1 < newCharStatMin}>−</button>
+                        <button class="spin-btn" onclick={() => adjustStat(sn, -1)} disabled={alloc <= newCharStatMin}>−</button>
                         <span class="spin-val">{alloc}</span>
-                        <button class="spin-btn" onclick={() => adjustStat(sn, +1)} disabled={ccRemaining <= 0 || rb + cb + alloc + 1 > newCharStatMax}>+</button>
+                        <button class="spin-btn" onclick={() => adjustStat(sn, +1)} disabled={ccRemaining <= 0 || alloc >= newCharStatMax}>+</button>
                       </span>
-                      <span class:stat-bad={total < 1}>{total}</span>
+                      <span class:stat-bad={total < newCharStatMin}>{total}</span>
                     </div>
                   {/each}
                   <div class="stat-remaining" class:points-over={ccRemaining < 0}>
