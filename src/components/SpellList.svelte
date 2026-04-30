@@ -50,6 +50,7 @@
       setHotbarSlot(index, {
         label: contextMenu.spell.name,
         command: `cast ${contextMenu.spell.name}`,
+        face: contextMenu.spell.face,
       });
     }
     closeContextMenu();
