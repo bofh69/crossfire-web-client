@@ -299,6 +299,7 @@
         command: `apply ${item.sName}`,
         face: item.face,
         tag: item.tag,
+        itemName: item.sName,
       });
     }
     closeContextMenu();

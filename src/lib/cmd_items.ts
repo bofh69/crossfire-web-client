@@ -15,6 +15,7 @@ import { newPlayer } from './player.js';
 import { LOG } from './misc.js';
 import { LogLevel } from './protocol.js';
 import { gameEvents } from './events.js';
+import { updateHotbarFacesFromSpell, updateHotbarSlotFromItem, resetHotbarSession, setCurrentCharacter as setHotbarCurrentCharacter } from './hotbar.js';
 
 /** Known spells */
 export const spells: Spell[] = [];
@@ -40,12 +41,19 @@ export function PlayerCmd(data: DataView, len: number): void {
   newPlayer(tag, name, weight, face);
   registerPlayerTag(tag);
   LOG(LogLevel.Info, 'PlayerCmd', `Player: ${name} tag=${tag}`);
+  // Reset the hotbar session guard then immediately load slots for this
+  // character.  This must happen before emitting playerUpdate (and before
+  // any addspell / item2 packets that follow) so that hotbar face/tag
+  // matching works regardless of loginmethod ordering.
+  resetHotbarSession();
+  setHotbarCurrentCharacter(name);
   gameEvents.emit('playerUpdate');
 }
 
 export function Item2Cmd(data: DataView, len: number): void {
   const reader = new BinaryReader(data, len);
   const location = reader.readInt32();
+  let hotbarChanged = false;
   while (reader.remaining > 0) {
     const tag = reader.readInt32();
     const flags = reader.readInt32();
@@ -58,8 +66,16 @@ export function Item2Cmd(data: DataView, len: number): void {
     const nrof = reader.readInt32();
     const type = reader.readInt16();
     updateItem(tag, location, name, weight, face, flags, anim, animSpeed, nrof, type);
+    // Only sync hotbar for player-inventory items; ground/map items cannot be
+    // in hotbar slots and the extra work causes unnecessary UI churn.
+    const playerTag = getCpl()?.ob?.tag;
+    if (playerTag && location === playerTag) {
+      const sName = locateItem(tag)?.sName ?? '';
+      if (sName) hotbarChanged = updateHotbarSlotFromItem(sName, tag, face) || hotbarChanged;
+    }
   }
   gameEvents.emit('playerUpdate');
+  if (hotbarChanged) gameEvents.emit('hotbarUpdate');
 }
 
 export function UpdateItemCmd(data: DataView, len: number): void {
@@ -135,6 +151,7 @@ export function DeleteInventoryCmd(data: string): void {
 
 export function AddspellCmd(data: DataView, len: number): void {
   const reader = new BinaryReader(data, len);
+  let hotbarChanged = false;
   while (reader.remaining > 0) {
     const tag = reader.readInt32();
     const spellLevel = reader.readInt16();
@@ -166,8 +183,10 @@ export function AddspellCmd(data: DataView, len: number): void {
       skill: '', path, face, usage: 0, requirements: '',
     };
     spells.push(spell);
+    hotbarChanged = updateHotbarFacesFromSpell(name, face) || hotbarChanged;
   }
   gameEvents.emit('spellUpdate');
+  if (hotbarChanged) gameEvents.emit('hotbarUpdate');
 }
 
 export function UpdspellCmd(data: DataView, len: number): void {
