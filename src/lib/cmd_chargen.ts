@@ -188,8 +188,8 @@ export function parseNewCharInfo(data: Uint8Array): NewCharInfo {
   const dec = new TextDecoder();
   const result: NewCharInfo = {
     statPoints: 0,
-    statMin: 1,
-    statMax: 20,
+    statMin: 3,
+    statMax: 18,
     statNames: [...DEFAULT_STAT_NAMES],
     wantsStartingMap: false,
   };
