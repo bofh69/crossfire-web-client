@@ -162,6 +162,10 @@ function commandTake(args: string): void {
     sendCommand(`take ${what}`.trim(), 0, 1);
 }
 
+function commandClear(_args: string): void {
+    gameEvents.emit('clearMessages');
+}
+
 // ---------------------------------------------------------------------------
 // Debug command
 // ---------------------------------------------------------------------------
@@ -299,6 +303,7 @@ const builtinCommands: ConsoleCommand[] = [
         handler: commandGamepadBind,
     },
     { name: "help",         category: CommCat.Misc,  description: "Show help on commands",            handler: commandHelp },
+    { name: "clear",        category: CommCat.Misc,  description: "Clear the message panel",          handler: commandClear },
     { name: "magicmap",     category: CommCat.Misc,  description: "Show last received magic map",     handler: commandMagicmap },
     { name: "resetkeys",    category: CommCat.Setup, description: "Reset all key bindings to default",handler: commandResetKeys },
     { name: "take",         category: CommCat.Misc,  description: "Take items from the ground",       handler: commandTake },
