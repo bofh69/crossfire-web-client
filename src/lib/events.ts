@@ -110,6 +110,8 @@ export interface GameEventMap {
   // UI-internal events (component-to-component communication)
   /** Ask the InfoPanel to focus its command input field. */
   focusCommandInput: [prefill?: string];
+  /** Ask the InfoPanel to clear all displayed messages. */
+  clearMessages:     [];
   /** Ask the MenuBar to start a "bind last command to key" flow. */
   openKeyBind:       [];
   /** Ask the MenuBar to start a "bind last command to gamepad button" flow. */

@@ -187,6 +187,7 @@
       gameEvents.on('drawInfo', (color, message) => addMessage(color, message, null, null)),
       gameEvents.on('drawExtInfo', (color, type, subtype, message) => addMessage(color, message, type, subtype)),
       gameEvents.on('focusCommandInput', (prefill) => focusInput(prefill)),
+      gameEvents.on('clearMessages', () => { messages = []; }),
     ];
     return () => { for (const unsub of cleanups) unsub(); };
   });
