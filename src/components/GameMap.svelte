@@ -433,7 +433,17 @@
                 // Skip drawing if the image lies entirely outside the canvas.
                 if (drawX + drawW > 0 && drawY + drawH > 0 &&
                     drawX < canvasW && drawY < canvasH) {
+                  // Clip to the current cell's tile area so that each cell
+                  // only renders the portion of the bigface image that falls
+                  // within its own tile.  This ensures that Empty cells (which
+                  // are skipped by the guard above) are never painted over by
+                  // a neighbouring non-Empty head or tail cell.
+                  ctx.save();
+                  ctx.beginPath();
+                  ctx.rect(px, py, tileSize, tileSize);
+                  ctx.clip();
                   ctx.drawImage(img, drawX, drawY, drawW, drawH);
+                  ctx.restore();
                   imagesDrawn++;
                 }
               } else {
