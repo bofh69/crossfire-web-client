@@ -471,31 +471,50 @@
       }
     }
 
-    // Pass 3: darkness overlay (applied on top of all layers).
-    for (let vy = 0; vy < displayH; vy++) {
-      for (let vx = 0; vx < displayW; vx++) {
-        const ax = plPos.x + vx - startOffsetX;
-        const ay = plPos.y + vy - startOffsetY;
-        if (!mapdata_contains(ax, ay)) continue;
-        const cell = mapdata_cell(ax, ay);
-        if (cell.state === MapCellState.Empty) continue;
-
-        let alpha = 0;
-        if (cell.state === MapCellState.Visible) {
-          if (cell.darkness > 0) {
-            alpha = Math.min(cell.darkness / 255, 0.8);
+    // Pass 3: darkness overlay with bilinear interpolation.
+    // Build a small (displayW × displayH) darkness map and scale it up to the
+    // full canvas size so the browser's bilinear interpolation smooths the
+    // per-tile darkness/fog values into a continuous per-pixel gradient.
+    {
+      // Recreate the OffscreenCanvas and ImageData only when the tile-grid
+      // dimensions change so we avoid per-frame allocations.
+      if (darkCanvas === null || darkCanvasW !== displayW || darkCanvasH !== displayH) {
+        darkCanvas = new OffscreenCanvas(displayW, displayH);
+        darkCanvasCtx = darkCanvas.getContext('2d')!;
+        darkImageData = darkCanvasCtx.createImageData(displayW, displayH);
+        darkCanvasW = displayW;
+        darkCanvasH = displayH;
+      }
+      const darkCtx = darkCanvasCtx!;
+      const d = darkImageData!.data;
+      for (let vy = 0; vy < displayH; vy++) {
+        for (let vx = 0; vx < displayW; vx++) {
+          const ax = plPos.x + vx - startOffsetX;
+          const ay = plPos.y + vy - startOffsetY;
+          let alpha = 0;
+          if (mapdata_contains(ax, ay)) {
+            const cell = mapdata_cell(ax, ay);
+            if (cell.state === MapCellState.Visible && cell.darkness > 0) {
+              alpha = Math.min(cell.darkness / 255, 0.8);
+            } else if (cell.state === MapCellState.Fog) {
+              // Dim out-of-sight tiles to indicate they're no longer visible,
+              // matching the old client which added +0.2 opacity for fog-of-war cells.
+              alpha = Math.min(cell.darkness / 255 + 0.2, 0.8);
+            }
           }
-        } else if (cell.state === MapCellState.Fog) {
-          // Dim out-of-sight tiles to indicate they're no longer visible,
-          // matching the old client which added +0.2 opacity for fog-of-war cells.
-          alpha = Math.min(cell.darkness / 255 + 0.2, 0.8);
-        }
-
-        if (alpha > 0) {
-          ctx.fillStyle = `rgba(0, 0, 0, ${alpha})`;
-          ctx.fillRect(vx * tileSize, vy * tileSize, tileSize, tileSize);
+          // R, G, B = 0 (black overlay); A = darkness alpha scaled to 0-255.
+          // Since R=G=B=0 everywhere, premultiplied-alpha bilinear interpolation
+          // and straight-alpha interpolation are identical, so scaling is correct.
+          d[(vy * displayW + vx) * 4 + 3] = Math.round(alpha * 255);
         }
       }
+      darkCtx.putImageData(darkImageData!, 0, 0);
+      // Scale up the darkness map with bilinear interpolation so darkness
+      // transitions smoothly at the per-pixel level rather than per-tile.
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(darkCanvas, 0, 0, canvasW, canvasH);
+      ctx.imageSmoothingEnabled = false;
     }
 
     // Pass 4: draw labels on top of everything (matching old C client's map_draw_labels).
@@ -614,6 +633,14 @@
       lastStatsTime = now;
     }
   }
+
+  // Cached OffscreenCanvas used in Pass 3 for the bilinear darkness overlay.
+  // Recreated only when the display tile-grid dimensions change.
+  let darkCanvas: OffscreenCanvas | null = null;
+  let darkCanvasCtx: OffscreenCanvasRenderingContext2D | null = null;
+  let darkImageData: ImageData | null = null;
+  let darkCanvasW = 0;
+  let darkCanvasH = 0;
 
   const imageCache = new Map<string, HTMLImageElement>();
   /** URLs for which a load is already in flight. */
