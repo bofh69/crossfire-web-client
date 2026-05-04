@@ -471,6 +471,77 @@
       }
     }
 
+    // Pass 2.5: grayscale overlay for fog-of-war cells.
+    // Fog cells (and Empty / out-of-bounds) are desaturated; Visible cells
+    // remain in full colour.  Cells that straddle the Visible/Fog boundary get
+    // a smooth per-pixel fade because the 1-pixel-per-tile mask is bilinearly
+    // scaled up to the full canvas resolution before being composited.
+    {
+      // --- grayCanvas: full-resolution grayscale copy of the drawn tiles -----
+      if (grayCanvas === null || grayCanvasW !== canvasW || grayCanvasH !== canvasH) {
+        grayCanvas = new OffscreenCanvas(canvasW, canvasH);
+        grayCanvasCtx = grayCanvas.getContext('2d')!;
+        grayCanvasW = canvasW;
+        grayCanvasH = canvasH;
+      }
+      const grayCtx = grayCanvasCtx!;
+      // Draw the current (coloured) main canvas into grayCanvas with a
+      // CSS grayscale filter so every pixel is fully desaturated.
+      grayCtx.filter = 'grayscale(1)';
+      grayCtx.drawImage(c, 0, 0);
+      grayCtx.filter = 'none';
+
+      // --- grayMaskCanvas: 1 px per tile mask (alpha = grayscale strength) ---
+      if (grayMaskCanvas === null || grayMaskCanvasW !== displayW || grayMaskCanvasH !== displayH) {
+        grayMaskCanvas = new OffscreenCanvas(displayW, displayH);
+        grayMaskCtx = grayMaskCanvas.getContext('2d')!;
+        grayMaskImageData = grayMaskCtx.createImageData(displayW, displayH);
+        grayMaskCanvasW = displayW;
+        grayMaskCanvasH = displayH;
+      }
+      const gm = grayMaskImageData!.data;
+      for (let vy = 0; vy < displayH; vy++) {
+        for (let vx = 0; vx < displayW; vx++) {
+          const ax = plPos.x + vx - startOffsetX;
+          const ay = plPos.y + vy - startOffsetY;
+          // Visible cells → no grayscale (alpha 0).
+          // Fog, Empty and out-of-bounds → full grayscale (alpha 255).
+          let maskAlpha = 255;
+          if (mapdata_contains(ax, ay)) {
+            const cell = mapdata_cell(ax, ay);
+            if (cell.state === MapCellState.Visible) {
+              maskAlpha = 0;
+            }
+            // Fog and Empty fall through → maskAlpha stays 255.
+          }
+          // R=G=B=255 (white) so destination-in keeps the grayscale pixels
+          // at their original luminance; only alpha controls blending.
+          const idx = (vy * displayW + vx) * 4;
+          gm[idx] = 255;
+          gm[idx + 1] = 255;
+          gm[idx + 2] = 255;
+          gm[idx + 3] = maskAlpha;
+        }
+      }
+      grayMaskCtx!.putImageData(grayMaskImageData!, 0, 0);
+
+      // Scale the mask up onto grayCanvas with bilinear interpolation so the
+      // Visible/Fog boundary fades smoothly across pixels rather than snapping
+      // at tile edges.  destination-in clips grayCanvas to the mask's alpha.
+      grayCtx.globalCompositeOperation = 'destination-in';
+      grayCtx.imageSmoothingEnabled = true;
+      grayCtx.imageSmoothingQuality = 'high';
+      grayCtx.drawImage(grayMaskCanvas, 0, 0, canvasW, canvasH);
+      grayCtx.imageSmoothingEnabled = false;
+      grayCtx.globalCompositeOperation = 'source-over';
+
+      // Composite the masked grayscale layer back onto the main canvas.
+      // Where the mask was fully transparent (Visible) grayCanvas contributes
+      // nothing, so the original colour tiles show through.  Where the mask was
+      // opaque (Fog/Empty) the grayscale pixels overwrite the colour ones.
+      ctx.drawImage(grayCanvas, 0, 0);
+    }
+
     // Pass 3: darkness overlay with bilinear interpolation.
     // Build a small (displayW × displayH) darkness map and scale it up to the
     // full canvas size so the browser's bilinear interpolation smooths the
@@ -638,6 +709,19 @@
       lastStatsTime = now;
     }
   }
+
+  // Cached OffscreenCanvas used in Pass 2.5 for the grayscale fog overlay.
+  // grayCanvas is full-resolution (canvasW × canvasH); grayMaskCanvas is
+  // 1 px per tile (displayW × displayH) and is scaled up bilinearly.
+  let grayCanvas: OffscreenCanvas | null = null;
+  let grayCanvasCtx: OffscreenCanvasRenderingContext2D | null = null;
+  let grayCanvasW = 0;
+  let grayCanvasH = 0;
+  let grayMaskCanvas: OffscreenCanvas | null = null;
+  let grayMaskCtx: OffscreenCanvasRenderingContext2D | null = null;
+  let grayMaskImageData: ImageData | null = null;
+  let grayMaskCanvasW = 0;
+  let grayMaskCanvasH = 0;
 
   // Cached OffscreenCanvas used in Pass 3 for the bilinear darkness overlay.
   // Recreated only when the display tile-grid dimensions change.
