@@ -691,6 +691,7 @@
     // that tick-triggered redraws are suppressed until real-time and tick-time
     // are back in sync.  Example: elapsed=500ms → skip 3 ticks (render on the
     // 4th), because 500ms / 125ms = 4 ticks worth of time has already passed.
+    //
     if (elapsed > SELF_TICK_INTERVAL_MS) {
       tickSkipsRemaining = Math.floor(elapsed / SELF_TICK_INTERVAL_MS) - 1;
     }
