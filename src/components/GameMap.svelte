@@ -491,16 +491,21 @@
         for (let vx = 0; vx < displayW; vx++) {
           const ax = plPos.x + vx - startOffsetX;
           const ay = plPos.y + vy - startOffsetY;
-          let alpha = 0;
+          // Empty and out-of-bounds cells are treated as fully dark so that
+          // bilinear interpolation fades visible/fog cells to darkness at the
+          // map edge rather than to transparent (which would make the edge
+          // appear brighter than the surrounding darkness).
+          let alpha = 0.8;
           if (mapdata_contains(ax, ay)) {
             const cell = mapdata_cell(ax, ay);
-            if (cell.state === MapCellState.Visible && cell.darkness > 0) {
-              alpha = Math.min(cell.darkness / 255, 0.8);
+            if (cell.state === MapCellState.Visible) {
+              alpha = cell.darkness > 0 ? Math.min(cell.darkness / 255, 0.8) : 0;
             } else if (cell.state === MapCellState.Fog) {
               // Dim out-of-sight tiles to indicate they're no longer visible,
               // matching the old client which added +0.2 opacity for fog-of-war cells.
               alpha = Math.min(cell.darkness / 255 + 0.2, 0.8);
             }
+            // MapCellState.Empty falls through — treated as fully dark (alpha=0.8).
           }
           // R, G, B = 0 (black overlay); A = darkness alpha scaled to 0-255.
           // Since R=G=B=0 everywhere, premultiplied-alpha bilinear interpolation
