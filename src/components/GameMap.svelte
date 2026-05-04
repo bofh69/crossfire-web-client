@@ -476,7 +476,7 @@
     // remain in full colour.  Cells that straddle the Visible/Fog boundary get
     // a smooth per-pixel fade because the 1-pixel-per-tile mask is bilinearly
     // scaled up to the full canvas resolution before being composited.
-    {
+    if (useConfig.fogGrayscale) {
       // --- grayCanvas: full-resolution grayscale copy of the drawn tiles -----
       if (grayCanvas === null || grayCanvasW !== canvasW || grayCanvasH !== canvasH) {
         grayCanvas = new OffscreenCanvas(canvasW, canvasH);

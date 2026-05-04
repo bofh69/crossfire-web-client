@@ -1,6 +1,7 @@
 <script lang="ts">
   import { getMusicMuted, getSfxMuted, setMusicMuted, setSfxMuted } from '../../lib/sound';
   import { gameEvents } from '../../lib/events';
+  import { useConfig, wantConfig, saveCurrentConfig } from '../../lib/init';
 
   interface Props {
     fading: boolean;
@@ -12,6 +13,7 @@
 
   let musicMuted = $state(getMusicMuted());
   let sfxMuted = $state(getSfxMuted());
+  let fogGrayscale = $state(useConfig.fogGrayscale);
 
   function toggleMusicMute() {
     musicMuted = !musicMuted;
@@ -22,6 +24,14 @@
   function toggleSfxMute() {
     sfxMuted = !sfxMuted;
     setSfxMuted(sfxMuted);
+    onClose();
+  }
+
+  function toggleFogGrayscale() {
+    fogGrayscale = !fogGrayscale;
+    useConfig.fogGrayscale = fogGrayscale;
+    wantConfig.fogGrayscale = fogGrayscale;
+    saveCurrentConfig();
     onClose();
   }
 
@@ -48,6 +58,11 @@
         onclick={toggleSfxMute}
         oncontextmenu={(e) => { e.preventDefault(); toggleSfxMute(); }}
       >{sfxMuted ? 'Unmute Sound Effects' : 'Mute Sound Effects'}</button>
+      <div class="separator"></div>
+      <button
+        onclick={toggleFogGrayscale}
+        oncontextmenu={(e) => { e.preventDefault(); toggleFogGrayscale(); }}
+      >{fogGrayscale ? 'Disable Grayscale Fog of War' : 'Enable Grayscale Fog of War'}</button>
       <div class="separator"></div>
       <button
         onclick={handleZoomIn}
