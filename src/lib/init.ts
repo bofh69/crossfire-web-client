@@ -60,6 +60,7 @@ export interface ClientConfig {
     serverTicks: boolean;       // CONFIG_SERVER_TICKS    = 35
     debounce: boolean;          // CONFIG_DEBOUNCE        = 36
     fogGrayscale: boolean;      // (web-client only) desaturate fog-of-war cells
+    darknessInterpolation: boolean; // (web-client only) bilinear-interpolate darkness overlay
 
     // --- numeric values ---
     cWindow: number;            // CONFIG_CWINDOW         = 4  (command-window depth)
@@ -141,7 +142,8 @@ const CONFIG_DESCS: (ConfigDesc | null)[] = [
     { key: 'musicVol',       name: 'music_vol'            },                 // 34 CONFIG_MUSIC_VOL
     { key: 'serverTicks',    name: 'server_ticks'         },                 // 35 CONFIG_SERVER_TICKS
     { key: 'debounce',       name: 'debounce'             },                 // 36 CONFIG_DEBOUNCE
-    { key: 'fogGrayscale',   name: 'fog_grayscale'        },                 // (web-only)
+    { key: 'fogGrayscale',           name: 'fog_grayscale'            },                 // (web-only)
+    { key: 'darknessInterpolation',  name: 'darkness_interpolation'   },                 // (web-only)
 ];
 
 /** Desired configuration values. */
@@ -195,8 +197,9 @@ function initConfig(): void {
     wantConfig.tooltips       = true;
     wantConfig.triminfo       = false;
     wantConfig.autoAfk        = 300;
-    wantConfig.fogGrayscale   = true;
-    wantConfig.loginMethod    = 2;
+    wantConfig.fogGrayscale         = true;
+    wantConfig.darknessInterpolation = true;
+    wantConfig.loginMethod          = 2;
 
     Object.assign(useConfig, wantConfig);
 }

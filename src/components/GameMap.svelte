@@ -587,7 +587,7 @@
       darkCtx.putImageData(darkImageData!, 0, 0);
       // Scale up the darkness map with bilinear interpolation so darkness
       // transitions smoothly at the per-pixel level rather than per-tile.
-      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingEnabled = useConfig.darknessInterpolation;
       ctx.imageSmoothingQuality = 'high';
       ctx.drawImage(darkCanvas, 0, 0, canvasW, canvasH);
       ctx.imageSmoothingEnabled = false;

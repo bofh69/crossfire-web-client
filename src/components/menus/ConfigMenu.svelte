@@ -14,6 +14,7 @@
   let musicMuted = $state(getMusicMuted());
   let sfxMuted = $state(getSfxMuted());
   let fogGrayscale = $state(useConfig.fogGrayscale);
+  let darknessInterpolation = $state(useConfig.darknessInterpolation);
 
   function toggleMusicMute() {
     musicMuted = !musicMuted;
@@ -31,6 +32,14 @@
     fogGrayscale = !fogGrayscale;
     useConfig.fogGrayscale = fogGrayscale;
     wantConfig.fogGrayscale = fogGrayscale;
+    saveCurrentConfig();
+    onClose();
+  }
+
+  function toggleDarknessInterpolation() {
+    darknessInterpolation = !darknessInterpolation;
+    useConfig.darknessInterpolation = darknessInterpolation;
+    wantConfig.darknessInterpolation = darknessInterpolation;
     saveCurrentConfig();
     onClose();
   }
@@ -63,6 +72,10 @@
         onclick={toggleFogGrayscale}
         oncontextmenu={(e) => { e.preventDefault(); toggleFogGrayscale(); }}
       >{fogGrayscale ? 'Disable Grayscale Fog of War' : 'Enable Grayscale Fog of War'}</button>
+      <button
+        onclick={toggleDarknessInterpolation}
+        oncontextmenu={(e) => { e.preventDefault(); toggleDarknessInterpolation(); }}
+      >{darknessInterpolation ? 'Disable Darkness Interpolation' : 'Enable Darkness Interpolation'}</button>
       <div class="separator"></div>
       <button
         onclick={handleZoomIn}
