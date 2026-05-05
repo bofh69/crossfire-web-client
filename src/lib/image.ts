@@ -10,7 +10,6 @@ import {
     getStringFromData,
 } from './newsocket.js';
 import { BinaryReader } from './binary_reader.js';
-import { saveCacheData, loadCacheData } from './storage.js';
 import { LOG } from './misc.js';
 import { LogLevel, MAXPIXMAPNUM, MAX_FACE_SETS } from './protocol.js';
 import { TILE_SIZE } from './constants.js';
@@ -304,19 +303,6 @@ export function Face2Cmd(data: DataView, len: number): void {
 
     faceToName.set(pnum, faceName);
     faceChecksums.set(pnum, checksum);
-
-    // Try to load from the browser cache first
-    loadCacheData(`face_${pnum}_${checksum}`).then((cached) => {
-        if (cached instanceof Blob) {
-            faceInfo.cacheHits++;
-            applyFaceBlob(pnum, cached);
-        } else {
-            // Image not cached – the server will send image data via Image2Cmd
-            faceInfo.cacheMisses++;
-        }
-    }).catch(() => {
-        faceInfo.cacheMisses++;
-    });
 }
 
 // ---------------------------------------------------------------------------
@@ -353,17 +339,6 @@ export function Image2Cmd(data: DataView, len: number): void {
     // Register the face synchronously so sizeX/sizeY in mapdata are correct
     // when a subsequent map2 packet in the same receive loop references this face.
     applyFacePngBytes(pnum, pngBytes);
-
-    // Persist to browser cache (using a Blob for storage compatibility)
-    const checksum = faceChecksums.get(pnum) ?? 0;
-    const blob = new Blob([pngBytes], { type: 'image/png' });
-    saveCacheData(`face_${pnum}_${checksum}`, blob).catch(() => {
-        LOG(LogLevel.Warning, 'Image2Cmd', `Failed to cache face ${pnum}`);
-    });
-
-    // Clean up temporary name mapping
-    faceToName.delete(pnum);
-    faceChecksums.delete(pnum);
 }
 
 // ---------------------------------------------------------------------------
@@ -520,36 +495,6 @@ function readPngDimensionsSync(pngBytes: Uint8Array): { w: number; h: number } {
     const w = (pngBytes[16]! << 24 | pngBytes[17]! << 16 | pngBytes[18]! << 8 | pngBytes[19]!) >>> 0;
     const h = (pngBytes[20]! << 24 | pngBytes[21]! << 16 | pngBytes[22]! << 8 | pngBytes[23]!) >>> 0;
     return { w: w || 32, h: h || 32 };
-}
-
-/**
- * Create a Blob URL from a PNG Blob, extract its dimensions via an
- * off-screen image element, and store the results.
- * For the real-time image path (Image2Cmd), prefer applyFacePngBytes so
- * the dimensions are set synchronously before map data references the face.
- */
-function applyFaceBlob(pnum: number, blob: Blob): void {
-    // Revoke any previous URL for this face to avoid memory leaks
-    const oldUrl = faceUrls.get(pnum);
-    if (oldUrl) {
-        URL.revokeObjectURL(oldUrl);
-    }
-
-    const url = URL.createObjectURL(blob);
-    faceUrls.set(pnum, url);
-
-    // Decode image dimensions asynchronously (used for cached blobs)
-    if (typeof createImageBitmap === 'function') {
-        createImageBitmap(blob).then((bmp) => {
-            faceSizes.set(pnum, { w: bmp.width, h: bmp.height });
-            bmp.close();
-        }).catch(() => {
-            faceSizes.set(pnum, { w: 32, h: 32 });
-        });
-    } else {
-        // Fallback: assume default tile size
-        faceSizes.set(pnum, { w: 32, h: 32 });
-    }
 }
 
 /**
