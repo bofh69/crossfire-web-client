@@ -85,9 +85,9 @@
   <div class="attributes">
     <div class="attr-header">
       <span></span>
-      <span class="attr-col-label">Total</span>
-      <span class="attr-col-label">Base</span>
-      <span class="attr-col-label">Race</span>
+      <span class="attr-col-label">Real</span>
+      <span class="attr-col-label">Nat</span>
+      <span class="attr-col-label">Max</span>
       <span class="attr-col-label">Applied</span>
     </div>
     {#each [
@@ -104,7 +104,7 @@
         <span class="attr-total">{attr.total}</span>
         {#if attr.base !== 0 || attr.race !== 0 || attr.applied !== 0}
           <span class="attr-sub">{attr.base}</span>
-          <span class="attr-sub">{attr.race > 0 ? '+' : ''}{attr.race}</span>
+          <span class="attr-sub">{attr.race}</span>
           <span class="attr-sub">{attr.applied > 0 ? '+' : ''}{attr.applied}</span>
         {:else}
           <span class="attr-sub attr-unavail">—</span>
