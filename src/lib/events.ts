@@ -108,6 +108,8 @@ export interface GameEventMap {
   startingMapReceived: [maps: StartingMapEntry[]];
 
   // UI-internal events (component-to-component communication)
+  /** Hiscore data received in response to a menu-triggered request. */
+  hiscoreResult:     [message: string];
   /** Ask the InfoPanel to focus its command input field. */
   focusCommandInput: [prefill?: string];
   /** Ask the InfoPanel to clear all displayed messages. */

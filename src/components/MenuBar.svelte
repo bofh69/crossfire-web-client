@@ -3,7 +3,7 @@
   import PickupMenu from './PickupMenu.svelte';
   import ConnectionMenu from './menus/ConnectionMenu.svelte';
   import ConfigMenu from './menus/ConfigMenu.svelte';
-  import HelpMenu from './menus/HelpMenu.svelte';
+  import InfoMenu from './menus/InfoMenu.svelte';
   import KeyboardMenu from './menus/KeyboardMenu.svelte';
   import GamepadMenu from './menus/GamepadMenu.svelte';
   import { gameEvents } from '../lib/events';
@@ -17,7 +17,7 @@
   let pickupMenu: PickupMenu | undefined = $state();
   let keyboardMenu: KeyboardMenu | undefined = $state();
   let gamepadMenu: GamepadMenu | undefined = $state();
-  let helpMenu: HelpMenu | undefined = $state();
+  let infoMenu: InfoMenu | undefined = $state();
 
   /** Milliseconds after the cursor leaves the menu-bar before the open dropdown closes. */
   const MENU_FADE_MS = 2000;
@@ -84,7 +84,7 @@
   export function isDialogActive(): boolean {
     return (keyboardMenu?.isDialogActive() ?? false)
       || (gamepadMenu?.isDialogActive() ?? false)
-      || (helpMenu?.isDialogActive() ?? false);
+      || (infoMenu?.isDialogActive() ?? false);
   }
 </script>
 
@@ -109,7 +109,7 @@
   <KeyboardMenu bind:this={keyboardMenu} fading={menuFading} isOpen={activeMenu === 'keyboard'} onToggle={() => toggleMenu('keyboard')} onClose={closeMenu} />
   <GamepadMenu bind:this={gamepadMenu} fading={menuFading} isOpen={activeMenu === 'gamepad'} onToggle={() => toggleMenu('gamepad')} onClose={closeMenu} />
   <ConfigMenu fading={menuFading} isOpen={activeMenu === 'config'} onToggle={() => toggleMenu('config')} onClose={closeMenu} />
-  <HelpMenu bind:this={helpMenu} fading={menuFading} isOpen={activeMenu === 'help'} onToggle={() => toggleMenu('help')} onClose={closeMenu} />
+  <InfoMenu bind:this={infoMenu} fading={menuFading} isOpen={activeMenu === 'help'} onToggle={() => toggleMenu('help')} onClose={closeMenu} />
 
   <div class="spacer"></div>
   {#if currentRange}

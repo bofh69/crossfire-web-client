@@ -11,12 +11,13 @@
  * existing import sites continue to work unchanged.
  */
 
-import { NDI_COLOR_MASK, CS_STAT_SKILLINFO, CS_NUM_SKILLS } from './protocol.js';
+import { NDI_COLOR_MASK, CS_STAT_SKILLINFO, CS_NUM_SKILLS, MSG_TYPE_ADMIN, MSG_TYPE_ADMIN_HISCORE, SC_ALWAYS } from './protocol.js';
+
 import { getStringFromData, CrossfireSocket } from './newsocket.js';
 import { BinaryReader } from './binary_reader.js';
 import { setCSocket as setItemSocket } from './item.js';
 import { getImageInfo, getImageSums, Face2Cmd as imageFace2Cmd, Image2Cmd as imageImage2Cmd } from './image.js';
-import { notifyNcomAck } from './player.js';
+import { getLastNcomSeqSent, notifyNcomAck, sendCommand } from './player.js';
 import { LOG } from './misc.js';
 import { LogLevel } from './protocol.js';
 import { gameEvents, type AccountPlayer } from './events.js';
@@ -47,6 +48,44 @@ import {
 import { Sound2Cmd, MusicCmd } from './cmd_sound.js';
 import { AddQuestCmd, UpdQuestCmd, AddKnowledgeCmd, parseKnowledgeInfo } from './cmd_notifications.js';
 
+// ── Hiscore menu tracking ──────────────────────────────────────────────────
+
+/**
+ * ncom sequence number of the pending menu-initiated hiscore command,
+ * or -1 if no such request is in-flight.
+ */
+let hiscoreNcomSeq = -1;
+
+/**
+ * Lines buffered from ADMIN_HISCORE drawextinfo messages while the hiscore
+ * command is in-flight.  Emitted as a single 'hiscoreResult' event when the
+ * matching comc arrives.
+ */
+let hiscoreBuffer: string[] = [];
+
+/**
+ * Send the "hiscore" command on behalf of the Info menu.
+ * Lines will be buffered until the matching comc is received, then emitted
+ * as a 'hiscoreResult' event (shown in a dialog) rather than forwarded to
+ * the InfoPanel.
+ */
+export function requestMenuHiscore(): void {
+  if (hiscoreNcomSeq !== -1) return; // request already in-flight
+  hiscoreBuffer = [];
+  sendCommand('hiscore', 0, SC_ALWAYS);
+  hiscoreNcomSeq = getLastNcomSeqSent();
+}
+
+/**
+ * Cancel any pending menu hiscore request (called when the menu unmounts).
+ * Clears buffered lines so subsequent ADMIN_HISCORE responses go to the
+ * InfoPanel as normal.
+ */
+export function cancelPendingMenuHiscore(): void {
+  hiscoreNcomSeq = -1;
+  hiscoreBuffer = [];
+}
+
 // ── Socket management ──────────────────────────────────────────────────────
 
 export function setSocket(sock: CrossfireSocket): void {
@@ -64,6 +103,11 @@ function DrawInfoCmd(data: string): void {
   gameEvents.emit('drawInfo', color & NDI_COLOR_MASK, message);
 }
 
+/** Returns true when a drawextinfo message should be buffered for the hiscore dialog. */
+function shouldBufferHiscoreMessage(type: number, subtype: number): boolean {
+  return type === MSG_TYPE_ADMIN && subtype === MSG_TYPE_ADMIN_HISCORE && hiscoreNcomSeq !== -1;
+}
+
 function DrawExtInfoCmd(data: string): void {
   const s1 = data.indexOf(' ');
   const s2 = s1 >= 0 ? data.indexOf(' ', s1 + 1) : -1;
@@ -75,6 +119,10 @@ function DrawExtInfoCmd(data: string): void {
   const message = s3 >= 0 ? data.substring(s3 + 1) : '';
   if (maybeCaptureMapinfoExtInfo(color, type, subtype, message)) {
     // Captured for mapinfo comc processing — not forwarded to InfoPanel yet.
+    return;
+  }
+  if (shouldBufferHiscoreMessage(type, subtype)) {
+    hiscoreBuffer.push(message);
     return;
   }
   gameEvents.emit('drawExtInfo', color & NDI_COLOR_MASK, type, subtype, message);
@@ -102,6 +150,15 @@ function ComcCmd(data: DataView, len: number): void {
   }
   const seq = new BinaryReader(data, len).readInt16();
   notifyNcomAck(seq);
+
+  // If this comc acknowledges the pending hiscore command, emit all buffered
+  // lines as a single hiscoreResult event.
+  if (hiscoreNcomSeq !== -1 && seq === hiscoreNcomSeq) {
+    const text = hiscoreBuffer.join('\n');
+    hiscoreNcomSeq = -1;
+    hiscoreBuffer = [];
+    gameEvents.emit('hiscoreResult', text);
+  }
 
   // If this comc acknowledges the pending mapinfo command, process the
   // buffered drawextinfo entries: extract the map path and forward any
