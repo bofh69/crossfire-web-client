@@ -49,6 +49,53 @@ let currentMapKey = '';
 /** ncom sequence number of the pending `mapinfo` command, or -1 if not pending. */
 let mapinfoNcomSeq = -1;
 
+/**
+ * Number of server `newmap` packets that must be ignored because they are
+ * responses to our own outstanding "setup mapsize" requests.
+ */
+let pendingMapsizeSuppressions = 0;
+
+/** Last mapsize requested by the client (used to learn server-side clamping). */
+let lastRequestedMapsizeW = -1;
+let lastRequestedMapsizeH = -1;
+
+/**
+ * Learned upper bound on effective server mapsize, inferred when the server
+ * acknowledges a request with both width and height smaller than requested.
+ * A zero value means "unknown".
+ */
+let learnedMapsizeCapW = 0;
+let learnedMapsizeCapH = 0;
+
+/**
+ * Call this before sending a "setup mapsize" command to the server.
+ *
+ * Returns false when the request should be skipped:
+ *  - another mapsize request is already outstanding (awaiting its `newmap`)
+ *  - the request is larger than a previously learned server cap in both dims
+ *
+ * Returns true when the request should be sent and arms the guard in
+ * {@link NewmapCmd} so that the server-triggered `newmap` packet is ignored.
+ */
+export function notifyMapsizeSent(width: number, height: number): boolean {
+  if (pendingMapsizeSuppressions > 0) {
+    return false;
+  }
+  if (
+    learnedMapsizeCapW > 0 &&
+    learnedMapsizeCapH > 0 &&
+    width > learnedMapsizeCapW &&
+    height > learnedMapsizeCapH
+  ) {
+    return false;
+  }
+
+  lastRequestedMapsizeW = width;
+  lastRequestedMapsizeH = height;
+  pendingMapsizeSuppressions++;
+  return true;
+}
+
 /** A captured drawextinfo entry (type=MSG_TYPE_COMMAND, subtype=0). */
 export interface DrawExtInfoEntry {
   color: number;
@@ -184,6 +231,11 @@ export function SetupCmd(data: string): void {
     if (key === 'mapsize' && value !== 'FALSE') {
       const [w = NaN, h = NaN] = value.split('x').map(Number);
       if (!isNaN(w) && !isNaN(h) && w > 0 && h > 0) {
+        if (lastRequestedMapsizeW > 0 && lastRequestedMapsizeH > 0 &&
+            w < lastRequestedMapsizeW && h < lastRequestedMapsizeH) {
+          learnedMapsizeCapW = w;
+          learnedMapsizeCapH = h;
+        }
         useConfig.mapWidth = w;
         useConfig.mapHeight = h;
         mapdata_set_size(w, h);
@@ -204,6 +256,13 @@ export function SetupCmd(data: string): void {
 }
 
 export function NewmapCmd(): void {
+  if (pendingMapsizeSuppressions > 0) {
+    pendingMapsizeSuppressions--;
+    // This newmap was triggered by our own "setup mapsize" request.
+    // The server will follow it with the accepted size in a SetupCmd.
+    // The player has not changed maps, so fog data must be preserved.
+    return;
+  }
   mapdata_save_fog(currentMapKey);
   mapdata_newmap();
   gameEvents.emit('newMap');
