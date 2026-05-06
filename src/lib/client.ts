@@ -15,6 +15,7 @@ import {
     setSocket as setCommandsSocket,
     clearNotifications,
 } from "./commands";
+import { notifyMapsizeSent } from "./cmd_map";
 import { gameEvents } from "./events";
 import { wantConfig, useConfig } from "./init";
 import { setSocket as setPlayerSocket } from "./player";
@@ -166,8 +167,12 @@ export function sendAddMe(): void {
 /**
  * Request a specific map size from the server.
  */
-export function clientMapsize(width: number, height: number): void {
+export function clientMapsize(width: number, height: number): boolean {
+    if (!notifyMapsizeSent(width, height)) {
+        return false;
+    }
     csocket?.sendString(`setup mapsize ${width}x${height}`);
+    return true;
 }
 
 /**

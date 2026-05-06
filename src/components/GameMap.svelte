@@ -97,11 +97,12 @@
     const desiredW = Math.ceil(containerW / tileSize);
     const desiredH = Math.ceil(containerH / tileSize);
     if (desiredW === lastRequestedW && desiredH === lastRequestedH) return;
-    lastRequestedW = desiredW;
-    lastRequestedH = desiredH;
     wantConfig.mapWidth = desiredW;
     wantConfig.mapHeight = desiredH;
-    clientMapsize(desiredW, desiredH);
+    if (clientMapsize(desiredW, desiredH)) {
+      lastRequestedW = desiredW;
+      lastRequestedH = desiredH;
+    }
   });
 
   /** Whether a requestAnimationFrame callback is already pending. */

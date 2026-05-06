@@ -707,12 +707,17 @@ export function mapdata_can_smooth(x: number, y: number, layer: number): boolean
  * function, and whenever a new display size is negotiated with the server.
  */
 export function mapdata_set_size(viewx: number, viewy: number): void {
-    mapdata_free();
-    mapdataInit();
+    if (mapWidth === 0) {
+        // First call: allocate the virtual map from scratch.
+        mapdataInit();
+    } else if (viewWidth > 0 && viewHeight > 0) {
+        // Adjust pl_pos so the player centre stays at the same absolute
+        // position when the viewport dimensions change.
+        pl_pos.x += Math.floor(viewWidth / 2) - Math.floor(viewx / 2);
+        pl_pos.y += Math.floor(viewHeight / 2) - Math.floor(viewy / 2);
+    }
     viewWidth = viewx;
     viewHeight = viewy;
-    pl_pos.x = Math.floor(mapWidth / 2 - viewWidth / 2);
-    pl_pos.y = Math.floor(mapHeight / 2 - viewHeight / 2);
 }
 
 /** Deallocate all map data. */
