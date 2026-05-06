@@ -8,6 +8,7 @@
   import { getFaceUrl } from '../lib/image';
   import HotbarSlotPicker from './HotbarSlotPicker.svelte';
   import ContextMenu from './ContextMenu.svelte';
+  import { capitalizeFirstLetter } from '../lib/misc';
 
   let spellList: Spell[] = $state([]);
   let contextMenu = $state<{ x: number; y: number; spell: Spell } | null>(null);
@@ -90,7 +91,7 @@
                   <span class="spell-icon-placeholder"></span>
                 {/if}
               </td>
-              <td class="spell-name">{spell.name}</td>
+              <td class="spell-name">{capitalizeFirstLetter(spell.name)}</td>
               <td>{spell.level}</td>
               <td>{spell.sp > 0 ? spell.sp : '-'}</td>
               <td>{spell.grace > 0 ? spell.grace : '-'}</td>

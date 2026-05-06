@@ -5,6 +5,11 @@
 
 import { LogLevel } from "./protocol";
 
+/** Capitalize the first letter of a string. */
+export function capitalizeFirstLetter(s: string) : string {
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
 /** Minimum log level; messages below this threshold are suppressed. */
 export let minLog: LogLevel = LogLevel.Debug;
 

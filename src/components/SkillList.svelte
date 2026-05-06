@@ -7,6 +7,7 @@
   import { setHotbarSlot } from '../lib/hotbar';
   import HotbarSlotPicker from './HotbarSlotPicker.svelte';
   import ContextMenu from './ContextMenu.svelte';
+  import { capitalizeFirstLetter } from '../lib/misc';
 
   interface SkillEntry {
     index: number;
@@ -102,7 +103,7 @@
               oncontextmenu={(e: MouseEvent) => handleContextMenu(e, skill)}
               title={skill.description || undefined}
             >
-              <td class="skill-name">{skill.name}</td>
+              <td class="skill-name">{capitalizeFirstLetter(skill.name)}</td>
               <td>{skill.level}</td>
               <td class="exp-cell">
                 <div class="exp-bar" style:width="{expBarPercent(skill.exp, skill.level)}%"></div>

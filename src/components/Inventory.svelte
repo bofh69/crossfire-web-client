@@ -11,6 +11,7 @@
   import HotbarSlotPicker from './HotbarSlotPicker.svelte';
   import ContextMenu from './ContextMenu.svelte';
   import { loadConfig, saveConfig } from '../lib/storage';
+  import { capitalizeFirstLetter } from '../lib/misc';
 
   interface FlatItem {
     tag: number;
@@ -369,7 +370,7 @@
             <span class="item-icon-placeholder">?</span>
           {/if}
           <span class="item-name">
-            {item.name}
+            {capitalizeFirstLetter(item.name)}
             {#if item.open}📂{/if}
             {#if item.locked}🔒{/if}
             {#if item.applied}*{/if}
@@ -409,7 +410,7 @@
             <span class="item-icon-placeholder">?</span>
           {/if}
           <span class="item-name">
-            {item.name}
+            {capitalizeFirstLetter(item.name)}
             {#if item.open}📂{/if}
           </span>
           <span class="item-weight">{formatWeight(item.weight)}</span>

@@ -7,6 +7,7 @@
   import { sendCommand } from '../lib/player';
   import { NDI_NAVY } from '../lib/protocol';
   import ContextMenu from './ContextMenu.svelte';
+  import { capitalizeFirstLetter } from '../lib/misc';
 
   let items: KnowledgeItem[] = $state([]);
   let contextMenu = $state<{ x: number; y: number; item: KnowledgeItem } | null>(null);
@@ -79,7 +80,7 @@
                   <img src={getFaceUrl(item.face)} alt="" class="knowledge-icon" />
                 {/if}
               </td>
-              <td class="knowledge-title">{item.title}</td>
+              <td class="knowledge-title">{capitalizeFirstLetter(item.title)}</td>
               <td class="knowledge-type">{typeLabel(item.type)}</td>
             </tr>
           {/each}
