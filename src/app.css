@@ -45,7 +45,9 @@ body {
 
 #app {
   width: 100vw;
+  width: 100dvw;
   height: 100vh;
+  height: 100dvh;
 }
 
 #no-js-message {
@@ -66,7 +68,9 @@ body {
   grid-template-columns: 1fr var(--side-width, clamp(188px, 13.4vw, 335px));
   grid-template-rows: clamp(16px, 1.7vh, 19px) clamp(35px, 4vh, 43px) 1fr var(--info-height, clamp(94px, 12vh, 214px));
   width: 100vw;
+  width: 100dvw;
   height: 100vh;
+  height: 100dvh;
   gap: 0;
   position: relative;
 }
