@@ -8,10 +8,10 @@ This is a conversion of the [Crossfire](https://crossfire.real-time.com/) GTK-v2
 Almost everything was done by GitHub Copilot with Claude Opus or Sonnet,
 and me just testing the different versions.
 
-There is a test server at __crossfire diegeekdie com__. It is just for
+There is a test server at [crossfire.diegeekdie.com](https://crossfire.diegeekdie.com/). It is just for
 testing and can go down at any time.
 
-<img src="screenshots/game_ui.png" width="50%" alt="Screenshot of game">
+<img src="screenshots/game_ui.png" width="50%" alt="Old screenshot of the client">
 
 ## Connecting to a specific server
 
