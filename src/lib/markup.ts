@@ -107,6 +107,67 @@ export function parseMarkup(text: string, baseColor: string): MessageSpan[] {
 }
 
 /**
+ * Strip all `[tag]` markup from a server message, returning plain text.
+ */
+export function stripMarkupTags(text: string): string {
+  return text.replace(/\[[^\]]*\]/g, '');
+}
+
+/** One entry in the high-score list. */
+export interface HiscoreRow {
+  rank: string;
+  score: string;
+  who: string;
+  maxHp: string;
+  maxSp: string;
+  maxGrace: string;
+}
+
+/**
+ * Matches a single hiscore data row sent by the server:
+ *   [fixed]  <rank>  <score>[print] <who text> <maxhp><maxsp><maxgrace>
+ *
+ * Groups: 1=rank, 2=score, 3=who (trimmed), 4=maxHp, 5=maxSp, 6=maxGrace
+ */
+const HISCORE_ROW_RE = /^\[fixed\]\s*(\d+)\s+(\d+)\[print\]\s*([^<]*?)\s*<(\d+)><(\d+)><(\d+)>\.$/;
+
+/**
+ * Parse the raw hiscore text sent by the server into structured rows.
+ *
+ * The server sends:
+ *   Line 0: "Overall high scores:"  (title — skipped)
+ *   Line 1: header (skipped)
+ *   Lines 2+: data rows matching HISCORE_ROW_RE
+ */
+export function parseHiscoreRows(text: string): HiscoreRow[] {
+  const lines = text.split('\n');
+  const rows: HiscoreRow[] = [];
+
+  // Skip line 0 (title) and line 1 (header).
+  for (let i = 2; i < lines.length; i++) {
+    const line = lines[i];
+    if (!line?.trim()) continue;
+
+    const m = HISCORE_ROW_RE.exec(line);
+    if (!m) {
+      console.warn('Unrecognized hiscore line:', line);
+      continue;
+    }
+
+    rows.push({
+      rank:     m[1]!,
+      score:    m[2]!,
+      who:      m[3]!,
+      maxHp:    m[4]!,
+      maxSp:    m[5]!,
+      maxGrace: m[6]!,
+    });
+  }
+
+  return rows;
+}
+
+/**
  * Split a multi-line text block and parse each line with parseMarkup.
  * Lines that begin with '%' are treated as section titles: the '%' is
  * stripped and the line is returned with isTitle set to true.
