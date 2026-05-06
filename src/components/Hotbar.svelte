@@ -89,14 +89,16 @@
       >
         <span class="fkey">F{i + 1}</span>
         {#if slot}
-          {#if getFaceUrl(getSlotFace(slot) ?? 0)}
-            <img
-              src={getFaceUrl(getSlotFace(slot) ?? 0)!}
-              alt=""
-              class="slot-icon"
-            />
-          {/if}
-          <span class="slot-label">{slot.label}</span>
+          <span class="slot-label">
+            {#if getFaceUrl(getSlotFace(slot) ?? 0)}
+              <img
+                src={getFaceUrl(getSlotFace(slot) ?? 0)!}
+                alt=""
+                class="slot-icon"
+              >
+            {/if}
+            {slot.label}
+          </span>
         {/if}
       </button>
     {/each}
