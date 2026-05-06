@@ -232,6 +232,14 @@ body {
   min-height: 0;
 }
 
+.game-layout.hotbar-hidden {
+  grid-template-rows: clamp(16px, 1.7vh, 19px) 0 1fr var(--info-height, clamp(94px, 12vh, 214px));
+}
+
+.game-layout.hotbar-hidden .hotbar-area {
+  display: none;
+}
+
 .info-area.query-active {
   position: relative;
   z-index: 101;

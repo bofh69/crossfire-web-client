@@ -33,7 +33,7 @@
   import MenuBar from './components/MenuBar.svelte';
   import MagicMap from './components/MagicMap.svelte';
   import Hotbar from './components/Hotbar.svelte';
-  import { loadHotbar, activateHotbarSlot, setCurrentCharacter as setHotbarCurrentCharacter } from './lib/hotbar';
+  import { loadHotbar, activateHotbarSlot, setCurrentCharacter as setHotbarCurrentCharacter, getHotbarSlots, isHotbarGamepadMode } from './lib/hotbar';
   import { loadConfig, saveConfig } from './lib/storage';
 
   // ── Layout resize ────────────────────────────────────────────────
@@ -118,6 +118,7 @@
 
   type AppState = 'login' | 'playing';
   let appState = $state<AppState>('login');
+  let hotbarVisible = $state(false);
 
   /** Character list received via `accountplayers` while in the playing state
    *  (e.g. after "bed to reality").  Passed to Login so it shows the
@@ -459,11 +460,16 @@
     gameQuerySingleChar = false;
     gameQueryYesNo = false;
     showMagicMap = false;
+    hotbarVisible = false;
     appState = 'login';
   }
 
   function wireCallbacks() {
     eventCleanups.push(
+      gameEvents.on('hotbarUpdate', () => {
+        hotbarVisible = getHotbarSlots().some(s => s !== null) || isHotbarGamepadMode();
+      }),
+
       gameEvents.on('statsUpdate', (stats: Partial<Stats>) => {
         if (stats.hp !== undefined) {
           notifyHpUpdate(playerStats.hp, playerStats.maxhp);
@@ -570,6 +576,7 @@
 {:else}
   <div class="game-layout"
     bind:this={gameLayoutEl}
+    class:hotbar-hidden={!hotbarVisible}
     style:--side-width={sideWidthPx !== null ? `${sideWidthPx}px` : undefined}
     style:--info-height={infoHeightPx !== null ? `${infoHeightPx}px` : undefined}
   >
