@@ -160,6 +160,8 @@ const faceUrls = new Map<number, string>();
 const faceBitmaps = new Map<number, ImageBitmap>();
 /** Monotonic version per face to ignore stale async bitmap decodes. */
 const faceBitmapVersions = new Map<number, number>();
+/** Guard so missing createImageBitmap support is logged once. */
+let loggedMissingCreateImageBitmap = false;
 
 /** Image dimensions keyed by face number. */
 const faceSizes = new Map<number, { w: number; h: number }>();
@@ -548,6 +550,10 @@ function applyFacePngBytes(pnum: number, pngBytes: Uint8Array): void {
     faceSizes.set(pnum, dims);
 
     if (typeof createImageBitmap !== 'function') {
+        if (!loggedMissingCreateImageBitmap) {
+            loggedMissingCreateImageBitmap = true;
+            LOG(LogLevel.Warning, 'Image2Cmd', 'createImageBitmap is not available; map face bitmaps cannot be decoded');
+        }
         return;
     }
 
@@ -555,7 +561,7 @@ function applyFacePngBytes(pnum: number, pngBytes: Uint8Array): void {
     faceBitmapVersions.set(pnum, version);
     void createImageBitmap(blob)
         .then((bitmap) => {
-            if (faceBitmapVersions.get(pnum) !== version) {
+            if (!faceBitmapVersions.has(pnum) || faceBitmapVersions.get(pnum) !== version) {
                 bitmap.close();
                 return;
             }
