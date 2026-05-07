@@ -17,6 +17,7 @@
   const LABEL_PAD = 3;
   const MIN_SCALE = 1;
   const MAX_SCALE = 8;
+  const MAX_MISSING_FACES_PREVIEW = 12;
   const ZOOM_STORAGE_KEY = 'tileScale';
   /**
    * Minimum number of tiles that must be visible in each dimension.
@@ -685,8 +686,8 @@
     }
 
     if (missingFaces.size > 0) {
-      const preview = Array.from(missingFaces).slice(0, 12).join(',');
-      const suffix = missingFaces.size > 12 ? ',…' : '';
+      const preview = Array.from(missingFaces).slice(0, MAX_MISSING_FACES_PREVIEW).join(',');
+      const suffix = missingFaces.size > MAX_MISSING_FACES_PREVIEW ? ',…' : '';
       LOG(LogLevel.Debug, 'GameMap', `missing ImageBitmap faces during drawMap: ${missingFaces.size} [${preview}${suffix}]`);
     }
 
