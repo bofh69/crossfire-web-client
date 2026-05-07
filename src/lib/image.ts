@@ -561,7 +561,7 @@ function applyFacePngBytes(pnum: number, pngBytes: Uint8Array): void {
     faceBitmapVersions.set(pnum, version);
     void createImageBitmap(blob)
         .then((bitmap) => {
-            if (!faceBitmapVersions.has(pnum) || faceBitmapVersions.get(pnum) !== version) {
+            if (faceBitmapVersions.get(pnum) !== version) {
                 bitmap.close();
                 return;
             }
