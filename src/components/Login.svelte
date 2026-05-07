@@ -1028,7 +1028,7 @@
   }
 
   .info-text {
-    font-family: 'Courier New', monospace;
+    font-family: var(--mono);
     font-size: 0.85rem;
     line-height: 1.3;
   }

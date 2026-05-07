@@ -582,7 +582,7 @@
 
     // Pass 4: draw labels on top of everything (matching old C client's map_draw_labels).
     const fontSize = Math.round(BASE_FONT_SIZE * scale);
-    ctx.font = `${fontSize}px sans-serif`;
+    ctx.font = `${fontSize}px serif`;
     // The player is always centred in the server viewport; skip their own name
     // label there.  Account for the display offset so the check still works
     // when the canvas is larger than the server viewport.

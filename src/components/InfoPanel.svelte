@@ -423,7 +423,7 @@
     flex: 1;
     overflow-y: auto;
     padding: 0.5rem;
-    font-family: 'Courier New', monospace;
+    font-family: var(--mono);
     font-size: 0.85rem;
     line-height: 1.3;
   }
@@ -462,7 +462,7 @@
     border: none;
     background: #222;
     color: var(--text-bright);
-    font-family: 'Courier New', monospace;
+    font-family: var(--mono);
     font-size: 0.85rem;
   }
 

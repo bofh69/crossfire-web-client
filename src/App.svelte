@@ -1,4 +1,5 @@
 <script lang="ts">
+  import "@fontsource/modern-antiqua";
   import { onMount } from 'svelte';
   import { clientInit, getCpl } from './lib/init';
   import { initCommands, setPCmdCallbacks } from './lib/p_cmd';

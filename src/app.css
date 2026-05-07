@@ -21,10 +21,10 @@
   --danger-bg: #8b2020;
   --danger-text: #ff8888;
 
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
+  --serif: 'Modern Antiqua', serif;
   --mono: 'Courier New', ui-monospace, Consolas, monospace;
 
-  font: clamp(8px, 1vw, 19px)/1.4 var(--sans);
+  font: clamp(8px, 1vw, 19px)/1.4 var(--serif);
   color-scheme: dark;
   color: var(--text);
   background: var(--bg);
@@ -53,7 +53,7 @@ body {
 #no-js-message {
   font-size: 12px;
   color: #44ee33;
-  font-family: monospace;
+  font-family: var(--serif);
   padding: 1em;
 }
 
@@ -363,7 +363,7 @@ body {
   border-radius: 3px;
   background: var(--bg-panel);
   color: var(--text-bright);
-  font-family: 'Courier New', monospace;
+  font-family: var(--mono);
   font-size: 0.85rem;
   margin-bottom: 0.6rem;
   box-sizing: border-box;
