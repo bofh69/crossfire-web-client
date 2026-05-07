@@ -93,6 +93,11 @@
         <a href="https://vite.dev/" target="_blank" rel="noopener noreferrer">Vite</a>, and
         <a href="https://www.typescriptlang.org/" target="_blank" rel="noopener noreferrer">TypeScript</a>.
       </p>
+      <p>
+        The font used is Modern Antiqua. Copyright (c) 2011, wmk69, (wmk69@o2.pl), with Reserved Font Names 'ModernAntiqua' and 'Modern Antiqua'.
+        This Font Software is licensed under the SIL Open Font License, Version 1.1. This license is available with a FAQ at:
+        <a href="http://scripts.sil.org/OFL">OFL</a>.
+      </p>
       <div class="dialog-buttons">
         <button onclick={closeAbout}>Close</button>
       </div>
