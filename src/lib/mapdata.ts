@@ -759,8 +759,18 @@ export function mapdata_face(x: number, y: number, layer: number): number {
 export function mapdata_face_info(
     mx: number, my: number, layer: number,
 ): { face: number; dx: number; dy: number } {
+    const headInfo = mapdata_head_face_info(mx, my, layer);
+    if (headInfo.face !== 0) {
+        return headInfo;
+    }
+    return mapdata_tail_face_info(mx, my, layer);
+}
+
+/** Return head-face draw info at absolute map coordinates. */
+export function mapdata_head_face_info(
+    mx: number, my: number, layer: number,
+): { face: number; dx: number; dy: number } {
     const head = cellAt(mx, my).heads[layer]!;
-    const tail = cellAt(mx, my).tails[layer]!;
 
     if (head.face !== 0) {
         // dx/dy = 0: the head tile IS the head; no shift needed.
@@ -768,21 +778,6 @@ export function mapdata_face_info(
             face: head.face,
             dx: 0,
             dy: 0,
-        };
-    } else if (tail.face !== 0) {
-        const hx = mx + tail.sizeX;
-        const hy = my + tail.sizeY;
-        if (!mapdata_contains(hx, hy)) {
-            // Head cell is outside the virtual map — skip to avoid an OOB access.
-            return { face: 0, dx: 0, dy: 0 };
-        }
-        // dx/dy = tail offset: adding these to the current view position gives
-        // the head tile's view position, which the renderer needs to bottom-right-
-        // align the image.
-        return {
-            face: tail.face,
-            dx: tail.sizeX,
-            dy: tail.sizeY,
         };
     }
 
@@ -804,7 +799,39 @@ export function mapdata_face_info(
                 dy: 0,
             };
         }
+    }
 
+    return { face: 0, dx: 0, dy: 0 };
+}
+
+/** Return tail-face draw info at absolute map coordinates. */
+export function mapdata_tail_face_info(
+    mx: number, my: number, layer: number,
+): { face: number; dx: number; dy: number } {
+    const tail = cellAt(mx, my).tails[layer]!;
+
+    if (tail.face !== 0) {
+        const hx = mx + tail.sizeX;
+        const hy = my + tail.sizeY;
+        if (!mapdata_contains(hx, hy)) {
+            // Head cell is outside the virtual map — skip to avoid an OOB access.
+            return { face: 0, dx: 0, dy: 0 };
+        }
+        // dx/dy = tail offset: adding these to the current view position gives
+        // the head tile's view position, which the renderer needs to bottom-right-
+        // align the image.
+        return {
+            face: tail.face,
+            dx: tail.sizeX,
+            dy: tail.sizeY,
+        };
+    }
+
+    // Fallback: check bigfaces[] for tiles whose bigface head is outside the
+    // server viewport.
+    const viewX = mx - pl_pos.x;
+    const viewY = my - pl_pos.y;
+    if (viewX >= 0 && viewX < MAX_VIEW && viewY >= 0 && viewY < MAX_VIEW) {
         // Case B: this tile is a bigface TAIL whose head is outside the
         // server viewport.
         const bigTail = bigfaceAt(viewX, viewY, layer).tail;

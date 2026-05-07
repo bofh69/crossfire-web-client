@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { mapdata_cell, mapdata_can_smooth, mapdata_contains, mapdata_face_info, getViewSize, getPlayerPosition } from '../lib/mapdata';
+  import { mapdata_cell, mapdata_can_smooth, mapdata_contains, mapdata_head_face_info, mapdata_tail_face_info, getViewSize, getPlayerPosition } from '../lib/mapdata';
   import { getFaceUrl, getSmoothFace } from '../lib/image';
   import { lookAt } from '../lib/player';
   import { set_move_to, moveToX, moveToY } from '../lib/mapdata';
@@ -406,19 +406,10 @@
           const px = vx * tileSize;
           const py = vy * tileSize;
 
-          // Use mapdata_face_info to handle both head and tail cells correctly,
-          // including bigface objects whose head tile is outside the server
-          // viewport.  dx/dy are the offset FROM the current tile TO the head
-          // tile, so (vx+dx) is always the head tile's canvas column and
-          // (vy+dy) is always the head tile's canvas row.  For a head cell
-          // dx=dy=0 (it is its own head); for a tail cell dx=tail.sizeX and
-          // dy=tail.sizeY.
-          // The formula below therefore bottom-right-aligns the full image to
-          // the head tile regardless of which tile triggers the draw, matching
-          // the old GTK client's map_draw_layer convention.
-          // The canvas clips any out-of-bounds portions automatically.
-          const { face, dx, dy } = mapdata_face_info(ax, ay, layer);
-          if (face !== 0) {
+          function drawResolvedFace(face: number, dx: number, dy: number, placeholderForHead: boolean) {
+            if (face === 0) return;
+            const drawCtx = ctx;
+            if (!drawCtx) return;
             const url = getFaceUrl(face);
             if (url) {
               const img = imageCache.get(url);
@@ -439,31 +430,34 @@
                   // within its own tile.  This ensures that Empty cells (which
                   // are skipped by the guard above) are never painted over by
                   // a neighbouring non-Empty head or tail cell.
-                  ctx.save();
-                  ctx.beginPath();
-                  ctx.rect(px, py, tileSize, tileSize);
-                  ctx.clip();
-                  ctx.drawImage(img, drawX, drawY, drawW, drawH);
-                  ctx.restore();
+                  drawCtx.save();
+                  drawCtx.beginPath();
+                  drawCtx.rect(px, py, tileSize, tileSize);
+                  drawCtx.clip();
+                  drawCtx.drawImage(img, drawX, drawY, drawW, drawH);
+                  drawCtx.restore();
                   imagesDrawn++;
                 }
               } else {
-                // Start loading the image from every cell that references it, but
-                // show a placeholder rectangle only for head cells so that the
-                // placeholder appears at the correct tile and is not duplicated.
                 if (!loadingUrls.has(url) && !failedUrls.has(url)) loadsStarted++;
                 loadImage(url);
-                if (head.face !== 0) {
+                if (placeholderForHead && head.face !== 0) {
                   drawPlaceholder(px, py, tileSize, layer);
                   placeholders++;
                 }
               }
-            } else if (head.face !== 0) {
-              // No URL available; show placeholder only for head cells.
+            } else if (placeholderForHead && head.face !== 0) {
               drawPlaceholder(px, py, tileSize, layer);
               placeholders++;
             }
           }
+
+          // Draw normal/head tile first, then overlay tail tile from a bigface
+          // if both exist on this same layer/cell.
+          const headInfo = mapdata_head_face_info(ax, ay, layer);
+          drawResolvedFace(headInfo.face, headInfo.dx, headInfo.dy, true);
+          const tailInfo = mapdata_tail_face_info(ax, ay, layer);
+          drawResolvedFace(tailInfo.face, tailInfo.dx, tailInfo.dy, false);
 
           if (useConfig.smooth) {
             drawsmooth(ctx, ax, ay, layer, px, py, tileSize);
