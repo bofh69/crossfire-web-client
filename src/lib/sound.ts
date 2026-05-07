@@ -30,6 +30,10 @@ interface SoundInfo {
   vol: number;       // 0–100
 }
 
+function clampVolume(vol: number): number {
+  return Math.max(0, Math.min(100, Math.round(vol)));
+}
+
 // ---------------------------------------------------------------------------
 // State
 // ---------------------------------------------------------------------------
@@ -70,14 +74,25 @@ let currentMusic = '';
 /** Master sound-enabled flag. */
 let soundEnabled = true;
 
-/** Whether background music is muted (independent of soundEnabled). */
-let musicMuted: boolean = loadConfig<boolean>('musicMuted', false);
-
-/** Whether sound effects are muted (independent of soundEnabled). */
-let sfxMuted: boolean = loadConfig<boolean>('sfxMuted', false);
+/** Legacy mute booleans (kept as fallback when volume keys are missing). */
+const legacyMusicMuted = loadConfig<boolean>('musicMuted', false);
+const legacySfxMuted = loadConfig<boolean>('sfxMuted', false);
 
 /** Music volume 0–100. */
-let musicVolume = 100;
+let musicVolume = clampVolume(
+  loadConfig<number>('musicVolume', legacyMusicMuted ? 0 : 100),
+);
+
+/** Last non-zero music volume, used when unmuting. */
+let lastNonZeroMusicVolume = musicVolume > 0 ? musicVolume : 100;
+
+/** Sound-effects volume 0–100. */
+let sfxVolume = clampVolume(
+  loadConfig<number>('sfxVolume', legacySfxMuted ? 0 : 100),
+);
+
+/** Last non-zero sound-effects volume, used when unmuting. */
+let lastNonZeroSfxVolume = sfxVolume > 0 ? sfxVolume : 100;
 
 // ---------------------------------------------------------------------------
 // Initialisation
@@ -207,7 +222,7 @@ export function playSound(
   _x: number, _y: number, _dir: number, vol: number, _type: number,
   sound: string, _source: string,
 ): void {
-  if (!soundEnabled || sfxMuted || !soundConfig) return;
+  if (!soundEnabled || sfxVolume <= 0 || !soundConfig) return;
 
   const si = soundConfig.get(sound);
   if (!si) {
@@ -226,7 +241,7 @@ export function playSound(
 
     const gain = ctx.createGain();
     // Combine the per-sound volume from config with the server volume.
-    gain.gain.value = (si.vol / 100) * (vol / 100);
+    gain.gain.value = (si.vol / 100) * (vol / 100) * (sfxVolume / 100);
     src.connect(gain).connect(ctx.destination);
     src.start();
   });
@@ -347,7 +362,7 @@ function startTrack(name: string, fadeIn: boolean): void {
  * @param name  Music track name (without path or extension), or `"NONE"`.
  */
 export function playMusic(name: string): void {
-  if (!soundEnabled || musicMuted) return;
+  if (!soundEnabled || musicVolume <= 0) return;
   if (name === currentMusic) return;
   currentMusic = name;
 
@@ -389,10 +404,53 @@ export function setSoundEnabled(enabled: boolean): void {
 
 /** Set music volume (0–100). */
 export function setMusicVolume(vol: number): void {
-  musicVolume = vol;
-  if (musicElement) {
-    musicElement.volume = Math.min(vol, 100) / 100 * MUSIC_VOLUME_CAP;
+  const prev = musicVolume;
+  musicVolume = clampVolume(vol);
+  saveConfig('musicVolume', musicVolume);
+  saveConfig('musicMuted', musicVolume <= 0);
+
+  if (musicVolume > 0) {
+    lastNonZeroMusicVolume = musicVolume;
   }
+
+  if (musicVolume <= 0) {
+    stopFadeIn();
+    stopFadeOut();
+    if (musicElement) {
+      musicElement.pause();
+      musicElement.src = '';
+      musicElement = null;
+    }
+    return;
+  }
+
+  if (musicElement) {
+    musicElement.volume = musicVolume / 100 * MUSIC_VOLUME_CAP;
+  } else if (prev <= 0 && currentMusic && currentMusic !== 'NONE') {
+    const nameToResume = currentMusic;
+    currentMusic = '';
+    playMusic(nameToResume);
+  }
+}
+
+/** Return music volume (0–100). */
+export function getMusicVolume(): number {
+  return musicVolume;
+}
+
+/** Set sound-effects volume (0–100). */
+export function setSfxVolume(vol: number): void {
+  sfxVolume = clampVolume(vol);
+  saveConfig('sfxVolume', sfxVolume);
+  saveConfig('sfxMuted', sfxVolume <= 0);
+  if (sfxVolume > 0) {
+    lastNonZeroSfxVolume = sfxVolume;
+  }
+}
+
+/** Return sound-effects volume (0–100). */
+export function getSfxVolume(): number {
+  return sfxVolume;
 }
 
 /** Stop all sound effects and music. */
@@ -413,12 +471,12 @@ export function stopAll(): void {
 
 /** Return whether music is currently muted. */
 export function getMusicMuted(): boolean {
-  return musicMuted;
+  return musicVolume <= 0;
 }
 
 /** Return whether sound effects are currently muted. */
 export function getSfxMuted(): boolean {
-  return sfxMuted;
+  return sfxVolume <= 0;
 }
 
 /**
@@ -426,24 +484,10 @@ export function getSfxMuted(): boolean {
  * Persists the setting and immediately pauses or restarts playback.
  */
 export function setMusicMuted(muted: boolean): void {
-  musicMuted = muted;
-  saveConfig('musicMuted', muted);
   if (muted) {
-    // Cancel any in-progress fades and stop all music immediately.
-    stopFadeIn();
-    stopFadeOut();
-    if (musicElement) {
-      musicElement.pause();
-      musicElement.src = '';
-      musicElement = null;
-    }
+    setMusicVolume(0);
   } else {
-    // Resume the track that was playing before muting.
-    if (currentMusic && currentMusic !== 'NONE') {
-      const nameToResume = currentMusic;
-      currentMusic = ''; // force playMusic to re-start it
-      playMusic(nameToResume);
-    }
+    setMusicVolume(lastNonZeroMusicVolume > 0 ? lastNonZeroMusicVolume : 100);
   }
 }
 
@@ -452,6 +496,9 @@ export function setMusicMuted(muted: boolean): void {
  * Persists the setting; takes effect on the next sound played.
  */
 export function setSfxMuted(muted: boolean): void {
-  sfxMuted = muted;
-  saveConfig('sfxMuted', muted);
+  if (muted) {
+    setSfxVolume(0);
+  } else {
+    setSfxVolume(lastNonZeroSfxVolume > 0 ? lastNonZeroSfxVolume : 100);
+  }
 }
