@@ -451,9 +451,9 @@
           const tailInfo = mapdata_tail_face_info(ax, ay, layer);
           drawResolvedFace(tailInfo.face, tailInfo.dx, tailInfo.dy, false);
 
-            if (useConfig.smooth) {
-              drawsmooth(ctx, ax, ay, layer, px, py, tileSize, missingFaces);
-            }
+          if (useConfig.smooth) {
+            drawsmooth(ctx, ax, ay, layer, px, py, tileSize, missingFaces);
+          }
         }
       }
     }
