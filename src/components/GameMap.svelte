@@ -112,6 +112,8 @@
   let pendingRedrawCount = 0;
   /** Running count of draw calls for stats logging. */
   let drawCount = 0;
+  /** Running sum of drawMap elapsed time for stats logging. */
+  let drawElapsedTotalMs = 0;
   /** Timestamp of the last stats log. */
   let lastStatsTime = performance.now();
   /**
@@ -671,6 +673,7 @@
     performance.measure('drawMap', 'drawMap-start', 'drawMap-end');
     const elapsed = performance.now() - t0;
     drawCount++;
+    drawElapsedTotalMs += elapsed;
 
     // If this draw took longer than one tick period, schedule tick skips so
     // that tick-triggered redraws are suppressed until real-time and tick-time
@@ -695,9 +698,11 @@
     if (now - lastStatsTime > DRAW_STATS_INTERVAL_MS) {
       const dt = (now - lastStatsTime) / 1000;
       if (perfLogging) {
-        LOG(LogLevel.Info, 'perf:map', `${drawCount} draws in ${dt.toFixed(1)}s (${(drawCount / dt).toFixed(1)} draws/s), imageBitmapCache:${getFaceBitmapCacheSize()}`);
+        const avgDrawMs = drawCount > 0 ? drawElapsedTotalMs / drawCount : 0;
+        LOG(LogLevel.Info, 'perf:map', `${drawCount} draws in ${dt.toFixed(1)}s (${(drawCount / dt).toFixed(1)} draws/s), avgDrawMap:${avgDrawMs.toFixed(1)}ms, imageBitmapCache:${getFaceBitmapCacheSize()}`);
       }
       drawCount = 0;
+      drawElapsedTotalMs = 0;
       lastStatsTime = now;
     }
   }
