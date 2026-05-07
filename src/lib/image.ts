@@ -1,7 +1,7 @@
 /**
  * image.ts – Face/image data management for the Crossfire web client.
  * Ported from old/common/image.c. Handles face metadata, image caching,
- * smooth-face mappings, and PNG blob creation from server data.
+ * smooth-face mappings, and PNG decoding from server data.
  */
 
 import {
@@ -156,6 +156,11 @@ export function registerMagicMapFaces(): void {
 /** Blob URLs keyed by face number. */
 const faceUrls = new Map<number, string>();
 
+/** Decoded ImageBitmaps keyed by face number. */
+const faceBitmaps = new Map<number, ImageBitmap>();
+/** Monotonic version per face to ignore stale async bitmap decodes. */
+const faceBitmapVersions = new Map<number, number>();
+
 /** Image dimensions keyed by face number. */
 const faceSizes = new Map<number, { w: number; h: number }>();
 
@@ -191,6 +196,16 @@ const faceInfo: FaceInformation = {
 /** Return the Blob URL for a face, or `null` if the face has not been loaded. */
 export function getFaceUrl(face: number): string | null {
     return faceUrls.get(face) ?? null;
+}
+
+/** Return the decoded ImageBitmap for a face, or `null` if not yet ready. */
+export function getFaceBitmap(face: number): ImageBitmap | null {
+    return faceBitmaps.get(face) ?? null;
+}
+
+/** Return the number of cached decoded face ImageBitmaps. */
+export function getFaceBitmapCacheSize(): number {
+    return faceBitmaps.size;
 }
 
 /** Return the pixel dimensions of a face image ({w, h}). Defaults to 32×32. */
@@ -234,7 +249,12 @@ export function addSmooth(face: number, smoothFace: number): void {
 
 /** Initialise the image cache data structures. */
 export function initCommonCacheData(): void {
+    for (const bitmap of faceBitmaps.values()) {
+        bitmap.close();
+    }
     faceUrls.clear();
+    faceBitmaps.clear();
+    faceBitmapVersions.clear();
     faceSizes.clear();
     smoothFaces.clear();
     faceToName.clear();
@@ -264,7 +284,12 @@ export function resetImageCacheData(): void {
     for (const url of faceUrls.values()) {
         URL.revokeObjectURL(url);
     }
+    for (const bitmap of faceBitmaps.values()) {
+        bitmap.close();
+    }
     faceUrls.clear();
+    faceBitmaps.clear();
+    faceBitmapVersions.clear();
     faceSizes.clear();
     faceToName.clear();
     faceChecksums.clear();
@@ -506,6 +531,10 @@ function applyFacePngBytes(pnum: number, pngBytes: Uint8Array): void {
     if (oldUrl) {
         URL.revokeObjectURL(oldUrl);
     }
+    const oldBitmap = faceBitmaps.get(pnum);
+    if (oldBitmap) {
+        oldBitmap.close();
+    }
 
     // Copy into a plain ArrayBuffer to satisfy Blob's type constraints.
     const buffer = new ArrayBuffer(pngBytes.byteLength);
@@ -517,6 +546,28 @@ function applyFacePngBytes(pnum: number, pngBytes: Uint8Array): void {
     // Extract dimensions synchronously from PNG IHDR
     const dims = readPngDimensionsSync(pngBytes);
     faceSizes.set(pnum, dims);
+
+    if (typeof createImageBitmap !== 'function') {
+        return;
+    }
+
+    const version = (faceBitmapVersions.get(pnum) ?? 0) + 1;
+    faceBitmapVersions.set(pnum, version);
+    void createImageBitmap(blob)
+        .then((bitmap) => {
+            if (faceBitmapVersions.get(pnum) !== version) {
+                bitmap.close();
+                return;
+            }
+            const prev = faceBitmaps.get(pnum);
+            if (prev) {
+                prev.close();
+            }
+            faceBitmaps.set(pnum, bitmap);
+        })
+        .catch((error: unknown) => {
+            LOG(LogLevel.Warning, 'Image2Cmd', `createImageBitmap failed for face ${pnum}: ${String(error)}`);
+        });
 }
 
 // ---------------------------------------------------------------------------

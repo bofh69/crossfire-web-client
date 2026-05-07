@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte';
   import { mapdata_cell, mapdata_can_smooth, mapdata_contains, mapdata_head_face_info, mapdata_tail_face_info, getViewSize, getPlayerPosition } from '../lib/mapdata';
-  import { getFaceUrl, getSmoothFace } from '../lib/image';
+  import { getFaceBitmap, getFaceBitmapCacheSize, getSmoothFace } from '../lib/image';
   import { lookAt } from '../lib/player';
   import { set_move_to, moveToX, moveToY } from '../lib/mapdata';
   import { MapCellState, MAXLAYERS, Map2Label, LogLevel } from '../lib/protocol';
@@ -217,6 +217,7 @@
     layer: number,
     px: number, py: number,
     tileSize: number,
+    missingFaces: Set<number>,
   ): void {
     const cell = mapdata_cell(ax, ay);
 
@@ -275,12 +276,9 @@
       const smoothFaceNum = _sfaces[lowestIdx]!;
       if (smoothFaceNum <= 0) continue;
 
-      const smoothUrl = getFaceUrl(smoothFaceNum);
-      if (!smoothUrl) continue;
-
-      const smoothImg = imageCache.get(smoothUrl);
+      const smoothImg = getFaceBitmap(smoothFaceNum);
       if (!smoothImg) {
-        loadImage(smoothUrl);
+        missingFaces.add(smoothFaceNum);
         continue;
       }
 
@@ -362,7 +360,7 @@
     let tilesDrawn = 0;
     let imagesDrawn = 0;
     let placeholders = 0;
-    let loadsStarted = 0;
+    const missingFaces = new Set<number>();
 
     // Iterate layer by layer (matching the old C client's map_draw_layer approach).
     // This ensures correct z-ordering: all tiles for layer N are fully drawn before
@@ -410,43 +408,34 @@
             if (face === 0) return;
             const drawCtx = ctx;
             if (!drawCtx) return;
-            const url = getFaceUrl(face);
-            if (url) {
-              const img = imageCache.get(url);
-              if (img) {
-                const drawW = img.naturalWidth * imgScale;
-                const drawH = img.naturalHeight * imgScale;
-                // Align the image's bottom-right corner to the head tile's
-                // bottom-right corner.  dx/dy shift vx/vy to the head tile
-                // position when this cell is a tail, so both cases use one
-                // formula: (vx+dx)*ts + ts - drawW.
-                const drawX = (vx + dx) * tileSize + tileSize - drawW;
-                const drawY = (vy + dy) * tileSize + tileSize - drawH;
-                // Skip drawing if the image lies entirely outside the canvas.
-                if (drawX + drawW > 0 && drawY + drawH > 0 &&
-                    drawX < canvasW && drawY < canvasH) {
-                  // Clip to the current cell's tile area so that each cell
-                  // only renders the portion of the bigface image that falls
-                  // within its own tile.  This ensures that Empty cells (which
-                  // are skipped by the guard above) are never painted over by
-                  // a neighbouring non-Empty head or tail cell.
-                  drawCtx.save();
-                  drawCtx.beginPath();
-                  drawCtx.rect(px, py, tileSize, tileSize);
-                  drawCtx.clip();
-                  drawCtx.drawImage(img, drawX, drawY, drawW, drawH);
-                  drawCtx.restore();
-                  imagesDrawn++;
-                }
-              } else {
-                if (!loadingUrls.has(url) && !failedUrls.has(url)) loadsStarted++;
-                loadImage(url);
-                if (placeholderForHead && head.face !== 0) {
-                  drawPlaceholder(px, py, tileSize, layer);
-                  placeholders++;
-                }
+            const img = getFaceBitmap(face);
+            if (img) {
+              const drawW = img.width * imgScale;
+              const drawH = img.height * imgScale;
+              // Align the image's bottom-right corner to the head tile's
+              // bottom-right corner.  dx/dy shift vx/vy to the head tile
+              // position when this cell is a tail, so both cases use one
+              // formula: (vx+dx)*ts + ts - drawW.
+              const drawX = (vx + dx) * tileSize + tileSize - drawW;
+              const drawY = (vy + dy) * tileSize + tileSize - drawH;
+              // Skip drawing if the image lies entirely outside the canvas.
+              if (drawX + drawW > 0 && drawY + drawH > 0 &&
+                  drawX < canvasW && drawY < canvasH) {
+                // Clip to the current cell's tile area so that each cell
+                // only renders the portion of the bigface image that falls
+                // within its own tile.  This ensures that Empty cells (which
+                // are skipped by the guard above) are never painted over by
+                // a neighbouring non-Empty head or tail cell.
+                drawCtx.save();
+                drawCtx.beginPath();
+                drawCtx.rect(px, py, tileSize, tileSize);
+                drawCtx.clip();
+                drawCtx.drawImage(img, drawX, drawY, drawW, drawH);
+                drawCtx.restore();
+                imagesDrawn++;
               }
             } else if (placeholderForHead && head.face !== 0) {
+              missingFaces.add(face);
               drawPlaceholder(px, py, tileSize, layer);
               placeholders++;
             }
@@ -459,9 +448,9 @@
           const tailInfo = mapdata_tail_face_info(ax, ay, layer);
           drawResolvedFace(tailInfo.face, tailInfo.dx, tailInfo.dy, false);
 
-          if (useConfig.smooth) {
-            drawsmooth(ctx, ax, ay, layer, px, py, tileSize);
-          }
+            if (useConfig.smooth) {
+              drawsmooth(ctx, ax, ay, layer, px, py, tileSize, missingFaces);
+            }
         }
       }
     }
@@ -692,14 +681,20 @@
     }
 
     if (perfLogging && elapsed > SLOW_DRAW_THRESHOLD_MS) {
-      LOG(LogLevel.Warning, 'perf:map', `drawMap took ${elapsed.toFixed(1)}ms — tiles:${tilesDrawn} imgs:${imagesDrawn} placeholders:${placeholders} loadsStarted:${loadsStarted}${tickSkipsRemaining > 0 ? ` — skipping ${tickSkipsRemaining} tick(s)` : ''}`);
+      LOG(LogLevel.Warning, 'perf:map', `drawMap took ${elapsed.toFixed(1)}ms — tiles:${tilesDrawn} imgs:${imagesDrawn} placeholders:${placeholders}${tickSkipsRemaining > 0 ? ` — skipping ${tickSkipsRemaining} tick(s)` : ''}`);
+    }
+
+    if (missingFaces.size > 0) {
+      const preview = Array.from(missingFaces).slice(0, 12).join(',');
+      const suffix = missingFaces.size > 12 ? ',…' : '';
+      LOG(LogLevel.Debug, 'GameMap', `missing ImageBitmap faces during drawMap: ${missingFaces.size} [${preview}${suffix}]`);
     }
 
     const now = performance.now();
     if (now - lastStatsTime > DRAW_STATS_INTERVAL_MS) {
       const dt = (now - lastStatsTime) / 1000;
       if (perfLogging) {
-        LOG(LogLevel.Info, 'perf:map', `${drawCount} draws in ${dt.toFixed(1)}s (${(drawCount / dt).toFixed(1)} draws/s), imageCache:${imageCache.size} loading:${loadingUrls.size} failed:${failedUrls.size}`);
+        LOG(LogLevel.Info, 'perf:map', `${drawCount} draws in ${dt.toFixed(1)}s (${(drawCount / dt).toFixed(1)} draws/s), imageBitmapCache:${getFaceBitmapCacheSize()}`);
       }
       drawCount = 0;
       lastStatsTime = now;
@@ -726,34 +721,6 @@
   let darkImageData: ImageData | null = null;
   let darkCanvasW = 0;
   let darkCanvasH = 0;
-
-  const imageCache = new Map<string, HTMLImageElement>();
-  /** URLs for which a load is already in flight. */
-  const loadingUrls = new Set<string>();
-  /** URLs that permanently failed to load (don't retry). */
-  const failedUrls = new Set<string>();
-
-  function loadImage(url: string) {
-    if (imageCache.has(url) || loadingUrls.has(url) || failedUrls.has(url)) return;
-    loadingUrls.add(url);
-    const img = new Image();
-    const loadStart = performance.now();
-    img.onload = () => {
-      const elapsed = performance.now() - loadStart;
-      loadingUrls.delete(url);
-      imageCache.set(url, img);
-      if (perfLogging && elapsed > 100) {
-        LOG(LogLevel.Debug, 'perf:map', `image load took ${elapsed.toFixed(0)}ms: ${url}`);
-      }
-      scheduleRedraw();
-    };
-    img.onerror = () => {
-      loadingUrls.delete(url);
-      failedUrls.add(url);
-      LOG(LogLevel.Warning, 'perf:map', `image load failed: ${url}`);
-    };
-    img.src = url;
-  }
 
   function handleClick(e: MouseEvent) {
     if (!canvas) return;
