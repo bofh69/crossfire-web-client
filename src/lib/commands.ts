@@ -184,8 +184,8 @@ function DrawExtInfoCmd(data: string): void {
     return;
   }
   if (shouldBufferHiscoreMessage(type, subtype)) {
-    // Hiscore messages are buffered for the dialog popup and skip all other
-    // processing, including the dialog state machine.
+    // Hiscore messages are buffered for the hiscore menu popup and skip all
+    // other processing, including the NPC dialog state machine.
     hiscoreBuffer.push(message);
     return;
   }

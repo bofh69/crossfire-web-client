@@ -240,16 +240,16 @@
 
   /**
    * Handle a click on a dialog-option button.
-   * Sends the key as a "say" command, records the choice in the InfoPanel,
-   * and removes all option buttons.
+   * Sends the key as a "say" command, records the user-visible option text in
+   * the InfoPanel, and removes all option buttons.
    */
-  function handleDialogOptionClick(key: string) {
+  function handleDialogOptionClick(key: string, value: string) {
     // Sanitize: only allow word characters and hyphens (matching the server's
     // key format) so that no unexpected tokens are injected into the command.
     const safeKey = key.replace(/[^\w-]/g, "");
     if (safeKey.length === 0) return;
     sendCommand(`say ${safeKey}`, 0, SC_ALWAYS);
-    addMessage(0, ` - ${safeKey}`, MSG_TYPE_COMMUNICATION, null);
+    addMessage(0, ` - ${value}`, MSG_TYPE_COMMUNICATION, null);
     dialogOptions = [];
   }
 
@@ -434,8 +434,9 @@
         {#each dialogOptions as option}
           <button
             class="dialog-option-btn"
-            onclick={() => handleDialogOptionClick(option.key)}
-          >{option.value}</button>
+            onclick={() => handleDialogOptionClick(option.key, option.value)}
+            >{option.value}</button
+          >
         {/each}
       </div>
     {/if}
