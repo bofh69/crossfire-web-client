@@ -244,8 +244,12 @@
    * and removes all option buttons.
    */
   function handleDialogOptionClick(key: string) {
-    sendCommand(`say ${key}`, 0, SC_ALWAYS);
-    addMessage(0, ` - ${key}`, MSG_TYPE_COMMUNICATION, null);
+    // Sanitize: only allow word characters and hyphens (matching the server's
+    // key format) so that no unexpected tokens are injected into the command.
+    const safeKey = key.replace(/[^\w-]/g, "");
+    if (safeKey.length === 0) return;
+    sendCommand(`say ${safeKey}`, 0, SC_ALWAYS);
+    addMessage(0, ` - ${safeKey}`, MSG_TYPE_COMMUNICATION, null);
     dialogOptions = [];
   }
 
@@ -577,14 +581,15 @@
     width: 100%;
     padding: 0.3rem 0.6rem;
     text-align: left;
-    border: 1px solid var(--border-mid);
+    border-width: 1px 1px 1px 0;
+    border-style: solid;
+    border-color: var(--border-mid);
     border-radius: 3px;
     background: #1e2a1e;
     color: var(--text-bright);
     cursor: pointer;
     font-family: var(--mono);
     font-size: 0.82rem;
-    border-left: none;
   }
 
   .dialog-option-btn:hover {

@@ -91,10 +91,12 @@ export function processDialogExtInfo(
   }
 
   if (state === DialogState.Collecting) {
-    // Match " - key: value" (leading space, dash, space, then key:value)
-    const match = /^ - ([^:]+): (.+)$/.exec(message);
+    // Match " - key: value" (leading space, dash, space, then key:value).
+    // Keys are expected to be simple identifiers (word characters and hyphens).
+    const match = /^ - ([\w-]+): (.+)$/.exec(message);
     if (match) {
-      pendingOptions.push({ key: match[1]!, value: match[2]! });
+      const [, key = "", value = ""] = match;
+      pendingOptions.push({ key, value });
       return true; // Suppress option line from InfoPanel
     }
     // A communication line that doesn't match the option format ends collection.
