@@ -9,8 +9,19 @@ import { sendCommand, setLastCommand } from "./player";
 import { resetBindings } from "./keys";
 import { getCpl } from "./init";
 import { gameEvents } from "./events";
-import { perfLogging, setPerfLogging, getWatchedCell, clearWatchedCell, setWatchedCell } from "./debug";
-import { mapdata_debug_tile, mapdata_debug_bigface, mapdata_debug_all_bigfaces, mapdata_debug_player_pos } from "./mapdata";
+import {
+  perfLogging,
+  setPerfLogging,
+  getWatchedCell,
+  clearWatchedCell,
+  setWatchedCell,
+} from "./debug";
+import {
+  mapdata_debug_tile,
+  mapdata_debug_bigface,
+  mapdata_debug_all_bigfaces,
+  mapdata_debug_player_pos,
+} from "./mapdata";
 import { image_debug_face } from "./image";
 
 // ---------------------------------------------------------------------------
@@ -28,13 +39,45 @@ let catSorted: ConsoleCommand[] | null = null;
  * Subset of the ~100 entries from p_cmd.c's server_commands[].
  */
 const serverCommands: string[] = [
-    "apply", "cast", "drop", "east", "examine", "get", "invoke",
-    "killpets", "listen", "maps", "mark", "motd", "north", "northeast",
-    "northwest", "output-count", "output-sync", "party", "peaceful",
-    "pickup", "pray", "quit", "rename", "reply", "rotateshoottype",
-    "say", "shout", "skills", "south", "southeast", "southwest",
-    "stay", "tell", "title", "use_skill", "version", "west",
-    "who", "wimpy",
+  "apply",
+  "cast",
+  "drop",
+  "east",
+  "examine",
+  "get",
+  "invoke",
+  "killpets",
+  "listen",
+  "maps",
+  "mark",
+  "motd",
+  "north",
+  "northeast",
+  "northwest",
+  "output-count",
+  "output-sync",
+  "party",
+  "peaceful",
+  "pickup",
+  "pray",
+  "quit",
+  "rename",
+  "reply",
+  "rotateshoottype",
+  "say",
+  "shout",
+  "skills",
+  "south",
+  "southeast",
+  "southwest",
+  "stay",
+  "tell",
+  "title",
+  "use_skill",
+  "version",
+  "west",
+  "who",
+  "wimpy",
 ];
 
 // ---------------------------------------------------------------------------
@@ -42,13 +85,18 @@ const serverCommands: string[] = [
 // ---------------------------------------------------------------------------
 
 function getCategoryName(cat: CommCat): string {
-    switch (cat) {
-        case CommCat.Misc:  return "Miscellaneous";
-        case CommCat.Info:  return "Informational";
-        case CommCat.Setup: return "Configuration";
-        case CommCat.Debug: return "Debugging";
-        default:            return "Other";
-    }
+  switch (cat) {
+    case CommCat.Misc:
+      return "Miscellaneous";
+    case CommCat.Info:
+      return "Informational";
+    case CommCat.Setup:
+      return "Configuration";
+    case CommCat.Debug:
+      return "Debugging";
+    default:
+      return "Other";
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -56,36 +104,36 @@ function getCategoryName(cat: CommCat): string {
 // ---------------------------------------------------------------------------
 
 export interface PCmdCallbacks {
-    /** Display a message in the info panel. */
-    drawInfo: (message: string) => void;
-    /** Open the keyboard key-bind dialog (reads lastCommand internally). */
-    openKeyBind: () => void;
-    /** Open the gamepad button-bind dialog (reads lastCommand internally). */
-    openGamepadBind: () => void;
-    /** Show the magic map overlay (re-display last received data). */
-    showMagicMap?: () => void;
+  /** Display a message in the info panel. */
+  drawInfo: (message: string) => void;
+  /** Open the keyboard key-bind dialog (reads lastCommand internally). */
+  openKeyBind: () => void;
+  /** Open the gamepad button-bind dialog (reads lastCommand internally). */
+  openGamepadBind: () => void;
+  /** Show the magic map overlay (re-display last received data). */
+  showMagicMap?: () => void;
 }
 
 let pcmdCallbacks: PCmdCallbacks | null = null;
 
 /** Wire callbacks from the UI layer so local commands can open dialogs. */
 export function setPCmdCallbacks(cbs: PCmdCallbacks): void {
-    pcmdCallbacks = cbs;
+  pcmdCallbacks = cbs;
 }
 
 /** Display a message in the info panel (falls back to console).
  *  Multi-line strings are split so each line is shown on its own row. */
 function drawInfo(message: string): void {
-    const lines = message.split("\n");
-    if (pcmdCallbacks) {
-        for (const line of lines) {
-            pcmdCallbacks.drawInfo(line);
-        }
-    } else {
-        for (const line of lines) {
-            LOG(LogLevel.Info, 'p_cmd', line);
-        }
+  const lines = message.split("\n");
+  if (pcmdCallbacks) {
+    for (const line of lines) {
+      pcmdCallbacks.drawInfo(line);
     }
+  } else {
+    for (const line of lines) {
+      LOG(LogLevel.Info, "p_cmd", line);
+    }
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -93,77 +141,79 @@ function drawInfo(message: string): void {
 // ---------------------------------------------------------------------------
 
 function commandHelp(args: string): void {
-    if (args.length === 0) {
-        const sorted = getCatSortedCommands();
-        let lastCat: CommCat | null = null;
-        const lines: string[] = ["Available client commands:"];
-        for (const cmd of sorted) {
-            if (cmd.category !== lastCat) {
-                lastCat = cmd.category;
-                lines.push(`\n  ${getCategoryName(cmd.category)}:`);
-            }
-            const desc = cmd.description ?? "";
-            lines.push(`    ${cmd.name.padEnd(16)} ${desc}`);
-        }
-        drawInfo(lines.join("\n"));
-        sendCommand('help', 0, 1);
-        return;
+  if (args.length === 0) {
+    const sorted = getCatSortedCommands();
+    let lastCat: CommCat | null = null;
+    const lines: string[] = ["Available client commands:"];
+    for (const cmd of sorted) {
+      if (cmd.category !== lastCat) {
+        lastCat = cmd.category;
+        lines.push(`\n  ${getCategoryName(cmd.category)}:`);
+      }
+      const desc = cmd.description ?? "";
+      lines.push(`    ${cmd.name.padEnd(16)} ${desc}`);
     }
+    drawInfo(lines.join("\n"));
+    sendCommand("help", 0, 1);
+    return;
+  }
 
-    const target = findCommand(args.trim());
-    if (target) {
-        drawInfo(`${target.name}: ${target.description ?? "(no description)"}`);
-        if (target.longDescription) {
-            drawInfo(target.longDescription);
-        }
-    } else {
-        sendCommand(`help ${args.trim()}`, 0, 1);
+  const target = findCommand(args.trim());
+  if (target) {
+    drawInfo(`${target.name}: ${target.description ?? "(no description)"}`);
+    if (target.longDescription) {
+      drawInfo(target.longDescription);
     }
+  } else {
+    sendCommand(`help ${args.trim()}`, 0, 1);
+  }
 }
 
 function commandBind(args: string): void {
-    if (!args || args.trim().length === 0) {
-        drawInfo(
-            "Usage: bind <command>\n" +
-            "  Sets <command> as the pending command and opens the key-bind dialog.");
-        return;
-    }
-    setLastCommand(args.trim());
-    pcmdCallbacks?.openKeyBind();
+  if (!args || args.trim().length === 0) {
+    drawInfo(
+      "Usage: bind <command>\n" +
+        "  Sets <command> as the pending command and opens the key-bind dialog.",
+    );
+    return;
+  }
+  setLastCommand(args.trim());
+  pcmdCallbacks?.openKeyBind();
 }
 
 function commandGamepadBind(args: string): void {
-    if (!args || args.trim().length === 0) {
-        drawInfo(
-            "Usage: gamepad_bind <command>\n" +
-            "  Sets <command> as the pending command and opens the gamepad button-bind dialog.");
-        return;
-    }
-    setLastCommand(args.trim());
-    pcmdCallbacks?.openGamepadBind();
+  if (!args || args.trim().length === 0) {
+    drawInfo(
+      "Usage: gamepad_bind <command>\n" +
+        "  Sets <command> as the pending command and opens the gamepad button-bind dialog.",
+    );
+    return;
+  }
+  setLastCommand(args.trim());
+  pcmdCallbacks?.openGamepadBind();
 }
 
 function commandResetKeys(_args: string): void {
-    resetBindings();
+  resetBindings();
 }
 
 function commandMagicmap(_args: string): void {
-    const cpl = getCpl();
-    if (!cpl || !cpl.magicmap) {
-        drawInfo("No magic map data available.");
-        return;
-    }
-    cpl.showmagic = 1;
-    pcmdCallbacks?.showMagicMap?.();
+  const cpl = getCpl();
+  if (!cpl || !cpl.magicmap) {
+    drawInfo("No magic map data available.");
+    return;
+  }
+  cpl.showmagic = 1;
+  pcmdCallbacks?.showMagicMap?.();
 }
 
 function commandTake(args: string): void {
-    const what = args.length > 0 ? args : "";
-    sendCommand(`take ${what}`.trim(), 0, 1);
+  const what = args.length > 0 ? args : "";
+  sendCommand(`take ${what}`.trim(), 0, 1);
 }
 
 function commandClear(_args: string): void {
-    gameEvents.emit('clearMessages');
+  gameEvents.emit("clearMessages");
 }
 
 // ---------------------------------------------------------------------------
@@ -175,92 +225,100 @@ let debugClickUnsub: (() => void) | null = null;
 
 /** Start a debug-pick flow: enter pick mode and log the result when clicked. */
 function debugPickAndLog(
-    mode: 'bigface' | 'tile',
-    prompt: string,
-    dumpFn: (ax: number, ay: number) => string[],
+  mode: "bigface" | "tile",
+  prompt: string,
+  dumpFn: (ax: number, ay: number) => string[],
 ): void {
-    drawInfo(prompt);
+  drawInfo(prompt);
+  debugClickUnsub?.();
+  debugClickUnsub = gameEvents.on("debugTileClicked", (ax, ay, _mode) => {
     debugClickUnsub?.();
-    debugClickUnsub = gameEvents.on('debugTileClicked', (ax, ay, _mode) => {
-        debugClickUnsub?.();
-        debugClickUnsub = null;
-        for (const line of dumpFn(ax, ay)) {
-            LOG(LogLevel.Info, 'debug', line);
-        }
-    });
-    gameEvents.emit('debugPickTile', mode);
+    debugClickUnsub = null;
+    for (const line of dumpFn(ax, ay)) {
+      LOG(LogLevel.Info, "debug", line);
+    }
+  });
+  gameEvents.emit("debugPickTile", mode);
 }
 
 function commandDebug(args: string): void {
-    const trimmed = args.trim();
-    const spaceIdx = trimmed.indexOf(' ');
-    const sub = (spaceIdx === -1 ? trimmed : trimmed.slice(0, spaceIdx)).toLowerCase();
-    const subArgs = spaceIdx === -1 ? '' : trimmed.slice(spaceIdx + 1).trim();
+  const trimmed = args.trim();
+  const spaceIdx = trimmed.indexOf(" ");
+  const sub = (
+    spaceIdx === -1 ? trimmed : trimmed.slice(0, spaceIdx)
+  ).toLowerCase();
+  const subArgs = spaceIdx === -1 ? "" : trimmed.slice(spaceIdx + 1).trim();
 
-    if (sub === "perf") {
-        const newState = !perfLogging;
-        setPerfLogging(newState);
-        drawInfo(`Performance logging ${newState ? "enabled" : "disabled"}.`);
-    } else if (sub === "bigface") {
-        debugPickAndLog('bigface',
-            "Click a tile on the map to inspect bigface/multitile data…",
-            mapdata_debug_bigface);
-    } else if (sub === "tile") {
-        debugPickAndLog('tile',
-            "Click a tile on the map to inspect tile data…",
-            mapdata_debug_tile);
-    } else if (sub === "bigfaces") {
-        for (const line of mapdata_debug_all_bigfaces()) {
-            LOG(LogLevel.Info, 'debug', line);
-        }
-        drawInfo("All active bigface data logged to the browser console.");
-    } else if (sub === "watch") {
-        const current = getWatchedCell();
-        if (current !== null) {
-            const { ax, ay } = current;
-            clearWatchedCell();
-            drawInfo(`Stopped watching cell at absolute (${ax}, ${ay}).`);
-        } else {
-            drawInfo("Click a tile on the map to start watching its server updates…");
-            debugClickUnsub?.();
-            debugClickUnsub = gameEvents.on('debugTileClicked', (ax, ay, _mode) => {
-                debugClickUnsub?.();
-                debugClickUnsub = null;
-                setWatchedCell(
-                    { ax, ay },
-                    (event) => LOG(LogLevel.Info, 'debug:watch', `(${ax},${ay}) ${event}`),
-                );
-                drawInfo(`Now watching cell at absolute (${ax}, ${ay}). Run debug watch again to stop.`);
-            });
-            gameEvents.emit('debugPickTile', 'tile');
-        }
-    } else if (sub === "face") {
-        const faceNum = parseInt(subArgs, 10);
-        if (subArgs === '' || isNaN(faceNum) || faceNum < 0) {
-            drawInfo("Usage: debug face <face-number>\nExample: debug face 1234");
-        } else {
-            for (const line of image_debug_face(faceNum)) {
-                LOG(LogLevel.Info, 'debug', line);
-            }
-            drawInfo(`Face ${faceNum} data logged to the browser console.`);
-        }
-    } else if (sub === "pos") {
-        for (const line of mapdata_debug_player_pos()) {
-            LOG(LogLevel.Info, 'debug', line);
-        }
-        drawInfo("Player virtual-map position logged to the browser console.");
-    } else {
-        drawInfo(
-            "Usage: debug <subcommand>\n" +
-            "Subcommands:\n" +
-            "  perf         Toggle performance logging on/off\n" +
-            "  bigface      Click a tile to log bigface/multitile info\n" +
-            "  bigfaces     Log all currently active bigface entries to the console\n" +
-            "  face <num>   Log all known data for face <num>, including pixel size\n" +
-            "  pos          Log the player's current position in the virtual map\n" +
-            "  tile         Click a tile to log all tile info\n" +
-            "  watch        Pick a tile to watch; logs all server updates to it (run again to stop)");
+  if (sub === "perf") {
+    const newState = !perfLogging;
+    setPerfLogging(newState);
+    drawInfo(`Performance logging ${newState ? "enabled" : "disabled"}.`);
+  } else if (sub === "bigface") {
+    debugPickAndLog(
+      "bigface",
+      "Click a tile on the map to inspect bigface/multitile data…",
+      mapdata_debug_bigface,
+    );
+  } else if (sub === "tile") {
+    debugPickAndLog(
+      "tile",
+      "Click a tile on the map to inspect tile data…",
+      mapdata_debug_tile,
+    );
+  } else if (sub === "bigfaces") {
+    for (const line of mapdata_debug_all_bigfaces()) {
+      LOG(LogLevel.Info, "debug", line);
     }
+    drawInfo("All active bigface data logged to the browser console.");
+  } else if (sub === "watch") {
+    const current = getWatchedCell();
+    if (current !== null) {
+      const { ax, ay } = current;
+      clearWatchedCell();
+      drawInfo(`Stopped watching cell at absolute (${ax}, ${ay}).`);
+    } else {
+      drawInfo("Click a tile on the map to start watching its server updates…");
+      debugClickUnsub?.();
+      debugClickUnsub = gameEvents.on("debugTileClicked", (ax, ay, _mode) => {
+        debugClickUnsub?.();
+        debugClickUnsub = null;
+        setWatchedCell({ ax, ay }, (event) =>
+          LOG(LogLevel.Info, "debug:watch", `(${ax},${ay}) ${event}`),
+        );
+        drawInfo(
+          `Now watching cell at absolute (${ax}, ${ay}). Run debug watch again to stop.`,
+        );
+      });
+      gameEvents.emit("debugPickTile", "tile");
+    }
+  } else if (sub === "face") {
+    const faceNum = parseInt(subArgs, 10);
+    if (subArgs === "" || isNaN(faceNum) || faceNum < 0) {
+      drawInfo("Usage: debug face <face-number>\nExample: debug face 1234");
+    } else {
+      for (const line of image_debug_face(faceNum)) {
+        LOG(LogLevel.Info, "debug", line);
+      }
+      drawInfo(`Face ${faceNum} data logged to the browser console.`);
+    }
+  } else if (sub === "pos") {
+    for (const line of mapdata_debug_player_pos()) {
+      LOG(LogLevel.Info, "debug", line);
+    }
+    drawInfo("Player virtual-map position logged to the browser console.");
+  } else {
+    drawInfo(
+      "Usage: debug <subcommand>\n" +
+        "Subcommands:\n" +
+        "  perf         Toggle performance logging on/off\n" +
+        "  bigface      Click a tile to log bigface/multitile info\n" +
+        "  bigfaces     Log all currently active bigface entries to the console\n" +
+        "  face <num>   Log all known data for face <num>, including pixel size\n" +
+        "  pos          Log the player's current position in the virtual map\n" +
+        "  tile         Click a tile to log all tile info\n" +
+        "  watch        Pick a tile to watch; logs all server updates to it (run again to stop)",
+    );
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -268,66 +326,92 @@ function commandDebug(args: string): void {
 // ---------------------------------------------------------------------------
 
 const builtinCommands: ConsoleCommand[] = [
-    {
-        name: "bind",
-        category: CommCat.Setup,
-        description: "Store a command and open the key-bind dialog",
-        longDescription:
-            "Syntax:\n" +
-            "  bind <command>\n" +
-            "\n" +
-            "Stores <command> as the pending command (without sending it to the\n" +
-            "server) and opens the keyboard key-bind dialog so you can assign\n" +
-            "it to a key.\n" +
-            "\n" +
-            "Example:\n" +
-            "  bind cast fireball\n" +
-            "    Opens the bind dialog with 'cast fireball' ready to be assigned.",
-        handler: commandBind,
-    },
-    {
-        name: "gamepad_bind",
-        category: CommCat.Setup,
-        description: "Store a command and open the gamepad button-bind dialog",
-        longDescription:
-            "Syntax:\n" +
-            "  gamepad_bind <command>\n" +
-            "\n" +
-            "Stores <command> as the pending command (without sending it to the\n" +
-            "server) and opens the gamepad button-bind dialog so you can assign\n" +
-            "it to a controller button.\n" +
-            "\n" +
-            "Example:\n" +
-            "  gamepad_bind cast fireball\n" +
-            "    Opens the gamepad bind dialog with 'cast fireball' ready to be assigned.",
-        handler: commandGamepadBind,
-    },
-    { name: "help",         category: CommCat.Misc,  description: "Show help on commands",            handler: commandHelp },
-    { name: "clear",        category: CommCat.Misc,  description: "Clear the message panel",          handler: commandClear },
-    { name: "magicmap",     category: CommCat.Misc,  description: "Show last received magic map",     handler: commandMagicmap },
-    { name: "resetkeys",    category: CommCat.Setup, description: "Reset all key bindings to default",handler: commandResetKeys },
-    { name: "take",         category: CommCat.Misc,  description: "Take items from the ground",       handler: commandTake },
-    {
-        name: "debug",
-        category: CommCat.Debug,
-        description: "Debugging tools (perf, bigface, bigfaces, face, pos, tile, watch)",
-        longDescription:
-            "Syntax:\n" +
-            "  debug perf         Toggle periodic performance logging on/off\n" +
-            "  debug bigface      Click a tile to log bigface/multitile info to the console\n" +
-            "  debug bigfaces     Log all currently active bigface entries to the console\n" +
-            "  debug face <num>   Log all known data for face <num>, including pixel size,\n" +
-            "                     image URL, smooth face mapping, and any pending name/checksum\n" +
-            "  debug pos          Log the player's current position in the virtual map\n" +
-            "  debug tile         Click a tile to log all tile data to the console\n" +
-            "  debug watch        Click a tile to start watching; every server update to that\n" +
-            "                     cell is logged at info level.  Run again to stop watching.\n" +
-            "\n" +
-            "Performance logging is off by default.  The bigface, tile and watch\n" +
-            "subcommands prompt you to click on the game map; the data is\n" +
-            "written to the browser developer console at info level.",
-        handler: commandDebug,
-    },
+  {
+    name: "bind",
+    category: CommCat.Setup,
+    description: "Store a command and open the key-bind dialog",
+    longDescription:
+      "Syntax:\n" +
+      "  bind <command>\n" +
+      "\n" +
+      "Stores <command> as the pending command (without sending it to the\n" +
+      "server) and opens the keyboard key-bind dialog so you can assign\n" +
+      "it to a key.\n" +
+      "\n" +
+      "Example:\n" +
+      "  bind cast fireball\n" +
+      "    Opens the bind dialog with 'cast fireball' ready to be assigned.",
+    handler: commandBind,
+  },
+  {
+    name: "gamepad_bind",
+    category: CommCat.Setup,
+    description: "Store a command and open the gamepad button-bind dialog",
+    longDescription:
+      "Syntax:\n" +
+      "  gamepad_bind <command>\n" +
+      "\n" +
+      "Stores <command> as the pending command (without sending it to the\n" +
+      "server) and opens the gamepad button-bind dialog so you can assign\n" +
+      "it to a controller button.\n" +
+      "\n" +
+      "Example:\n" +
+      "  gamepad_bind cast fireball\n" +
+      "    Opens the gamepad bind dialog with 'cast fireball' ready to be assigned.",
+    handler: commandGamepadBind,
+  },
+  {
+    name: "help",
+    category: CommCat.Misc,
+    description: "Show help on commands",
+    handler: commandHelp,
+  },
+  {
+    name: "clear",
+    category: CommCat.Misc,
+    description: "Clear the message panel",
+    handler: commandClear,
+  },
+  {
+    name: "magicmap",
+    category: CommCat.Misc,
+    description: "Show last received magic map",
+    handler: commandMagicmap,
+  },
+  {
+    name: "resetkeys",
+    category: CommCat.Setup,
+    description: "Reset all key bindings to default",
+    handler: commandResetKeys,
+  },
+  {
+    name: "take",
+    category: CommCat.Misc,
+    description: "Take items from the ground",
+    handler: commandTake,
+  },
+  {
+    name: "debug",
+    category: CommCat.Debug,
+    description:
+      "Debugging tools (perf, bigface, bigfaces, face, pos, tile, watch)",
+    longDescription:
+      "Syntax:\n" +
+      "  debug perf         Toggle periodic performance logging on/off\n" +
+      "  debug bigface      Click a tile to log bigface/multitile info to the console\n" +
+      "  debug bigfaces     Log all currently active bigface entries to the console\n" +
+      "  debug face <num>   Log all known data for face <num>, including pixel size,\n" +
+      "                     image URL, smooth face mapping, and any pending name/checksum\n" +
+      "  debug pos          Log the player's current position in the virtual map\n" +
+      "  debug tile         Click a tile to log all tile data to the console\n" +
+      "  debug watch        Click a tile to start watching; every server update to that\n" +
+      "                     cell is logged at info level.  Run again to stop watching.\n" +
+      "\n" +
+      "Performance logging is off by default.  The bigface, tile and watch\n" +
+      "subcommands prompt you to click on the game map; the data is\n" +
+      "written to the browser developer console at info level.",
+    handler: commandDebug,
+  },
 ];
 
 // ---------------------------------------------------------------------------
@@ -336,22 +420,26 @@ const builtinCommands: ConsoleCommand[] = [
 
 /** Register all built-in commands. Must be called once at startup. */
 export function initCommands(): void {
-    commandList = [...builtinCommands].sort((a, b) =>
-        a.name.localeCompare(b.name));
-    catSorted = null;
-    LOG(LogLevel.Debug, "p_cmd::initCommands",
-        `Registered ${commandList.length} client commands.`);
+  commandList = [...builtinCommands].sort((a, b) =>
+    a.name.localeCompare(b.name),
+  );
+  catSorted = null;
+  LOG(
+    LogLevel.Debug,
+    "p_cmd::initCommands",
+    `Registered ${commandList.length} client commands.`,
+  );
 }
 
 /** Look up a command by exact name. */
 export function findCommand(cmd: string): ConsoleCommand | null {
-    const lower = cmd.toLowerCase();
-    for (const c of commandList) {
-        if (c.name === lower) {
-            return c;
-        }
+  const lower = cmd.toLowerCase();
+  for (const c of commandList) {
+    if (c.name === lower) {
+      return c;
     }
-    return null;
+  }
+  return null;
 }
 
 /**
@@ -359,16 +447,16 @@ export function findCommand(cmd: string): ConsoleCommand | null {
  * The result is cached until {@link initCommands} is called again.
  */
 export function getCatSortedCommands(): ConsoleCommand[] {
-    if (catSorted) {
-        return catSorted;
-    }
-    catSorted = [...commandList].sort((a, b) => {
-        if (a.category !== b.category) {
-            return a.category - b.category;
-        }
-        return a.name.localeCompare(b.name);
-    });
+  if (catSorted) {
     return catSorted;
+  }
+  catSorted = [...commandList].sort((a, b) => {
+    if (a.category !== b.category) {
+      return a.category - b.category;
+    }
+    return a.name.localeCompare(b.name);
+  });
+  return catSorted;
 }
 
 /**
@@ -376,34 +464,37 @@ export function getCatSortedCommands(): ConsoleCommand[] {
  * Searches built-in commands, server commands, and any `extraCandidates`
  * (e.g. command history entries).  Duplicates are omitted.
  */
-export function getCompletionMatches(partial: string, extraCandidates: string[] = []): string[] {
-    if (partial.length === 0) {
-        return [];
-    }
-    const lower = partial.toLowerCase();
-    const seen = new Set<string>();
-    const matches: string[] = [];
+export function getCompletionMatches(
+  partial: string,
+  extraCandidates: string[] = [],
+): string[] {
+  if (partial.length === 0) {
+    return [];
+  }
+  const lower = partial.toLowerCase();
+  const seen = new Set<string>();
+  const matches: string[] = [];
 
-    for (const c of commandList) {
-        if (c.name.startsWith(lower) && !seen.has(c.name)) {
-            seen.add(c.name);
-            matches.push(c.name);
-        }
+  for (const c of commandList) {
+    if (c.name.startsWith(lower) && !seen.has(c.name)) {
+      seen.add(c.name);
+      matches.push(c.name);
     }
-    for (const s of serverCommands) {
-        if (s.startsWith(lower) && !seen.has(s)) {
-            seen.add(s);
-            matches.push(s);
-        }
+  }
+  for (const s of serverCommands) {
+    if (s.startsWith(lower) && !seen.has(s)) {
+      seen.add(s);
+      matches.push(s);
     }
-    for (const e of extraCandidates) {
-        const eLower = e.toLowerCase();
-        if (eLower.startsWith(lower) && !seen.has(eLower)) {
-            seen.add(eLower);
-            matches.push(e);
-        }
+  }
+  for (const e of extraCandidates) {
+    const eLower = e.toLowerCase();
+    if (eLower.startsWith(lower) && !seen.has(eLower)) {
+      seen.add(eLower);
+      matches.push(e);
     }
-    return matches;
+  }
+  return matches;
 }
 
 /**
@@ -412,33 +503,39 @@ export function getCompletionMatches(partial: string, extraCandidates: string[] 
  * server commands, and optional `extraCandidates` such as history entries),
  * or the original string if nothing matches.
  */
-export function completeCommand(partial: string, extraCandidates: string[] = []): string {
-    if (partial.length === 0) {
-        return partial;
-    }
+export function completeCommand(
+  partial: string,
+  extraCandidates: string[] = [],
+): string {
+  if (partial.length === 0) {
+    return partial;
+  }
 
-    const matches = getCompletionMatches(partial, extraCandidates);
+  const matches = getCompletionMatches(partial, extraCandidates);
 
-    if (matches.length === 0) {
-        return partial;
-    }
-    if (matches.length === 1) {
-        return matches[0]!;
-    }
+  if (matches.length === 0) {
+    return partial;
+  }
+  if (matches.length === 1) {
+    return matches[0]!;
+  }
 
-    // Find longest common prefix (case-insensitive comparison, preserve case
-    // of the first match).
-    let prefix = matches[0]!;
-    for (let i = 1; i < matches.length; i++) {
-        const m = matches[i]!;
-        let j = 0;
-        while (j < prefix.length && j < m.length &&
-               prefix[j]!.toLowerCase() === m[j]!.toLowerCase()) {
-            j++;
-        }
-        prefix = prefix.slice(0, j);
+  // Find longest common prefix (case-insensitive comparison, preserve case
+  // of the first match).
+  let prefix = matches[0]!;
+  for (let i = 1; i < matches.length; i++) {
+    const m = matches[i]!;
+    let j = 0;
+    while (
+      j < prefix.length &&
+      j < m.length &&
+      prefix[j]!.toLowerCase() === m[j]!.toLowerCase()
+    ) {
+      j++;
     }
-    return prefix.length > 0 ? prefix : partial;
+    prefix = prefix.slice(0, j);
+  }
+  return prefix.length > 0 ? prefix : partial;
 }
 
 /**
@@ -447,12 +544,12 @@ export function completeCommand(partial: string, extraCandidates: string[] = [])
  *          forwarded to the server.
  */
 export function handleLocalCommand(cp: string, cpnext: string): boolean {
-    const cmd = findCommand(cp);
-    if (!cmd) {
-        return false;
-    }
-    cmd.handler(cpnext);
-    return true;
+  const cmd = findCommand(cp);
+  if (!cmd) {
+    return false;
+  }
+  cmd.handler(cpnext);
+  return true;
 }
 
 /**
@@ -462,30 +559,30 @@ export function handleLocalCommand(cp: string, cpnext: string): boolean {
  * it is executed directly; otherwise it is sent to the server.
  */
 export function extendedCommand(command: string): void {
-    let trimmed = command.trim();
-    if (trimmed.length === 0) {
-        return;
-    }
+  let trimmed = command.trim();
+  if (trimmed.length === 0) {
+    return;
+  }
 
-    // Strip optional leading slash — commands are registered without it.
-    if (trimmed.startsWith("/")) {
-        trimmed = trimmed.slice(1);
-    }
+  // Strip optional leading slash — commands are registered without it.
+  if (trimmed.startsWith("/")) {
+    trimmed = trimmed.slice(1);
+  }
 
-    // Split into command name and arguments.
-    const spaceIdx = trimmed.indexOf(" ");
-    let cp: string;
-    let cpnext: string;
-    if (spaceIdx === -1) {
-        cp = trimmed;
-        cpnext = "";
-    } else {
-        cp = trimmed.slice(0, spaceIdx);
-        cpnext = trimmed.slice(spaceIdx + 1);
-    }
+  // Split into command name and arguments.
+  const spaceIdx = trimmed.indexOf(" ");
+  let cp: string;
+  let cpnext: string;
+  if (spaceIdx === -1) {
+    cp = trimmed;
+    cpnext = "";
+  } else {
+    cp = trimmed.slice(0, spaceIdx);
+    cpnext = trimmed.slice(spaceIdx + 1);
+  }
 
-    if (!handleLocalCommand(cp, cpnext)) {
-        // Not a local command – forward to the server as-is.
-        sendCommand(trimmed, 0, 1);
-    }
+  if (!handleLocalCommand(cp, cpnext)) {
+    // Not a local command – forward to the server as-is.
+    sendCommand(trimmed, 0, 1);
+  }
 }

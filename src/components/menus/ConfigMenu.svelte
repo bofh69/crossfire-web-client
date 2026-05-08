@@ -1,7 +1,12 @@
 <script lang="ts">
-  import { getMusicVolume, getSfxVolume, setMusicVolume, setSfxVolume } from '../../lib/sound';
-  import { gameEvents } from '../../lib/events';
-  import { useConfig, wantConfig, saveCurrentConfig } from '../../lib/init';
+  import {
+    getMusicVolume,
+    getSfxVolume,
+    setMusicVolume,
+    setSfxVolume,
+  } from "../../lib/sound";
+  import { gameEvents } from "../../lib/events";
+  import { useConfig, wantConfig, saveCurrentConfig } from "../../lib/init";
 
   interface Props {
     fading: boolean;
@@ -47,18 +52,25 @@
   }
 
   function handleZoomIn() {
-    gameEvents.emit('zoomIn');
+    gameEvents.emit("zoomIn");
     onClose();
   }
 
   function handleZoomOut() {
-    gameEvents.emit('zoomOut');
+    gameEvents.emit("zoomOut");
     onClose();
   }
 </script>
 
 <div class="menu-item">
-  <button class="menu-button" onclick={onToggle} oncontextmenu={(e) => { e.preventDefault(); onToggle(); }}>Config</button>
+  <button
+    class="menu-button"
+    onclick={onToggle}
+    oncontextmenu={(e) => {
+      e.preventDefault();
+      onToggle();
+    }}>Config</button
+  >
   {#if isOpen}
     <div class="dropdown" class:fading>
       <div class="slider-row">
@@ -92,21 +104,39 @@
       <div class="separator"></div>
       <button
         onclick={toggleFogGrayscale}
-        oncontextmenu={(e) => { e.preventDefault(); toggleFogGrayscale(); }}
-      >{fogGrayscale ? 'Disable Grayscale Fog of War' : 'Enable Grayscale Fog of War'}</button>
+        oncontextmenu={(e) => {
+          e.preventDefault();
+          toggleFogGrayscale();
+        }}
+        >{fogGrayscale
+          ? "Disable Grayscale Fog of War"
+          : "Enable Grayscale Fog of War"}</button
+      >
       <button
         onclick={toggleDarknessInterpolation}
-        oncontextmenu={(e) => { e.preventDefault(); toggleDarknessInterpolation(); }}
-      >{darknessInterpolation ? 'Disable Darkness Interpolation' : 'Enable Darkness Interpolation'}</button>
+        oncontextmenu={(e) => {
+          e.preventDefault();
+          toggleDarknessInterpolation();
+        }}
+        >{darknessInterpolation
+          ? "Disable Darkness Interpolation"
+          : "Enable Darkness Interpolation"}</button
+      >
       <div class="separator"></div>
       <button
         onclick={handleZoomIn}
-        oncontextmenu={(e) => { e.preventDefault(); handleZoomIn(); }}
-      >Zoom In</button>
+        oncontextmenu={(e) => {
+          e.preventDefault();
+          handleZoomIn();
+        }}>Zoom In</button
+      >
       <button
         onclick={handleZoomOut}
-        oncontextmenu={(e) => { e.preventDefault(); handleZoomOut(); }}
-      >Zoom Out</button>
+        oncontextmenu={(e) => {
+          e.preventDefault();
+          handleZoomOut();
+        }}>Zoom Out</button
+      >
     </div>
   {/if}
 </div>

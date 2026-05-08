@@ -7,9 +7,9 @@
    * occupant.  Clicking a cell calls onSelect(index); pressing Escape or
    * clicking the "Cancel" button calls onCancel().
    */
-  import { onMount } from 'svelte';
-  import { getHotbarSlots } from '../lib/hotbar';
-  import { gameEvents } from '../lib/events';
+  import { onMount } from "svelte";
+  import { getHotbarSlots } from "../lib/hotbar";
+  import { gameEvents } from "../lib/events";
 
   interface Props {
     onSelect: (index: number) => void;
@@ -21,7 +21,7 @@
   let currentSlots = $state([...getHotbarSlots()]);
 
   onMount(() => {
-    const unsub = gameEvents.on('hotbarUpdate', () => {
+    const unsub = gameEvents.on("hotbarUpdate", () => {
       currentSlots = [...getHotbarSlots()];
     });
     return unsub;

@@ -1,17 +1,30 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
-  import { playerStats } from '../lib/commands';
-  import type { Stats } from '../lib/protocol';
-  import { gameEvents } from '../lib/events';
+  import { onMount } from "svelte";
+  import { playerStats } from "../lib/commands";
+  import type { Stats } from "../lib/protocol";
+  import { gameEvents } from "../lib/events";
 
   // Names for each resistance slot, matching the server's CS_STAT_RESIST_START
   // index order (index 0 = physical/armor, 1 = magic, …, 17 = blind).
   const RESIST_NAMES: string[] = [
-    'Physical', 'Magic', 'Fire', 'Electric',
-    'Cold', 'Confusion', 'Acid', 'Drain',
-    'Ghost Hit', 'Poison', 'Slow', 'Paralysis',
-    'Turn Undead', 'Fear', 'Deplete', 'Death',
-    'Holy Word', 'Blind',
+    "Physical",
+    "Magic",
+    "Fire",
+    "Electric",
+    "Cold",
+    "Confusion",
+    "Acid",
+    "Drain",
+    "Ghost Hit",
+    "Poison",
+    "Slow",
+    "Paralysis",
+    "Turn Undead",
+    "Fear",
+    "Deplete",
+    "Death",
+    "Holy Word",
+    "Blind",
   ];
 
   interface ProtectionEntry {
@@ -25,7 +38,11 @@
   function updateProtections(stats: Stats) {
     const entries: ProtectionEntry[] = [];
     for (let i = 0; i < RESIST_NAMES.length; i++) {
-      entries.push({ index: i, name: RESIST_NAMES[i]!, value: stats.resists[i] ?? 0 });
+      entries.push({
+        index: i,
+        name: RESIST_NAMES[i]!,
+        value: stats.resists[i] ?? 0,
+      });
     }
     protections = entries;
   }
@@ -33,7 +50,9 @@
   // Initialize with whatever data has already arrived before this component mounted.
   onMount(() => {
     updateProtections(playerStats);
-    const unsub = gameEvents.on('statsUpdate', () => updateProtections(playerStats));
+    const unsub = gameEvents.on("statsUpdate", () =>
+      updateProtections(playerStats),
+    );
     return unsub;
   });
 </script>
@@ -52,8 +71,12 @@
         {#each protections as prot (prot.index)}
           <tr>
             <td class="prot-name">{prot.name}</td>
-            <td class="prot-value" class:positive={prot.value > 0} class:negative={prot.value < 0}>
-              {prot.value > 0 ? '+' : ''}{prot.value}
+            <td
+              class="prot-value"
+              class:positive={prot.value > 0}
+              class:negative={prot.value < 0}
+            >
+              {prot.value > 0 ? "+" : ""}{prot.value}
             </td>
           </tr>
         {/each}

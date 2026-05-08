@@ -1,24 +1,46 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
-  import { mapdata_cell, mapdata_can_smooth, mapdata_contains, mapdata_head_face_info, mapdata_tail_face_info, getViewSize, getPlayerPosition } from '../lib/mapdata';
-  import { getFaceBitmap, getFaceBitmapCacheSize, getSmoothFace } from '../lib/image';
-  import { lookAt } from '../lib/player';
-  import { set_move_to, moveToX, moveToY } from '../lib/mapdata';
-  import { MapCellState, MAXLAYERS, Map2Label, LogLevel } from '../lib/protocol';
-  import { clientMapsize } from '../lib/client';
-  import { wantConfig, useConfig } from '../lib/init';
-  import { gameEvents } from '../lib/events';
-  import { LOG } from '../lib/misc';
-  import { SLOW_DRAW_THRESHOLD_MS, DRAW_STATS_INTERVAL_MS, TILE_SIZE, SELF_TICK_INTERVAL_MS } from '../lib/constants';
-  import { loadConfig, saveConfig } from '../lib/storage';
-  import { perfLogging } from '../lib/debug';
+  import { onMount } from "svelte";
+  import {
+    mapdata_cell,
+    mapdata_can_smooth,
+    mapdata_contains,
+    mapdata_head_face_info,
+    mapdata_tail_face_info,
+    getViewSize,
+    getPlayerPosition,
+  } from "../lib/mapdata";
+  import {
+    getFaceBitmap,
+    getFaceBitmapCacheSize,
+    getSmoothFace,
+  } from "../lib/image";
+  import { lookAt } from "../lib/player";
+  import { set_move_to, moveToX, moveToY } from "../lib/mapdata";
+  import {
+    MapCellState,
+    MAXLAYERS,
+    Map2Label,
+    LogLevel,
+  } from "../lib/protocol";
+  import { clientMapsize } from "../lib/client";
+  import { wantConfig, useConfig } from "../lib/init";
+  import { gameEvents } from "../lib/events";
+  import { LOG } from "../lib/misc";
+  import {
+    SLOW_DRAW_THRESHOLD_MS,
+    DRAW_STATS_INTERVAL_MS,
+    TILE_SIZE,
+    SELF_TICK_INTERVAL_MS,
+  } from "../lib/constants";
+  import { loadConfig, saveConfig } from "../lib/storage";
+  import { perfLogging } from "../lib/debug";
 
   const BASE_FONT_SIZE = 10;
   const LABEL_PAD = 3;
   const MIN_SCALE = 1;
   const MAX_SCALE = 8;
   const MAX_MISSING_FACES_PREVIEW = 12;
-  const ZOOM_STORAGE_KEY = 'tileScale';
+  const ZOOM_STORAGE_KEY = "tileScale";
   /**
    * Minimum number of tiles that must be visible in each dimension.
    * computeScale() only increases the scale when at least this many tiles
@@ -56,7 +78,9 @@
    * null means "auto" — computeScale() is used instead.
    * Persisted in localStorage so it survives page reloads.
    */
-  let storedScale = $state<number | null>(loadConfig<number | null>(ZOOM_STORAGE_KEY, null));
+  let storedScale = $state<number | null>(
+    loadConfig<number | null>(ZOOM_STORAGE_KEY, null),
+  );
 
   /** Effective tile size used in the last draw — kept for click-to-tile mapping. */
   let currentTileSize = TILE_SIZE;
@@ -131,7 +155,11 @@
     requestAnimationFrame(() => {
       rafPending = false;
       if (pendingRedrawCount > 1 && perfLogging) {
-        LOG(LogLevel.Debug, 'GameMap', `coalesced ${pendingRedrawCount} redraw requests into 1 frame`);
+        LOG(
+          LogLevel.Debug,
+          "GameMap",
+          `coalesced ${pendingRedrawCount} redraw requests into 1 frame`,
+        );
       }
       pendingRedrawCount = 0;
       mapVersion++;
@@ -139,36 +167,38 @@
   }
 
   /** Debug pick mode: when set, the next left-click reports tile info instead of lookAt. */
-  let debugPickMode: 'bigface' | 'tile' | null = $state(null);
+  let debugPickMode: "bigface" | "tile" | null = $state(null);
 
   onMount(() => {
     const cleanups = [
-      gameEvents.on('mapUpdate', () => scheduleRedraw()),
-      gameEvents.on('newMap', () => scheduleRedraw()),
-      gameEvents.on('tick', () => {
+      gameEvents.on("mapUpdate", () => scheduleRedraw()),
+      gameEvents.on("newMap", () => scheduleRedraw()),
+      gameEvents.on("tick", () => {
         if (tickSkipsRemaining > 0) {
           tickSkipsRemaining--;
           return;
         }
         scheduleRedraw();
       }),
-      gameEvents.on('zoomIn', () => {
+      gameEvents.on("zoomIn", () => {
         const current = storedScale ?? computeScale(containerW, containerH);
         storedScale = Math.min(current + 1, MAX_SCALE);
         saveConfig(ZOOM_STORAGE_KEY, storedScale);
         scheduleRedraw();
       }),
-      gameEvents.on('zoomOut', () => {
+      gameEvents.on("zoomOut", () => {
         const current = storedScale ?? computeScale(containerW, containerH);
         storedScale = Math.max(current - 1, MIN_SCALE);
         saveConfig(ZOOM_STORAGE_KEY, storedScale);
         scheduleRedraw();
       }),
-      gameEvents.on('debugPickTile', (mode) => {
+      gameEvents.on("debugPickTile", (mode) => {
         debugPickMode = mode;
       }),
     ];
-    return () => { for (const unsub of cleanups) unsub(); };
+    return () => {
+      for (const unsub of cleanups) unsub();
+    };
   });
 
   $effect(() => {
@@ -216,9 +246,11 @@
    */
   function drawsmooth(
     ctx: CanvasRenderingContext2D,
-    ax: number, ay: number,
+    ax: number,
+    ay: number,
     layer: number,
-    px: number, py: number,
+    px: number,
+    py: number,
     tileSize: number,
     missingFaces: Set<number>,
   ): void {
@@ -227,7 +259,10 @@
     // Smooth only makes sense when there is visible content on some layer ≤ current.
     let hasFace = false;
     for (let i = 0; i <= layer; i++) {
-      if (cell.heads[i]!.face !== 0) { hasFace = true; break; }
+      if (cell.heads[i]!.face !== 0) {
+        hasFace = true;
+        break;
+      }
     }
     if (!hasFace || !mapdata_can_smooth(ax, ay, layer)) return;
 
@@ -257,8 +292,11 @@
     while (true) {
       let lowestIdx = -1;
       for (let i = 0; i < 8; i++) {
-        if (_slevels[i]! > 0 && _partdone[i] === 0 &&
-            (lowestIdx < 0 || _slevels[i]! < _slevels[lowestIdx]!)) {
+        if (
+          _slevels[i]! > 0 &&
+          _partdone[i] === 0 &&
+          (lowestIdx < 0 || _slevels[i]! < _slevels[lowestIdx]!)
+        ) {
           lowestIdx = i;
         }
       }
@@ -267,7 +305,10 @@
       let weight = 0;
       let weightC = 15;
       for (let i = 0; i < 8; i++) {
-        if (_slevels[i]! === _slevels[lowestIdx]! && _sfaces[i]! === _sfaces[lowestIdx]!) {
+        if (
+          _slevels[i]! === _slevels[lowestIdx]! &&
+          _sfaces[i]! === _sfaces[lowestIdx]!
+        ) {
           _partdone[i] = 1;
           weight += SMOOTH_BWEIGHTS[i]!;
           weightC &= ~SMOOTH_BC_EXCLUDE[i]!;
@@ -287,27 +328,48 @@
 
       // Draw border sub-tile (row 0, column = weight bitmask).
       if (weight > 0) {
-        ctx.drawImage(smoothImg,
-          weight * TILE_SIZE, 0, TILE_SIZE, TILE_SIZE,
-          px, py, tileSize, tileSize);
+        ctx.drawImage(
+          smoothImg,
+          weight * TILE_SIZE,
+          0,
+          TILE_SIZE,
+          TILE_SIZE,
+          px,
+          py,
+          tileSize,
+          tileSize,
+        );
       }
       // Draw corner sub-tile (row 1, column = weightC bitmask).
       if (weightC > 0) {
-        ctx.drawImage(smoothImg,
-          weightC * TILE_SIZE, TILE_SIZE, TILE_SIZE, TILE_SIZE,
-          px, py, tileSize, tileSize);
+        ctx.drawImage(
+          smoothImg,
+          weightC * TILE_SIZE,
+          TILE_SIZE,
+          TILE_SIZE,
+          TILE_SIZE,
+          px,
+          py,
+          tileSize,
+          tileSize,
+        );
       }
     }
   }
 
   function drawMap(c: HTMLCanvasElement) {
     const t0 = performance.now();
-    performance.mark('drawMap-start');
-    const ctx = c.getContext('2d');
+    performance.mark("drawMap-start");
+    const ctx = c.getContext("2d");
     if (!ctx) return;
 
-    function drawPlaceholder(px: number, py: number, ts: number, layer: number) {
-      ctx!.fillStyle = layer === 0 ? '#222' : '#333';
+    function drawPlaceholder(
+      px: number,
+      py: number,
+      ts: number,
+      layer: number,
+    ) {
+      ctx!.fillStyle = layer === 0 ? "#222" : "#333";
       ctx!.fillRect(px + 1, py + 1, ts - 2, ts - 2);
     }
 
@@ -357,7 +419,7 @@
     if (c.width !== canvasW) c.width = canvasW;
     if (c.height !== canvasH) c.height = canvasH;
 
-    ctx.fillStyle = '#111';
+    ctx.fillStyle = "#111";
     ctx.fillRect(0, 0, canvasW, canvasH);
 
     let tilesDrawn = 0;
@@ -382,7 +444,7 @@
         const px = vx * tileSize;
         const py = vy * tileSize;
         if (cell.state === MapCellState.Fog) {
-          ctx.fillStyle = '#1a1a1a';
+          ctx.fillStyle = "#1a1a1a";
           ctx.fillRect(px, py, tileSize, tileSize);
         }
       }
@@ -407,7 +469,12 @@
           const px = vx * tileSize;
           const py = vy * tileSize;
 
-          function drawResolvedFace(face: number, dx: number, dy: number, placeholderForHead: boolean) {
+          function drawResolvedFace(
+            face: number,
+            dx: number,
+            dy: number,
+            placeholderForHead: boolean,
+          ) {
             if (face === 0) return;
             const drawCtx = ctx;
             if (!drawCtx) return;
@@ -422,8 +489,12 @@
               const drawX = (vx + dx) * tileSize + tileSize - drawW;
               const drawY = (vy + dy) * tileSize + tileSize - drawH;
               // Skip drawing if the image lies entirely outside the canvas.
-              if (drawX + drawW > 0 && drawY + drawH > 0 &&
-                  drawX < canvasW && drawY < canvasH) {
+              if (
+                drawX + drawW > 0 &&
+                drawY + drawH > 0 &&
+                drawX < canvasW &&
+                drawY < canvasH
+              ) {
                 // Clip to the current cell's tile area so that each cell
                 // only renders the portion of the bigface image that falls
                 // within its own tile.  This ensures that Empty cells (which
@@ -465,23 +536,31 @@
     // scaled up to the full canvas resolution before being composited.
     if (useConfig.fogGrayscale) {
       // --- grayCanvas: full-resolution grayscale copy of the drawn tiles -----
-      if (grayCanvas === null || grayCanvasW !== canvasW || grayCanvasH !== canvasH) {
+      if (
+        grayCanvas === null ||
+        grayCanvasW !== canvasW ||
+        grayCanvasH !== canvasH
+      ) {
         grayCanvas = new OffscreenCanvas(canvasW, canvasH);
-        grayCanvasCtx = grayCanvas.getContext('2d')!;
+        grayCanvasCtx = grayCanvas.getContext("2d")!;
         grayCanvasW = canvasW;
         grayCanvasH = canvasH;
       }
       const grayCtx = grayCanvasCtx!;
       // Draw the current (coloured) main canvas into grayCanvas with a
       // CSS grayscale filter so every pixel is fully desaturated.
-      grayCtx.filter = 'grayscale(1)';
+      grayCtx.filter = "grayscale(1)";
       grayCtx.drawImage(c, 0, 0);
-      grayCtx.filter = 'none';
+      grayCtx.filter = "none";
 
       // --- grayMaskCanvas: 1 px per tile mask (alpha = grayscale strength) ---
-      if (grayMaskCanvas === null || grayMaskCanvasW !== displayW || grayMaskCanvasH !== displayH) {
+      if (
+        grayMaskCanvas === null ||
+        grayMaskCanvasW !== displayW ||
+        grayMaskCanvasH !== displayH
+      ) {
         grayMaskCanvas = new OffscreenCanvas(displayW, displayH);
-        grayMaskCtx = grayMaskCanvas.getContext('2d')!;
+        grayMaskCtx = grayMaskCanvas.getContext("2d")!;
         grayMaskImageData = grayMaskCtx.createImageData(displayW, displayH);
         grayMaskCanvasW = displayW;
         grayMaskCanvasH = displayH;
@@ -515,12 +594,12 @@
       // Scale the mask up onto grayCanvas with bilinear interpolation so the
       // Visible/Fog boundary fades smoothly across pixels rather than snapping
       // at tile edges.  destination-in clips grayCanvas to the mask's alpha.
-      grayCtx.globalCompositeOperation = 'destination-in';
+      grayCtx.globalCompositeOperation = "destination-in";
       grayCtx.imageSmoothingEnabled = true;
-      grayCtx.imageSmoothingQuality = 'high';
+      grayCtx.imageSmoothingQuality = "high";
       grayCtx.drawImage(grayMaskCanvas, 0, 0, canvasW, canvasH);
       grayCtx.imageSmoothingEnabled = false;
-      grayCtx.globalCompositeOperation = 'source-over';
+      grayCtx.globalCompositeOperation = "source-over";
 
       // Composite the masked grayscale layer back onto the main canvas.
       // Where the mask was fully transparent (Visible) grayCanvas contributes
@@ -536,9 +615,13 @@
     {
       // Recreate the OffscreenCanvas and ImageData only when the tile-grid
       // dimensions change so we avoid per-frame allocations.
-      if (darkCanvas === null || darkCanvasW !== displayW || darkCanvasH !== displayH) {
+      if (
+        darkCanvas === null ||
+        darkCanvasW !== displayW ||
+        darkCanvasH !== displayH
+      ) {
         darkCanvas = new OffscreenCanvas(displayW, displayH);
-        darkCanvasCtx = darkCanvas.getContext('2d')!;
+        darkCanvasCtx = darkCanvas.getContext("2d")!;
         darkImageData = darkCanvasCtx.createImageData(displayW, displayH);
         darkCanvasW = displayW;
         darkCanvasH = displayH;
@@ -557,7 +640,8 @@
           if (mapdata_contains(ax, ay)) {
             const cell = mapdata_cell(ax, ay);
             if (cell.state === MapCellState.Visible) {
-              alpha = cell.darkness > 0 ? Math.min(cell.darkness / 255, 0.8) : 0;
+              alpha =
+                cell.darkness > 0 ? Math.min(cell.darkness / 255, 0.8) : 0;
             } else if (cell.state === MapCellState.Fog) {
               // Dim out-of-sight tiles to indicate they're no longer visible,
               // matching the old client which added +0.2 opacity for fog-of-war cells.
@@ -575,7 +659,7 @@
       // Scale up the darkness map with bilinear interpolation so darkness
       // transitions smoothly at the per-pixel level rather than per-tile.
       ctx.imageSmoothingEnabled = useConfig.darknessInterpolation;
-      ctx.imageSmoothingQuality = 'high';
+      ctx.imageSmoothingQuality = "high";
       ctx.drawImage(darkCanvas, 0, 0, canvasW, canvasH);
       ctx.imageSmoothingEnabled = false;
     }
@@ -594,7 +678,8 @@
         const ay = plPos.y + vy - startOffsetY;
         if (!mapdata_contains(ax, ay)) continue;
         const cell = mapdata_cell(ax, ay);
-        if (cell.state !== MapCellState.Visible || cell.labels.length === 0) continue;
+        if (cell.state !== MapCellState.Visible || cell.labels.length === 0)
+          continue;
 
         const isPlayerTile = vx === playerVX && vy === playerVY;
         const px = vx * tileSize;
@@ -610,7 +695,9 @@
           if (isPlayerTile && lbl.subtype === Map2Label.Player) continue;
           const metrics = ctx.measureText(lbl.label);
           const textW = metrics.width;
-          const textH = (metrics.actualBoundingBoxAscent ?? 8) + (metrics.actualBoundingBoxDescent ?? 2);
+          const textH =
+            (metrics.actualBoundingBoxAscent ?? 8) +
+            (metrics.actualBoundingBoxDescent ?? 2);
           const lineH = textH + 2 * LABEL_PAD;
 
           let labelTopY: number;
@@ -630,17 +717,17 @@
           const bx = px + offX - LABEL_PAD;
 
           // Semi-transparent grey background.
-          ctx.fillStyle = 'rgba(77, 77, 77, 0.5)';
+          ctx.fillStyle = "rgba(77, 77, 77, 0.5)";
           ctx.fillRect(bx, labelTopY, textW + 2 * LABEL_PAD, lineH);
 
           // Text color based on label subtype.
-          ctx.strokeStyle = 'black';
+          ctx.strokeStyle = "black";
           if (lbl.subtype === Map2Label.DM) {
-            ctx.fillStyle = '#ff0000';
+            ctx.fillStyle = "#ff0000";
           } else if (lbl.subtype === Map2Label.PlayerParty) {
-            ctx.fillStyle = 'rgb(177, 225, 255)';
+            ctx.fillStyle = "rgb(177, 225, 255)";
           } else {
-            ctx.fillStyle = '#fff'; // Bingo on color types!
+            ctx.fillStyle = "#fff"; // Bingo on color types!
           }
           const textBaselineY = labelTopY + LABEL_PAD + textH;
           ctx.strokeText(lbl.label, px + offX, textBaselineY);
@@ -657,7 +744,7 @@
       const tvy = moveToY - plPos.y;
       if (tvx >= 0 && tvx < vw && tvy >= 0 && tvy < vh) {
         ctx.save();
-        ctx.strokeStyle = 'rgba(255, 255, 0, 0.85)';
+        ctx.strokeStyle = "rgba(255, 255, 0, 0.85)";
         ctx.lineWidth = Math.max(1, Math.round(scale));
         ctx.strokeRect(
           (tvx + startOffsetX) * tileSize + ctx.lineWidth / 2,
@@ -669,8 +756,8 @@
       }
     }
 
-    performance.mark('drawMap-end');
-    performance.measure('drawMap', 'drawMap-start', 'drawMap-end');
+    performance.mark("drawMap-end");
+    performance.measure("drawMap", "drawMap-start", "drawMap-end");
     const elapsed = performance.now() - t0;
     drawCount++;
     drawElapsedTotalMs += elapsed;
@@ -685,13 +772,23 @@
     }
 
     if (perfLogging && elapsed > SLOW_DRAW_THRESHOLD_MS) {
-      LOG(LogLevel.Warning, 'perf:map', `drawMap took ${elapsed.toFixed(1)}ms — tiles:${tilesDrawn} imgs:${imagesDrawn} placeholders:${placeholders}${tickSkipsRemaining > 0 ? ` — skipping ${tickSkipsRemaining} tick(s)` : ''}`);
+      LOG(
+        LogLevel.Warning,
+        "perf:map",
+        `drawMap took ${elapsed.toFixed(1)}ms — tiles:${tilesDrawn} imgs:${imagesDrawn} placeholders:${placeholders}${tickSkipsRemaining > 0 ? ` — skipping ${tickSkipsRemaining} tick(s)` : ""}`,
+      );
     }
 
     if (missingFaces.size > 0) {
-      const preview = Array.from(missingFaces).slice(0, MAX_MISSING_FACES_PREVIEW).join(',');
-      const suffix = missingFaces.size > MAX_MISSING_FACES_PREVIEW ? ',…' : '';
-      LOG(LogLevel.Debug, 'GameMap', `missing ImageBitmap faces during drawMap: ${missingFaces.size} [${preview}${suffix}]`);
+      const preview = Array.from(missingFaces)
+        .slice(0, MAX_MISSING_FACES_PREVIEW)
+        .join(",");
+      const suffix = missingFaces.size > MAX_MISSING_FACES_PREVIEW ? ",…" : "";
+      LOG(
+        LogLevel.Debug,
+        "GameMap",
+        `missing ImageBitmap faces during drawMap: ${missingFaces.size} [${preview}${suffix}]`,
+      );
     }
 
     const now = performance.now();
@@ -699,7 +796,11 @@
       const dt = (now - lastStatsTime) / 1000;
       if (perfLogging) {
         const avgDrawMs = drawCount > 0 ? drawElapsedTotalMs / drawCount : 0;
-        LOG(LogLevel.Info, 'perf:map', `${drawCount} draws in ${dt.toFixed(1)}s (${(drawCount / dt).toFixed(1)} draws/s), avgDrawMap:${avgDrawMs.toFixed(1)}ms, imageBitmapCache:${getFaceBitmapCacheSize()}`);
+        LOG(
+          LogLevel.Info,
+          "perf:map",
+          `${drawCount} draws in ${dt.toFixed(1)}s (${(drawCount / dt).toFixed(1)} draws/s), avgDrawMap:${avgDrawMs.toFixed(1)}ms, imageBitmapCache:${getFaceBitmapCacheSize()}`,
+        );
       }
       drawCount = 0;
       drawElapsedTotalMs = 0;
@@ -749,7 +850,7 @@
       const ay = plPos.y + tileY - currentStartOffsetY;
       const mode = debugPickMode;
       debugPickMode = null;
-      gameEvents.emit('debugTileClicked', ax, ay, mode);
+      gameEvents.emit("debugTileClicked", ax, ay, mode);
       return;
     }
 
@@ -771,7 +872,11 @@
   }
 </script>
 
-<div class="game-map" bind:clientWidth={containerW} bind:clientHeight={containerH}>
+<div
+  class="game-map"
+  bind:clientWidth={containerW}
+  bind:clientHeight={containerH}
+>
   <canvas
     bind:this={canvas}
     onclick={handleClick}

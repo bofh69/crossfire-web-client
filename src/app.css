@@ -21,8 +21,8 @@
   --danger-bg: #8b2020;
   --danger-text: #ff8888;
 
-  --serif: 'Modern Antiqua', serif;
-  --mono: 'Courier New', ui-monospace, Consolas, monospace;
+  --serif: "Modern Antiqua", serif;
+  --mono: "Courier New", ui-monospace, Consolas, monospace;
 
   font: clamp(8px, 1vw, 19px)/1.4 var(--serif);
   color-scheme: dark;
@@ -66,7 +66,10 @@ body {
     "map    side"
     "info   side";
   grid-template-columns: 1fr var(--side-width, clamp(188px, 13.4vw, 335px));
-  grid-template-rows: clamp(16px, 1.7vh, 19px) clamp(35px, 4vh, 43px) 1fr var(--info-height, clamp(94px, 12vh, 214px));
+  grid-template-rows: clamp(16px, 1.7vh, 19px) clamp(35px, 4vh, 43px) 1fr var(
+      --info-height,
+      clamp(94px, 12vh, 214px)
+    );
   width: 100vw;
   width: 100dvw;
   height: 100vh;
@@ -233,7 +236,10 @@ body {
 }
 
 .game-layout.hotbar-hidden {
-  grid-template-rows: clamp(16px, 1.7vh, 19px) 0 1fr var(--info-height, clamp(94px, 12vh, 214px));
+  grid-template-rows: clamp(16px, 1.7vh, 19px) 0 1fr var(
+      --info-height,
+      clamp(94px, 12vh, 214px)
+    );
 }
 
 .game-layout.hotbar-hidden .hotbar-area {
@@ -272,7 +278,7 @@ body {
   border: 1px solid var(--border-mid);
   min-width: 160px;
   z-index: 50;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
   opacity: 1;
   transition: opacity 2s ease-out;
 }

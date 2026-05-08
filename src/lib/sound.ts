@@ -10,16 +10,16 @@
  * logical sound names to filenames + default volumes.
  */
 
-import { LOG } from './misc.js';
-import { LogLevel } from './protocol.js';
-import { loadConfig, saveConfig } from './storage.js';
+import { LOG } from "./misc.js";
+import { LogLevel } from "./protocol.js";
+import { loadConfig, saveConfig } from "./storage.js";
 import {
   MUSIC_VOLUME_CAP,
   MUSIC_FADE_OUT_MS,
   MUSIC_FADE_STOP_MS,
   MUSIC_FADE_IN_MS,
   MUSIC_FADE_STEP_MS,
-} from './constants.js';
+} from "./constants.js";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -27,7 +27,7 @@ import {
 
 interface SoundInfo {
   file: string;
-  vol: number;       // 0–100
+  vol: number; // 0–100
 }
 
 function clampVolume(vol: number): number {
@@ -39,7 +39,7 @@ function clampVolume(vol: number): number {
 // ---------------------------------------------------------------------------
 
 /** Base URL prefix for sound assets (no trailing slash). */
-const SOUND_BASE = 'sounds';
+const SOUND_BASE = "sounds";
 
 /** Parsed sounds.conf mapping: logical-name → SoundInfo */
 let soundConfig: Map<string, SoundInfo> | null = null;
@@ -69,18 +69,18 @@ let fadeOutIntervalId: ReturnType<typeof setInterval> | null = null;
 let fadeInIntervalId: ReturnType<typeof setInterval> | null = null;
 
 /** Name of the music track currently playing (without extension). */
-let currentMusic = '';
+let currentMusic = "";
 
 /** Master sound-enabled flag. */
 let soundEnabled = true;
 
 /** Legacy mute booleans (kept as fallback when volume keys are missing). */
-const legacyMusicMuted = loadConfig<boolean>('musicMuted', false);
-const legacySfxMuted = loadConfig<boolean>('sfxMuted', false);
+const legacyMusicMuted = loadConfig<boolean>("musicMuted", false);
+const legacySfxMuted = loadConfig<boolean>("sfxMuted", false);
 
 /** Music volume 0–100. */
 let musicVolume = clampVolume(
-  loadConfig<number>('musicVolume', legacyMusicMuted ? 0 : 100),
+  loadConfig<number>("musicVolume", legacyMusicMuted ? 0 : 100),
 );
 
 /** Last non-zero music volume, used when unmuting. */
@@ -88,7 +88,7 @@ let lastNonZeroMusicVolume = musicVolume > 0 ? musicVolume : 100;
 
 /** Sound-effects volume 0–100. */
 let sfxVolume = clampVolume(
-  loadConfig<number>('sfxVolume', legacySfxMuted ? 0 : 100),
+  loadConfig<number>("sfxVolume", legacySfxMuted ? 0 : 100),
 );
 
 /** Last non-zero sound-effects volume, used when unmuting. */
@@ -111,14 +111,22 @@ export async function initSound(): Promise<void> {
   try {
     const resp = await fetch(`${SOUND_BASE}/sounds.conf`);
     if (!resp.ok) {
-      LOG(LogLevel.Warning, 'initSound', `Failed to fetch sounds.conf: ${resp.status}`);
+      LOG(
+        LogLevel.Warning,
+        "initSound",
+        `Failed to fetch sounds.conf: ${resp.status}`,
+      );
       return;
     }
     const text = await resp.text();
     soundConfig = parseSoundsConf(text);
-    LOG(LogLevel.Info, 'initSound', `Loaded ${soundConfig.size} sound definitions`);
+    LOG(
+      LogLevel.Info,
+      "initSound",
+      `Loaded ${soundConfig.size} sound definitions`,
+    );
   } catch (err) {
-    LOG(LogLevel.Warning, 'initSound', `Could not load sounds.conf: ${err}`);
+    LOG(LogLevel.Warning, "initSound", `Could not load sounds.conf: ${err}`);
   }
 }
 
@@ -130,12 +138,12 @@ export async function initSound(): Promise<void> {
  */
 function parseSoundsConf(text: string): Map<string, SoundInfo> {
   const map = new Map<string, SoundInfo>();
-  for (const raw of text.split('\n')) {
-    const line = raw.replace(/\r$/, '').trim();
-    if (line.length === 0 || line[0] === '#') continue;
-    const parts = line.split(':');
+  for (const raw of text.split("\n")) {
+    const line = raw.replace(/\r$/, "").trim();
+    if (line.length === 0 || line[0] === "#") continue;
+    const parts = line.split(":");
     if (parts.length < 3) {
-      LOG(LogLevel.Warning, 'parseSoundsConf', `Bad line: ${line}`);
+      LOG(LogLevel.Warning, "parseSoundsConf", `Bad line: ${line}`);
       continue;
     }
     const name = parts[0]!;
@@ -158,12 +166,18 @@ function ensureAudioContext(): AudioContext | null {
     try {
       audioCtx = new AudioContext();
     } catch {
-      LOG(LogLevel.Warning, 'ensureAudioContext', 'Web Audio API not available');
+      LOG(
+        LogLevel.Warning,
+        "ensureAudioContext",
+        "Web Audio API not available",
+      );
       return null;
     }
   }
-  if (audioCtx.state === 'suspended') {
-    audioCtx.resume().catch(() => { /* ignored */ });
+  if (audioCtx.state === "suspended") {
+    audioCtx.resume().catch(() => {
+      /* ignored */
+    });
   }
   return audioCtx;
 }
@@ -176,17 +190,20 @@ async function loadBuffer(filename: string): Promise<AudioBuffer | null> {
   const cached = bufferCache.get(filename);
   if (cached) return cached;
 
-  if (fetchingBuffers.has(filename)) return null;   // already in-flight
+  if (fetchingBuffers.has(filename)) return null; // already in-flight
   fetchingBuffers.add(filename);
 
   const ctx = ensureAudioContext();
-  if (!ctx) { fetchingBuffers.delete(filename); return null; }
+  if (!ctx) {
+    fetchingBuffers.delete(filename);
+    return null;
+  }
 
   try {
     const url = `${SOUND_BASE}/${filename}`;
     const resp = await fetch(url);
     if (!resp.ok) {
-      LOG(LogLevel.Warning, 'loadBuffer', `${url}: ${resp.status}`);
+      LOG(LogLevel.Warning, "loadBuffer", `${url}: ${resp.status}`);
       return null;
     }
     const arrayBuf = await resp.arrayBuffer();
@@ -194,7 +211,7 @@ async function loadBuffer(filename: string): Promise<AudioBuffer | null> {
     bufferCache.set(filename, audioBuf);
     return audioBuf;
   } catch (err) {
-    LOG(LogLevel.Warning, 'loadBuffer', `Failed to decode ${filename}: ${err}`);
+    LOG(LogLevel.Warning, "loadBuffer", `Failed to decode ${filename}: ${err}`);
     return null;
   } finally {
     fetchingBuffers.delete(filename);
@@ -219,14 +236,19 @@ async function loadBuffer(filename: string): Promise<AudioBuffer | null> {
  * @param _source Source object name (informational).
  */
 export function playSound(
-  _x: number, _y: number, _dir: number, vol: number, _type: number,
-  sound: string, _source: string,
+  _x: number,
+  _y: number,
+  _dir: number,
+  vol: number,
+  _type: number,
+  sound: string,
+  _source: string,
 ): void {
   if (!soundEnabled || sfxVolume <= 0 || !soundConfig) return;
 
   const si = soundConfig.get(sound);
   if (!si) {
-    LOG(LogLevel.Debug, 'playSound', `Unknown sound: ${sound}`);
+    LOG(LogLevel.Debug, "playSound", `Unknown sound: ${sound}`);
     return;
   }
 
@@ -234,7 +256,7 @@ export function playSound(
   if (!ctx) return;
 
   // Fire-and-forget: load + play.
-  loadBuffer(si.file).then(buf => {
+  loadBuffer(si.file).then((buf) => {
     if (!buf) return;
     const src = ctx.createBufferSource();
     src.buffer = buf;
@@ -259,7 +281,7 @@ function stopFadeOut(): void {
   }
   if (fadingOutElement) {
     fadingOutElement.pause();
-    fadingOutElement.src = '';
+    fadingOutElement.src = "";
     fadingOutElement = null;
   }
 }
@@ -276,7 +298,11 @@ function stopFadeIn(): void {
  * Linearly fade out `el` over `durationMs` milliseconds, then call `onComplete`.
  * Assumes `fadingOutElement` has already been set to `el` by the caller.
  */
-function fadeOutElement(el: HTMLAudioElement, durationMs: number, onComplete: () => void): void {
+function fadeOutElement(
+  el: HTMLAudioElement,
+  durationMs: number,
+  onComplete: () => void,
+): void {
   const startVol = el.volume;
   const steps = Math.max(1, Math.round(durationMs / MUSIC_FADE_STEP_MS));
   const stepVol = startVol / steps;
@@ -288,7 +314,7 @@ function fadeOutElement(el: HTMLAudioElement, durationMs: number, onComplete: ()
       clearInterval(fadeOutIntervalId!);
       fadeOutIntervalId = null;
       el.pause();
-      el.src = '';
+      el.src = "";
       if (fadingOutElement === el) fadingOutElement = null;
       onComplete();
     }
@@ -296,7 +322,11 @@ function fadeOutElement(el: HTMLAudioElement, durationMs: number, onComplete: ()
 }
 
 /** Linearly fade in `el` from 0 to `targetVol` over `durationMs` milliseconds. */
-function fadeInElement(el: HTMLAudioElement, targetVol: number, durationMs: number): void {
+function fadeInElement(
+  el: HTMLAudioElement,
+  targetVol: number,
+  durationMs: number,
+): void {
   el.volume = 0;
   const steps = Math.max(1, Math.round(durationMs / MUSIC_FADE_STEP_MS));
   const stepVol = targetVol / steps;
@@ -307,7 +337,7 @@ function fadeInElement(el: HTMLAudioElement, targetVol: number, durationMs: numb
     if (step >= steps) {
       clearInterval(fadeInIntervalId!);
       fadeInIntervalId = null;
-      el.volume = targetVol;  // ensure we land exactly on the target
+      el.volume = targetVol; // ensure we land exactly on the target
     }
   }, MUSIC_FADE_STEP_MS);
 }
@@ -320,32 +350,40 @@ function fadeInElement(el: HTMLAudioElement, targetVol: number, durationMs: numb
 function startTrack(name: string, fadeIn: boolean): void {
   const el = new Audio();
   el.loop = true;
-  const targetVol = Math.min(musicVolume, 100) / 100 * MUSIC_VOLUME_CAP;  // cap at 75 % like old client
+  const targetVol = (Math.min(musicVolume, 100) / 100) * MUSIC_VOLUME_CAP; // cap at 75 % like old client
   musicElement = el;
 
   const oggUrl = `${SOUND_BASE}/music/${name}.ogg`;
   const mp3Url = `${SOUND_BASE}/music/${name}.mp3`;
 
   el.src = oggUrl;
-  el.play().then(() => {
-    if (fadeIn) {
-      fadeInElement(el, targetVol, MUSIC_FADE_IN_MS);
-    } else {
-      el.volume = targetVol;
-    }
-  }).catch(() => {
-    // OGG may not be supported; try MP3.
-    el.src = mp3Url;
-    el.play().then(() => {
+  el.play()
+    .then(() => {
       if (fadeIn) {
         fadeInElement(el, targetVol, MUSIC_FADE_IN_MS);
       } else {
         el.volume = targetVol;
       }
-    }).catch(err => {
-      LOG(LogLevel.Warning, 'playMusic', `Could not play music "${name}": ${err}`);
+    })
+    .catch(() => {
+      // OGG may not be supported; try MP3.
+      el.src = mp3Url;
+      el.play()
+        .then(() => {
+          if (fadeIn) {
+            fadeInElement(el, targetVol, MUSIC_FADE_IN_MS);
+          } else {
+            el.volume = targetVol;
+          }
+        })
+        .catch((err) => {
+          LOG(
+            LogLevel.Warning,
+            "playMusic",
+            `Could not play music "${name}": ${err}`,
+          );
+        });
     });
-  });
 }
 
 /**
@@ -369,16 +407,16 @@ export function playMusic(name: string): void {
   // Cancel any in-progress fade-in; we will handle the element below.
   stopFadeIn();
 
-  const isStop = name === 'NONE' || name === '';
+  const isStop = name === "NONE" || name === "";
   const fadeOutDuration = isStop ? MUSIC_FADE_STOP_MS : MUSIC_FADE_OUT_MS;
 
   if (musicElement) {
     // Move the playing element to the "fading out" slot, then fade it out.
-    stopFadeOut();  // discard any previous fading-out element
+    stopFadeOut(); // discard any previous fading-out element
     fadingOutElement = musicElement;
     musicElement = null;
     const el = fadingOutElement;
-    const trackName = name;  // capture for the async callback
+    const trackName = name; // capture for the async callback
     fadeOutElement(el, fadeOutDuration, () => {
       if (!isStop) startTrack(trackName, true);
     });
@@ -406,8 +444,8 @@ export function setSoundEnabled(enabled: boolean): void {
 export function setMusicVolume(vol: number): void {
   const prev = musicVolume;
   musicVolume = clampVolume(vol);
-  saveConfig('musicVolume', musicVolume);
-  saveConfig('musicMuted', musicVolume <= 0);
+  saveConfig("musicVolume", musicVolume);
+  saveConfig("musicMuted", musicVolume <= 0);
 
   if (musicVolume > 0) {
     lastNonZeroMusicVolume = musicVolume;
@@ -418,17 +456,17 @@ export function setMusicVolume(vol: number): void {
     stopFadeOut();
     if (musicElement) {
       musicElement.pause();
-      musicElement.src = '';
+      musicElement.src = "";
       musicElement = null;
     }
     return;
   }
 
   if (musicElement) {
-    musicElement.volume = musicVolume / 100 * MUSIC_VOLUME_CAP;
-  } else if (prev <= 0 && currentMusic && currentMusic !== 'NONE') {
+    musicElement.volume = (musicVolume / 100) * MUSIC_VOLUME_CAP;
+  } else if (prev <= 0 && currentMusic && currentMusic !== "NONE") {
     const nameToResume = currentMusic;
-    currentMusic = '';
+    currentMusic = "";
     playMusic(nameToResume);
   }
 }
@@ -441,8 +479,8 @@ export function getMusicVolume(): number {
 /** Set sound-effects volume (0–100). */
 export function setSfxVolume(vol: number): void {
   sfxVolume = clampVolume(vol);
-  saveConfig('sfxVolume', sfxVolume);
-  saveConfig('sfxMuted', sfxVolume <= 0);
+  saveConfig("sfxVolume", sfxVolume);
+  saveConfig("sfxMuted", sfxVolume <= 0);
   if (sfxVolume > 0) {
     lastNonZeroSfxVolume = sfxVolume;
   }
@@ -459,10 +497,10 @@ export function stopAll(): void {
   stopFadeOut();
   if (musicElement) {
     musicElement.pause();
-    musicElement.src = '';
+    musicElement.src = "";
     musicElement = null;
   }
-  currentMusic = '';
+  currentMusic = "";
 }
 
 // ---------------------------------------------------------------------------

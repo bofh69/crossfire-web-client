@@ -1,9 +1,9 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
-  import { quests } from '../lib/commands';
-  import type { Quest } from '../lib/commands';
-  import { gameEvents } from '../lib/events';
-  import { getFaceUrl } from '../lib/image';
+  import { onMount } from "svelte";
+  import { quests } from "../lib/commands";
+  import type { Quest } from "../lib/commands";
+  import { gameEvents } from "../lib/events";
+  import { getFaceUrl } from "../lib/image";
 
   interface QuestNode {
     quest: Quest;
@@ -16,7 +16,7 @@
     const all = [...quests.values()];
 
     // Top-level quests: parent == 0
-    const topLevel = all.filter(q => q.parent === 0);
+    const topLevel = all.filter((q) => q.parent === 0);
 
     // Sort helper: incomplete before complete, then by title
     function sortQuests(list: Quest[]): Quest[] {
@@ -29,13 +29,19 @@
     // Recursively build nodes; `visited` prevents infinite loops caused by
     // cycles (e.g. a buggy server that sends code=0 for every quest, making
     // every child appear to be a child of the single code=0 top-level entry).
-    function buildNodes(list: Quest[], depth: number, visited: Set<number>): QuestNode[] {
+    function buildNodes(
+      list: Quest[],
+      depth: number,
+      visited: Set<number>,
+    ): QuestNode[] {
       const result: QuestNode[] = [];
       for (const quest of sortQuests(list)) {
         if (visited.has(quest.code)) continue;
         visited.add(quest.code);
         result.push({ quest, depth });
-        const children = all.filter(q => q.parent === quest.code && !visited.has(q.code));
+        const children = all.filter(
+          (q) => q.parent === quest.code && !visited.has(q.code),
+        );
         if (children.length > 0) {
           result.push(...buildNodes(children, depth + 1, visited));
         }
@@ -52,7 +58,7 @@
 
   onMount(() => {
     updateQuests();
-    const unsub = gameEvents.on('questUpdate', updateQuests);
+    const unsub = gameEvents.on("questUpdate", updateQuests);
     return unsub;
   });
 </script>
@@ -73,17 +79,25 @@
         </thead>
         <tbody>
           {#each questNodes as node (node.quest.code)}
-            <tr class:completed={node.quest.end} title={node.quest.step || undefined}>
+            <tr
+              class:completed={node.quest.end}
+              title={node.quest.step || undefined}
+            >
               <td class="col-face">
                 {#if getFaceUrl(node.quest.face)}
-                  <img src={getFaceUrl(node.quest.face)} alt="" class="quest-icon" />
+                  <img
+                    src={getFaceUrl(node.quest.face)}
+                    alt=""
+                    class="quest-icon"
+                  />
                 {/if}
               </td>
               <td
                 class="quest-title"
                 style:padding-left="{0.4 + Math.min(node.depth, 2) * 1.0}rem"
-              >{node.quest.title}</td>
-              <td class="quest-status">{node.quest.end ? 'Done' : 'Active'}</td>
+                >{node.quest.title}</td
+              >
+              <td class="quest-status">{node.quest.end ? "Done" : "Active"}</td>
             </tr>
           {/each}
         </tbody>

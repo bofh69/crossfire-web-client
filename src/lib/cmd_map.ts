@@ -4,30 +4,44 @@
  */
 
 import {
-  MAP2_COORD_OFFSET, MAP2_TYPE_CLEAR, MAP2_TYPE_DARKNESS, MAP2_TYPE_LABEL,
-  MAP2_LAYER_START, MAX_VIEW,
+  MAP2_COORD_OFFSET,
+  MAP2_TYPE_CLEAR,
+  MAP2_TYPE_DARKNESS,
+  MAP2_TYPE_LABEL,
+  MAP2_LAYER_START,
+  MAX_VIEW,
   FACE_IS_ANIM,
   MAXLAYERS,
   MSG_TYPE_COMMAND,
   SC_ALWAYS,
   LogLevel,
   type Animation,
-} from './protocol.js';
-import { BinaryReader } from './binary_reader.js';
+} from "./protocol.js";
+import { BinaryReader } from "./binary_reader.js";
 import {
-  mapdata_newmap, mapdata_scroll, mapdata_set_face_layer, mapdata_set_anim_layer,
-  mapdata_set_darkness, mapdata_set_smooth, mapdata_clear_space,
-  mapdata_set_check_space, mapdata_clear_old, mapdata_set_size,
-  mapdata_clear_label_view, mapdata_add_label,
-  mapdata_save_fog, mapdata_restore_fog, mapdata_apply_magicmap,
-} from './mapdata.js';
-import { animations } from './item.js';
-import { addSmooth } from './image.js';
-import { useConfig, getCpl } from './init.js';
-import { LOG } from './misc.js';
-import { gameEvents } from './events.js';
-import { perfLogging } from '../lib/debug';
-import { sendCommand, getLastNcomSeqSent } from './player.js';
+  mapdata_newmap,
+  mapdata_scroll,
+  mapdata_set_face_layer,
+  mapdata_set_anim_layer,
+  mapdata_set_darkness,
+  mapdata_set_smooth,
+  mapdata_clear_space,
+  mapdata_set_check_space,
+  mapdata_clear_old,
+  mapdata_set_size,
+  mapdata_clear_label_view,
+  mapdata_add_label,
+  mapdata_save_fog,
+  mapdata_restore_fog,
+  mapdata_apply_magicmap,
+} from "./mapdata.js";
+import { animations } from "./item.js";
+import { addSmooth } from "./image.js";
+import { useConfig, getCpl } from "./init.js";
+import { LOG } from "./misc.js";
+import { gameEvents } from "./events.js";
+import { perfLogging } from "../lib/debug";
+import { sendCommand, getLastNcomSeqSent } from "./player.js";
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Mapinfo-based fog-cache key detection
@@ -44,7 +58,7 @@ export const USE_MAPINFO_FOR_FOG_CACHE = false;
  * The server-supplied path of the map the player is currently on.
  * Empty string means the path is not yet known (first login, or feature disabled).
  */
-let currentMapKey = '';
+let currentMapKey = "";
 
 /** ncom sequence number of the pending `mapinfo` command, or -1 if not pending. */
 let mapinfoNcomSeq = -1;
@@ -121,7 +135,10 @@ let mapinfoBuffer: DrawExtInfoEntry[] = [];
  * arrives).
  */
 export function maybeCaptureMapinfoExtInfo(
-  color: number, type: number, subtype: number, message: string,
+  color: number,
+  type: number,
+  subtype: number,
+  message: string,
 ): boolean {
   if (!USE_MAPINFO_FOR_FOG_CACHE) return false;
   if (mapinfoNcomSeq === -1) return false;
@@ -142,7 +159,9 @@ export function maybeCaptureMapinfoExtInfo(
  *
  * Returns null if `seq` does not match the pending mapinfo command.
  */
-export function maybeProcessMapinfoComc(seq: number): DrawExtInfoEntry[] | null {
+export function maybeProcessMapinfoComc(
+  seq: number,
+): DrawExtInfoEntry[] | null {
   if (!USE_MAPINFO_FOR_FOG_CACHE) return null;
   if (seq !== mapinfoNcomSeq) return null;
 
@@ -181,8 +200,8 @@ export function maybeProcessMapinfoComc(seq: number): DrawExtInfoEntry[] | null 
     // candidates[1] (latest/most-recent) is a mapinfo response — suppress it.
   } else {
     // candidates.length === 3
-    const oldest  = candidates[0]!; // "third latest" — expected to contain map path
-    const middle  = candidates[1]!; // "second latest"
+    const oldest = candidates[0]!; // "third latest" — expected to contain map path
+    const middle = candidates[1]!; // "second latest"
     // candidates[2] is "latest" (free-form last message, always suppressed)
 
     if (hasParens(middle.message)) {
@@ -203,9 +222,9 @@ export function maybeProcessMapinfoComc(seq: number): DrawExtInfoEntry[] | null 
     const key = extractMapPath(mapKeyEntry.message);
     if (key) {
       currentMapKey = key;
-      LOG(LogLevel.Info, 'mapinfo', `Map path: ${key}`);
+      LOG(LogLevel.Info, "mapinfo", `Map path: ${key}`);
       mapdata_restore_fog(key);
-      gameEvents.emit('mapUpdate');
+      gameEvents.emit("mapUpdate");
     }
   }
 
@@ -214,25 +233,29 @@ export function maybeProcessMapinfoComc(seq: number): DrawExtInfoEntry[] | null 
 
 /** Return true if `message` contains a parenthesised substring. */
 function hasParens(message: string): boolean {
-  return message.includes('(');
+  return message.includes("(");
 }
 
 /** Extract the first parenthesised substring from `message`, e.g. "/scorn/taverns/inn". */
 function extractMapPath(message: string): string {
   const match = /\(([^)]+)\)/.exec(message);
-  return match ? match[1]! : '';
+  return match ? match[1]! : "";
 }
 
 export function SetupCmd(data: string): void {
-  const parts = data.split(' ');
+  const parts = data.split(" ");
   for (let i = 0; i < parts.length - 1; i += 2) {
     const key = parts[i]!;
     const value = parts[i + 1]!;
-    if (key === 'mapsize' && value !== 'FALSE') {
-      const [w = NaN, h = NaN] = value.split('x').map(Number);
+    if (key === "mapsize" && value !== "FALSE") {
+      const [w = NaN, h = NaN] = value.split("x").map(Number);
       if (!isNaN(w) && !isNaN(h) && w > 0 && h > 0) {
-        if (lastRequestedMapsizeW > 0 && lastRequestedMapsizeH > 0 &&
-            w < lastRequestedMapsizeW && h < lastRequestedMapsizeH) {
+        if (
+          lastRequestedMapsizeW > 0 &&
+          lastRequestedMapsizeH > 0 &&
+          w < lastRequestedMapsizeW &&
+          h < lastRequestedMapsizeH
+        ) {
           learnedMapsizeCapW = w;
           learnedMapsizeCapH = h;
         }
@@ -240,18 +263,18 @@ export function SetupCmd(data: string): void {
         useConfig.mapHeight = h;
         mapdata_set_size(w, h);
       }
-    } else if (key === 'beat' && value !== 'FALSE' && value !== '0') {
+    } else if (key === "beat" && value !== "FALSE" && value !== "0") {
       // Server confirmed heartbeat support: the client must send a command
       // at least every three seconds or use the beat no-op.  The heartbeat
       // timer in client.ts fires every 2.5 s to provide a safety margin.
-      gameEvents.emit('beatEnabled');
-    } else if (key === 'loginmethod' && value !== 'FALSE') {
+      gameEvents.emit("beatEnabled");
+    } else if (key === "loginmethod" && value !== "FALSE") {
       const method = parseInt(value, 10);
       if (!isNaN(method)) {
-        gameEvents.emit('loginMethodConfirmed', method);
+        gameEvents.emit("loginMethodConfirmed", method);
       }
     }
-    LOG(LogLevel.Debug, 'SetupCmd', `${key} = ${value}`);
+    LOG(LogLevel.Debug, "SetupCmd", `${key} = ${value}`);
   }
 }
 
@@ -265,12 +288,12 @@ export function NewmapCmd(): void {
   }
   mapdata_save_fog(currentMapKey);
   mapdata_newmap();
-  gameEvents.emit('newMap');
+  gameEvents.emit("newMap");
 
   if (USE_MAPINFO_FOR_FOG_CACHE) {
     mapinfoBuffer = [];
     mapinfoNcomSeq = -1;
-    if (sendCommand('mapinfo', -1, SC_ALWAYS)) {
+    if (sendCommand("mapinfo", -1, SC_ALWAYS)) {
       mapinfoNcomSeq = getLastNcomSeqSent();
     }
   }
@@ -282,8 +305,8 @@ export function Map2Cmd(data: DataView, len: number): void {
   const reader = new BinaryReader(data, len);
   while (reader.remaining > 0) {
     const mask = reader.readInt16();
-    const x = ((mask >> 10) & 0x3F) - MAP2_COORD_OFFSET;
-    const y = ((mask >> 4) & 0x3F) - MAP2_COORD_OFFSET;
+    const x = ((mask >> 10) & 0x3f) - MAP2_COORD_OFFSET;
+    const y = ((mask >> 4) & 0x3f) - MAP2_COORD_OFFSET;
 
     // A coord word with the scroll flag set encodes a map scroll, not a tile.
     if (mask & 0x1) {
@@ -311,7 +334,7 @@ export function Map2Cmd(data: DataView, len: number): void {
       // Upper 3 bits encode the number of additional data bytes for this entry;
       // lower 5 bits are the entry type.
       const spaceLen = typeByte >> 5;
-      const type = typeByte & 0x1F;
+      const type = typeByte & 0x1f;
 
       if (type === MAP2_TYPE_CLEAR) {
         mapdata_clear_space(cx, cy);
@@ -329,8 +352,11 @@ export function Map2Cmd(data: DataView, len: number): void {
           labelsCleared = true;
         }
         mapdata_add_label(cx, cy, subtype, label);
-      } else if (type >= MAP2_LAYER_START && type < MAP2_LAYER_START + MAXLAYERS) {
-        const layer = type & 0xF;
+      } else if (
+        type >= MAP2_LAYER_START &&
+        type < MAP2_LAYER_START + MAXLAYERS
+      ) {
+        const layer = type & 0xf;
         const faceOrAnim = reader.readInt16();
         if (!(faceOrAnim & FACE_IS_ANIM)) {
           mapdata_set_face_layer(cx, cy, faceOrAnim, layer);
@@ -363,16 +389,20 @@ export function Map2Cmd(data: DataView, len: number): void {
   }
   const elapsed = performance.now() - t0;
   if (perfLogging && (elapsed > 1 || tileCount > 10)) {
-    LOG(LogLevel.Debug, 'perf:map2', `parsed ${tileCount} tiles from ${len}B in ${elapsed.toFixed(1)}ms`);
+    LOG(
+      LogLevel.Debug,
+      "perf:map2",
+      `parsed ${tileCount} tiles from ${len}B in ${elapsed.toFixed(1)}ms`,
+    );
   }
-  gameEvents.emit('mapUpdate');
+  gameEvents.emit("mapUpdate");
 }
 
 export function mapScrollCmd(data: string): void {
-  const parts = data.trim().split(' ');
+  const parts = data.trim().split(" ");
   if (parts.length >= 2) {
     mapdata_scroll(parseInt(parts[0]!), parseInt(parts[1]!));
-    gameEvents.emit('mapUpdate');
+    gameEvents.emit("mapUpdate");
   }
 }
 
@@ -385,7 +415,8 @@ export function MagicMapCmd(data: DataView, len: number): void {
   let spaceCount = 0;
   let dataOffset = 0;
   for (let i = 0; i < len; i++) {
-    if (bytes[i] === 0x20) { // ASCII space
+    if (bytes[i] === 0x20) {
+      // ASCII space
       spaceCount++;
       if (spaceCount === 4) {
         dataOffset = i + 1;
@@ -394,7 +425,11 @@ export function MagicMapCmd(data: DataView, len: number): void {
     }
   }
   if (spaceCount !== 4) {
-    LOG(LogLevel.Warning, 'MagicMapCmd', 'Unable to find start of magic map data');
+    LOG(
+      LogLevel.Warning,
+      "MagicMapCmd",
+      "Unable to find start of magic map data",
+    );
     return;
   }
 
@@ -402,7 +437,7 @@ export function MagicMapCmd(data: DataView, len: number): void {
   const header = new TextDecoder().decode(bytes.subarray(0, dataOffset));
   const headerParts = header.trim().split(/\s+/);
   if (headerParts.length < 4) {
-    LOG(LogLevel.Warning, 'MagicMapCmd', 'Could not parse magic map header');
+    LOG(LogLevel.Warning, "MagicMapCmd", "Could not parse magic map header");
     return;
   }
 
@@ -412,14 +447,17 @@ export function MagicMapCmd(data: DataView, len: number): void {
   const pmapy = parseInt(headerParts[3]!, 10);
 
   if (mmapx === 0 || mmapy === 0) {
-    LOG(LogLevel.Warning, 'MagicMapCmd', 'Empty magic map');
+    LOG(LogLevel.Warning, "MagicMapCmd", "Empty magic map");
     return;
   }
 
   const dataLen = len - dataOffset;
   if (dataLen !== mmapx * mmapy) {
-    LOG(LogLevel.Warning, 'MagicMapCmd',
-      `Magic map size mismatch. Have ${dataLen} bytes, should have ${mmapx * mmapy}`);
+    LOG(
+      LogLevel.Warning,
+      "MagicMapCmd",
+      `Magic map size mismatch. Have ${dataLen} bytes, should have ${mmapx * mmapy}`,
+    );
     return;
   }
 
@@ -430,7 +468,9 @@ export function MagicMapCmd(data: DataView, len: number): void {
   cpl.mmapy = mmapy;
   cpl.pmapx = pmapx;
   cpl.pmapy = pmapy;
-  cpl.magicmap = new Uint8Array(bytes.subarray(dataOffset, dataOffset + dataLen));
+  cpl.magicmap = new Uint8Array(
+    bytes.subarray(dataOffset, dataOffset + dataLen),
+  );
   cpl.showmagic = 1;
 
   // Apply magicmap data to the virtual map: fill Empty cells with fog tiles
@@ -438,13 +478,16 @@ export function MagicMapCmd(data: DataView, len: number): void {
   // previously-explored areas even before map2 packets arrive for them.
   mapdata_apply_magicmap(cpl.magicmap, mmapx, mmapy, pmapx, pmapy);
 
-  LOG(LogLevel.Info, 'MagicMapCmd',
-    `Received magic map ${mmapx}x${mmapy}, player at (${pmapx},${pmapy})`);
+  LOG(
+    LogLevel.Info,
+    "MagicMapCmd",
+    `Received magic map ${mmapx}x${mmapy}, player at (${pmapx},${pmapy})`,
+  );
 
   // Redraw the game map to show the newly filled fog cells.
-  gameEvents.emit('mapUpdate');
+  gameEvents.emit("mapUpdate");
   // Notify MagicMap.svelte to redraw if the overlay is currently open.
-  gameEvents.emit('magicMap');
+  gameEvents.emit("magicMap");
 }
 
 export function AnimCmd(data: DataView, len: number): void {
@@ -458,7 +501,9 @@ export function AnimCmd(data: DataView, len: number): void {
   const anim: Animation = {
     flags: animFlags,
     numAnimations: faces.length,
-    speed: 0, speedLeft: 0, phase: 0,
+    speed: 0,
+    speedLeft: 0,
+    phase: 0,
     faces,
   };
   animations[animId] = anim;

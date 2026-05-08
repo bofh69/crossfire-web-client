@@ -3,10 +3,10 @@
  * Extracted from commands.ts.
  */
 
-import { BinaryReader } from './binary_reader.js';
-import { LOG } from './misc.js';
-import { LogLevel } from './protocol.js';
-import { playSound, playMusic } from './sound.js';
+import { BinaryReader } from "./binary_reader.js";
+import { LOG } from "./misc.js";
+import { LogLevel } from "./protocol.js";
+import { playSound, playMusic } from "./sound.js";
 
 /**
  * Handle the sound2 command from the server.
@@ -17,7 +17,7 @@ import { playSound, playMusic } from './sound.js';
  */
 export function Sound2Cmd(data: DataView, len: number): void {
   if (len < 8) {
-    LOG(LogLevel.Warning, 'Sound2Cmd', `Command too short: ${len} bytes`);
+    LOG(LogLevel.Warning, "Sound2Cmd", `Command too short: ${len} bytes`);
     return;
   }
   const reader = new BinaryReader(data, len);

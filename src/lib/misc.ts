@@ -6,7 +6,7 @@
 import { LogLevel } from "./protocol";
 
 /** Capitalize the first letter of a string. */
-export function capitalizeFirstLetter(s: string) : string {
+export function capitalizeFirstLetter(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
@@ -17,7 +17,7 @@ export let minLog: LogLevel = LogLevel.Debug;
  * Set the minimum log level threshold.
  */
 export function setMinLog(level: LogLevel): void {
-    minLog = level;
+  minLog = level;
 }
 
 /**
@@ -25,27 +25,27 @@ export function setMinLog(level: LogLevel): void {
  * Messages below the current {@link minLog} threshold are suppressed.
  */
 export function LOG(level: LogLevel, origin: string, message: string): void {
-    if (level < minLog) {
-        return;
-    }
+  if (level < minLog) {
+    return;
+  }
 
-    const formatted = `(${origin}) ${message}`;
+  const formatted = `(${origin}) ${message}`;
 
-    switch (level) {
-        case LogLevel.Debug:
-            console.debug(formatted);
-            break;
-        case LogLevel.Info:
-            console.info(formatted);
-            break;
-        case LogLevel.Warning:
-            console.warn(formatted);
-            break;
-        case LogLevel.Error:
-            console.error(formatted);
-            break;
-        case LogLevel.Critical:
-            console.error(formatted);
-            break;
-    }
+  switch (level) {
+    case LogLevel.Debug:
+      console.debug(formatted);
+      break;
+    case LogLevel.Info:
+      console.info(formatted);
+      break;
+    case LogLevel.Warning:
+      console.warn(formatted);
+      break;
+    case LogLevel.Error:
+      console.error(formatted);
+      break;
+    case LogLevel.Critical:
+      console.error(formatted);
+      break;
+  }
 }

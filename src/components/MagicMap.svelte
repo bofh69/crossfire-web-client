@@ -1,27 +1,27 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
-  import { getCpl } from '../lib/init';
-  import { FACE_COLOR_MASK, SHOWMAGIC_FLASH_BIT } from '../lib/protocol';
-  import { gameEvents } from '../lib/events';
+  import { onMount } from "svelte";
+  import { getCpl } from "../lib/init";
+  import { FACE_COLOR_MASK, SHOWMAGIC_FLASH_BIT } from "../lib/protocol";
+  import { gameEvents } from "../lib/events";
 
   /**
    * Magic map color palette matching the old GTK client (old/gtk-v2/src/main.c).
    * Index 0-12 correspond to the root_color[] array used in the C client.
    */
   const MAGIC_MAP_COLORS: string[] = [
-    '#000000', // 0 - Black (empty/void)
-    '#ffffff', // 1 - White (player flash)
-    '#000080', // 2 - Navy
-    '#ff0000', // 3 - Red
-    '#ffa500', // 4 - Orange
-    '#1e90ff', // 5 - DodgerBlue
-    '#ee9a00', // 6 - DarkOrange2
-    '#2e8b57', // 7 - SeaGreen
-    '#8fbc8f', // 8 - DarkSeaGreen
-    '#808080', // 9 - Grey50
-    '#a0522d', // 10 - Sienna
-    '#ffd700', // 11 - Gold
-    '#f0e68c', // 12 - Khaki
+    "#000000", // 0 - Black (empty/void)
+    "#ffffff", // 1 - White (player flash)
+    "#000080", // 2 - Navy
+    "#ff0000", // 3 - Red
+    "#ffa500", // 4 - Orange
+    "#1e90ff", // 5 - DodgerBlue
+    "#ee9a00", // 6 - DarkOrange2
+    "#2e8b57", // 7 - SeaGreen
+    "#8fbc8f", // 8 - DarkSeaGreen
+    "#808080", // 9 - Grey50
+    "#a0522d", // 10 - Sienna
+    "#ffd700", // 11 - Gold
+    "#f0e68c", // 12 - Khaki
   ];
 
   let canvas: HTMLCanvasElement | undefined = $state();
@@ -56,10 +56,12 @@
 
   onMount(() => {
     const cleanups = [
-      gameEvents.on('magicMap', show),
-      gameEvents.on('tick', flashPlayerPos),
+      gameEvents.on("magicMap", show),
+      gameEvents.on("tick", flashPlayerPos),
     ];
-    return () => { for (const unsub of cleanups) unsub(); };
+    return () => {
+      for (const unsub of cleanups) unsub();
+    };
   });
 
   $effect(() => {
@@ -72,7 +74,7 @@
     const cpl = getCpl();
     if (!cpl || !cpl.magicmap || cpl.mmapx === 0 || cpl.mmapy === 0) return;
 
-    const ctx = c.getContext('2d');
+    const ctx = c.getContext("2d");
     if (!ctx) return;
 
     const parentW = c.parentElement?.clientWidth ?? 640;
@@ -92,7 +94,7 @@
     if (c.height !== canvasH) c.height = canvasH;
 
     // Clear the canvas with black.
-    ctx.fillStyle = '#000000';
+    ctx.fillStyle = "#000000";
     ctx.fillRect(0, 0, canvasW, canvasH);
 
     // Draw each tile as a colored square.
@@ -108,9 +110,10 @@
 
     // Flash the player position: alternate between Black and White each tick.
     if (cpl.showmagic) {
-      const flashColor = (cpl.showmagic & SHOWMAGIC_FLASH_BIT)
-        ? MAGIC_MAP_COLORS[0]!  // Black
-        : MAGIC_MAP_COLORS[1]!; // White
+      const flashColor =
+        cpl.showmagic & SHOWMAGIC_FLASH_BIT
+          ? MAGIC_MAP_COLORS[0]! // Black
+          : MAGIC_MAP_COLORS[1]!; // White
       ctx.fillStyle = flashColor;
       ctx.fillRect(
         tileSize * cpl.pmapx,
@@ -126,7 +129,11 @@
   <div class="magic-map-container">
     <div class="magic-map-header">
       <span>Magic Map</span>
-      <button class="close-btn" onclick={() => hide()} aria-label="Close magic map">&times;</button>
+      <button
+        class="close-btn"
+        onclick={() => hide()}
+        aria-label="Close magic map">&times;</button
+      >
     </div>
     <div class="magic-map-canvas-wrap">
       <canvas bind:this={canvas} width={640} height={640}></canvas>

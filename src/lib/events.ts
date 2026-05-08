@@ -6,7 +6,7 @@
  * on()/off() and there is no global mutable state to race on.
  */
 
-import type { Stats } from './protocol.js';
+import type { Stats } from "./protocol.js";
 
 // ── Event payload map ──────────────────────────────────────────────────────
 
@@ -67,41 +67,41 @@ export interface StartingMapEntry {
 
 /** Maps event name → handler signature. */
 export interface GameEventMap {
-  drawInfo:        [color: number, message: string];
-  drawExtInfo:     [color: number, type: number, subtype: number, message: string];
-  statsUpdate:     [stats: Partial<Stats>];
-  query:           [flags: number, prompt: string];
-  newMap:          [];
-  mapUpdate:       [];
-  playerUpdate:    [];
-  spellUpdate:     [];
-  questUpdate:     [];
+  drawInfo: [color: number, message: string];
+  drawExtInfo: [color: number, type: number, subtype: number, message: string];
+  statsUpdate: [stats: Partial<Stats>];
+  query: [flags: number, prompt: string];
+  newMap: [];
+  mapUpdate: [];
+  playerUpdate: [];
+  spellUpdate: [];
+  questUpdate: [];
   knowledgeUpdate: [];
-  pickupUpdate:    [mode: number];
-  accountPlayers:  [players: AccountPlayer[]];
-  failure:         [command: string, message: string];
-  magicMap:        [];
-  tick:            [tickNo: number];
-  goodbye:         [];
-  addMeSuccess:    [];
-  addMeFail:       [];
-  version:         [csVersion: number, scVersion: number, versionString: string];
-  disconnect:      [];
-  replyInfo:       [infoType: string, text: string];
+  pickupUpdate: [mode: number];
+  accountPlayers: [players: AccountPlayer[]];
+  failure: [command: string, message: string];
+  magicMap: [];
+  tick: [tickNo: number];
+  goodbye: [];
+  addMeSuccess: [];
+  addMeFail: [];
+  version: [csVersion: number, scVersion: number, versionString: string];
+  disconnect: [];
+  replyInfo: [infoType: string, text: string];
   /** Emitted when the server confirms heartbeat support via `setup beat 1`. */
-  beatEnabled:     [];
+  beatEnabled: [];
   /** Emitted when the server confirms the negotiated login method via `setup loginmethod`. */
   loginMethodConfirmed: [method: number];
 
   // Character-creation events (loginmethod >= 2)
   /** Pipe-separated list of available race archetype names from `replyinfo race_list`. */
-  raceListReceived:    [archNames: string[]];
+  raceListReceived: [archNames: string[]];
   /** Pipe-separated list of available class archetype names from `replyinfo class_list`. */
-  classListReceived:   [archNames: string[]];
+  classListReceived: [archNames: string[]];
   /** Detailed race data from `replyinfo race_info`. */
-  raceInfoReceived:    [info: RaceClassEntry];
+  raceInfoReceived: [info: RaceClassEntry];
   /** Detailed class data from `replyinfo class_info`. */
-  classInfoReceived:   [info: RaceClassEntry];
+  classInfoReceived: [info: RaceClassEntry];
   /** Stat constraints from `replyinfo newcharinfo`. */
   newCharInfoReceived: [info: NewCharInfo];
   /** Starting map choices from `replyinfo startingmap`. */
@@ -109,28 +109,28 @@ export interface GameEventMap {
 
   // UI-internal events (component-to-component communication)
   /** Hiscore data received in response to a menu-triggered request. */
-  hiscoreResult:     [message: string];
+  hiscoreResult: [message: string];
   /** Ask the InfoPanel to focus its command input field. */
   focusCommandInput: [prefill?: string];
   /** Ask the InfoPanel to clear all displayed messages. */
-  clearMessages:     [];
+  clearMessages: [];
   /** Ask the MenuBar to start a "bind last command to key" flow. */
-  openKeyBind:       [];
+  openKeyBind: [];
   /** Ask the MenuBar to start a "bind last command to gamepad button" flow. */
-  openGamepadBind:   [];
+  openGamepadBind: [];
   /** Hotbar slot data or gamepad-select state changed. */
-  hotbarUpdate:      [];
+  hotbarUpdate: [];
   /** Increase the tile zoom level by one step. */
-  zoomIn:            [];
+  zoomIn: [];
   /** Decrease the tile zoom level by one step. */
-  zoomOut:           [];
+  zoomOut: [];
 
   // Debug events
   /** Request the GameMap to enter "pick a tile" mode for debugging. */
-  debugPickTile:     [mode: 'bigface' | 'tile'];
+  debugPickTile: [mode: "bigface" | "tile"];
   /** Fired by the GameMap when the user clicks a tile in debug-pick mode.
    *  Coordinates are absolute (virtual-map) positions. */
-  debugTileClicked:  [ax: number, ay: number, mode: 'bigface' | 'tile'];
+  debugTileClicked: [ax: number, ay: number, mode: "bigface" | "tile"];
 }
 
 // ── Event bus implementation ───────────────────────────────────────────────
@@ -151,7 +151,9 @@ class GameEventBus {
       this.listeners.set(event as string, set);
     }
     set.add(handler);
-    return () => { set!.delete(handler); };
+    return () => {
+      set!.delete(handler);
+    };
   }
 
   /** Unsubscribe from an event. */
@@ -163,10 +165,7 @@ class GameEventBus {
   }
 
   /** Emit an event to all current subscribers. */
-  emit<K extends keyof GameEventMap>(
-    event: K,
-    ...args: GameEventMap[K]
-  ): void {
+  emit<K extends keyof GameEventMap>(event: K, ...args: GameEventMap[K]): void {
     const set = this.listeners.get(event as string);
     if (!set) return;
     for (const fn of set) {

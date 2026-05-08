@@ -1,8 +1,11 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
-  import { requestMenuHiscore, cancelPendingMenuHiscore } from '../../lib/commands';
-  import { gameEvents } from '../../lib/events';
-  import { type HiscoreRow, parseHiscoreRows } from '../../lib/markup';
+  import { onMount } from "svelte";
+  import {
+    requestMenuHiscore,
+    cancelPendingMenuHiscore,
+  } from "../../lib/commands";
+  import { gameEvents } from "../../lib/events";
+  import { type HiscoreRow, parseHiscoreRows } from "../../lib/markup";
 
   interface Props {
     fading: boolean;
@@ -38,7 +41,7 @@
   }
 
   onMount(() => {
-    const unsubscribe = gameEvents.on('hiscoreResult', (message) => {
+    const unsubscribe = gameEvents.on("hiscoreResult", (message) => {
       hiscoreRows = parseHiscoreRows(message);
       hiscorePending = false;
       showHiscoreDialog = true;
@@ -55,17 +58,30 @@
 </script>
 
 <div class="menu-item">
-  <button class="menu-button" onclick={onToggle} oncontextmenu={(e) => { e.preventDefault(); onToggle(); }}>Info</button>
+  <button
+    class="menu-button"
+    onclick={onToggle}
+    oncontextmenu={(e) => {
+      e.preventDefault();
+      onToggle();
+    }}>Info</button
+  >
   {#if isOpen}
     <div class="dropdown" class:fading>
       <button
         onclick={showHiscore}
-        oncontextmenu={(e) => { e.preventDefault(); showHiscore(); }}
-      >Hiscore</button>
+        oncontextmenu={(e) => {
+          e.preventDefault();
+          showHiscore();
+        }}>Hiscore</button
+      >
       <button
         onclick={showAbout}
-        oncontextmenu={(e) => { e.preventDefault(); showAbout(); }}
-      >About Crossfire Web Client</button>
+        oncontextmenu={(e) => {
+          e.preventDefault();
+          showAbout();
+        }}>About Crossfire Web Client</button
+      >
     </div>
   {/if}
 </div>
@@ -75,27 +91,48 @@
     <div class="dialog dialog-wide">
       <p class="dialog-title">About Crossfire Web Client</p>
       <p>
-        A web-based client for <a href="http://crossfire.real-time.com/" target="_blank" rel="noopener noreferrer">Crossfire</a>,
-        the cooperative multi-player graphical RPG and adventure game.
+        A web-based client for <a
+          href="http://crossfire.real-time.com/"
+          target="_blank"
+          rel="noopener noreferrer">Crossfire</a
+        >, the cooperative multi-player graphical RPG and adventure game.
       </p>
       <p>
         This client is based on the original
-        <a href="http://crossfire.real-time.com/" target="_blank" rel="noopener noreferrer">Crossfire GTK client</a>
+        <a
+          href="http://crossfire.real-time.com/"
+          target="_blank"
+          rel="noopener noreferrer">Crossfire GTK client</a
+        >
         and reimplemented for the browser.
       </p>
       <p>
         Source code is available on
-        <a href="https://github.com/bofh69/crossfire-web-client" target="_blank" rel="noopener noreferrer">GitHub</a>.
+        <a
+          href="https://github.com/bofh69/crossfire-web-client"
+          target="_blank"
+          rel="noopener noreferrer">GitHub</a
+        >.
       </p>
       <p class="dialog-credits">
         Built with
-        <a href="https://svelte.dev/" target="_blank" rel="noopener noreferrer">Svelte</a>,
-        <a href="https://vite.dev/" target="_blank" rel="noopener noreferrer">Vite</a>, and
-        <a href="https://www.typescriptlang.org/" target="_blank" rel="noopener noreferrer">TypeScript</a>.
+        <a href="https://svelte.dev/" target="_blank" rel="noopener noreferrer"
+          >Svelte</a
+        >,
+        <a href="https://vite.dev/" target="_blank" rel="noopener noreferrer"
+          >Vite</a
+        >, and
+        <a
+          href="https://www.typescriptlang.org/"
+          target="_blank"
+          rel="noopener noreferrer">TypeScript</a
+        >.
       </p>
       <p>
-        The font used is Modern Antiqua. Copyright (c) 2011, wmk69, (wmk69@o2.pl), with Reserved Font Names 'ModernAntiqua' and 'Modern Antiqua'.
-        This Font Software is licensed under the SIL Open Font License, Version 1.1. This license is available with a FAQ at:
+        The font used is Modern Antiqua. Copyright (c) 2011, wmk69,
+        (wmk69@o2.pl), with Reserved Font Names 'ModernAntiqua' and 'Modern
+        Antiqua'. This Font Software is licensed under the SIL Open Font
+        License, Version 1.1. This license is available with a FAQ at:
         <a href="http://scripts.sil.org/OFL">OFL</a>.
       </p>
       <div class="dialog-buttons">
@@ -132,7 +169,8 @@
                 <td class="num-cell narrow-cell">{row.maxGrace}</td>
               </tr>
             {:else}
-              <tr><td colspan="6" class="no-scores">No high scores yet.</td></tr>
+              <tr><td colspan="6" class="no-scores">No high scores yet.</td></tr
+              >
             {/each}
           </tbody>
         </table>

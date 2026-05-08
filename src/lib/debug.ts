@@ -10,7 +10,7 @@ export let perfLogging = false;
 
 /** Toggle performance logging on or off. */
 export function setPerfLogging(on: boolean): void {
-    perfLogging = on;
+  perfLogging = on;
 }
 
 // ---------------------------------------------------------------------------
@@ -18,8 +18,8 @@ export function setPerfLogging(on: boolean): void {
 // ---------------------------------------------------------------------------
 
 export interface WatchedCell {
-    ax: number;
-    ay: number;
+  ax: number;
+  ay: number;
 }
 
 let watchedCell: WatchedCell | null = null;
@@ -30,22 +30,22 @@ let watchCallback: ((event: string) => void) | null = null;
  * forwarded to `cb`.  Pass `null` for both args to clear the watch.
  */
 export function setWatchedCell(
-    cell: WatchedCell | null,
-    cb: ((event: string) => void) | null,
+  cell: WatchedCell | null,
+  cb: ((event: string) => void) | null,
 ): void {
-    watchedCell = cell;
-    watchCallback = cb;
+  watchedCell = cell;
+  watchCallback = cb;
 }
 
 /** Return the currently watched cell, or null if none. */
 export function getWatchedCell(): WatchedCell | null {
-    return watchedCell;
+  return watchedCell;
 }
 
 /** Stop watching the current cell. */
 export function clearWatchedCell(): void {
-    watchedCell = null;
-    watchCallback = null;
+  watchedCell = null;
+  watchCallback = null;
 }
 
 /**
@@ -54,7 +54,12 @@ export function clearWatchedCell(): void {
  * is forwarded to the registered callback.
  */
 export function notifyWatchedCell(ax: number, ay: number, event: string): void {
-    if (watchedCell && watchedCell.ax === ax && watchedCell.ay === ay && watchCallback) {
-        watchCallback(event);
-    }
+  if (
+    watchedCell &&
+    watchedCell.ax === ax &&
+    watchedCell.ay === ay &&
+    watchCallback
+  ) {
+    watchCallback(event);
+  }
 }

@@ -19,8 +19,13 @@ import { InputState, type Player } from "./protocol";
 import { loadConfig, saveConfig } from "./storage";
 import { extendedCommand } from "./p_cmd";
 import {
-    fireDir, runDir, clearFire, clearRun,
-    checkRepeatThrottle, resetRepeatThrottle, recordRepeatSend,
+  fireDir,
+  runDir,
+  clearFire,
+  clearRun,
+  checkRepeatThrottle,
+  resetRepeatThrottle,
+  recordRepeatSend,
 } from "./player";
 import { clear_move_to } from "./mapdata";
 import { LOG } from "./misc";
@@ -31,22 +36,28 @@ import { LogLevel } from "./protocol";
 // ──────────────────────────────────────────────────────────────────────────────
 
 export const KEYF_MOD_SHIFT = 1 << 0; // Fire modifier
-export const KEYF_MOD_CTRL  = 1 << 1; // Run modifier
-export const KEYF_MOD_ALT   = 1 << 2;
-export const KEYF_MOD_META  = 1 << 3;
-export const KEYF_MOD_MASK  = KEYF_MOD_SHIFT | KEYF_MOD_CTRL |
-                              KEYF_MOD_ALT | KEYF_MOD_META;
-export const KEYF_ANY       = 1 << 4; // Match regardless of modifiers
-export const KEYF_EDIT      = 1 << 5; // Enter command-editing mode
+export const KEYF_MOD_CTRL = 1 << 1; // Run modifier
+export const KEYF_MOD_ALT = 1 << 2;
+export const KEYF_MOD_META = 1 << 3;
+export const KEYF_MOD_MASK =
+  KEYF_MOD_SHIFT | KEYF_MOD_CTRL | KEYF_MOD_ALT | KEYF_MOD_META;
+export const KEYF_ANY = 1 << 4; // Match regardless of modifiers
+export const KEYF_EDIT = 1 << 5; // Enter command-editing mode
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Direction names (indexed 0–8, matching C `directions[]`)
 // ──────────────────────────────────────────────────────────────────────────────
 
 const directions: readonly string[] = [
-    "stay", "north", "northeast",
-    "east", "southeast", "south",
-    "southwest", "west", "northwest",
+  "stay",
+  "north",
+  "northeast",
+  "east",
+  "southeast",
+  "south",
+  "southwest",
+  "west",
+  "northwest",
 ];
 
 /**
@@ -54,10 +65,10 @@ const directions: readonly string[] = [
  * otherwise return -1.
  */
 function directionFromCommand(command: string): number {
-    for (let i = 0; i < directions.length; i++) {
-        if (command === directions[i]) return i;
-    }
-    return -1;
+  for (let i = 0; i < directions.length; i++) {
+    if (command === directions[i]) return i;
+  }
+  return -1;
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -65,11 +76,11 @@ function directionFromCommand(command: string): number {
 // ──────────────────────────────────────────────────────────────────────────────
 
 export interface KeyBind {
-    keysym: string;   // KeyboardEvent.key (lower-cased for letters)
-    flags: number;    // KEYF_* bitmask
-    direction: number; // -1 for non-direction, 0-8 for direction
-    command: string;
-    global: boolean;  // true = applies to all characters; false = current character only
+  keysym: string; // KeyboardEvent.key (lower-cased for letters)
+  flags: number; // KEYF_* bitmask
+  direction: number; // -1 for non-direction, 0-8 for direction
+  command: string;
+  global: boolean; // true = applies to all characters; false = current character only
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -81,11 +92,11 @@ let globalBindings: KeyBind[] = [];
 /** Bindings that apply only to the currently logged-in character. */
 let charBindings: KeyBind[] = [];
 /** The name of the currently logged-in character (empty = no character). */
-let currentCharName = '';
+let currentCharName = "";
 
 /** Returns all bindings in lookup order: character-specific first, then global. */
 function allBindings(): readonly KeyBind[] {
-    return [...charBindings, ...globalBindings];
+  return [...charBindings, ...globalBindings];
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -100,51 +111,56 @@ function allBindings(): readonly KeyBind[] {
  * Otherwise, the modifier bits (KEYF_MOD_MASK) must match exactly.
  */
 function keybindFind(keysym: string, flags: number): KeyBind | null {
-    for (const kb of allBindings()) {
-        if (kb.keysym !== keysym) continue;
-        if ((kb.flags & KEYF_ANY) || (flags & KEYF_ANY)) return kb;
-        if ((kb.flags & KEYF_MOD_MASK) === (flags & KEYF_MOD_MASK)) return kb;
-    }
-    return null;
+  for (const kb of allBindings()) {
+    if (kb.keysym !== keysym) continue;
+    if (kb.flags & KEYF_ANY || flags & KEYF_ANY) return kb;
+    if ((kb.flags & KEYF_MOD_MASK) === (flags & KEYF_MOD_MASK)) return kb;
+  }
+  return null;
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Insert / remove
 // ──────────────────────────────────────────────────────────────────────────────
 
-function keybindInsert(keysym: string, flags: number, command: string, isGlobal = false): void {
-    // Remove any existing binding with same keysym & flags from both arrays.
-    function removeSame(arr: KeyBind[]): KeyBind[] {
-        return arr.filter(kb => {
-            if (kb.keysym !== keysym) return true;
-            if ((kb.flags & KEYF_ANY) || (flags & KEYF_ANY)) return false;
-            if ((kb.flags & KEYF_MOD_MASK) === (flags & KEYF_MOD_MASK)) return false;
-            return true;
-        });
-    }
-    globalBindings = removeSame(globalBindings);
-    charBindings = removeSame(charBindings);
+function keybindInsert(
+  keysym: string,
+  flags: number,
+  command: string,
+  isGlobal = false,
+): void {
+  // Remove any existing binding with same keysym & flags from both arrays.
+  function removeSame(arr: KeyBind[]): KeyBind[] {
+    return arr.filter((kb) => {
+      if (kb.keysym !== keysym) return true;
+      if (kb.flags & KEYF_ANY || flags & KEYF_ANY) return false;
+      if ((kb.flags & KEYF_MOD_MASK) === (flags & KEYF_MOD_MASK)) return false;
+      return true;
+    });
+  }
+  globalBindings = removeSame(globalBindings);
+  charBindings = removeSame(charBindings);
 
-    const kb: KeyBind = {
-        keysym,
-        flags,
-        direction: directionFromCommand(command),
-        command,
-        global: isGlobal,
-    };
-    if (isGlobal) {
-        globalBindings.push(kb);
-    } else {
-        charBindings.push(kb);
-    }
+  const kb: KeyBind = {
+    keysym,
+    flags,
+    direction: directionFromCommand(command),
+    command,
+    global: isGlobal,
+  };
+  if (isGlobal) {
+    globalBindings.push(kb);
+  } else {
+    charBindings.push(kb);
+  }
 }
 
 function keybindRemove(kb: KeyBind): void {
-    if (kb.global) {
-        globalBindings = globalBindings.filter(b => b !== kb);
-    } else {
-        charBindings = charBindings.filter(b => b !== kb);
-    }
+  if (kb.global) {
+    globalBindings = globalBindings.filter((b) => b !== kb);
+  } else {
+    charBindings = charBindings.filter((b) => b !== kb);
+  }
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -158,34 +174,47 @@ function keybindRemove(kb: KeyBind): void {
  * 'F' = fire (shift), 'R' = run (ctrl), 'E' = edit-mode.
  */
 function flagsToString(f: number): string {
-    let s = "";
-    if (f & KEYF_ANY) s += "A";
-    if ((f & KEYF_MOD_MASK) === 0) s += "N";
-    if (f & KEYF_MOD_SHIFT) s += "F";
-    if (f & KEYF_MOD_CTRL) s += "R";
-    if (f & KEYF_MOD_ALT) s += "L";
-    if (f & KEYF_MOD_META) s += "M";
-    if (f & KEYF_EDIT) s += "E";
-    return s;
+  let s = "";
+  if (f & KEYF_ANY) s += "A";
+  if ((f & KEYF_MOD_MASK) === 0) s += "N";
+  if (f & KEYF_MOD_SHIFT) s += "F";
+  if (f & KEYF_MOD_CTRL) s += "R";
+  if (f & KEYF_MOD_ALT) s += "L";
+  if (f & KEYF_MOD_META) s += "M";
+  if (f & KEYF_EDIT) s += "E";
+  return s;
 }
 
 /**
  * Parse a flag string back to KEYF_* bitmask.
  */
 function parseFlags(s: string): number {
-    let f = 0;
-    for (const ch of s) {
-        switch (ch) {
-            case 'A': f |= KEYF_ANY; break;
-            case 'N': break; // normal = no modifier bits
-            case 'F': f |= KEYF_MOD_SHIFT; break;
-            case 'R': f |= KEYF_MOD_CTRL; break;
-            case 'L': f |= KEYF_MOD_ALT; break;
-            case 'M': f |= KEYF_MOD_META; break;
-            case 'E': f |= KEYF_EDIT; break;
-        }
+  let f = 0;
+  for (const ch of s) {
+    switch (ch) {
+      case "A":
+        f |= KEYF_ANY;
+        break;
+      case "N":
+        break; // normal = no modifier bits
+      case "F":
+        f |= KEYF_MOD_SHIFT;
+        break;
+      case "R":
+        f |= KEYF_MOD_CTRL;
+        break;
+      case "L":
+        f |= KEYF_MOD_ALT;
+        break;
+      case "M":
+        f |= KEYF_MOD_META;
+        break;
+      case "E":
+        f |= KEYF_EDIT;
+        break;
     }
-    return f;
+  }
+  return f;
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -193,62 +222,76 @@ function parseFlags(s: string): number {
 // ──────────────────────────────────────────────────────────────────────────────
 
 function loadDefaultBindings(): void {
-    const defs: [string, string, string][] = [
-        // [keysym, flagString, command]
-        // Basic keys
-        ['"',           'AE', 'say '],
-        ['Enter',       'AE', 'chat '],
-        [';',           'NE', 'reply'],
-        [',',           'A',  'take'],
-        ['<',           'F',  'get all'],
-        ['.',           'N',  'stay fire'],
-        ['?',           'A',  'help'],
-        ['a',           'N',  'apply'],
-        ['d',           'N',  'disarm'],
-        ['e',           'NR', 'examine'],
-        ['s',           'F',  'brace'],
-        ['s',           'N',  'search'],
-        ['t',           'N',  'ready_skill throwing'],
+  const defs: [string, string, string][] = [
+    // [keysym, flagString, command]
+    // Basic keys
+    ['"', "AE", "say "],
+    ["Enter", "AE", "chat "],
+    [";", "NE", "reply"],
+    [",", "A", "take"],
+    ["<", "F", "get all"],
+    [".", "N", "stay fire"],
+    ["?", "A", "help"],
+    ["a", "N", "apply"],
+    ["d", "N", "disarm"],
+    ["e", "NR", "examine"],
+    ["s", "F", "brace"],
+    ["s", "N", "search"],
+    ["t", "N", "ready_skill throwing"],
 
-        // Nethack-style (Normal)
-        ['b', 'N', 'southwest'], ['h', 'N', 'west'],
-        ['j', 'N', 'south'],    ['k', 'N', 'north'],
-        ['l', 'N', 'east'],     ['n', 'N', 'southeast'],
-        ['u', 'N', 'northeast'],['y', 'N', 'northwest'],
+    // Nethack-style (Normal)
+    ["b", "N", "southwest"],
+    ["h", "N", "west"],
+    ["j", "N", "south"],
+    ["k", "N", "north"],
+    ["l", "N", "east"],
+    ["n", "N", "southeast"],
+    ["u", "N", "northeast"],
+    ["y", "N", "northwest"],
 
-        // Nethack-style (Run)
-        ['b', 'R', 'southwest'], ['h', 'R', 'west'],
-        ['j', 'R', 'south'],    ['k', 'R', 'north'],
-        ['l', 'R', 'east'],     ['n', 'R', 'southeast'],
-        ['u', 'R', 'northeast'],['y', 'R', 'northwest'],
+    // Nethack-style (Run)
+    ["b", "R", "southwest"],
+    ["h", "R", "west"],
+    ["j", "R", "south"],
+    ["k", "R", "north"],
+    ["l", "R", "east"],
+    ["n", "R", "southeast"],
+    ["u", "R", "northeast"],
+    ["y", "R", "northwest"],
 
-        // Nethack-style (Fire)
-        ['b', 'F', 'southwest'], ['h', 'F', 'west'],
-        ['j', 'F', 'south'],    ['k', 'F', 'north'],
-        ['l', 'F', 'east'],     ['n', 'F', 'southeast'],
-        ['u', 'F', 'northeast'],['y', 'F', 'northwest'],
+    // Nethack-style (Fire)
+    ["b", "F", "southwest"],
+    ["h", "F", "west"],
+    ["j", "F", "south"],
+    ["k", "F", "north"],
+    ["l", "F", "east"],
+    ["n", "F", "southeast"],
+    ["u", "F", "northeast"],
+    ["y", "F", "northwest"],
 
-        // Arrow keys
-        ['ArrowUp',    'A', 'north'],
-        ['ArrowDown',  'A', 'south'],
-        ['ArrowLeft',  'A', 'west'],
-        ['ArrowRight', 'A', 'east'],
+    // Arrow keys
+    ["ArrowUp", "A", "north"],
+    ["ArrowDown", "A", "south"],
+    ["ArrowLeft", "A", "west"],
+    ["ArrowRight", "A", "east"],
 
-        // Nav cluster / numpad (numlock off)
-        ['Home',     'A', 'northwest'], ['End',      'A', 'southwest'],
-        ['PageUp',   'A', 'northeast'], ['PageDown', 'A', 'southeast'],
-        ['Clear',    'A', 'stay'],      // numpad 5 in nav mode (all platforms)
+    // Nav cluster / numpad (numlock off)
+    ["Home", "A", "northwest"],
+    ["End", "A", "southwest"],
+    ["PageUp", "A", "northeast"],
+    ["PageDown", "A", "southeast"],
+    ["Clear", "A", "stay"], // numpad 5 in nav mode (all platforms)
 
-        // Action rotation
-        ['+', 'A',  'rotateshoottype'],
-        ['-', 'A',  'rotateshoottype -'],
-        ['-', 'N',  'rotateshoottype -1'],
-        ['+', 'NF', 'rotateshoottype'],
-    ];
+    // Action rotation
+    ["+", "A", "rotateshoottype"],
+    ["-", "A", "rotateshoottype -"],
+    ["-", "N", "rotateshoottype -1"],
+    ["+", "NF", "rotateshoottype"],
+  ];
 
-    for (const [keysym, flagStr, command] of defs) {
-        keybindInsert(keysym, parseFlags(flagStr), command, true); // global = true for defaults
-    }
+  for (const [keysym, flagStr, command] of defs) {
+    keybindInsert(keysym, parseFlags(flagStr), command, true); // global = true for defaults
+  }
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -256,41 +299,51 @@ function loadDefaultBindings(): void {
 // ──────────────────────────────────────────────────────────────────────────────
 
 interface SavedBinding {
-    keysym: string;
-    flags: string; // compact flag string
-    command: string;
+  keysym: string;
+  flags: string; // compact flag string
+  command: string;
 }
 
 const STORAGE_KEY = "cf_keybindings";
 const CHAR_STORAGE_KEY_PREFIX = "cf_keybindings_char_";
 
 function saveBindings(): void {
-    const toSaved = (arr: KeyBind[]): SavedBinding[] =>
-        arr.map(kb => ({ keysym: kb.keysym, flags: flagsToString(kb.flags), command: kb.command }));
+  const toSaved = (arr: KeyBind[]): SavedBinding[] =>
+    arr.map((kb) => ({
+      keysym: kb.keysym,
+      flags: flagsToString(kb.flags),
+      command: kb.command,
+    }));
 
-    saveConfig(STORAGE_KEY, toSaved(globalBindings));
-    if (currentCharName) {
-        saveConfig(CHAR_STORAGE_KEY_PREFIX + currentCharName, toSaved(charBindings));
-    }
+  saveConfig(STORAGE_KEY, toSaved(globalBindings));
+  if (currentCharName) {
+    saveConfig(
+      CHAR_STORAGE_KEY_PREFIX + currentCharName,
+      toSaved(charBindings),
+    );
+  }
 }
 
 function loadGlobalBindings(): boolean {
-    const data = loadConfig<SavedBinding[] | null>(STORAGE_KEY, null);
-    if (!data || !Array.isArray(data)) return false;
-    globalBindings = [];
-    for (const entry of data) {
-        keybindInsert(entry.keysym, parseFlags(entry.flags), entry.command, true);
-    }
-    return true;
+  const data = loadConfig<SavedBinding[] | null>(STORAGE_KEY, null);
+  if (!data || !Array.isArray(data)) return false;
+  globalBindings = [];
+  for (const entry of data) {
+    keybindInsert(entry.keysym, parseFlags(entry.flags), entry.command, true);
+  }
+  return true;
 }
 
 function loadCharBindingsForName(charName: string): void {
-    const data = loadConfig<SavedBinding[] | null>(CHAR_STORAGE_KEY_PREFIX + charName, null);
-    charBindings = [];
-    if (!data || !Array.isArray(data)) return;
-    for (const entry of data) {
-        keybindInsert(entry.keysym, parseFlags(entry.flags), entry.command, false);
-    }
+  const data = loadConfig<SavedBinding[] | null>(
+    CHAR_STORAGE_KEY_PREFIX + charName,
+    null,
+  );
+  charBindings = [];
+  if (!data || !Array.isArray(data)) return;
+  for (const entry of data) {
+    keybindInsert(entry.keysym, parseFlags(entry.flags), entry.command, false);
+  }
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -304,14 +357,17 @@ function loadCharBindingsForName(charName: string): void {
  * loaded when the character name is known (see setCurrentCharacter()).
  */
 export function keybindingsInit(): void {
-    globalBindings = [];
-    charBindings = [];
-    currentCharName = '';
-    if (!loadGlobalBindings()) {
-        loadDefaultBindings();
-    }
-    LOG(LogLevel.Debug, "keys::keybindingsInit",
-        `Loaded ${globalBindings.length} global keybindings.`);
+  globalBindings = [];
+  charBindings = [];
+  currentCharName = "";
+  if (!loadGlobalBindings()) {
+    loadDefaultBindings();
+  }
+  LOG(
+    LogLevel.Debug,
+    "keys::keybindingsInit",
+    `Loaded ${globalBindings.length} global keybindings.`,
+  );
 }
 
 /**
@@ -319,10 +375,13 @@ export function keybindingsInit(): void {
  * merges them with the global bindings already in memory.
  */
 export function setCurrentCharacter(charName: string): void {
-    currentCharName = charName;
-    loadCharBindingsForName(charName);
-    LOG(LogLevel.Debug, "keys::setCurrentCharacter",
-        `Loaded ${charBindings.length} char bindings for "${charName}".`);
+  currentCharName = charName;
+  loadCharBindingsForName(charName);
+  LOG(
+    LogLevel.Debug,
+    "keys::setCurrentCharacter",
+    `Loaded ${charBindings.length} char bindings for "${charName}".`,
+  );
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -331,9 +390,9 @@ export function setCurrentCharacter(charName: string): void {
 
 /** Normalise a KeyboardEvent.key to the keysym we use for lookups. */
 function normaliseKey(key: string): string {
-    // Single printable characters are lowered (like gdk_keyval_to_lower).
-    if (key.length === 1) return key.toLowerCase();
-    return key;
+  // Single printable characters are lowered (like gdk_keyval_to_lower).
+  if (key.length === 1) return key.toLowerCase();
+  return key;
 }
 
 /**
@@ -341,17 +400,17 @@ function normaliseKey(key: string): string {
  * produce when NumLock is off (matching standard Web KeyboardEvent values).
  */
 const NUMPAD_NAV_KEYS: Readonly<Record<string, string>> = {
-    'Numpad0': 'Insert',
-    'Numpad1': 'End',
-    'Numpad2': 'ArrowDown',
-    'Numpad3': 'PageDown',
-    'Numpad4': 'ArrowLeft',
-    'Numpad5': 'Clear',
-    'Numpad6': 'ArrowRight',
-    'Numpad7': 'Home',
-    'Numpad8': 'ArrowUp',
-    'Numpad9': 'PageUp',
-    'NumpadDecimal': 'Delete',
+  Numpad0: "Insert",
+  Numpad1: "End",
+  Numpad2: "ArrowDown",
+  Numpad3: "PageDown",
+  Numpad4: "ArrowLeft",
+  Numpad5: "Clear",
+  Numpad6: "ArrowRight",
+  Numpad7: "Home",
+  Numpad8: "ArrowUp",
+  Numpad9: "PageUp",
+  NumpadDecimal: "Delete",
 };
 
 /**
@@ -364,29 +423,29 @@ const NUMPAD_NAV_KEYS: Readonly<Record<string, string>> = {
  * not active, ensuring consistent behaviour across platforms.
  */
 function normaliseKeyEvent(e: KeyboardEvent): string {
-    // e.location === 3 is DOM_KEY_LOCATION_NUMPAD.
-    if (e.location === 3) {
-        const navKey = NUMPAD_NAV_KEYS[e.code];
-        if (navKey !== undefined) return navKey;
-	console.log("Unknown key, e=", e)
-    }
-    return normaliseKey(e.key);
+  // e.location === 3 is DOM_KEY_LOCATION_NUMPAD.
+  if (e.location === 3) {
+    const navKey = NUMPAD_NAV_KEYS[e.code];
+    if (navKey !== undefined) return navKey;
+    console.log("Unknown key, e=", e);
+  }
+  return normaliseKey(e.key);
 }
 
 // Callback interface so keys.ts doesn't depend on UI modules directly.
 export interface KeyCallbacks {
-    /** Show a message in the info panel. */
-    drawInfo: (message: string) => void;
-    /** Focus the command input field and optionally pre-fill text. */
-    focusCommandInput: (prefill?: string) => void;
-    /** Get the current Player object. */
-    getCpl: () => Player | null;
+  /** Show a message in the info panel. */
+  drawInfo: (message: string) => void;
+  /** Focus the command input field and optionally pre-fill text. */
+  focusCommandInput: (prefill?: string) => void;
+  /** Get the current Player object. */
+  getCpl: () => Player | null;
 }
 
 let cb: KeyCallbacks | null = null;
 
 export function setKeyCallbacks(c: KeyCallbacks): void {
-    cb = c;
+  cb = c;
 }
 
 /**
@@ -394,99 +453,103 @@ export function setKeyCallbacks(c: KeyCallbacks): void {
  * Equivalent to the C parse_key() function.
  */
 export function parseKey(e: KeyboardEvent): void {
-    const cpl = cb?.getCpl();
-    if (!cpl) return;
+  const cpl = cb?.getCpl();
+  if (!cpl) return;
 
-    const keysym = normaliseKeyEvent(e);
+  const keysym = normaliseKeyEvent(e);
 
-    // ── Command-mode key (apostrophe) ───────────────────────────────
-    if (keysym === "'") {
-        cb?.focusCommandInput();
-        cpl.inputState = InputState.CommandMode;
-        cpl.noEcho = false;
-        return;
+  // ── Command-mode key (apostrophe) ───────────────────────────────
+  if (keysym === "'") {
+    cb?.focusCommandInput();
+    cpl.inputState = InputState.CommandMode;
+    cpl.noEcho = false;
+    return;
+  }
+
+  // ── Modifier keys: just set state, don't look up a binding ──────
+  if (e.key === "Shift" || e.key === "ShiftLeft" || e.key === "ShiftRight") {
+    cpl.fireOn = true;
+    return;
+  }
+  if (
+    e.key === "Control" ||
+    e.key === "ControlLeft" ||
+    e.key === "ControlRight"
+  ) {
+    cpl.altOn = true;
+    return;
+  }
+  if (e.key === "Alt" || e.key === "AltLeft" || e.key === "AltRight") {
+    cpl.runOn = true;
+    return;
+  }
+  if (e.key === "Meta" || e.key === "MetaLeft" || e.key === "MetaRight") {
+    cpl.metaOn = true;
+    return;
+  }
+
+  // ── Build modifier flags from current player state ──────────────
+  let presentFlags = 0;
+  if (cpl.runOn) presentFlags |= KEYF_MOD_CTRL;
+  if (cpl.fireOn) presentFlags |= KEYF_MOD_SHIFT;
+  if (cpl.altOn) presentFlags |= KEYF_MOD_ALT;
+  if (cpl.metaOn) presentFlags |= KEYF_MOD_META;
+
+  // ── Look up the keybinding ──────────────────────────────────────
+  const kb = keybindFind(keysym, presentFlags);
+
+  if (kb) {
+    // Edit-mode binding: prefill command input and focus it
+    if (kb.flags & KEYF_EDIT) {
+      cpl.inputState = InputState.CommandMode;
+      cb?.focusCommandInput(kb.command);
+      return;
     }
 
-    // ── Modifier keys: just set state, don't look up a binding ──────
-    if (e.key === "Shift" || e.key === "ShiftLeft" || e.key === "ShiftRight") {
-        cpl.fireOn = true;
+    // Direction binding with fire/run modifier
+    if (kb.direction >= 0) {
+      // Any manual directional input cancels an active click-to-move.
+      clear_move_to();
+      if (cpl.fireOn) {
+        fireDir(kb.direction);
         return;
-    }
-    if (e.key === "Control" || e.key === "ControlLeft" || e.key === "ControlRight") {
-        cpl.altOn = true;
+      }
+      if (cpl.runOn) {
+        runDir(kb.direction);
         return;
-    }
-    if (e.key === "Alt" || e.key === "AltLeft" || e.key === "AltRight") {
-        cpl.runOn = true;
-        return;
-    }
-    if (e.key === "Meta" || e.key === "MetaLeft" || e.key === "MetaRight") {
-        cpl.metaOn = true;
-        return;
+      }
     }
 
-    // ── Build modifier flags from current player state ──────────────
-    let presentFlags = 0;
-    if (cpl.runOn)  presentFlags |= KEYF_MOD_CTRL;
-    if (cpl.fireOn) presentFlags |= KEYF_MOD_SHIFT;
-    if (cpl.altOn)  presentFlags |= KEYF_MOD_ALT;
-    if (cpl.metaOn) presentFlags |= KEYF_MOD_META;
-
-    // ── Look up the keybinding ──────────────────────────────────────
-    const kb = keybindFind(keysym, presentFlags);
-
-    if (kb) {
-        // Edit-mode binding: prefill command input and focus it
-        if (kb.flags & KEYF_EDIT) {
-            cpl.inputState = InputState.CommandMode;
-            cb?.focusCommandInput(kb.command);
-            return;
-        }
-
-        // Direction binding with fire/run modifier
-        if (kb.direction >= 0) {
-            // Any manual directional input cancels an active click-to-move.
-            clear_move_to();
-            if (cpl.fireOn) {
-                fireDir(kb.direction);
-                return;
-            }
-            if (cpl.runOn) {
-                runDir(kb.direction);
-                return;
-            }
-        }
-
-        // Normal command — throttle key-repeat: only send if the previous
-        // ncom for this command has been acknowledged by the server (comc).
-        if (e.repeat && !checkRepeatThrottle(kb.command)) {
-            return;
-        }
-        extendedCommand(kb.command);
-        if (e.repeat) {
-            recordRepeatSend();
-        }
-        return;
+    // Normal command — throttle key-repeat: only send if the previous
+    // ncom for this command has been acknowledged by the server (comc).
+    if (e.repeat && !checkRepeatThrottle(kb.command)) {
+      return;
     }
-
-    // ── Numeric count accumulation ──────────────────────────────────
-    if (keysym >= '0' && keysym <= '9') {
-        cpl.count = cpl.count * 10 + (keysym.charCodeAt(0) - 48);
-        if (cpl.count > 10000000) cpl.count %= 10000000;
-        return;
+    extendedCommand(kb.command);
+    if (e.repeat) {
+      recordRepeatSend();
     }
+    return;
+  }
 
-    // ── Unbound key ─────────────────────────────────────────────────
-    let prefix = "";
-    if (cpl.fireOn) prefix += "fire+";
-    if (cpl.runOn)  prefix += "run+";
-    if (cpl.altOn)  prefix += "alt+";
-    if (cpl.metaOn) prefix += "meta+";
-    cb?.drawInfo(
-        `Key ${prefix}${keysym} is not bound to any command. ` +
-        `Use 'bind' to associate this keypress with a command.`
-    );
-    cpl.count = 0;
+  // ── Numeric count accumulation ──────────────────────────────────
+  if (keysym >= "0" && keysym <= "9") {
+    cpl.count = cpl.count * 10 + (keysym.charCodeAt(0) - 48);
+    if (cpl.count > 10000000) cpl.count %= 10000000;
+    return;
+  }
+
+  // ── Unbound key ─────────────────────────────────────────────────
+  let prefix = "";
+  if (cpl.fireOn) prefix += "fire+";
+  if (cpl.runOn) prefix += "run+";
+  if (cpl.altOn) prefix += "alt+";
+  if (cpl.metaOn) prefix += "meta+";
+  cb?.drawInfo(
+    `Key ${prefix}${keysym} is not bound to any command. ` +
+      `Use 'bind' to associate this keypress with a command.`,
+  );
+  cpl.count = 0;
 }
 
 /**
@@ -494,38 +557,42 @@ export function parseKey(e: KeyboardEvent): void {
  * Equivalent to the C parse_key_release() function.
  */
 export function parseKeyRelease(e: KeyboardEvent): void {
-    const cpl = cb?.getCpl();
-    if (!cpl) return;
+  const cpl = cb?.getCpl();
+  if (!cpl) return;
 
-    if (e.key === "Shift" || e.key === "ShiftLeft" || e.key === "ShiftRight") {
-        cpl.fireOn = false;
-        clearFire();
-        return;
-    }
-    if (e.key === "Control" || e.key === "ControlLeft" || e.key === "ControlRight") {
-        cpl.altOn = false;
-        return;
-    }
-    if (e.key === "Alt" || e.key === "AltLeft" || e.key === "AltRight") {
-        cpl.runOn = false;
-        clearRun();
-        return;
-    }
-    if (e.key === "Meta" || e.key === "MetaLeft" || e.key === "MetaRight") {
-        cpl.metaOn = false;
-        return;
-    }
+  if (e.key === "Shift" || e.key === "ShiftLeft" || e.key === "ShiftRight") {
+    cpl.fireOn = false;
+    clearFire();
+    return;
+  }
+  if (
+    e.key === "Control" ||
+    e.key === "ControlLeft" ||
+    e.key === "ControlRight"
+  ) {
+    cpl.altOn = false;
+    return;
+  }
+  if (e.key === "Alt" || e.key === "AltLeft" || e.key === "AltRight") {
+    cpl.runOn = false;
+    clearRun();
+    return;
+  }
+  if (e.key === "Meta" || e.key === "MetaLeft" || e.key === "MetaRight") {
+    cpl.metaOn = false;
+    return;
+  }
 
-    // If firing and a non-modifier key is released, stop firing
-    // (same as old C behaviour).
-    if (cpl.fireOn) {
-        clearFire();
-    }
+  // If firing and a non-modifier key is released, stop firing
+  // (same as old C behaviour).
+  if (cpl.fireOn) {
+    clearFire();
+  }
 
-    // A key was released: reset the repeat throttle so that immediately
-    // re-pressing the same key sends the command without waiting for a
-    // comc acknowledgement from the server.
-    resetRepeatThrottle();
+  // A key was released: reset the repeat throttle so that immediately
+  // re-pressing the same key sends the command without waiting for a
+  // comc acknowledgement from the server.
+  resetRepeatThrottle();
 }
 
 /**
@@ -533,12 +600,18 @@ export function parseKeyRelease(e: KeyboardEvent): void {
  * Clears all modifier state so we don't get stuck fire/run.
  */
 export function handleFocusLost(): void {
-    const cpl = cb?.getCpl();
-    if (!cpl) return;
-    if (cpl.fireOn) { cpl.fireOn = false; clearFire(); }
-    if (cpl.runOn)  { cpl.runOn = false;  clearRun(); }
-    cpl.altOn = false;
-    cpl.metaOn = false;
+  const cpl = cb?.getCpl();
+  if (!cpl) return;
+  if (cpl.fireOn) {
+    cpl.fireOn = false;
+    clearFire();
+  }
+  if (cpl.runOn) {
+    cpl.runOn = false;
+    clearRun();
+  }
+  cpl.altOn = false;
+  cpl.metaOn = false;
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -575,71 +648,77 @@ let bindModifiersExplicit = false;
  * the user presses the key determine the binding's modifier flags.
  */
 export function bindKey(params: string): void {
-    if (!params || params.trim().length === 0) {
-        cb?.drawInfo(
-            "Usage: bind [-einframg] <command>\n" +
-            "  -e  enter edit mode when key is pressed\n" +
-            "  -i  ignore modifiers (keybinding works no matter if Shift/Ctrl etc are held)\n" +
-            "  -n  bind for normal mode (no modifier keys)\n" +
-            "  -f  bind for fire mode (Shift held)\n" +
-            "  -r  bind for run mode (Alt held)\n" +
-            "  -a  bind for alt mode (Ctrl held)\n" +
-            "  -m  bind for meta mode (Meta/Win key held)\n" +
-            "Without -n/-f/-r/-a/-m, modifiers are read from the keyboard when you press the key."
-        );
-        return;
-    }
+  if (!params || params.trim().length === 0) {
+    cb?.drawInfo(
+      "Usage: bind [-einframg] <command>\n" +
+        "  -e  enter edit mode when key is pressed\n" +
+        "  -i  ignore modifiers (keybinding works no matter if Shift/Ctrl etc are held)\n" +
+        "  -n  bind for normal mode (no modifier keys)\n" +
+        "  -f  bind for fire mode (Shift held)\n" +
+        "  -r  bind for run mode (Alt held)\n" +
+        "  -a  bind for alt mode (Ctrl held)\n" +
+        "  -m  bind for meta mode (Meta/Win key held)\n" +
+        "Without -n/-f/-r/-a/-m, modifiers are read from the keyboard when you press the key.",
+    );
+    return;
+  }
 
-    let rest = params.trim();
-    bindFlags = 0;
-    bindModifiersExplicit = false;
+  let rest = params.trim();
+  bindFlags = 0;
+  bindModifiersExplicit = false;
 
-    // Parse option flags.  Supports both combined ("-nfe") and separate
-    // ("-n -f -e") styles, matching the original C client.
-    while (rest.startsWith("-") && rest.length > 1) {
-        const spaceIdx = rest.indexOf(" ");
-        const flagChars = spaceIdx > 0 ? rest.substring(1, spaceIdx) : rest.substring(1);
-        for (const ch of flagChars) {
-            switch (ch) {
-                case 'e': bindFlags |= KEYF_EDIT; break;
-                case 'i': bindFlags |= KEYF_ANY; break;
-                case 'g': break; // global scope — ignored in web client
-                case 'n':
-                    // Normal mode: no extra modifier bits; just mark explicit.
-                    bindModifiersExplicit = true;
-                    break;
-                case 'f':
-                    bindFlags |= KEYF_MOD_SHIFT; // fire = Shift
-                    bindModifiersExplicit = true;
-                    break;
-                case 'r':
-                    bindFlags |= KEYF_MOD_CTRL;  // run mode: Alt key → KEYF_MOD_CTRL (see key mapping)
-                    bindModifiersExplicit = true;
-                    break;
-                case 'a':
-                    bindFlags |= KEYF_MOD_ALT;   // alt mode: Ctrl key → KEYF_MOD_ALT (see key mapping)
-                    bindModifiersExplicit = true;
-                    break;
-                case 'm':
-                    bindFlags |= KEYF_MOD_META;
-                    bindModifiersExplicit = true;
-                    break;
-            }
-        }
-        rest = spaceIdx > 0 ? rest.substring(spaceIdx + 1).trimStart() : "";
+  // Parse option flags.  Supports both combined ("-nfe") and separate
+  // ("-n -f -e") styles, matching the original C client.
+  while (rest.startsWith("-") && rest.length > 1) {
+    const spaceIdx = rest.indexOf(" ");
+    const flagChars =
+      spaceIdx > 0 ? rest.substring(1, spaceIdx) : rest.substring(1);
+    for (const ch of flagChars) {
+      switch (ch) {
+        case "e":
+          bindFlags |= KEYF_EDIT;
+          break;
+        case "i":
+          bindFlags |= KEYF_ANY;
+          break;
+        case "g":
+          break; // global scope — ignored in web client
+        case "n":
+          // Normal mode: no extra modifier bits; just mark explicit.
+          bindModifiersExplicit = true;
+          break;
+        case "f":
+          bindFlags |= KEYF_MOD_SHIFT; // fire = Shift
+          bindModifiersExplicit = true;
+          break;
+        case "r":
+          bindFlags |= KEYF_MOD_CTRL; // run mode: Alt key → KEYF_MOD_CTRL (see key mapping)
+          bindModifiersExplicit = true;
+          break;
+        case "a":
+          bindFlags |= KEYF_MOD_ALT; // alt mode: Ctrl key → KEYF_MOD_ALT (see key mapping)
+          bindModifiersExplicit = true;
+          break;
+        case "m":
+          bindFlags |= KEYF_MOD_META;
+          bindModifiersExplicit = true;
+          break;
+      }
     }
+    rest = spaceIdx > 0 ? rest.substring(spaceIdx + 1).trimStart() : "";
+  }
 
-    if (rest.length === 0) {
-        cb?.drawInfo("bind: no command specified.");
-        return;
-    }
+  if (rest.length === 0) {
+    cb?.drawInfo("bind: no command specified.");
+    return;
+  }
 
-    bindCommand = rest;
-    const cpl = cb?.getCpl();
-    if (cpl) {
-        cpl.inputState = InputState.ConfigureKeys;
-    }
-    cb?.drawInfo(`Push key to bind to command: ${bindCommand}`);
+  bindCommand = rest;
+  const cpl = cb?.getCpl();
+  if (cpl) {
+    cpl.inputState = InputState.ConfigureKeys;
+  }
+  cb?.drawInfo(`Push key to bind to command: ${bindCommand}`);
 }
 
 /**
@@ -647,30 +726,32 @@ export function bindKey(params: string): void {
  * Completes the bind operation.
  */
 export function configureKeys(e: KeyboardEvent): void {
-    const cpl = cb?.getCpl();
-    if (!cpl) return;
+  const cpl = cb?.getCpl();
+  if (!cpl) return;
 
-    // Ignore pure modifier keys during configure
-    if (["Shift", "Control", "Alt", "Meta"].includes(e.key)) return;
+  // Ignore pure modifier keys during configure
+  if (["Shift", "Control", "Alt", "Meta"].includes(e.key)) return;
 
-    const keysym = normaliseKeyEvent(e);
+  const keysym = normaliseKeyEvent(e);
 
-    // Add modifier flags based on what's currently held
-    let flags = bindFlags;
-    if (!(flags & KEYF_ANY) && !bindModifiersExplicit) {
-        if (e.shiftKey) flags |= KEYF_MOD_SHIFT;
-        if (e.altKey)   flags |= KEYF_MOD_CTRL;  // Alt = run modifier
-        if (e.ctrlKey)  flags |= KEYF_MOD_ALT;   // Ctrl = alt modifier
-        if (e.metaKey)  flags |= KEYF_MOD_META;
-    }
+  // Add modifier flags based on what's currently held
+  let flags = bindFlags;
+  if (!(flags & KEYF_ANY) && !bindModifiersExplicit) {
+    if (e.shiftKey) flags |= KEYF_MOD_SHIFT;
+    if (e.altKey) flags |= KEYF_MOD_CTRL; // Alt = run modifier
+    if (e.ctrlKey) flags |= KEYF_MOD_ALT; // Ctrl = alt modifier
+    if (e.metaKey) flags |= KEYF_MOD_META;
+  }
 
-    keybindInsert(keysym, flags, bindCommand, false); // character-specific by default
-    saveBindings();
+  keybindInsert(keysym, flags, bindCommand, false); // character-specific by default
+  saveBindings();
 
-    const flagStr = flagsToString(flags);
-    cb?.drawInfo(`Bound key '${keysym}' [${flagStr}] to: ${bindCommand} (character binding)`);
+  const flagStr = flagsToString(flags);
+  cb?.drawInfo(
+    `Bound key '${keysym}' [${flagStr}] to: ${bindCommand} (character binding)`,
+  );
 
-    cpl.inputState = InputState.Playing;
+  cpl.inputState = InputState.Playing;
 }
 
 /**
@@ -681,61 +762,66 @@ export function configureKeys(e: KeyboardEvent): void {
  * With a key name: removes all bindings for that key.
  */
 export function unbindKey(params: string): void {
-    const arg = params.trim();
+  const arg = params.trim();
 
-    if (arg.length === 0) {
-        // List all bindings
-        cb?.drawInfo("Current keybindings (use 'unbind <number>' to remove):");
-        const all = allBindings();
-        for (let i = 0; i < all.length; i++) {
-            const kb = all[i]!;
-            const flagStr = flagsToString(kb.flags);
-            const scope = kb.global ? '[global]' : '[char]';
-            cb?.drawInfo(`  ${i}: ${scope} [${flagStr}] ${kb.keysym} → ${kb.command}`);
-        }
-        return;
-    }
-
+  if (arg.length === 0) {
+    // List all bindings
+    cb?.drawInfo("Current keybindings (use 'unbind <number>' to remove):");
     const all = allBindings();
-    const idx = parseInt(arg, 10);
-    if (!isNaN(idx) && idx >= 0 && idx < all.length) {
-        const kb = all[idx]!;
-        cb?.drawInfo(`Removed binding ${idx}: ${kb.keysym} → ${kb.command}`);
-        keybindRemove(kb);
-        saveBindings();
-        return;
+    for (let i = 0; i < all.length; i++) {
+      const kb = all[i]!;
+      const flagStr = flagsToString(kb.flags);
+      const scope = kb.global ? "[global]" : "[char]";
+      cb?.drawInfo(
+        `  ${i}: ${scope} [${flagStr}] ${kb.keysym} → ${kb.command}`,
+      );
     }
+    return;
+  }
 
-    // Try to remove by key name
-    const normalised = normaliseKey(arg);
-    const beforeG = globalBindings.length;
-    const beforeC = charBindings.length;
-    globalBindings = globalBindings.filter(kb => kb.keysym !== normalised);
-    charBindings = charBindings.filter(kb => kb.keysym !== normalised);
-    const removed = (beforeG - globalBindings.length) + (beforeC - charBindings.length);
-    if (removed > 0) {
-        cb?.drawInfo(`Removed ${removed} binding(s) for key '${normalised}'.`);
-        saveBindings();
-    } else {
-        cb?.drawInfo(`No binding found for '${arg}'. Try 'unbind' with no options to list.`);
-    }
+  const all = allBindings();
+  const idx = parseInt(arg, 10);
+  if (!isNaN(idx) && idx >= 0 && idx < all.length) {
+    const kb = all[idx]!;
+    cb?.drawInfo(`Removed binding ${idx}: ${kb.keysym} → ${kb.command}`);
+    keybindRemove(kb);
+    saveBindings();
+    return;
+  }
+
+  // Try to remove by key name
+  const normalised = normaliseKey(arg);
+  const beforeG = globalBindings.length;
+  const beforeC = charBindings.length;
+  globalBindings = globalBindings.filter((kb) => kb.keysym !== normalised);
+  charBindings = charBindings.filter((kb) => kb.keysym !== normalised);
+  const removed =
+    beforeG - globalBindings.length + (beforeC - charBindings.length);
+  if (removed > 0) {
+    cb?.drawInfo(`Removed ${removed} binding(s) for key '${normalised}'.`);
+    saveBindings();
+  } else {
+    cb?.drawInfo(
+      `No binding found for '${arg}'. Try 'unbind' with no options to list.`,
+    );
+  }
 }
 
 /**
  * Reset all keybindings to defaults (removes saved bindings).
  */
 export function resetBindings(): void {
-    globalBindings = [];
-    charBindings = [];
-    loadDefaultBindings();
-    saveBindings();
-    cb?.drawInfo("Key bindings reset to defaults.");
+  globalBindings = [];
+  charBindings = [];
+  loadDefaultBindings();
+  saveBindings();
+  cb?.drawInfo("Key bindings reset to defaults.");
 }
 
 /** Return a read-only view of the current bindings (for debug/display).
  *  Character-specific bindings are listed first, then global bindings. */
 export function getBindings(): readonly KeyBind[] {
-    return allBindings();
+  return allBindings();
 }
 
 /**
@@ -743,14 +829,14 @@ export function getBindings(): readonly KeyBind[] {
  * E.g. "Alt+Shift" for run+fire, "Any" for KEYF_ANY, "(none)" for normal.
  */
 export function flagsToDisplayString(f: number): string {
-    const parts: string[] = [];
-    if (f & KEYF_ANY)       parts.push("Any");
-    if (f & KEYF_MOD_SHIFT) parts.push("Shift");
-    if (f & KEYF_MOD_CTRL)  parts.push("Alt");   // run = Alt key
-    if (f & KEYF_MOD_ALT)   parts.push("Ctrl");  // alt = Ctrl key
-    if (f & KEYF_MOD_META)  parts.push("Meta");
-    if (f & KEYF_EDIT)      parts.push("Edit");
-    return parts.length > 0 ? parts.join("+") : "(none)";
+  const parts: string[] = [];
+  if (f & KEYF_ANY) parts.push("Any");
+  if (f & KEYF_MOD_SHIFT) parts.push("Shift");
+  if (f & KEYF_MOD_CTRL) parts.push("Alt"); // run = Alt key
+  if (f & KEYF_MOD_ALT) parts.push("Ctrl"); // alt = Ctrl key
+  if (f & KEYF_MOD_META) parts.push("Meta");
+  if (f & KEYF_EDIT) parts.push("Edit");
+  return parts.length > 0 ? parts.join("+") : "(none)";
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -759,23 +845,23 @@ export function flagsToDisplayString(f: number): string {
 
 /** Build a human-readable string from a keyboard event (e.g. "Ctrl+Shift+a"). */
 export function keyEventToString(e: KeyboardEvent): string {
-    const parts: string[] = [];
-    if (e.ctrlKey)  parts.push('Ctrl');
-    if (e.altKey)   parts.push('Alt');
-    if (e.shiftKey) parts.push('Shift');
-    if (e.metaKey)  parts.push('Meta');
-    parts.push(e.key);
-    return parts.join('+');
+  const parts: string[] = [];
+  if (e.ctrlKey) parts.push("Ctrl");
+  if (e.altKey) parts.push("Alt");
+  if (e.shiftKey) parts.push("Shift");
+  if (e.metaKey) parts.push("Meta");
+  parts.push(e.key);
+  return parts.join("+");
 }
 
 /** Build a KEYF_* bitmask from a keyboard event (modifiers only). */
 export function keyEventToFlags(e: KeyboardEvent): number {
-    let flags = 0;
-    if (e.shiftKey) flags |= KEYF_MOD_SHIFT;
-    if (e.altKey)   flags |= KEYF_MOD_CTRL;  // Alt = run modifier
-    if (e.ctrlKey)  flags |= KEYF_MOD_ALT;   // Ctrl = alt modifier
-    if (e.metaKey)  flags |= KEYF_MOD_META;
-    return flags;
+  let flags = 0;
+  if (e.shiftKey) flags |= KEYF_MOD_SHIFT;
+  if (e.altKey) flags |= KEYF_MOD_CTRL; // Alt = run modifier
+  if (e.ctrlKey) flags |= KEYF_MOD_ALT; // Ctrl = alt modifier
+  if (e.metaKey) flags |= KEYF_MOD_META;
+  return flags;
 }
 
 /**
@@ -783,9 +869,9 @@ export function keyEventToFlags(e: KeyboardEvent): number {
  * Returns the matching KeyBind or null.
  */
 export function findBindingForEvent(e: KeyboardEvent): KeyBind | null {
-    const keysym = normaliseKeyEvent(e);
-    const flags = keyEventToFlags(e);
-    return keybindFind(keysym, flags);
+  const keysym = normaliseKeyEvent(e);
+  const flags = keyEventToFlags(e);
+  return keybindFind(keysym, flags);
 }
 
 /**
@@ -794,10 +880,10 @@ export function findBindingForEvent(e: KeyboardEvent): KeyBind | null {
  * Persists to localStorage.
  */
 export function bindCommandToEvent(e: KeyboardEvent, command: string): void {
-    const keysym = normaliseKeyEvent(e);
-    const flags = keyEventToFlags(e);
-    keybindInsert(keysym, flags, command);
-    saveBindings();
+  const keysym = normaliseKeyEvent(e);
+  const flags = keyEventToFlags(e);
+  keybindInsert(keysym, flags, command);
+  saveBindings();
 }
 
 /**
@@ -806,11 +892,15 @@ export function bindCommandToEvent(e: KeyboardEvent, command: string): void {
  * Replaces any existing binding for the same key+modifiers.
  * Persists to localStorage.
  */
-export function bindCommandWithFlags(e: KeyboardEvent, command: string, extraFlags: number): void {
-    const keysym = normaliseKeyEvent(e);
-    const flags = keyEventToFlags(e) | extraFlags;
-    keybindInsert(keysym, flags, command);
-    saveBindings();
+export function bindCommandWithFlags(
+  e: KeyboardEvent,
+  command: string,
+  extraFlags: number,
+): void {
+  const keysym = normaliseKeyEvent(e);
+  const flags = keyEventToFlags(e) | extraFlags;
+  keybindInsert(keysym, flags, command);
+  saveBindings();
 }
 
 /**
@@ -818,10 +908,13 @@ export function bindCommandWithFlags(e: KeyboardEvent, command: string, extraFla
  * Useful when KEYF_ANY is set by the caller so the lookup reflects the actual
  * binding that would be replaced.
  */
-export function findBindingForEventWithFlags(e: KeyboardEvent, extraFlags: number): KeyBind | null {
-    const keysym = normaliseKeyEvent(e);
-    const flags = keyEventToFlags(e) | extraFlags;
-    return keybindFind(keysym, flags);
+export function findBindingForEventWithFlags(
+  e: KeyboardEvent,
+  extraFlags: number,
+): KeyBind | null {
+  const keysym = normaliseKeyEvent(e);
+  const flags = keyEventToFlags(e) | extraFlags;
+  return keybindFind(keysym, flags);
 }
 
 /**
@@ -830,14 +923,14 @@ export function findBindingForEventWithFlags(e: KeyboardEvent, extraFlags: numbe
  * Persists to localStorage.
  */
 export function unbindEvent(e: KeyboardEvent): KeyBind | null {
-    const keysym = normaliseKeyEvent(e);
-    const flags = keyEventToFlags(e);
-    const kb = keybindFind(keysym, flags);
-    if (kb) {
-        keybindRemove(kb);
-        saveBindings();
-    }
-    return kb;
+  const keysym = normaliseKeyEvent(e);
+  const flags = keyEventToFlags(e);
+  const kb = keybindFind(keysym, flags);
+  if (kb) {
+    keybindRemove(kb);
+    saveBindings();
+  }
+  return kb;
 }
 
 /**
@@ -850,20 +943,20 @@ export function unbindEvent(e: KeyboardEvent): KeyBind | null {
  * silently skipped.
  */
 export function saveBindingScopes(
-    changes: Array<{ keysym: string; flags: number; newGlobal: boolean }>,
+  changes: Array<{ keysym: string; flags: number; newGlobal: boolean }>,
 ): void {
-    for (const { keysym, flags, newGlobal } of changes) {
-        const kb = keybindFind(keysym, flags);
-        if (!kb || kb.global === newGlobal) continue;
+  for (const { keysym, flags, newGlobal } of changes) {
+    const kb = keybindFind(keysym, flags);
+    if (!kb || kb.global === newGlobal) continue;
 
-        // Remove from current list, re-insert into the target list.
-        keybindRemove(kb);
-        const newKb: KeyBind = { ...kb, global: newGlobal };
-        if (newGlobal) {
-            globalBindings.push(newKb);
-        } else {
-            charBindings.push(newKb);
-        }
+    // Remove from current list, re-insert into the target list.
+    keybindRemove(kb);
+    const newKb: KeyBind = { ...kb, global: newGlobal };
+    if (newGlobal) {
+      globalBindings.push(newKb);
+    } else {
+      charBindings.push(newKb);
     }
-    saveBindings();
+  }
+  saveBindings();
 }

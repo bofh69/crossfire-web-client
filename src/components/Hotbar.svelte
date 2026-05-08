@@ -7,39 +7,51 @@
    * • When a gamepad is in hotbar-select mode the bar shows an overlay
    *   and highlights the slot the stick is pointing at.
    */
-  import { onMount } from 'svelte';
+  import { onMount } from "svelte";
   import {
     getHotbarSlots,
     activateHotbarSlot,
     clearHotbarSlot,
     isHotbarGamepadMode,
     getHotbarGamepadHighlight,
-  } from '../lib/hotbar';
-  import { getFaceUrl } from '../lib/image';
-  import { locateItem } from '../lib/item';
-  import { gameEvents } from '../lib/events';
+  } from "../lib/hotbar";
+  import { getFaceUrl } from "../lib/image";
+  import { locateItem } from "../lib/item";
+  import { gameEvents } from "../lib/events";
 
   let currentSlots = $state([...getHotbarSlots()]);
   let gamepadMode = $state(false);
   let gamepadHighlight = $state(-1);
-  let contextMenu = $state<{ x: number; y: number; index: number } | null>(null);
+  let contextMenu = $state<{ x: number; y: number; index: number } | null>(
+    null,
+  );
   /** Incremented on every inventory change to force reactive face lookups. */
   let inventoryVersion = $state(0);
 
   onMount(() => {
     const unsubs = [
-      gameEvents.on('hotbarUpdate', () => {
+      gameEvents.on("hotbarUpdate", () => {
         currentSlots = [...getHotbarSlots()];
         gamepadMode = isHotbarGamepadMode();
         gamepadHighlight = getHotbarGamepadHighlight();
       }),
-      gameEvents.on('playerUpdate', () => { inventoryVersion++; }),
-      gameEvents.on('tick', () => { inventoryVersion++; }),
+      gameEvents.on("playerUpdate", () => {
+        inventoryVersion++;
+      }),
+      gameEvents.on("tick", () => {
+        inventoryVersion++;
+      }),
     ];
-    return () => { for (const unsub of unsubs) unsub(); };
+    return () => {
+      for (const unsub of unsubs) unsub();
+    };
   });
 
-  function getSlotFace(slot: { command: string; face?: number; tag?: number }): number | undefined {
+  function getSlotFace(slot: {
+    command: string;
+    face?: number;
+    tag?: number;
+  }): number | undefined {
     if (slot.tag !== undefined) {
       // inventoryVersion is read here so Svelte tracks it as a dependency.
       void inventoryVersion;
@@ -95,7 +107,7 @@
                 src={getFaceUrl(getSlotFace(slot) ?? 0)!}
                 alt=""
                 class="slot-icon"
-              >
+              />
             {/if}
             {slot.label}
           </span>
@@ -229,7 +241,7 @@
     display: flex;
     flex-direction: column;
     z-index: 200;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
   }
 
   .context-menu button {

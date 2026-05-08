@@ -23,10 +23,14 @@ export class BinaryReader {
   }
 
   /** Current read position (bytes from the start of the DataView). */
-  get pos(): number { return this._pos; }
+  get pos(): number {
+    return this._pos;
+  }
 
   /** Number of bytes not yet consumed. */
-  get remaining(): number { return this._len - this._pos; }
+  get remaining(): number {
+    return this._len - this._pos;
+  }
 
   // ── private ──────────────────────────────────────────────────────────────
 
@@ -34,7 +38,7 @@ export class BinaryReader {
     if (this._pos + n > this._len) {
       throw new RangeError(
         `BinaryReader: attempted to read ${n} byte(s) at offset ${this._pos}` +
-        ` but only ${this._len - this._pos} byte(s) remain (buffer length ${this._len})`
+          ` but only ${this._len - this._pos} byte(s) remain (buffer length ${this._len})`,
       );
     }
   }
@@ -100,7 +104,11 @@ export class BinaryReader {
    */
   readString(len: number): string {
     this.checkRead(len);
-    const bytes = new Uint8Array(this.view.buffer, this.view.byteOffset + this._pos, len);
+    const bytes = new Uint8Array(
+      this.view.buffer,
+      this.view.byteOffset + this._pos,
+      len,
+    );
     this._pos += len;
     return new TextDecoder().decode(bytes);
   }

@@ -26,6 +26,7 @@ When this parameter is present the server-address input field is hidden and
 the client connects automatically, bypassing the manual "Enter" step.
 
 ## Choose login method
+
 The client supports both the old login method of logging in to
 the character and the latest where new characters are created in
 the client.

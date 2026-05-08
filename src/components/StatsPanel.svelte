@@ -1,23 +1,66 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
-  import { expBarPercent } from '../lib/commands';
-  import type { Stats } from '../lib/protocol';
-  import { gameEvents } from '../lib/events';
-  import { MAX_FOOD } from '../lib/constants';
+  import { onMount } from "svelte";
+  import { expBarPercent } from "../lib/commands";
+  import type { Stats } from "../lib/protocol";
+  import { gameEvents } from "../lib/events";
+  import { MAX_FOOD } from "../lib/constants";
 
   let stats: Stats = $state({
-    Str: 0, Dex: 0, Con: 0, Wis: 0, Cha: 0, Int: 0, Pow: 0,
-    wc: 0, ac: 0, level: 0, hp: 0, maxhp: 0, sp: 0, maxsp: 0,
-    grace: 0, maxgrace: 0, exp: BigInt(0), food: 0, dam: 0,
-    speed: 0, weaponSp: 0, attuned: 0, repelled: 0, denied: 0,
-    flags: 0, resists: new Array(30).fill(0), resistChange: false,
-    skillLevel: new Array(50).fill(0), skillExp: new Array(50).fill(BigInt(0)),
-    weightLimit: 0, golemHp: 0, golemMaxhp: 0,
-    range: '',
-    title: '',
-    raceStr: 0, raceInt: 0, raceWis: 0, raceDex: 0, raceCon: 0, raceCha: 0, racePow: 0,
-    baseStr: 0, baseInt: 0, baseWis: 0, baseDex: 0, baseCon: 0, baseCha: 0, basePow: 0,
-    appliedStr: 0, appliedInt: 0, appliedWis: 0, appliedDex: 0, appliedCon: 0, appliedCha: 0, appliedPow: 0,
+    Str: 0,
+    Dex: 0,
+    Con: 0,
+    Wis: 0,
+    Cha: 0,
+    Int: 0,
+    Pow: 0,
+    wc: 0,
+    ac: 0,
+    level: 0,
+    hp: 0,
+    maxhp: 0,
+    sp: 0,
+    maxsp: 0,
+    grace: 0,
+    maxgrace: 0,
+    exp: BigInt(0),
+    food: 0,
+    dam: 0,
+    speed: 0,
+    weaponSp: 0,
+    attuned: 0,
+    repelled: 0,
+    denied: 0,
+    flags: 0,
+    resists: new Array(30).fill(0),
+    resistChange: false,
+    skillLevel: new Array(50).fill(0),
+    skillExp: new Array(50).fill(BigInt(0)),
+    weightLimit: 0,
+    golemHp: 0,
+    golemMaxhp: 0,
+    range: "",
+    title: "",
+    raceStr: 0,
+    raceInt: 0,
+    raceWis: 0,
+    raceDex: 0,
+    raceCon: 0,
+    raceCha: 0,
+    racePow: 0,
+    baseStr: 0,
+    baseInt: 0,
+    baseWis: 0,
+    baseDex: 0,
+    baseCon: 0,
+    baseCha: 0,
+    basePow: 0,
+    appliedStr: 0,
+    appliedInt: 0,
+    appliedWis: 0,
+    appliedDex: 0,
+    appliedCon: 0,
+    appliedCha: 0,
+    appliedPow: 0,
   });
 
   function updateStats(newStats: Partial<Stats>) {
@@ -25,7 +68,7 @@
   }
 
   onMount(() => {
-    const unsub = gameEvents.on('statsUpdate', updateStats);
+    const unsub = gameEvents.on("statsUpdate", updateStats);
     return unsub;
   });
 
@@ -35,9 +78,9 @@
   }
 
   function barColor(percent: number): string {
-    if (percent > 50) return '#44cc44';
-    if (percent > 25) return '#ccaa00';
-    return '#cc4444';
+    if (percent > 50) return "#44cc44";
+    if (percent > 25) return "#ccaa00";
+    return "#cc4444";
   }
 
   let hpPercent = $derived(barPercent(stats.hp, stats.maxhp));
@@ -49,34 +92,50 @@
 </script>
 
 <div class="stats-panel">
-  <h3>{stats.title ? stats.title : 'Stats'}</h3>
+  <h3>{stats.title ? stats.title : "Stats"}</h3>
 
   <div class="bars">
     <div class="bar-row">
       <span class="bar-label">HP</span>
       <div class="bar-track">
-        <div class="bar-fill" style:width="{hpPercent}%" style:background={barColor(hpPercent)}></div>
+        <div
+          class="bar-fill"
+          style:width="{hpPercent}%"
+          style:background={barColor(hpPercent)}
+        ></div>
       </div>
       <span class="bar-value">{stats.hp}/{stats.maxhp}</span>
     </div>
     <div class="bar-row">
       <span class="bar-label">SP</span>
       <div class="bar-track">
-        <div class="bar-fill" style:width="{spPercent}%" style:background="#4488ff"></div>
+        <div
+          class="bar-fill"
+          style:width="{spPercent}%"
+          style:background="#4488ff"
+        ></div>
       </div>
       <span class="bar-value">{stats.sp}/{stats.maxsp}</span>
     </div>
     <div class="bar-row">
       <span class="bar-label">Grace</span>
       <div class="bar-track">
-        <div class="bar-fill" style:width="{gracePercent}%" style:background="#cc88ff"></div>
+        <div
+          class="bar-fill"
+          style:width="{gracePercent}%"
+          style:background="#cc88ff"
+        ></div>
       </div>
       <span class="bar-value">{stats.grace}/{stats.maxgrace}</span>
     </div>
     <div class="bar-row">
       <span class="bar-label">Food</span>
       <div class="bar-track">
-        <div class="bar-fill" style:width="{foodPercent}%" style:background={barColor(foodPercent)}></div>
+        <div
+          class="bar-fill"
+          style:width="{foodPercent}%"
+          style:background={barColor(foodPercent)}
+        ></div>
       </div>
       <span class="bar-value">{stats.food}</span>
     </div>
@@ -90,22 +149,16 @@
       <span class="attr-col-label">Max</span>
       <span class="attr-col-label">Applied</span>
     </div>
-    {#each [
-      { name: 'Str', total: stats.Str, base: stats.baseStr, race: stats.raceStr, applied: stats.appliedStr },
-      { name: 'Dex', total: stats.Dex, base: stats.baseDex, race: stats.raceDex, applied: stats.appliedDex },
-      { name: 'Con', total: stats.Con, base: stats.baseCon, race: stats.raceCon, applied: stats.appliedCon },
-      { name: 'Int', total: stats.Int, base: stats.baseInt, race: stats.raceInt, applied: stats.appliedInt },
-      { name: 'Wis', total: stats.Wis, base: stats.baseWis, race: stats.raceWis, applied: stats.appliedWis },
-      { name: 'Pow', total: stats.Pow, base: stats.basePow, race: stats.racePow, applied: stats.appliedPow },
-      { name: 'Cha', total: stats.Cha, base: stats.baseCha, race: stats.raceCha, applied: stats.appliedCha },
-    ] as attr}
+    {#each [{ name: "Str", total: stats.Str, base: stats.baseStr, race: stats.raceStr, applied: stats.appliedStr }, { name: "Dex", total: stats.Dex, base: stats.baseDex, race: stats.raceDex, applied: stats.appliedDex }, { name: "Con", total: stats.Con, base: stats.baseCon, race: stats.raceCon, applied: stats.appliedCon }, { name: "Int", total: stats.Int, base: stats.baseInt, race: stats.raceInt, applied: stats.appliedInt }, { name: "Wis", total: stats.Wis, base: stats.baseWis, race: stats.raceWis, applied: stats.appliedWis }, { name: "Pow", total: stats.Pow, base: stats.basePow, race: stats.racePow, applied: stats.appliedPow }, { name: "Cha", total: stats.Cha, base: stats.baseCha, race: stats.raceCha, applied: stats.appliedCha }] as attr}
       <div class="attr-row">
         <span class="attr-name">{attr.name}</span>
         <span class="attr-total">{attr.total}</span>
         {#if attr.base !== 0 || attr.race !== 0 || attr.applied !== 0}
           <span class="attr-sub">{attr.base}</span>
           <span class="attr-sub">{attr.race}</span>
-          <span class="attr-sub">{attr.applied > 0 ? '+' : ''}{attr.applied}</span>
+          <span class="attr-sub"
+            >{attr.applied > 0 ? "+" : ""}{attr.applied}</span
+          >
         {:else}
           <span class="attr-sub attr-unavail">—</span>
           <span class="attr-sub attr-unavail"></span>
@@ -275,4 +328,5 @@
     left: 0;
     background: rgba(180, 140, 40, 0.3);
     pointer-events: none;
-  }</style>
+  }
+</style>

@@ -1,5 +1,10 @@
 <script lang="ts">
-  import { getMusicMuted, getSfxMuted, setMusicMuted, setSfxMuted } from '../../lib/sound';
+  import {
+    getMusicMuted,
+    getSfxMuted,
+    setMusicMuted,
+    setSfxMuted,
+  } from "../../lib/sound";
 
   interface Props {
     fading: boolean;
@@ -26,17 +31,30 @@
 </script>
 
 <div class="menu-item">
-  <button class="menu-button" onclick={onToggle} oncontextmenu={(e) => { e.preventDefault(); onToggle(); }}>Sound</button>
+  <button
+    class="menu-button"
+    onclick={onToggle}
+    oncontextmenu={(e) => {
+      e.preventDefault();
+      onToggle();
+    }}>Sound</button
+  >
   {#if isOpen}
     <div class="dropdown" class:fading>
       <button
         onclick={toggleMusicMute}
-        oncontextmenu={(e) => { e.preventDefault(); toggleMusicMute(); }}
-      >{musicMuted ? 'Unmute Music' : 'Mute Music'}</button>
+        oncontextmenu={(e) => {
+          e.preventDefault();
+          toggleMusicMute();
+        }}>{musicMuted ? "Unmute Music" : "Mute Music"}</button
+      >
       <button
         onclick={toggleSfxMute}
-        oncontextmenu={(e) => { e.preventDefault(); toggleSfxMute(); }}
-      >{sfxMuted ? 'Unmute Sound Effects' : 'Mute Sound Effects'}</button>
+        oncontextmenu={(e) => {
+          e.preventDefault();
+          toggleSfxMute();
+        }}>{sfxMuted ? "Unmute Sound Effects" : "Mute Sound Effects"}</button
+      >
     </div>
   {/if}
 </div>

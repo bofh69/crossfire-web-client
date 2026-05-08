@@ -4,13 +4,13 @@
  */
 
 import {
-    COMMAND_MAX,
-    InputState,
-    LogLevel,
-    SC_FIRERUN,
-    SC_MOVETO,
-    SC_NORMAL,
-    type Player,
+  COMMAND_MAX,
+  InputState,
+  LogLevel,
+  SC_FIRERUN,
+  SC_MOVETO,
+  SC_NORMAL,
+  type Player,
 } from "./protocol";
 import { CrossfireSocket, SockList } from "./newsocket";
 import { useConfig } from "./init";
@@ -18,9 +18,15 @@ import { LOG } from "./misc";
 
 /** Direction strings indexed by numeric direction (0–8). */
 const directions: readonly string[] = [
-    "stay", "north", "northeast",
-    "east", "southeast", "south",
-    "southwest", "west", "northwest",
+  "stay",
+  "north",
+  "northeast",
+  "east",
+  "southeast",
+  "south",
+  "southwest",
+  "west",
+  "northwest",
 ];
 
 let csocket: CrossfireSocket | null = null;
@@ -61,11 +67,11 @@ let lastNcomSeqSent = -1;
 // ── Module wiring ────────────────────────────────────────────────────────────
 
 export function setSocket(sock: CrossfireSocket): void {
-    csocket = sock;
+  csocket = sock;
 }
 
 export function setCpl(p: Player): void {
-    cpl = p;
+  cpl = p;
 }
 
 // ── Player initialization ────────────────────────────────────────────────────
@@ -73,91 +79,96 @@ export function setCpl(p: Player): void {
 /**
  * Initialise the player object with data received from the server.
  */
-export function newPlayer(tag: number, name: string, weight: number, face: number): void {
-    if (!cpl || !cpl.ob) {
-        return;
-    }
-    cpl.ob.tag = tag;
-    cpl.ob.nrof = 1;
-    cpl.ob.dName = name;
-    cpl.ob.weight = weight / 1000;
-    cpl.ob.face = face;
+export function newPlayer(
+  tag: number,
+  name: string,
+  weight: number,
+  face: number,
+): void {
+  if (!cpl || !cpl.ob) {
+    return;
+  }
+  cpl.ob.tag = tag;
+  cpl.ob.nrof = 1;
+  cpl.ob.dName = name;
+  cpl.ob.weight = weight / 1000;
+  cpl.ob.face = face;
 
-    // Clear spell data on new player.
-    cpl.spelldata = [];
+  // Clear spell data on new player.
+  cpl.spelldata = [];
 }
 
 // ── Simple commands ──────────────────────────────────────────────────────────
 
 export function lookAt(x: number, y: number): void {
-    csocket?.sendString(`lookat ${x} ${y}`);
+  csocket?.sendString(`lookat ${x} ${y}`);
 }
 
 export function clientSendApply(tag: number): void {
-    csocket?.sendString(`apply ${tag}`);
+  csocket?.sendString(`apply ${tag}`);
 }
 
 export function clientSendExamine(tag: number): void {
-    csocket?.sendString(`examine ${tag}`);
+  csocket?.sendString(`examine ${tag}`);
 }
 
 export function clientSendMove(loc: number, tag: number, nrof: number): void {
-    csocket?.sendString(`move ${loc} ${tag} ${nrof}`);
+  csocket?.sendString(`move ${loc} ${tag} ${nrof}`);
 }
 
 // ── Fire / Run ───────────────────────────────────────────────────────────────
 
 export function fireDir(dir: number): void {
-    if (cpl && cpl.inputState !== InputState.Playing) {
-        return;
+  if (cpl && cpl.inputState !== InputState.Playing) {
+    return;
+  }
+  if (dir !== dfire) {
+    if (sendCommand(`fire ${dir}`, cpl ? cpl.count : 0, SC_NORMAL)) {
+      dfire = dir;
+      if (cpl) {
+        cpl.count = 0;
+      }
     }
-    if (dir !== dfire) {
-        if (sendCommand(`fire ${dir}`, cpl ? cpl.count : 0, SC_NORMAL)) {
-            dfire = dir;
-            if (cpl) {
-                cpl.count = 0;
-            }
-        }
-    } else {
-        dfire &= 0xff;
-    }
+  } else {
+    dfire &= 0xff;
+  }
 }
 
 export function stopFire(): void {
-    if (cpl && cpl.inputState !== InputState.Playing) {
-        return;
-    }
-    dfire |= 0x100;
+  if (cpl && cpl.inputState !== InputState.Playing) {
+    return;
+  }
+  dfire |= 0x100;
 }
 
 /** Actually send fire_stop if we were firing. */
 export function clearFire(): void {
-    if (dfire !== -1) {
-        sendCommand("fire_stop", -1, SC_FIRERUN);
-        dfire = -1;
-    }
+  if (dfire !== -1) {
+    sendCommand("fire_stop", -1, SC_FIRERUN);
+    dfire = -1;
+  }
 }
 
 export function runDir(dir: number): void {
-    if (dir !== drun) {
-        if (sendCommand(`run ${dir}`, -1, SC_NORMAL)) {
-            drun = dir;
-        }
-    } else {
-        drun &= 0xff;
+  if (dir !== drun) {
+    if (sendCommand(`run ${dir}`, -1, SC_NORMAL)) {
+      drun = dir;
     }
+  } else {
+    drun &= 0xff;
+  }
 }
 
 export function stopRun(): void {
-    sendCommand("run_stop", -1, SC_FIRERUN);
-    drun |= 0x100;
+  sendCommand("run_stop", -1, SC_FIRERUN);
+  drun |= 0x100;
 }
 
 export function clearRun(): void {
-    if (drun !== -1) {
-        sendCommand("run_stop", -1, SC_FIRERUN);
-        drun = -1;
-    }
+  if (drun !== -1) {
+    sendCommand("run_stop", -1, SC_FIRERUN);
+    drun = -1;
+  }
 }
 
 // ── Direction helpers ────────────────────────────────────────────────────────
@@ -166,17 +177,17 @@ export function clearRun(): void {
  * Convert a direction number (0–8) to its command string.
  */
 export function dirToCommand(dir: number): string {
-    if (dir >= 0 && dir < directions.length) {
-        return directions[dir]!;
-    }
-    return "stay";
+  if (dir >= 0 && dir < directions.length) {
+    return directions[dir]!;
+  }
+  return "stay";
 }
 
 /**
  * Send a directional walk command for the given direction.
  */
 export function walkDir(dir: number): void {
-    sendCommand(dirToCommand(dir), -1, SC_MOVETO);
+  sendCommand(dirToCommand(dir), -1, SC_MOVETO);
 }
 
 // ── Core command sending ─────────────────────────────────────────────────────
@@ -185,47 +196,54 @@ export function walkDir(dir: number): void {
  * Send a command to the server using the ncom protocol.
  * Returns 1 if the command was sent, 0 otherwise.
  */
-export function sendCommand(command: string, repeat: number, mustSend: number): number {
-    if (!csocket) {
-        return 0;
+export function sendCommand(
+  command: string,
+  repeat: number,
+  mustSend: number,
+): number {
+  if (!csocket) {
+    return 0;
+  }
+
+  if (cpl && cpl.inputState === InputState.ReplyOne) {
+    LOG(
+      LogLevel.Error,
+      "player::sendCommand",
+      `Won't send command '${command}' — in reply mode`,
+    );
+    if (cpl) {
+      cpl.count = 0;
     }
+    return 0;
+  }
 
-    if (cpl && cpl.inputState === InputState.ReplyOne) {
-        LOG(LogLevel.Error, "player::sendCommand",
-            `Won't send command '${command}' — in reply mode`);
-        if (cpl) {
-            cpl.count = 0;
-        }
-        return 0;
-    }
+  const commdiff = (csocket.commandSent - csocket.commandReceived + 256) % 256;
 
-    const commdiff = ((csocket.commandSent - csocket.commandReceived) + 256) % 256;
-
-    // Drop duplicate commands when the command window is full.
-    if (commdiff > useConfig.cWindow && !mustSend && command === lastCommand) {
-        if (repeat !== -1 && cpl) {
-            cpl.count = 0;
-        }
-        return 0;
-    }
-
-    // Track last command for keybinding and dedup purposes.
-    lastCommand = command;
-
-    csocket.commandSent = (csocket.commandSent + 1) % COMMAND_MAX;
-    lastNcomSeqSent = csocket.commandSent;
-
-    const sl = new SockList();
-    sl.addString("ncom ");
-    sl.addShort(csocket.commandSent);
-    sl.addInt(repeat);
-    sl.addString(command);
-    csocket.send(sl);
-
+  // Drop duplicate commands when the command window is full.
+  if (commdiff > useConfig.cWindow && !mustSend && command === lastCommand) {
     if (repeat !== -1 && cpl) {
-        cpl.count = 0;
+      cpl.count = 0;
     }
-    return 1;
+    return 0;
+  }
+
+  // Track last command for keybinding and dedup purposes.
+  lastCommand = command;
+
+  csocket.commandSent = (csocket.commandSent + 1) % COMMAND_MAX;
+  lastNcomSeqSent = csocket.commandSent;
+
+  const sl = new SockList();
+  sl.addString("ncom ");
+  sl.addShort(csocket.commandSent);
+  sl.addInt(repeat);
+  sl.addString(command);
+  csocket.send(sl);
+
+  if (repeat !== -1 && cpl) {
+    cpl.count = 0;
+  }
+  return 1;
 }
 
 // ── Reply ────────────────────────────────────────────────────────────────────
@@ -234,12 +252,12 @@ export function sendCommand(command: string, repeat: number, mustSend: number): 
  * Send a text reply to a server query.
  */
 export function sendReply(text: string): void {
-    csocket?.sendString(`reply ${text}`);
+  csocket?.sendString(`reply ${text}`);
 }
 
 /** Return the last command string sent via sendCommand (for keybinding use). */
 export function getLastCommand(): string {
-    return lastCommand;
+  return lastCommand;
 }
 
 /**
@@ -247,12 +265,12 @@ export function getLastCommand(): string {
  * Used by local `bind`/`gamepad_bind` commands to prime the bind dialogs.
  */
 export function setLastCommand(cmd: string): void {
-    lastCommand = cmd;
+  lastCommand = cmd;
 }
 
 /** Return the sequence number of the most recently sent ncom packet. */
 export function getLastNcomSeqSent(): number {
-    return lastNcomSeqSent;
+  return lastNcomSeqSent;
 }
 
 /**
@@ -261,12 +279,12 @@ export function getLastNcomSeqSent(): number {
  * any later one (accounting for 256-wrap), or if seq is -1 (no-op).
  */
 export function isNcomAcked(seq: number): boolean {
-    if (seq === -1 || lastNcomAcked === -1) return seq === -1;
-    // Modular distance: how many packets ahead is lastNcomAcked?
-    // If it's 0..127 ahead, the seq has been acked.  If 128..255
-    // ahead, lastNcomAcked is actually behind seq.
-    const diff = ((lastNcomAcked - seq) + 256) % 256;
-    return diff <= 127;
+  if (seq === -1 || lastNcomAcked === -1) return seq === -1;
+  // Modular distance: how many packets ahead is lastNcomAcked?
+  // If it's 0..127 ahead, the seq has been acked.  If 128..255
+  // ahead, lastNcomAcked is actually behind seq.
+  const diff = (lastNcomAcked - seq + 256) % 256;
+  return diff <= 127;
 }
 
 // ── Key-repeat throttle (comc-ack based) ────────────────────────────────────
@@ -276,7 +294,7 @@ export function isNcomAcked(seq: number): boolean {
  * Called by the `comc` command handler with the packet number from the server.
  */
 export function notifyNcomAck(seq: number): void {
-    lastNcomAcked = seq;
+  lastNcomAcked = seq;
 }
 
 /**
@@ -289,18 +307,18 @@ export function notifyNcomAck(seq: number): void {
  * Returns false (drop) when the same command is still in-flight (no comc yet).
  */
 export function checkRepeatThrottle(cmd: string): boolean {
-    if (cmd !== repeatPendingCmd) {
-        // Different command: allow and start tracking the new one.
-        repeatPendingCmd = cmd;
-        repeatPendingSeq = -1;
-        return true;
-    }
-    // Same command: allow only if no ack is expected (first repeat) or the
-    // previous ncom has already been acknowledged.
-    if (repeatPendingSeq === -1 || lastNcomAcked === repeatPendingSeq) {
-        return true;
-    }
-    return false; // still waiting for comc ack
+  if (cmd !== repeatPendingCmd) {
+    // Different command: allow and start tracking the new one.
+    repeatPendingCmd = cmd;
+    repeatPendingSeq = -1;
+    return true;
+  }
+  // Same command: allow only if no ack is expected (first repeat) or the
+  // previous ncom has already been acknowledged.
+  if (repeatPendingSeq === -1 || lastNcomAcked === repeatPendingSeq) {
+    return true;
+  }
+  return false; // still waiting for comc ack
 }
 
 /**
@@ -309,7 +327,7 @@ export function checkRepeatThrottle(cmd: string): boolean {
  * know which comc ack to wait for.
  */
 export function recordRepeatSend(): void {
-    repeatPendingSeq = lastNcomSeqSent;
+  repeatPendingSeq = lastNcomSeqSent;
 }
 
 /**
@@ -318,6 +336,6 @@ export function recordRepeatSend(): void {
  * without waiting for the comc ack.
  */
 export function resetRepeatThrottle(): void {
-    repeatPendingCmd = "";
-    repeatPendingSeq = -1;
+  repeatPendingCmd = "";
+  repeatPendingSeq = -1;
 }

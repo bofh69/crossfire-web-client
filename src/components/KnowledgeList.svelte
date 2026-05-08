@@ -1,16 +1,20 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
-  import { knowledgeItems, knowledgeTypeInfos } from '../lib/commands';
-  import type { KnowledgeItem } from '../lib/commands';
-  import { gameEvents } from '../lib/events';
-  import { getFaceUrl } from '../lib/image';
-  import { sendCommand } from '../lib/player';
-  import { NDI_NAVY } from '../lib/protocol';
-  import ContextMenu from './ContextMenu.svelte';
-  import { capitalizeFirstLetter } from '../lib/misc';
+  import { onMount } from "svelte";
+  import { knowledgeItems, knowledgeTypeInfos } from "../lib/commands";
+  import type { KnowledgeItem } from "../lib/commands";
+  import { gameEvents } from "../lib/events";
+  import { getFaceUrl } from "../lib/image";
+  import { sendCommand } from "../lib/player";
+  import { NDI_NAVY } from "../lib/protocol";
+  import ContextMenu from "./ContextMenu.svelte";
+  import { capitalizeFirstLetter } from "../lib/misc";
 
   let items: KnowledgeItem[] = $state([]);
-  let contextMenu = $state<{ x: number; y: number; item: KnowledgeItem } | null>(null);
+  let contextMenu = $state<{
+    x: number;
+    y: number;
+    item: KnowledgeItem;
+  } | null>(null);
 
   function updateKnowledge() {
     items = [...knowledgeItems.values()].sort((a, b) => {
@@ -29,7 +33,7 @@
   }
 
   function showInfo(item: KnowledgeItem) {
-    gameEvents.emit('drawInfo', NDI_NAVY, item.title);
+    gameEvents.emit("drawInfo", NDI_NAVY, item.title);
     sendCommand(`knowledge show ${item.code}`, 0, 1);
   }
 
@@ -48,7 +52,7 @@
 
   onMount(() => {
     updateKnowledge();
-    const unsub = gameEvents.on('knowledgeUpdate', updateKnowledge);
+    const unsub = gameEvents.on("knowledgeUpdate", updateKnowledge);
     return unsub;
   });
 </script>
@@ -77,10 +81,16 @@
             >
               <td class="col-face">
                 {#if getFaceUrl(item.face)}
-                  <img src={getFaceUrl(item.face)} alt="" class="knowledge-icon" />
+                  <img
+                    src={getFaceUrl(item.face)}
+                    alt=""
+                    class="knowledge-icon"
+                  />
                 {/if}
               </td>
-              <td class="knowledge-title">{capitalizeFirstLetter(item.title)}</td>
+              <td class="knowledge-title"
+                >{capitalizeFirstLetter(item.title)}</td
+              >
               <td class="knowledge-type">{typeLabel(item.type)}</td>
             </tr>
           {/each}
@@ -94,14 +104,28 @@
   {@const item = contextMenu.item}
   <ContextMenu x={contextMenu.x} y={contextMenu.y} onClose={closeContextMenu}>
     <button
-      onclick={() => { showInfo(item); closeContextMenu(); }}
-      oncontextmenu={(e) => { e.preventDefault(); showInfo(item); closeContextMenu(); }}
-    >Info</button>
+      onclick={() => {
+        showInfo(item);
+        closeContextMenu();
+      }}
+      oncontextmenu={(e) => {
+        e.preventDefault();
+        showInfo(item);
+        closeContextMenu();
+      }}>Info</button
+    >
     {#if canAttempt(item.type)}
       <button
-        onclick={() => { attemptKnowledge(item); closeContextMenu(); }}
-        oncontextmenu={(e) => { e.preventDefault(); attemptKnowledge(item); closeContextMenu(); }}
-      >Attempt</button>
+        onclick={() => {
+          attemptKnowledge(item);
+          closeContextMenu();
+        }}
+        oncontextmenu={(e) => {
+          e.preventDefault();
+          attemptKnowledge(item);
+          closeContextMenu();
+        }}>Attempt</button
+      >
     {/if}
   </ContextMenu>
 {/if}

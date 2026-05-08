@@ -1,13 +1,18 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
-  import { skillNames, playerStats, expBarPercent, skillDescriptions } from '../lib/commands';
-  import type { Stats } from '../lib/protocol';
-  import { extendedCommand } from '../lib/p_cmd';
-  import { gameEvents } from '../lib/events';
-  import { setHotbarSlot } from '../lib/hotbar';
-  import HotbarSlotPicker from './HotbarSlotPicker.svelte';
-  import ContextMenu from './ContextMenu.svelte';
-  import { capitalizeFirstLetter } from '../lib/misc';
+  import { onMount } from "svelte";
+  import {
+    skillNames,
+    playerStats,
+    expBarPercent,
+    skillDescriptions,
+  } from "../lib/commands";
+  import type { Stats } from "../lib/protocol";
+  import { extendedCommand } from "../lib/p_cmd";
+  import { gameEvents } from "../lib/events";
+  import { setHotbarSlot } from "../lib/hotbar";
+  import HotbarSlotPicker from "./HotbarSlotPicker.svelte";
+  import ContextMenu from "./ContextMenu.svelte";
+  import { capitalizeFirstLetter } from "../lib/misc";
 
   interface SkillEntry {
     index: number;
@@ -18,7 +23,9 @@
   }
 
   let skills: SkillEntry[] = $state([]);
-  let contextMenu = $state<{ x: number; y: number; skill: SkillEntry } | null>(null);
+  let contextMenu = $state<{ x: number; y: number; skill: SkillEntry } | null>(
+    null,
+  );
   let showSlotPicker = $state(false);
 
   function updateSkills(stats: Stats) {
@@ -30,7 +37,7 @@
           name: skillNames[i] || `skill_${i}`,
           level: stats.skillLevel[i]!,
           exp: stats.skillExp[i]!,
-          description: skillDescriptions[i] || '',
+          description: skillDescriptions[i] || "",
         });
       }
     }
@@ -42,7 +49,7 @@
   // set up in App.svelte, so we must load on mount to catch the pre-login data.
   onMount(() => {
     updateSkills(playerStats);
-    const unsub = gameEvents.on('statsUpdate', () => updateSkills(playerStats));
+    const unsub = gameEvents.on("statsUpdate", () => updateSkills(playerStats));
     return unsub;
   });
 
@@ -106,7 +113,10 @@
               <td class="skill-name">{capitalizeFirstLetter(skill.name)}</td>
               <td>{skill.level}</td>
               <td class="exp-cell">
-                <div class="exp-bar" style:width="{expBarPercent(skill.exp, skill.level)}%"></div>
+                <div
+                  class="exp-bar"
+                  style:width="{expBarPercent(skill.exp, skill.level)}%"
+                ></div>
                 <span class="exp-text">{skill.exp.toString()}</span>
               </td>
             </tr>
@@ -219,4 +229,3 @@
     z-index: 1;
   }
 </style>
-

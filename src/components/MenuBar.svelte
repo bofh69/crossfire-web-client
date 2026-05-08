@@ -1,12 +1,12 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
-  import PickupMenu from './PickupMenu.svelte';
-  import ConnectionMenu from './menus/ConnectionMenu.svelte';
-  import ConfigMenu from './menus/ConfigMenu.svelte';
-  import InfoMenu from './menus/InfoMenu.svelte';
-  import KeyboardMenu from './menus/KeyboardMenu.svelte';
-  import GamepadMenu from './menus/GamepadMenu.svelte';
-  import { gameEvents } from '../lib/events';
+  import { onMount } from "svelte";
+  import PickupMenu from "./PickupMenu.svelte";
+  import ConnectionMenu from "./menus/ConnectionMenu.svelte";
+  import ConfigMenu from "./menus/ConfigMenu.svelte";
+  import InfoMenu from "./menus/InfoMenu.svelte";
+  import KeyboardMenu from "./menus/KeyboardMenu.svelte";
+  import GamepadMenu from "./menus/GamepadMenu.svelte";
+  import { gameEvents } from "../lib/events";
 
   interface Props {
     onDisconnect: () => void;
@@ -29,16 +29,18 @@
   let currentPickupMode = $state(0x80000000 >>> 0); // PU_NEWMODE
 
   /** The currently readied range item (spell, skill, bow, etc.). */
-  let currentRange = $state('');
+  let currentRange = $state("");
 
   onMount(() => {
     const cleanups = [
-      gameEvents.on('pickupUpdate', setPickupMode),
-      gameEvents.on('statsUpdate', (stats) => {
+      gameEvents.on("pickupUpdate", setPickupMode),
+      gameEvents.on("statsUpdate", (stats) => {
         if (stats.range !== undefined) currentRange = stats.range;
       }),
     ];
-    return () => { for (const unsub of cleanups) unsub(); };
+    return () => {
+      for (const unsub of cleanups) unsub();
+    };
   });
 
   function setPickupMode(mode: number) {
@@ -82,9 +84,11 @@
 
   /** Returns true while any key-capture, confirm, or about dialog is showing. */
   export function isDialogActive(): boolean {
-    return (keyboardMenu?.isDialogActive() ?? false)
-      || (gamepadMenu?.isDialogActive() ?? false)
-      || (infoMenu?.isDialogActive() ?? false);
+    return (
+      (keyboardMenu?.isDialogActive() ?? false) ||
+      (gamepadMenu?.isDialogActive() ?? false) ||
+      (infoMenu?.isDialogActive() ?? false)
+    );
   }
 </script>
 
@@ -92,24 +96,69 @@
 
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <!-- svelte-ignore a11y_no_static_element_interactions -->
-<div class="menu-bar" onclick={(e: MouseEvent) => e.stopPropagation()} onmouseenter={handleMenuBarMouseEnter} onmouseleave={handleMenuBarMouseLeave}>
-  <ConnectionMenu fading={menuFading} isOpen={activeMenu === 'file'} onToggle={() => toggleMenu('file')} onClose={closeMenu} {onDisconnect} />
+<div
+  class="menu-bar"
+  onclick={(e: MouseEvent) => e.stopPropagation()}
+  onmouseenter={handleMenuBarMouseEnter}
+  onmouseleave={handleMenuBarMouseLeave}
+>
+  <ConnectionMenu
+    fading={menuFading}
+    isOpen={activeMenu === "file"}
+    onToggle={() => toggleMenu("file")}
+    onClose={closeMenu}
+    {onDisconnect}
+  />
 
   <div class="menu-item">
-    <button class="menu-button" onclick={() => toggleMenu('pickup')} oncontextmenu={(e) => { e.preventDefault(); toggleMenu('pickup'); }}>Pickup</button>
-    {#if activeMenu === 'pickup'}
+    <button
+      class="menu-button"
+      onclick={() => toggleMenu("pickup")}
+      oncontextmenu={(e) => {
+        e.preventDefault();
+        toggleMenu("pickup");
+      }}>Pickup</button
+    >
+    {#if activeMenu === "pickup"}
       <!-- svelte-ignore a11y_click_events_have_key_events -->
       <!-- svelte-ignore a11y_no_static_element_interactions -->
-      <div class="dropdown" class:fading={menuFading} onclick={(e: MouseEvent) => e.stopPropagation()}>
+      <div
+        class="dropdown"
+        class:fading={menuFading}
+        onclick={(e: MouseEvent) => e.stopPropagation()}
+      >
         <PickupMenu bind:this={pickupMenu} initialMode={currentPickupMode} />
       </div>
     {/if}
   </div>
 
-  <KeyboardMenu bind:this={keyboardMenu} fading={menuFading} isOpen={activeMenu === 'keyboard'} onToggle={() => toggleMenu('keyboard')} onClose={closeMenu} />
-  <GamepadMenu bind:this={gamepadMenu} fading={menuFading} isOpen={activeMenu === 'gamepad'} onToggle={() => toggleMenu('gamepad')} onClose={closeMenu} />
-  <ConfigMenu fading={menuFading} isOpen={activeMenu === 'config'} onToggle={() => toggleMenu('config')} onClose={closeMenu} />
-  <InfoMenu bind:this={infoMenu} fading={menuFading} isOpen={activeMenu === 'help'} onToggle={() => toggleMenu('help')} onClose={closeMenu} />
+  <KeyboardMenu
+    bind:this={keyboardMenu}
+    fading={menuFading}
+    isOpen={activeMenu === "keyboard"}
+    onToggle={() => toggleMenu("keyboard")}
+    onClose={closeMenu}
+  />
+  <GamepadMenu
+    bind:this={gamepadMenu}
+    fading={menuFading}
+    isOpen={activeMenu === "gamepad"}
+    onToggle={() => toggleMenu("gamepad")}
+    onClose={closeMenu}
+  />
+  <ConfigMenu
+    fading={menuFading}
+    isOpen={activeMenu === "config"}
+    onToggle={() => toggleMenu("config")}
+    onClose={closeMenu}
+  />
+  <InfoMenu
+    bind:this={infoMenu}
+    fading={menuFading}
+    isOpen={activeMenu === "help"}
+    onToggle={() => toggleMenu("help")}
+    onClose={closeMenu}
+  />
 
   <div class="spacer"></div>
   {#if currentRange}
@@ -150,4 +199,3 @@
     padding-right: 0.5rem;
   }
 </style>
-

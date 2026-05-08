@@ -1,11 +1,14 @@
 <script module lang="ts">
-  import type { InfoLine } from '../lib/markup';
+  import type { InfoLine } from "../lib/markup";
 
   /** Cached server info sections (motd, news, rules) that survive component
    *  unmount/remount.  When the player returns to the login screen after a
    *  bed-to-reality logout the server won't resend these, so we keep the last
    *  known values here and restore them on the next mount. */
-  interface InfoSection { type: string; lines: InfoLine[]; }
+  interface InfoSection {
+    type: string;
+    lines: InfoLine[];
+  }
   let _cachedInfoSections: InfoSection[] = [];
 
   /** Cached login method confirmed by the server.  Like _cachedInfoSections,
@@ -17,15 +20,36 @@
 </script>
 
 <script lang="ts">
-  import { onMount } from 'svelte';
-  import { clientConnect, clientNegotiate, sendAddMe, sendAccountLogin, sendAccountNew, sendAccountPlay,
-           sendAccountAddPlayer, sendRequestInfo, sendCreatePlayer, setAccountPassword, getAccountPassword } from '../lib/client';
-  import { gameEvents } from '../lib/events';
-  import { sendReply } from '../lib/player';
-  import { CS_QUERY_HIDEINPUT, CS_QUERY_SINGLECHAR, CS_QUERY_YESNO, EPORT } from '../lib/protocol';
-  import { parseMarkupLines } from '../lib/markup';
-  import { wantConfig } from '../lib/init';
-  import type { AccountPlayer, RaceClassEntry, NewCharInfo, StartingMapEntry } from '../lib/events';
+  import { onMount } from "svelte";
+  import {
+    clientConnect,
+    clientNegotiate,
+    sendAddMe,
+    sendAccountLogin,
+    sendAccountNew,
+    sendAccountPlay,
+    sendAccountAddPlayer,
+    sendRequestInfo,
+    sendCreatePlayer,
+    setAccountPassword,
+    getAccountPassword,
+  } from "../lib/client";
+  import { gameEvents } from "../lib/events";
+  import { sendReply } from "../lib/player";
+  import {
+    CS_QUERY_HIDEINPUT,
+    CS_QUERY_SINGLECHAR,
+    CS_QUERY_YESNO,
+    EPORT,
+  } from "../lib/protocol";
+  import { parseMarkupLines } from "../lib/markup";
+  import { wantConfig } from "../lib/init";
+  import type {
+    AccountPlayer,
+    RaceClassEntry,
+    NewCharInfo,
+    StartingMapEntry,
+  } from "../lib/events";
 
   interface Props {
     onLoggedIn: () => void;
@@ -41,18 +65,20 @@
    *  schemes; other values are ignored.  The `web+crossfire:` prefix is stripped
    *  so the rest of the code always sees a plain `ws://` / `wss://` address. */
   const urlParamServer = (() => {
-    const raw = new URLSearchParams(window.location.search).get('server') ?? '';
-    const HANDLER_PREFIX = 'web+crossfire:';
-    const addr = raw.startsWith(HANDLER_PREFIX) ? raw.slice(HANDLER_PREFIX.length) : raw;
-    return (addr.startsWith('ws://') || addr.startsWith('wss://')) ? addr : '';
+    const raw = new URLSearchParams(window.location.search).get("server") ?? "";
+    const HANDLER_PREFIX = "web+crossfire:";
+    const addr = raw.startsWith(HANDLER_PREFIX)
+      ? raw.slice(HANDLER_PREFIX.length)
+      : raw;
+    return addr.startsWith("ws://") || addr.startsWith("wss://") ? addr : "";
   })();
 
   /** Login method override from the `?loginmethod=` URL parameter (0, 1, or 2). */
   const urlParamLoginMethod = (() => {
-    const raw = new URLSearchParams(window.location.search).get('loginmethod');
+    const raw = new URLSearchParams(window.location.search).get("loginmethod");
     if (raw === null) return null;
     const v = parseInt(raw, 10);
-    return (!isNaN(v) && v >= 0 && v <= 2) ? v : null;
+    return !isNaN(v) && v >= 0 && v <= 2 ? v : null;
   })();
 
   /** True when the page was loaded on a standard HTTP/HTTPS port (80 or 443).
@@ -60,21 +86,21 @@
    *  field is hidden. */
   const standardPort = (() => {
     const port = window.location.port;
-    return port === '' || port === '80' || port === '443';
+    return port === "" || port === "80" || port === "443";
   })();
 
   /** True when the address input should be hidden (standard port or URL param). */
-  const hideAddressInput = standardPort || urlParamServer !== '';
+  const hideAddressInput = standardPort || urlParamServer !== "";
 
   function defaultServerAddress(): string {
     if (urlParamServer) {
       return urlParamServer;
     }
     if (standardPort) {
-      const scheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
+      const scheme = window.location.protocol === "https:" ? "wss" : "ws";
       return `${scheme}://${window.location.host}/ws`;
     }
-    return 'ws://' + window.location.hostname + ':' + EPORT;
+    return "ws://" + window.location.hostname + ":" + EPORT;
   }
 
   let serverAddress = $state(defaultServerAddress());
@@ -97,14 +123,14 @@
       setTimeout(() => handleConnect(), 0);
     }
   });
-  let errorMessage = $state('');
-  let queryPrompt = $state('');
-  let lastQueryPrompt = '';
+  let errorMessage = $state("");
+  let queryPrompt = $state("");
+  let lastQueryPrompt = "";
   let queryHidden = $state(false);
   let querySingleChar = $state(false);
   let queryYesNo = $state(false);
-  let queryInput = $state('');
-  let statusMessage = $state('');
+  let queryInput = $state("");
+  let statusMessage = $state("");
 
   /** Sections received from replyinfo (motd, news, rules).
    *  Initialised from the module-level cache so they survive logout/remount. */
@@ -131,31 +157,33 @@
   /** True when the character selection panel is visible. */
   let characterSelectVisible = $state(initChars !== null);
   /** Account name input. */
-  let accountName = $state('');
+  let accountName = $state("");
   /** Account password input (login form). */
-  let accountPassword = $state('');
+  let accountPassword = $state("");
   /** Confirm-password field for new-account creation. */
-  let accountPasswordConfirm = $state('');
+  let accountPasswordConfirm = $state("");
 
   // ── Add-existing-character state (loginmethod >= 1) ────────────────────────
 
   /** True when the "add existing character" form is visible. */
   let addExistingVisible = $state(false);
   /** Character name input for add-existing flow. */
-  let addExistingName = $state('');
+  let addExistingName = $state("");
   /** Character password input for add-existing flow. */
-  let addExistingPassword = $state('');
+  let addExistingPassword = $state("");
   /** True when the server failure response said force=1 is allowed. */
   let addExistingCanForce = $state(false);
   /** The error text from the server when force is possible. */
-  let addExistingForceMessage = $state('');
+  let addExistingForceMessage = $state("");
 
   // ── Character-creation state (loginmethod >= 2) ────────────────────────────
 
   /** Login method confirmed by the server (0 = legacy, 1 or 2 = account).
    *  Restored from the module-level cache when returning from gameplay so that
    *  the character-creation form renders correctly without a new handshake. */
-  let confirmedLoginMethod = $state(initChars !== null ? _cachedLoginMethod : 0);
+  let confirmedLoginMethod = $state(
+    initChars !== null ? _cachedLoginMethod : 0,
+  );
 
   /** True when the character-creation form is visible. */
   let createCharVisible = $state(false);
@@ -181,7 +209,7 @@
   let newCharStatNames = $state<string[]>([]);
 
   /** Character-creation form: name input. */
-  let newCharName = $state('');
+  let newCharName = $state("");
   /** Selected race index in availableRaces. */
   let selectedRaceIdx = $state(0);
   /** Selected class index in availableClasses. */
@@ -200,19 +228,21 @@
   );
   const ccRemaining = $derived(newCharStatPoints - ccSpent);
   const ccHasNegStat = $derived(
-    newCharStatNames.some(sn => {
+    newCharStatNames.some((sn) => {
       const rb = availableRaces[selectedRaceIdx]?.statAdj[sn] ?? 0;
       const cb = availableClasses[selectedClassIdx]?.statAdj[sn] ?? 0;
       return rb + cb + (statAlloc[sn] ?? newCharStatMin) < newCharStatMin;
     }),
   );
   const ccCanCreate = $derived(
-    newCharName.trim().length > 0
-    && ccRemaining >= 0
-    && !ccHasNegStat
-    // Allow creation when: loginmethod 1 (no stats needed), or loginmethod 2
-    // data has arrived (statPoints set), or server didn't send any races.
-    && (confirmedLoginMethod < 2 || newCharStatPoints > 0 || availableRaces.length === 0),
+    newCharName.trim().length > 0 &&
+      ccRemaining >= 0 &&
+      !ccHasNegStat &&
+      // Allow creation when: loginmethod 1 (no stats needed), or loginmethod 2
+      // data has arrived (statPoints set), or server didn't send any races.
+      (confirmedLoginMethod < 2 ||
+        newCharStatPoints > 0 ||
+        availableRaces.length === 0),
   );
 
   // Focus the query input whenever it (re-)appears in the DOM.
@@ -224,25 +254,29 @@
 
   function infoTypeLabel(type: string): string {
     switch (type) {
-      case 'motd': return 'Message of the Day';
-      case 'news': return 'News';
-      case 'rules': return 'Rules';
-      default: return type;
+      case "motd":
+        return "Message of the Day";
+      case "news":
+        return "News";
+      case "rules":
+        return "Rules";
+      default:
+        return type;
     }
   }
 
   function checkLoginComplete() {
     if (addMeSuccessReceived && !queryPrompt) {
-      statusMessage = 'Login successful!';
+      statusMessage = "Login successful!";
       onLoggedIn();
     }
   }
 
   async function handleConnect() {
-    errorMessage = '';
+    errorMessage = "";
     serverInfoSections = [];
     connecting = true;
-    statusMessage = 'Connecting...';
+    statusMessage = "Connecting...";
 
     // Apply URL-param login method override before negotiating.
     if (urlParamLoginMethod !== null) {
@@ -252,18 +286,18 @@
     try {
       await clientConnect(serverAddress);
       connected = true;
-      statusMessage = 'Connected. Negotiating...';
+      statusMessage = "Connected. Negotiating...";
       clientNegotiate();
     } catch (e) {
       errorMessage = `Connection failed: ${e instanceof Error ? e.message : String(e)}`;
       connecting = false;
-      statusMessage = '';
+      statusMessage = "";
     }
   }
 
   function clearQuery() {
-    queryInput = '';
-    queryPrompt = '';
+    queryInput = "";
+    queryPrompt = "";
     querySingleChar = false;
     queryYesNo = false;
   }
@@ -282,7 +316,13 @@
   }
 
   function handleQueryKeydown(e: KeyboardEvent) {
-    if (querySingleChar && e.key.length === 1 && !e.ctrlKey && !e.altKey && !e.metaKey) {
+    if (
+      querySingleChar &&
+      e.key.length === 1 &&
+      !e.ctrlKey &&
+      !e.altKey &&
+      !e.metaKey
+    ) {
       // For single-character queries, send the reply immediately on keypress
       // without requiring Enter. The typed character becomes the reply.
       sendQueryReply(e.key);
@@ -293,7 +333,7 @@
   function handleYesNoKeydown(e: KeyboardEvent) {
     if (!queryYesNo) return;
     const key = e.key.toLowerCase();
-    if ((key === 'y' || key === 'n') && !e.ctrlKey && !e.altKey && !e.metaKey) {
+    if ((key === "y" || key === "n") && !e.ctrlKey && !e.altKey && !e.metaKey) {
       sendQueryReply(key);
       e.preventDefault();
     }
@@ -302,35 +342,35 @@
   // ── Account login handlers ─────────────────────────────────────────────────
 
   function handleAccountLogin() {
-    errorMessage = '';
+    errorMessage = "";
     if (!accountName.trim() || !accountPassword) {
-      errorMessage = 'Please enter both an account name and password.';
+      errorMessage = "Please enter both an account name and password.";
       return;
     }
     // Cache the password so it can be included in a future createplayer packet.
     setAccountPassword(accountPassword);
     sendAccountLogin(accountName.trim(), accountPassword);
-    statusMessage = 'Logging in…';
+    statusMessage = "Logging in…";
   }
 
   function handleAccountNew() {
-    errorMessage = '';
+    errorMessage = "";
     if (!accountName.trim() || !accountPassword) {
-      errorMessage = 'Please fill in all fields.';
+      errorMessage = "Please fill in all fields.";
       return;
     }
     if (accountPassword !== accountPasswordConfirm) {
-      errorMessage = 'Passwords do not match.';
+      errorMessage = "Passwords do not match.";
       return;
     }
     setAccountPassword(accountPassword);
     sendAccountNew(accountName.trim(), accountPassword);
-    statusMessage = 'Creating account…';
+    statusMessage = "Creating account…";
   }
 
   function handlePlayCharacter(name: string) {
     sendAccountPlay(name);
-    statusMessage = 'Starting game…';
+    statusMessage = "Starting game…";
   }
 
   // ── Add-existing-character helpers ─────────────────────────────────────────
@@ -339,62 +379,60 @@
   function handleShowAddExisting() {
     addExistingVisible = true;
     characterSelectVisible = false;
-    addExistingName = '';
-    addExistingPassword = '';
+    addExistingName = "";
+    addExistingPassword = "";
     addExistingCanForce = false;
-    addExistingForceMessage = '';
-    errorMessage = '';
-    statusMessage = '';
+    addExistingForceMessage = "";
+    errorMessage = "";
+    statusMessage = "";
   }
 
   /** Return from the add-existing form to the character-select panel. */
   function handleCancelAddExisting() {
     addExistingVisible = false;
     characterSelectVisible = true;
-    addExistingName = '';
-    addExistingPassword = '';
+    addExistingName = "";
+    addExistingPassword = "";
     addExistingCanForce = false;
-    addExistingForceMessage = '';
-    errorMessage = '';
-    statusMessage = '';
+    addExistingForceMessage = "";
+    errorMessage = "";
+    statusMessage = "";
   }
 
   /** Submit the add-existing request (normal, force=0). */
   function handleAddExisting() {
-    errorMessage = '';
+    errorMessage = "";
     const name = addExistingName.trim();
     if (!name || !addExistingPassword) {
-      errorMessage = 'Please enter both a character name and password.';
+      errorMessage = "Please enter both a character name and password.";
       return;
     }
     addExistingCanForce = false;
-    addExistingForceMessage = '';
+    addExistingForceMessage = "";
     sendAccountAddPlayer(0, name, addExistingPassword);
-    statusMessage = 'Adding character…';
+    statusMessage = "Adding character…";
   }
 
   /** Re-submit with force=1 when the server said it is allowed. */
   function handleForceAddExisting() {
-    errorMessage = '';
+    errorMessage = "";
     addExistingCanForce = false;
-    addExistingForceMessage = '';
+    addExistingForceMessage = "";
     sendAccountAddPlayer(1, addExistingName.trim(), addExistingPassword);
-    statusMessage = 'Adding character…';
+    statusMessage = "Adding character…";
   }
-
-
 
   /** Show the create-character form, requesting server data if needed. */
   function handleShowCreateChar() {
     createCharVisible = true;
     characterSelectVisible = false;
-    errorMessage = '';
-    statusMessage = '';
+    errorMessage = "";
+    statusMessage = "";
     if (!charInfoRequested) {
       charInfoRequested = true;
-      sendRequestInfo('race_list');
-      sendRequestInfo('class_list');
-      sendRequestInfo('newcharinfo');
+      sendRequestInfo("race_list");
+      sendRequestInfo("class_list");
+      sendRequestInfo("newcharinfo");
     }
   }
 
@@ -403,8 +441,8 @@
     createCharVisible = false;
     startingMapVisible = false;
     characterSelectVisible = true;
-    errorMessage = '';
-    statusMessage = '';
+    errorMessage = "";
+    statusMessage = "";
   }
 
   /**
@@ -413,10 +451,10 @@
    * submit the character immediately.
    */
   function handleProceedToStartingMap() {
-    errorMessage = '';
+    errorMessage = "";
     const name = newCharName.trim();
     if (!name) {
-      errorMessage = 'Please enter a character name.';
+      errorMessage = "Please enter a character name.";
       return;
     }
     if (availableStartingMaps.length > 0) {
@@ -431,8 +469,8 @@
   function handleBackToCreateChar() {
     startingMapVisible = false;
     createCharVisible = true;
-    errorMessage = '';
-    statusMessage = '';
+    errorMessage = "";
+    statusMessage = "";
   }
 
   /**
@@ -450,40 +488,64 @@
 
   /** Send the createplayer command to the server. */
   function handleCreateCharacter() {
-    errorMessage = '';
+    errorMessage = "";
     const name = newCharName.trim();
     if (!name) {
-      errorMessage = 'Please enter a character name.';
+      errorMessage = "Please enter a character name.";
       return;
     }
     const password = getAccountPassword();
-    if (confirmedLoginMethod >= 2 && availableRaces.length > 0 && availableClasses.length > 0) {
-      const race  = availableRaces[selectedRaceIdx]!;
-      const cls   = availableClasses[selectedClassIdx]!;
-      const rChoices = race.choices.map((ch, i) => {
-        const selIdx = raceChoiceSel[i] ?? 0;
-        return { choiceName: ch.name, valueArch: ch.values[selIdx]?.arch ?? '' };
-      }).filter(c => c.valueArch !== '');
-      const cChoices = cls.choices.map((ch, i) => {
-        const selIdx = classChoiceSel[i] ?? 0;
-        return { choiceName: ch.name, valueArch: ch.values[selIdx]?.arch ?? '' };
-      }).filter(c => c.valueArch !== '');
-      const sAlloc = newCharStatNames.map(sn => ({
+    if (
+      confirmedLoginMethod >= 2 &&
+      availableRaces.length > 0 &&
+      availableClasses.length > 0
+    ) {
+      const race = availableRaces[selectedRaceIdx]!;
+      const cls = availableClasses[selectedClassIdx]!;
+      const rChoices = race.choices
+        .map((ch, i) => {
+          const selIdx = raceChoiceSel[i] ?? 0;
+          return {
+            choiceName: ch.name,
+            valueArch: ch.values[selIdx]?.arch ?? "",
+          };
+        })
+        .filter((c) => c.valueArch !== "");
+      const cChoices = cls.choices
+        .map((ch, i) => {
+          const selIdx = classChoiceSel[i] ?? 0;
+          return {
+            choiceName: ch.name,
+            valueArch: ch.values[selIdx]?.arch ?? "",
+          };
+        })
+        .filter((c) => c.valueArch !== "");
+      const sAlloc = newCharStatNames.map((sn) => ({
         statName: sn,
         value: statAlloc[sn] ?? 0,
       }));
-      const startingMapArch = availableStartingMaps[selectedStartingMapIdx]?.archName;
-      sendCreatePlayer(name, password, race.archName, cls.archName, rChoices, cChoices, sAlloc, startingMapArch);
+      const startingMapArch =
+        availableStartingMaps[selectedStartingMapIdx]?.archName;
+      sendCreatePlayer(
+        name,
+        password,
+        race.archName,
+        cls.archName,
+        rChoices,
+        cChoices,
+        sAlloc,
+        startingMapArch,
+      );
     } else {
       // loginmethod 1 — just name + password.
       sendCreatePlayer(name, password);
     }
-    statusMessage = 'Creating character…';
+    statusMessage = "Creating character…";
   }
 
   $effect(() => {
     const cleanups = [
-      gameEvents.on('query', (flags: number, prompt: string) => {
+      gameEvents.on("query", (flags: number, prompt: string) => {
         // If the server sends an empty prompt, reuse the previous prompt text.
         if (prompt) {
           lastQueryPrompt = prompt;
@@ -492,22 +554,27 @@
         queryHidden = (flags & CS_QUERY_HIDEINPUT) !== 0;
         querySingleChar = (flags & CS_QUERY_SINGLECHAR) !== 0;
         queryYesNo = (flags & CS_QUERY_YESNO) !== 0;
-        queryInput = '';
+        queryInput = "";
       }),
 
-      gameEvents.on('replyInfo', (infoType: string, text: string) => {
-        const lines = parseMarkupLines(text, '#cccccc');
-        const idx = serverInfoSections.findIndex(s => s.type === infoType);
+      gameEvents.on("replyInfo", (infoType: string, text: string) => {
+        const lines = parseMarkupLines(text, "#cccccc");
+        const idx = serverInfoSections.findIndex((s) => s.type === infoType);
         if (idx >= 0) {
-          serverInfoSections = serverInfoSections.map((s, i) => i === idx ? { type: infoType, lines } : s);
+          serverInfoSections = serverInfoSections.map((s, i) =>
+            i === idx ? { type: infoType, lines } : s,
+          );
         } else {
-          serverInfoSections = [...serverInfoSections, { type: infoType, lines }];
+          serverInfoSections = [
+            ...serverInfoSections,
+            { type: infoType, lines },
+          ];
         }
         // Keep the module-level cache in sync so sections survive unmount/remount.
         _cachedInfoSections = serverInfoSections;
       }),
 
-      gameEvents.on('version', (_cs: number, _sc: number, verStr: string) => {
+      gameEvents.on("version", (_cs: number, _sc: number, verStr: string) => {
         statusMessage = `Server: ${verStr}. Handshaking…`;
         // Do NOT call sendAddMe() here when using account-based login.
         // The loginMethodConfirmed handler decides whether to send addme or
@@ -516,7 +583,7 @@
         // in the setup response and loginMethodConfirmed(0) will call sendAddMe().
       }),
 
-      gameEvents.on('loginMethodConfirmed', (method: number) => {
+      gameEvents.on("loginMethodConfirmed", (method: number) => {
         confirmedLoginMethod = method;
         _cachedLoginMethod = method;
         if (method === 0) {
@@ -525,29 +592,33 @@
         } else {
           // Server supports account-based login (method >= 1).
           accountLoginVisible = true;
-          statusMessage = '';
+          statusMessage = "";
         }
       }),
 
-      gameEvents.on('accountPlayers', (players: AccountPlayer[]) => {
+      gameEvents.on("accountPlayers", (players: AccountPlayer[]) => {
         characterList = players;
         characterSelectVisible = true;
         createCharVisible = false;
         addExistingVisible = false;
         accountLoginVisible = false;
-        statusMessage = '';
-        errorMessage = '';
+        statusMessage = "";
+        errorMessage = "";
         if (players.length === 0) {
-          statusMessage = 'No characters yet. Create one to start playing!';
+          statusMessage = "No characters yet. Create one to start playing!";
         }
       }),
 
       // ── Character-creation events ──────────────────────────────────────────
 
-      gameEvents.on('raceListReceived', (archNames: string[]) => {
+      gameEvents.on("raceListReceived", (archNames: string[]) => {
         // Initialise with arch-name-only placeholders; detail arrives via race_info.
-        availableRaces = archNames.map(archName => ({
-          archName, publicName: archName, description: '', statAdj: {}, choices: [],
+        availableRaces = archNames.map((archName) => ({
+          archName,
+          publicName: archName,
+          description: "",
+          statAdj: {},
+          choices: [],
         }));
         if (selectedRaceIdx >= availableRaces.length) selectedRaceIdx = 0;
         // Request detailed info for every race so the UI can show public names,
@@ -557,9 +628,13 @@
         }
       }),
 
-      gameEvents.on('classListReceived', (archNames: string[]) => {
-        availableClasses = archNames.map(archName => ({
-          archName, publicName: archName, description: '', statAdj: {}, choices: [],
+      gameEvents.on("classListReceived", (archNames: string[]) => {
+        availableClasses = archNames.map((archName) => ({
+          archName,
+          publicName: archName,
+          description: "",
+          statAdj: {},
+          choices: [],
         }));
         if (selectedClassIdx >= availableClasses.length) selectedClassIdx = 0;
         // Request detailed info for every class so the UI can show public names,
@@ -569,59 +644,74 @@
         }
       }),
 
-      gameEvents.on('raceInfoReceived', (info: RaceClassEntry) => {
-        const idx = availableRaces.findIndex(r => r.archName === info.archName);
-        const updated = idx >= 0 ? availableRaces.with(idx, info) : [...availableRaces, info];
-        availableRaces = updated.toSorted((a, b) => a.publicName.localeCompare(b.publicName));
+      gameEvents.on("raceInfoReceived", (info: RaceClassEntry) => {
+        const idx = availableRaces.findIndex(
+          (r) => r.archName === info.archName,
+        );
+        const updated =
+          idx >= 0 ? availableRaces.with(idx, info) : [...availableRaces, info];
+        availableRaces = updated.toSorted((a, b) =>
+          a.publicName.localeCompare(b.publicName),
+        );
       }),
 
-      gameEvents.on('classInfoReceived', (info: RaceClassEntry) => {
-        const idx = availableClasses.findIndex(c => c.archName === info.archName);
-        const updated = idx >= 0 ? availableClasses.with(idx, info) : [...availableClasses, info];
-        availableClasses = updated.toSorted((a, b) => a.publicName.localeCompare(b.publicName));
+      gameEvents.on("classInfoReceived", (info: RaceClassEntry) => {
+        const idx = availableClasses.findIndex(
+          (c) => c.archName === info.archName,
+        );
+        const updated =
+          idx >= 0
+            ? availableClasses.with(idx, info)
+            : [...availableClasses, info];
+        availableClasses = updated.toSorted((a, b) =>
+          a.publicName.localeCompare(b.publicName),
+        );
       }),
 
-      gameEvents.on('newCharInfoReceived', (info: NewCharInfo) => {
+      gameEvents.on("newCharInfoReceived", (info: NewCharInfo) => {
         newCharStatPoints = info.statPoints;
         newCharStatMin = info.statMin;
         newCharStatMax = info.statMax;
         newCharStatNames = info.statNames;
         // Reset per-stat allocations to statMin whenever the stat list changes.
-        statAlloc = Object.fromEntries(info.statNames.map(n => [n, info.statMin]));
+        statAlloc = Object.fromEntries(
+          info.statNames.map((n) => [n, info.statMin]),
+        );
         // Server indicated starting-map selection is required.
         if (info.wantsStartingMap) {
           availableStartingMaps = [];
           selectedStartingMapIdx = 0;
-          sendRequestInfo('startingmap');
+          sendRequestInfo("startingmap");
         }
       }),
 
-      gameEvents.on('startingMapReceived', (maps: StartingMapEntry[]) => {
+      gameEvents.on("startingMapReceived", (maps: StartingMapEntry[]) => {
         availableStartingMaps = maps;
         selectedStartingMapIdx = 0;
       }),
 
-      gameEvents.on('addMeSuccess', () => {
+      gameEvents.on("addMeSuccess", () => {
         addMeSuccessReceived = true;
         if (queryPrompt) {
           // A query is still on screen – wait until the user answers it.
-          statusMessage = '';
+          statusMessage = "";
         } else {
           checkLoginComplete();
         }
       }),
 
-      gameEvents.on('addMeFail', () => {
-        errorMessage = 'Server rejected login.';
-        statusMessage = '';
+      gameEvents.on("addMeFail", () => {
+        errorMessage = "Server rejected login.";
+        statusMessage = "";
       }),
 
-      gameEvents.on('failure', (command: string, message: string) => {
-        if (command === 'accountaddplayer') {
+      gameEvents.on("failure", (command: string, message: string) => {
+        if (command === "accountaddplayer") {
           // The message starts with a force flag: "0 <text>" (not retriable)
           // or "1 <text>" (can retry with force=1).
-          const spaceIdx = message.indexOf(' ');
-          const forceFlag = spaceIdx > 0 ? parseInt(message.substring(0, spaceIdx), 10) : 0;
+          const spaceIdx = message.indexOf(" ");
+          const forceFlag =
+            spaceIdx > 0 ? parseInt(message.substring(0, spaceIdx), 10) : 0;
           const text = spaceIdx > 0 ? message.substring(spaceIdx + 1) : message;
           errorMessage = text;
           if (forceFlag === 1) {
@@ -631,10 +721,10 @@
         } else {
           errorMessage = `${command}: ${message}`;
         }
-        statusMessage = '';
+        statusMessage = "";
       }),
 
-      gameEvents.on('drawInfo', (_color: number, message: string) => {
+      gameEvents.on("drawInfo", (_color: number, message: string) => {
         if (!connected) return;
         statusMessage = message;
       }),
@@ -656,8 +746,8 @@
     class="github-ribbon"
     href="https://github.com/bofh69/crossfire-web-client"
     target="_blank"
-    rel="noopener noreferrer"
-  >Fork me</a>
+    rel="noopener noreferrer">Fork me</a
+  >
 {/if}
 
 <div class="login-container">
@@ -678,7 +768,7 @@
         </label>
       {/if}
       <button onclick={handleConnect} disabled={connecting}>
-        {connecting ? 'Connecting...' : 'Enter'}
+        {connecting ? "Connecting..." : "Enter"}
       </button>
     </div>
     {#if statusMessage}
@@ -695,15 +785,25 @@
             <div class="info-section">
               <h3>{infoTypeLabel(section.type)}</h3>
               <div class="info-text">
-                {#snippet spanList(spans: import('../lib/markup').MessageSpan[])}
+                {#snippet spanList(
+                  spans: import("../lib/markup").MessageSpan[],
+                )}
                   {#each spans as span}<span
-                    style:color={span.color}
-                    style:font-weight={span.bold ? 'bold' : 'normal'}
-                    style:font-style={span.italic ? 'italic' : 'normal'}
-                    style:text-decoration={span.underline ? 'underline' : 'none'}
-                  >{span.text}</span>{/each}
+                      style:color={span.color}
+                      style:font-weight={span.bold ? "bold" : "normal"}
+                      style:font-style={span.italic ? "italic" : "normal"}
+                      style:text-decoration={span.underline
+                        ? "underline"
+                        : "none"}>{span.text}</span
+                    >{/each}
                 {/snippet}
-                {#each section.lines as line}{#if line.isTitle}<p class="info-title">{@render spanList(line.spans)}</p>{:else}<div class="info-line">{@render spanList(line.spans)}</div>{/if}{/each}
+                {#each section.lines as line}{#if line.isTitle}<p
+                      class="info-title"
+                    >
+                      {@render spanList(line.spans)}
+                    </p>{:else}<div class="info-line">
+                      {@render spanList(line.spans)}
+                    </div>{/if}{/each}
               </div>
             </div>
           {/each}
@@ -741,7 +841,9 @@
                 </select>
               </label>
               {#if availableRaces[selectedRaceIdx]?.description}
-                <p class="rc-desc">{availableRaces[selectedRaceIdx]?.description}</p>
+                <p class="rc-desc">
+                  {availableRaces[selectedRaceIdx]?.description}
+                </p>
               {/if}
               {#each availableRaces[selectedRaceIdx]?.choices ?? [] as choice, ci}
                 <label>
@@ -765,7 +867,9 @@
                   </select>
                 </label>
                 {#if availableClasses[selectedClassIdx]?.description}
-                  <p class="rc-desc">{availableClasses[selectedClassIdx]?.description}</p>
+                  <p class="rc-desc">
+                    {availableClasses[selectedClassIdx]?.description}
+                  </p>
                 {/if}
                 {#each availableClasses[selectedClassIdx]?.choices ?? [] as choice, ci}
                   <label>
@@ -788,35 +892,59 @@
                     <span>Pts</span><span>Total</span>
                   </div>
                   {#each newCharStatNames as sn}
-                    {@const rb = availableRaces[selectedRaceIdx]?.statAdj[sn] ?? 0}
-                    {@const cb = availableClasses[selectedClassIdx]?.statAdj[sn] ?? 0}
+                    {@const rb =
+                      availableRaces[selectedRaceIdx]?.statAdj[sn] ?? 0}
+                    {@const cb =
+                      availableClasses[selectedClassIdx]?.statAdj[sn] ?? 0}
                     {@const alloc = statAlloc[sn] ?? 0}
                     {@const total = rb + cb + alloc}
                     <div class="stat-row" class:stat-bad={total < 1}>
                       <span class="stat-name">{sn}</span>
-                      <span class:bonus-pos={rb > 0} class:bonus-neg={rb < 0}>{rb > 0 ? '+' : ''}{rb}</span>
-                      <span class:bonus-pos={cb > 0} class:bonus-neg={cb < 0}>{cb > 0 ? '+' : ''}{cb}</span>
+                      <span class:bonus-pos={rb > 0} class:bonus-neg={rb < 0}
+                        >{rb > 0 ? "+" : ""}{rb}</span
+                      >
+                      <span class:bonus-pos={cb > 0} class:bonus-neg={cb < 0}
+                        >{cb > 0 ? "+" : ""}{cb}</span
+                      >
                       <span class="stat-spin">
-                        <button class="spin-btn" onclick={() => adjustStat(sn, -1)} disabled={alloc <= newCharStatMin}>−</button>
+                        <button
+                          class="spin-btn"
+                          onclick={() => adjustStat(sn, -1)}
+                          disabled={alloc <= newCharStatMin}>−</button
+                        >
                         <span class="spin-val">{alloc}</span>
-                        <button class="spin-btn" onclick={() => adjustStat(sn, +1)} disabled={ccRemaining <= 0 || alloc >= newCharStatMax}>+</button>
+                        <button
+                          class="spin-btn"
+                          onclick={() => adjustStat(sn, +1)}
+                          disabled={ccRemaining <= 0 || alloc >= newCharStatMax}
+                          >+</button
+                        >
                       </span>
-                      <span class:stat-bad={total < newCharStatMin}>{total}</span>
+                      <span class:stat-bad={total < newCharStatMin}
+                        >{total}</span
+                      >
                     </div>
                   {/each}
-                  <div class="stat-remaining" class:points-over={ccRemaining < 0}>
+                  <div
+                    class="stat-remaining"
+                    class:points-over={ccRemaining < 0}
+                  >
                     Points remaining: {ccRemaining}
                   </div>
                 </div>
               {/if}
             {/if}
 
-            <button onclick={handleProceedToStartingMap} disabled={!ccCanCreate}>
-              {availableStartingMaps.length > 0 ? 'Next →' : 'Create Character'}
+            <button
+              onclick={handleProceedToStartingMap}
+              disabled={!ccCanCreate}
+            >
+              {availableStartingMaps.length > 0 ? "Next →" : "Create Character"}
             </button>
-            <button class="back-btn" onclick={handleCancelCreateChar}>← Back</button>
+            <button class="back-btn" onclick={handleCancelCreateChar}
+              >← Back</button
+            >
           </div>
-
         {:else if startingMapVisible}
           <!-- Starting map selection page -->
           <div class="login-form create-char-form">
@@ -831,13 +959,16 @@
               </select>
             </label>
             {#if availableStartingMaps[selectedStartingMapIdx]?.description}
-              <p class="entry-desc">{availableStartingMaps[selectedStartingMapIdx]?.description}</p>
+              <p class="entry-desc">
+                {availableStartingMaps[selectedStartingMapIdx]?.description}
+              </p>
             {/if}
 
             <button onclick={handleCreateCharacter}>Create Character</button>
-            <button class="back-btn" onclick={handleBackToCreateChar}>← Back</button>
+            <button class="back-btn" onclick={handleBackToCreateChar}
+              >← Back</button
+            >
           </div>
-
         {:else if characterSelectVisible}
           <!-- Character selection (loginmethod >= 1) -->
           <div class="login-form">
@@ -845,25 +976,45 @@
             {#if characterList.length > 0}
               <div class="character-list">
                 {#each characterList as char}
-                  <button class="character-entry" onclick={() => handlePlayCharacter(char.name)}>
+                  <button
+                    class="character-entry"
+                    onclick={() => handlePlayCharacter(char.name)}
+                  >
                     <span class="char-name">{char.name}</span>
-                    <span class="char-details">{char.charClass} {char.race} — Level {char.level}</span>
+                    <span class="char-details"
+                      >{char.charClass} {char.race} — Level {char.level}</span
+                    >
                   </button>
                 {/each}
               </div>
             {:else}
               <p class="status">No characters on this account yet.</p>
             {/if}
-            <button onclick={handleShowCreateChar}>+ Create New Character</button>
-            <button onclick={handleShowAddExisting}>+ Add Existing Character</button>
+            <button onclick={handleShowCreateChar}
+              >+ Create New Character</button
+            >
+            <button onclick={handleShowAddExisting}
+              >+ Add Existing Character</button
+            >
             <button
               class="back-btn"
-              onclick={() => { characterSelectVisible = false; accountLoginVisible = true; errorMessage = ''; statusMessage = ''; }}
-            >← Back</button>
+              onclick={() => {
+                characterSelectVisible = false;
+                accountLoginVisible = true;
+                errorMessage = "";
+                statusMessage = "";
+              }}>← Back</button
+            >
           </div>
         {:else if addExistingVisible}
           <!-- Add existing character form (loginmethod >= 1) -->
-          <form class="login-form" onsubmit={(e) => { e.preventDefault(); handleAddExisting(); }}>
+          <form
+            class="login-form"
+            onsubmit={(e) => {
+              e.preventDefault();
+              handleAddExisting();
+            }}
+          >
             <h3 class="panel-title">Add Existing Character</h3>
             <label>
               Character Name
@@ -886,25 +1037,46 @@
             <button type="submit">Add Character</button>
             {#if addExistingCanForce}
               <p class="error">{addExistingForceMessage}</p>
-              <p class="query-text">This character is already linked to another account. Override the link?</p>
-              <button type="button" onclick={handleForceAddExisting}>Yes, override</button>
+              <p class="query-text">
+                This character is already linked to another account. Override
+                the link?
+              </p>
+              <button type="button" onclick={handleForceAddExisting}
+                >Yes, override</button
+              >
             {/if}
-            <button type="button" class="back-btn" onclick={handleCancelAddExisting}>← Back</button>
+            <button
+              type="button"
+              class="back-btn"
+              onclick={handleCancelAddExisting}>← Back</button
+            >
           </form>
         {:else if accountLoginVisible}
           <!-- Account-based login / create form (loginmethod >= 1) -->
-          <form class="login-form" onsubmit={(e) => { e.preventDefault(); showNewAccount ? handleAccountNew() : handleAccountLogin(); }}>
+          <form
+            class="login-form"
+            onsubmit={(e) => {
+              e.preventDefault();
+              showNewAccount ? handleAccountNew() : handleAccountLogin();
+            }}
+          >
             <div class="tab-row">
               <button
                 type="button"
                 class:tab-active={!showNewAccount}
-                onclick={() => { showNewAccount = false; errorMessage = ''; }}
-              >Log In</button>
+                onclick={() => {
+                  showNewAccount = false;
+                  errorMessage = "";
+                }}>Log In</button
+              >
               <button
                 type="button"
                 class:tab-active={showNewAccount}
-                onclick={() => { showNewAccount = true; errorMessage = ''; }}
-              >New Account</button>
+                onclick={() => {
+                  showNewAccount = true;
+                  errorMessage = "";
+                }}>New Account</button
+              >
             </div>
             <label>
               Account Name
@@ -921,7 +1093,9 @@
               <input
                 type="password"
                 bind:value={accountPassword}
-                autocomplete={showNewAccount ? 'new-password' : 'current-password'}
+                autocomplete={showNewAccount
+                  ? "new-password"
+                  : "current-password"}
               />
             </label>
             {#if showNewAccount}
@@ -940,17 +1114,31 @@
           </form>
         {:else if queryPrompt}
           <!-- Legacy query-based login (loginmethod 0) -->
-          <form class="login-form" onsubmit={(e) => { e.preventDefault(); handleQuerySubmit(); }}>
+          <form
+            class="login-form"
+            onsubmit={(e) => {
+              e.preventDefault();
+              handleQuerySubmit();
+            }}
+          >
             <p class="query-text" aria-live="polite">{queryPrompt}</p>
             {#if queryYesNo}
               <div class="yesno-buttons">
-                <button type="button" aria-keyshortcuts="y" onclick={() => sendQueryReply('y')}>Yes</button>
-                <button type="button" aria-keyshortcuts="n" onclick={() => sendQueryReply('n')}>No</button>
+                <button
+                  type="button"
+                  aria-keyshortcuts="y"
+                  onclick={() => sendQueryReply("y")}>Yes</button
+                >
+                <button
+                  type="button"
+                  aria-keyshortcuts="n"
+                  onclick={() => sendQueryReply("n")}>No</button
+                >
               </div>
             {:else}
               <label>
                 <input
-                  type={queryHidden ? 'password' : 'text'}
+                  type={queryHidden ? "password" : "text"}
                   bind:value={queryInput}
                   bind:this={queryInputEl}
                   onkeydown={handleQueryKeydown}
@@ -1302,8 +1490,12 @@
     justify-content: flex-start;
   }
 
-  .bonus-pos { color: #80d080; }
-  .bonus-neg { color: #e06060; }
+  .bonus-pos {
+    color: #80d080;
+  }
+  .bonus-neg {
+    color: #e06060;
+  }
 
   .stat-bad {
     color: #e06060;

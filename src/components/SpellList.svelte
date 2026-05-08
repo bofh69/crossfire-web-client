@@ -1,14 +1,14 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
-  import { sendCommand } from '../lib/player';
-  import { spells } from '../lib/commands';
-  import type { Spell } from '../lib/protocol';
-  import { gameEvents } from '../lib/events';
-  import { setHotbarSlot } from '../lib/hotbar';
-  import { getFaceUrl } from '../lib/image';
-  import HotbarSlotPicker from './HotbarSlotPicker.svelte';
-  import ContextMenu from './ContextMenu.svelte';
-  import { capitalizeFirstLetter } from '../lib/misc';
+  import { onMount } from "svelte";
+  import { sendCommand } from "../lib/player";
+  import { spells } from "../lib/commands";
+  import type { Spell } from "../lib/protocol";
+  import { gameEvents } from "../lib/events";
+  import { setHotbarSlot } from "../lib/hotbar";
+  import { getFaceUrl } from "../lib/image";
+  import HotbarSlotPicker from "./HotbarSlotPicker.svelte";
+  import ContextMenu from "./ContextMenu.svelte";
+  import { capitalizeFirstLetter } from "../lib/misc";
 
   let spellList: Spell[] = $state([]);
   let contextMenu = $state<{ x: number; y: number; spell: Spell } | null>(null);
@@ -19,7 +19,7 @@
   }
 
   onMount(() => {
-    const unsub = gameEvents.on('spellUpdate', updateSpells);
+    const unsub = gameEvents.on("spellUpdate", updateSpells);
     // Snapshot spells that arrived before this component mounted (e.g. with
     // loginmethod >= 2 the server sends addspell commands before addme_success,
     // so spells[] is already populated by the time this component is created).
@@ -93,9 +93,9 @@
               </td>
               <td class="spell-name">{capitalizeFirstLetter(spell.name)}</td>
               <td>{spell.level}</td>
-              <td>{spell.sp > 0 ? spell.sp : '-'}</td>
-              <td>{spell.grace > 0 ? spell.grace : '-'}</td>
-              <td>{spell.dam > 0 ? spell.dam : '-'}</td>
+              <td>{spell.sp > 0 ? spell.sp : "-"}</td>
+              <td>{spell.grace > 0 ? spell.grace : "-"}</td>
+              <td>{spell.dam > 0 ? spell.dam : "-"}</td>
             </tr>
           {/each}
         </tbody>
@@ -107,12 +107,15 @@
 {#if contextMenu}
   {@const spell = contextMenu.spell}
   <ContextMenu x={contextMenu.x} y={contextMenu.y} onClose={closeContextMenu}>
-    <button onclick={() => { castSpell(spell); closeContextMenu(); }}>
+    <button
+      onclick={() => {
+        castSpell(spell);
+        closeContextMenu();
+      }}
+    >
       Cast {spell.name}
     </button>
-    <button onclick={() => handleAddToHotbar(spell)}>
-      Add to hotbar…
-    </button>
+    <button onclick={() => handleAddToHotbar(spell)}> Add to hotbar… </button>
     {#if showSlotPicker}
       <HotbarSlotPicker
         onSelect={handleSlotSelected}

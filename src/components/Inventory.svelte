@@ -1,17 +1,21 @@
 <script lang="ts">
-  import { tick, onMount } from 'svelte';
-  import { clientSendApply, clientSendExamine, clientSendMove } from '../lib/player';
-  import { toggleLocked, locateItem, sendMarkObj } from '../lib/item';
-  import { getFaceUrl } from '../lib/image';
-  import { getCpl } from '../lib/init';
-  import type { Item } from '../lib/protocol';
-  import { F_UNIDENTIFIED } from '../lib/protocol';
-  import { gameEvents } from '../lib/events';
-  import { setHotbarSlot } from '../lib/hotbar';
-  import HotbarSlotPicker from './HotbarSlotPicker.svelte';
-  import ContextMenu from './ContextMenu.svelte';
-  import { loadConfig, saveConfig } from '../lib/storage';
-  import { capitalizeFirstLetter } from '../lib/misc';
+  import { tick, onMount } from "svelte";
+  import {
+    clientSendApply,
+    clientSendExamine,
+    clientSendMove,
+  } from "../lib/player";
+  import { toggleLocked, locateItem, sendMarkObj } from "../lib/item";
+  import { getFaceUrl } from "../lib/image";
+  import { getCpl } from "../lib/init";
+  import type { Item } from "../lib/protocol";
+  import { F_UNIDENTIFIED } from "../lib/protocol";
+  import { gameEvents } from "../lib/events";
+  import { setHotbarSlot } from "../lib/hotbar";
+  import HotbarSlotPicker from "./HotbarSlotPicker.svelte";
+  import ContextMenu from "./ContextMenu.svelte";
+  import { loadConfig, saveConfig } from "../lib/storage";
+  import { capitalizeFirstLetter } from "../lib/misc";
 
   interface FlatItem {
     tag: number;
@@ -33,15 +37,15 @@
   }
 
   type InvFilter =
-    | 'applied'
-    | 'unapplied'
-    | 'unpaid'
-    | 'cursed'
-    | 'magical'
-    | 'nonmagical'
-    | 'locked'
-    | 'unlocked'
-    | 'unidentified';
+    | "applied"
+    | "unapplied"
+    | "unpaid"
+    | "cursed"
+    | "magical"
+    | "nonmagical"
+    | "locked"
+    | "unlocked"
+    | "unidentified";
 
   interface FilterDef {
     id: InvFilter;
@@ -51,15 +55,60 @@
   }
 
   const FILTERS: FilterDef[] = [
-    { id: 'applied',      icon: '✋',  tooltip: 'Applied items',                               test: i => i.applied },
-    { id: 'unapplied',    icon: '🤚',  tooltip: 'Unapplied items',                             test: i => !i.applied },
-    { id: 'unpaid',       icon: '💰',  tooltip: 'Unpaid items',                                test: i => i.unpaid },
-    { id: 'cursed',       icon: '💀',  tooltip: 'Cursed / damned items',                       test: i => i.cursed || i.damned },
-    { id: 'magical',      icon: '✨',  tooltip: 'Magical items',                               test: i => i.magical },
-    { id: 'nonmagical',   icon: '🔰',  tooltip: 'Non-magical items',                           test: i => !i.magical },
-    { id: 'locked',       icon: '🔒',  tooltip: 'Locked items',                                test: i => i.locked },
-    { id: 'unlocked',     icon: '🔓',  tooltip: 'Unlocked items (including open containers)',  test: i => !i.locked || i.open },
-    { id: 'unidentified', icon: '❓',  tooltip: 'Unidentified items',                          test: i => i.unidentified },
+    {
+      id: "applied",
+      icon: "✋",
+      tooltip: "Applied items",
+      test: (i) => i.applied,
+    },
+    {
+      id: "unapplied",
+      icon: "🤚",
+      tooltip: "Unapplied items",
+      test: (i) => !i.applied,
+    },
+    {
+      id: "unpaid",
+      icon: "💰",
+      tooltip: "Unpaid items",
+      test: (i) => i.unpaid,
+    },
+    {
+      id: "cursed",
+      icon: "💀",
+      tooltip: "Cursed / damned items",
+      test: (i) => i.cursed || i.damned,
+    },
+    {
+      id: "magical",
+      icon: "✨",
+      tooltip: "Magical items",
+      test: (i) => i.magical,
+    },
+    {
+      id: "nonmagical",
+      icon: "🔰",
+      tooltip: "Non-magical items",
+      test: (i) => !i.magical,
+    },
+    {
+      id: "locked",
+      icon: "🔒",
+      tooltip: "Locked items",
+      test: (i) => i.locked,
+    },
+    {
+      id: "unlocked",
+      icon: "🔓",
+      tooltip: "Unlocked items (including open containers)",
+      test: (i) => !i.locked || i.open,
+    },
+    {
+      id: "unidentified",
+      icon: "❓",
+      tooltip: "Unidentified items",
+      test: (i) => i.unidentified,
+    },
   ];
 
   // ── Inventory/ground split resize ────────────────────────────────
@@ -67,7 +116,7 @@
   const MAX_INV_FRAC = 0.9;
 
   let invContainerEl = $state<HTMLDivElement | undefined>();
-  let invSplitFrac = $state(loadConfig<number>('layout_invSplitFrac', 0.5));
+  let invSplitFrac = $state(loadConfig<number>("layout_invSplitFrac", 0.5));
   let isDraggingInv = $state(false);
 
   function handleInvSplitStart(e: MouseEvent) {
@@ -78,8 +127,8 @@
     const containerH = container.getBoundingClientRect().height;
 
     isDraggingInv = true;
-    document.body.style.cursor = 'row-resize';
-    document.body.style.userSelect = 'none';
+    document.body.style.cursor = "row-resize";
+    document.body.style.userSelect = "none";
 
     function onMove(me: MouseEvent) {
       const delta = me.clientY - startY;
@@ -89,15 +138,15 @@
 
     function onUp() {
       isDraggingInv = false;
-      document.body.style.cursor = '';
-      document.body.style.userSelect = '';
-      saveConfig('layout_invSplitFrac', invSplitFrac);
-      window.removeEventListener('mousemove', onMove);
-      window.removeEventListener('mouseup', onUp);
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+      saveConfig("layout_invSplitFrac", invSplitFrac);
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("mouseup", onUp);
     }
 
-    window.addEventListener('mousemove', onMove);
-    window.addEventListener('mouseup', onUp);
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
   }
 
   let playerItems: FlatItem[] = $state([]);
@@ -106,7 +155,9 @@
   let filteredPlayerItems = $derived(
     invFilters.size === 0
       ? playerItems
-      : playerItems.filter(item => FILTERS.some(f => invFilters.has(f.id) && f.test(item)))
+      : playerItems.filter((item) =>
+          FILTERS.some((f) => invFilters.has(f.id) && f.test(item)),
+        ),
   );
 
   /** Key used to persist filters for a given character name. */
@@ -117,8 +168,10 @@
   /** Load the saved filter set for `charName` from localStorage. */
   function loadFiltersForChar(charName: string): void {
     const saved = loadConfig<InvFilter[]>(filtersKey(charName), []);
-    const validIds = new Set(FILTERS.map(f => f.id));
-    invFilters = new Set(saved.filter((id): id is InvFilter => validIds.has(id)));
+    const validIds = new Set(FILTERS.map((f) => f.id));
+    invFilters = new Set(
+      saved.filter((id): id is InvFilter => validIds.has(id)),
+    );
   }
 
   /** Persist the current filter set for the current character. */
@@ -135,13 +188,18 @@
       next.add(id);
     }
     invFilters = next;
-    const charName = getCpl()?.ob?.dName ?? '';
+    const charName = getCpl()?.ob?.dName ?? "";
     if (charName) saveFilters(charName);
   }
 
   /** Track the last-seen character name so we load filters exactly once per character. */
-  let currentCharName = '';
-  let contextMenu = $state<{ x: number; y: number; item: FlatItem; isGround: boolean } | null>(null);
+  let currentCharName = "";
+  let contextMenu = $state<{
+    x: number;
+    y: number;
+    item: FlatItem;
+    isGround: boolean;
+  } | null>(null);
   let itemCount = $state(0);
   let showSlotPicker = $state(false);
 
@@ -155,7 +213,10 @@
     while (item) {
       result.push({
         tag: item.tag,
-        name: item.nrof > 1 ? `${item.nrof} ${item.pName || item.dName}` : item.dName,
+        name:
+          item.nrof > 1
+            ? `${item.nrof} ${item.pName || item.dName}`
+            : item.dName,
         dName: item.dName,
         sName: item.sName,
         weight: item.weight,
@@ -185,7 +246,7 @@
     const groundRoot = locateItem(0);
 
     // When the character name becomes available (or changes), load their saved filters.
-    const charName = getCpl()?.ob?.dName ?? '';
+    const charName = getCpl()?.ob?.dName ?? "";
     if (charName && charName !== currentCharName) {
       currentCharName = charName;
       loadFiltersForChar(charName);
@@ -208,10 +269,12 @@
 
   onMount(() => {
     const cleanups = [
-      gameEvents.on('playerUpdate', refreshInventory),
-      gameEvents.on('tick', refreshInventory),
+      gameEvents.on("playerUpdate", refreshInventory),
+      gameEvents.on("tick", refreshInventory),
     ];
-    return () => { for (const unsub of cleanups) unsub(); };
+    return () => {
+      for (const unsub of cleanups) unsub();
+    };
   });
 
   function handleApply(tag: number) {
@@ -259,7 +322,10 @@
   function handleMoveToContainer(item: FlatItem) {
     const cpl = getCpl();
     const container = cpl?.container;
-    if (!container) { contextMenu = null; return; }
+    if (!container) {
+      contextMenu = null;
+      return;
+    }
     const count = getMoveCount();
     // If the item is currently in the container, move it to the player inventory.
     // Otherwise move it into the container.
@@ -331,7 +397,9 @@
 <div class="inventory" bind:this={invContainerEl}>
   <div class="inv-section" style:flex="{invSplitFrac} 0 0">
     <h3>
-      Inventory ({filteredPlayerItems.length}{invFilters.size > 0 ? `/${playerItems.length}` : ''})
+      Inventory ({filteredPlayerItems.length}{invFilters.size > 0
+        ? `/${playerItems.length}`
+        : ""})
       {#if itemCount > 0}
         <span class="item-count">
           {itemCount}
@@ -349,8 +417,8 @@
           title={f.tooltip}
           aria-label={f.tooltip}
           aria-pressed={invFilters.has(f.id)}
-          onclick={() => toggleFilter(f.id)}
-        >{f.icon}</button>
+          onclick={() => toggleFilter(f.id)}>{f.icon}</button
+        >
       {/each}
     </div>
     <div class="item-list" bind:this={playerListEl}>
@@ -425,47 +493,73 @@
       {@const isGround = contextMenu!.isGround}
       {@const openContainer = getCpl()?.container ?? null}
       {@const realItem = locateItem(item.tag)}
-      {@const inContainer = openContainer !== null && realItem?.env?.tag === openContainer.tag}
+      {@const inContainer =
+        openContainer !== null && realItem?.env?.tag === openContainer.tag}
       {#if isGround}
         <button
           onclick={() => contextMenu && handleExamine(contextMenu.item)}
-          oncontextmenu={(e) => { e.preventDefault(); contextMenu && handleExamine(contextMenu.item); }}
-        >Examine</button>
+          oncontextmenu={(e) => {
+            e.preventDefault();
+            contextMenu && handleExamine(contextMenu.item);
+          }}>Examine</button
+        >
         <button
           onclick={() => contextMenu && handlePickup(contextMenu.item)}
-          oncontextmenu={(e) => { e.preventDefault(); contextMenu && handlePickup(contextMenu.item); }}
-        >Pickup</button>
+          oncontextmenu={(e) => {
+            e.preventDefault();
+            contextMenu && handlePickup(contextMenu.item);
+          }}>Pickup</button
+        >
       {:else}
         {#if openContainer !== null}
           <button
-            onclick={() => contextMenu && handleMoveToContainer(contextMenu.item)}
-            oncontextmenu={(e) => { e.preventDefault(); contextMenu && handleMoveToContainer(contextMenu.item); }}
+            onclick={() =>
+              contextMenu && handleMoveToContainer(contextMenu.item)}
+            oncontextmenu={(e) => {
+              e.preventDefault();
+              contextMenu && handleMoveToContainer(contextMenu.item);
+            }}
           >
-            {inContainer ? 'Move to inventory' : 'Move to container'}
+            {inContainer ? "Move to inventory" : "Move to container"}
           </button>
         {/if}
         <button
           onclick={() => contextMenu && handleDrop(contextMenu.item)}
-          oncontextmenu={(e) => { e.preventDefault(); contextMenu && handleDrop(contextMenu.item); }}
-        >Drop</button>
+          oncontextmenu={(e) => {
+            e.preventDefault();
+            contextMenu && handleDrop(contextMenu.item);
+          }}>Drop</button
+        >
         <button
           onclick={() => contextMenu && handleExamine(contextMenu.item)}
-          oncontextmenu={(e) => { e.preventDefault(); contextMenu && handleExamine(contextMenu.item); }}
-        >Examine</button>
+          oncontextmenu={(e) => {
+            e.preventDefault();
+            contextMenu && handleExamine(contextMenu.item);
+          }}>Examine</button
+        >
         <button
           onclick={() => contextMenu && handleLock(contextMenu.item)}
-          oncontextmenu={(e) => { e.preventDefault(); contextMenu && handleLock(contextMenu.item); }}
+          oncontextmenu={(e) => {
+            e.preventDefault();
+            contextMenu && handleLock(contextMenu.item);
+          }}
         >
-          {item.locked ? 'Unlock' : 'Lock'}
+          {item.locked ? "Unlock" : "Lock"}
         </button>
         <button
           onclick={() => contextMenu && handleMark(contextMenu.item)}
-          oncontextmenu={(e) => { e.preventDefault(); contextMenu && handleMark(contextMenu.item); }}
-        >Mark</button>
+          oncontextmenu={(e) => {
+            e.preventDefault();
+            contextMenu && handleMark(contextMenu.item);
+          }}>Mark</button
+        >
         <button
           onclick={() => contextMenu && handleAddToHotbar(contextMenu.item)}
-          oncontextmenu={(e) => { e.preventDefault(); contextMenu && handleAddToHotbar(contextMenu.item); }}
-        >Add to hotbar…</button>
+          oncontextmenu={(e) => {
+            e.preventDefault();
+            contextMenu && handleAddToHotbar(contextMenu.item);
+          }}>Add to hotbar…</button
+        >
         {#if showSlotPicker}
           <HotbarSlotPicker
             onSelect={handleSlotSelected}
@@ -627,7 +721,10 @@
     font-size: 0.8rem;
     line-height: 1;
     padding: 0.15rem 0.16rem;
-    transition: background 0.1s, color 0.1s, border-color 0.1s;
+    transition:
+      background 0.1s,
+      color 0.1s,
+      border-color 0.1s;
     filter: grayscale(1) opacity(0.55);
   }
 

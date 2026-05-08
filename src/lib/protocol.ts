@@ -118,12 +118,12 @@ export const F_LOCKED = 0x8000;
 // Apply types
 // ──────────────────────────────────────────────────────────────────────────────
 export enum ApplyType {
-    None = 0,
-    Readied = 1,
-    Wielded = 2,
-    Worn = 3,
-    Active = 4,
-    Applied = 5,
+  None = 0,
+  Readied = 1,
+  Wielded = 2,
+  Worn = 3,
+  Active = 4,
+  Applied = 5,
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -412,13 +412,13 @@ export const MAP2_LAYER_START = 0x10;
 export const MAP2_ADD_LENGTH = 0b11100000;
 
 export enum Map2Label {
-    Player = 1,
-    PlayerParty = 2,
-    DM = 3,
-    NPC = 4,
-    Sign = 5,
-    Say = 6,
-    Chat = 7,
+  Player = 1,
+  PlayerParty = 2,
+  DM = 3,
+  NPC = 4,
+  Sign = 5,
+  Say = 6,
+  Chat = 7,
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -431,8 +431,8 @@ export const CS_QUERY_HIDEINPUT = 0x4;
 // ──────────────────────────────────────────────────────────────────────────────
 // Magic map face flags (from newclient.h)
 // ──────────────────────────────────────────────────────────────────────────────
-export const FACE_FLOOR      = 0x80;
-export const FACE_WALL       = 0x40;
+export const FACE_FLOOR = 0x80;
+export const FACE_WALL = 0x40;
 export const FACE_COLOR_MASK = 0x0f;
 
 /** Bit toggled on showmagic to alternate the player position flash color. */
@@ -565,46 +565,46 @@ export const CFG_DM_OPENGL = 2;
 // ──────────────────────────────────────────────────────────────────────────────
 
 export enum RangeType {
-    None = 0,
-    Bow = 1,
-    Magic = 2,
-    Wand = 3,
-    Rod = 4,
-    Scroll = 5,
-    Horn = 6,
-    Steal = 7,
-    Size = 8,
+  None = 0,
+  Bow = 1,
+  Magic = 2,
+  Wand = 3,
+  Rod = 4,
+  Scroll = 5,
+  Horn = 6,
+  Steal = 7,
+  Size = 8,
 }
 
 export enum InputState {
-    Playing = 0,
-    ReplyOne = 1,
-    ReplyMany = 2,
-    ConfigureKeys = 3,
-    CommandMode = 4,
-    MetaserverSelect = 5,
+  Playing = 0,
+  ReplyOne = 1,
+  ReplyMany = 2,
+  ConfigureKeys = 3,
+  CommandMode = 4,
+  MetaserverSelect = 5,
 }
 
 export enum LogLevel {
-    Debug = 0,
-    Info = 1,
-    Warning = 2,
-    Error = 3,
-    Critical = 4,
+  Debug = 0,
+  Info = 1,
+  Warning = 2,
+  Error = 3,
+  Critical = 4,
 }
 
 export enum MapCellState {
-    Empty = 0,
-    Visible = 1,
-    Fog = 2,
+  Empty = 0,
+  Visible = 1,
+  Fog = 2,
 }
 
 export enum CommCat {
-    Misc = 0,
-    Info = 2,
-    Setup = 3,
-    Script = 4,
-    Debug = 5,
+  Misc = 0,
+  Info = 2,
+  Setup = 3,
+  Script = 4,
+  Debug = 5,
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -612,235 +612,235 @@ export enum CommCat {
 // ──────────────────────────────────────────────────────────────────────────────
 
 export interface Stats {
-    Str: number;
-    Dex: number;
-    Con: number;
-    Wis: number;
-    Cha: number;
-    Int: number;
-    Pow: number;
-    wc: number;
-    ac: number;
-    level: number;
-    hp: number;
-    maxhp: number;
-    sp: number;
-    maxsp: number;
-    grace: number;
-    maxgrace: number;
-    exp: bigint;
-    food: number;
-    dam: number;
-    speed: number;
-    weaponSp: number;
-    attuned: number;
-    repelled: number;
-    denied: number;
-    flags: number;
-    resists: number[];
-    resistChange: boolean;
-    skillLevel: number[];
-    skillExp: bigint[];
-    weightLimit: number;
-    golemHp: number;
-    golemMaxhp: number;
-    range: string;
-    title: string;
-    // Extended stats (only sent when extended_stats 1 is negotiated)
-    raceStr: number;
-    raceInt: number;
-    raceWis: number;
-    raceDex: number;
-    raceCon: number;
-    raceCha: number;
-    racePow: number;
-    baseStr: number;
-    baseInt: number;
-    baseWis: number;
-    baseDex: number;
-    baseCon: number;
-    baseCha: number;
-    basePow: number;
-    appliedStr: number;
-    appliedInt: number;
-    appliedWis: number;
-    appliedDex: number;
-    appliedCon: number;
-    appliedCha: number;
-    appliedPow: number;
+  Str: number;
+  Dex: number;
+  Con: number;
+  Wis: number;
+  Cha: number;
+  Int: number;
+  Pow: number;
+  wc: number;
+  ac: number;
+  level: number;
+  hp: number;
+  maxhp: number;
+  sp: number;
+  maxsp: number;
+  grace: number;
+  maxgrace: number;
+  exp: bigint;
+  food: number;
+  dam: number;
+  speed: number;
+  weaponSp: number;
+  attuned: number;
+  repelled: number;
+  denied: number;
+  flags: number;
+  resists: number[];
+  resistChange: boolean;
+  skillLevel: number[];
+  skillExp: bigint[];
+  weightLimit: number;
+  golemHp: number;
+  golemMaxhp: number;
+  range: string;
+  title: string;
+  // Extended stats (only sent when extended_stats 1 is negotiated)
+  raceStr: number;
+  raceInt: number;
+  raceWis: number;
+  raceDex: number;
+  raceCon: number;
+  raceCha: number;
+  racePow: number;
+  baseStr: number;
+  baseInt: number;
+  baseWis: number;
+  baseDex: number;
+  baseCon: number;
+  baseCha: number;
+  basePow: number;
+  appliedStr: number;
+  appliedInt: number;
+  appliedWis: number;
+  appliedDex: number;
+  appliedCon: number;
+  appliedCha: number;
+  appliedPow: number;
 }
 
 export interface Spell {
-    name: string;
-    message: string;
-    tag: number;
-    level: number;
-    time: number;
-    sp: number;
-    grace: number;
-    dam: number;
-    skillNumber: number;
-    skill: string;
-    path: number;
-    face: number;
-    usage: number;
-    requirements: string;
+  name: string;
+  message: string;
+  tag: number;
+  level: number;
+  time: number;
+  sp: number;
+  grace: number;
+  dam: number;
+  skillNumber: number;
+  skill: string;
+  path: number;
+  face: number;
+  usage: number;
+  requirements: string;
 }
 
 export interface Item {
-    tag: number;
-    nrof: number;
-    weight: number;
-    face: number;
-    dName: string;
-    sName: string;
-    pName: string;
-    flags: string;
-    animationId: number;
-    animSpeed: number;
-    animState: number;
-    lastAnim: number;
-    magical: boolean;
-    cursed: boolean;
-    damned: boolean;
-    blessed: boolean;
-    unpaid: boolean;
-    locked: boolean;
-    applied: boolean;
-    open: boolean;
-    wasOpen: boolean;
-    read: boolean;
-    invUpdated: boolean;
-    applyType: ApplyType;
-    flagsval: number;
-    type: number;
-    env: Item | null;
-    inv: Item | null;
-    next: Item | null;
-    prev: Item | null;
+  tag: number;
+  nrof: number;
+  weight: number;
+  face: number;
+  dName: string;
+  sName: string;
+  pName: string;
+  flags: string;
+  animationId: number;
+  animSpeed: number;
+  animState: number;
+  lastAnim: number;
+  magical: boolean;
+  cursed: boolean;
+  damned: boolean;
+  blessed: boolean;
+  unpaid: boolean;
+  locked: boolean;
+  applied: boolean;
+  open: boolean;
+  wasOpen: boolean;
+  read: boolean;
+  invUpdated: boolean;
+  applyType: ApplyType;
+  flagsval: number;
+  type: number;
+  env: Item | null;
+  inv: Item | null;
+  next: Item | null;
+  prev: Item | null;
 }
 
 export interface MapCellLayer {
-    face: number;
-    sizeX: number;
-    sizeY: number;
-    animation: number;
-    animationSpeed: number;
-    animationLeft: number;
-    animationPhase: number;
+  face: number;
+  sizeX: number;
+  sizeY: number;
+  animation: number;
+  animationSpeed: number;
+  animationLeft: number;
+  animationPhase: number;
 }
 
 export interface MapCellTailLayer {
-    face: number;
-    sizeX: number;
-    sizeY: number;
+  face: number;
+  sizeX: number;
+  sizeY: number;
 }
 
 export interface MapLabel {
-    subtype: number;
-    label: string;
+  subtype: number;
+  label: string;
 }
 
 export interface MapCell {
-    heads: MapCellLayer[];
-    tails: MapCellTailLayer[];
-    labels: MapLabel[];
-    smooth: number[];
-    darkness: number;
-    needUpdate: boolean;
-    needResmooth: boolean;
-    state: MapCellState;
+  heads: MapCellLayer[];
+  tails: MapCellTailLayer[];
+  labels: MapLabel[];
+  smooth: number[];
+  darkness: number;
+  needUpdate: boolean;
+  needResmooth: boolean;
+  state: MapCellState;
 }
 
 export interface Animation {
-    flags: number;
-    numAnimations: number;
-    speed: number;
-    speedLeft: number;
-    phase: number;
-    faces: number[];
+  flags: number;
+  numAnimations: number;
+  speed: number;
+  speedLeft: number;
+  phase: number;
+  faces: number[];
 }
 
 export interface PlayerPosition {
-    x: number;
-    y: number;
+  x: number;
+  y: number;
 }
 
 export interface ClientSocket {
-    ws: WebSocket | null;
-    csVersion: number;
-    scVersion: number;
-    commandSent: number;
-    commandReceived: number;
-    commandTime: number;
-    servername: string;
-    dir: number[];
+  ws: WebSocket | null;
+  csVersion: number;
+  scVersion: number;
+  commandSent: number;
+  commandReceived: number;
+  commandTime: number;
+  servername: string;
+  dir: number[];
 }
 
 export interface Player {
-    ob: Item | null;
-    below: Item | null;
-    container: Item | null;
-    countLeft: number;
-    inputState: InputState;
-    lastCommand: string;
-    inputText: string;
-    ranges: (Item | null)[];
-    readySpell: number;
-    stats: Stats;
-    spelldata: Spell[];
-    title: string;
-    range: string;
-    spellsUpdated: number;
-    fireOn: boolean;
-    runOn: boolean;
-    metaOn: boolean;
-    altOn: boolean;
-    noEcho: boolean;
-    count: number;
-    mmapx: number;
-    mmapy: number;
-    pmapx: number;
-    pmapy: number;
-    magicmap: Uint8Array | null;
-    showmagic: number;
-    mapxres: number;
-    mapyres: number;
-    name: string;
+  ob: Item | null;
+  below: Item | null;
+  container: Item | null;
+  countLeft: number;
+  inputState: InputState;
+  lastCommand: string;
+  inputText: string;
+  ranges: (Item | null)[];
+  readySpell: number;
+  stats: Stats;
+  spelldata: Spell[];
+  title: string;
+  range: string;
+  spellsUpdated: number;
+  fireOn: boolean;
+  runOn: boolean;
+  metaOn: boolean;
+  altOn: boolean;
+  noEcho: boolean;
+  count: number;
+  mmapx: number;
+  mmapy: number;
+  pmapx: number;
+  pmapy: number;
+  magicmap: Uint8Array | null;
+  showmagic: number;
+  mapxres: number;
+  mapyres: number;
+  name: string;
 }
 
 export interface FaceSet {
-    setnum: number;
-    fallback: number;
-    prefix: string;
-    fullname: string;
-    size: string;
-    extension: string;
-    comment: string;
+  setnum: number;
+  fallback: number;
+  prefix: string;
+  fullname: string;
+  size: string;
+  extension: string;
+  comment: string;
 }
 
 export interface FaceInformation {
-    faceset: number;
-    wantFaceset: string;
-    numImages: number;
-    bmapsChecksum: number;
-    oldBmapsChecksum: number;
-    cacheHits: number;
-    cacheMisses: number;
-    haveFacesetInfo: boolean;
-    facesets: FaceSet[];
+  faceset: number;
+  wantFaceset: string;
+  numImages: number;
+  bmapsChecksum: number;
+  oldBmapsChecksum: number;
+  cacheHits: number;
+  cacheMisses: number;
+  haveFacesetInfo: boolean;
+  facesets: FaceSet[];
 }
 
 export interface CacheEntry {
-    filename: string;
-    checksum: number;
-    imageData: Blob | null;
+  filename: string;
+  checksum: number;
+  imageData: Blob | null;
 }
 
 export interface ConsoleCommand {
-    name: string;
-    category: CommCat;
-    description: string;
-    longDescription?: string;
-    handler: (args: string) => void;
+  name: string;
+  category: CommCat;
+  description: string;
+  longDescription?: string;
+  handler: (args: string) => void;
 }
