@@ -1,0 +1,1 @@
+- Always run `npm run check` and `npm run format:check` before committing.
