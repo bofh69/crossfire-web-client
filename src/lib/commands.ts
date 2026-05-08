@@ -101,6 +101,10 @@ import {
   AddKnowledgeCmd,
   parseKnowledgeInfo,
 } from "./cmd_notifications.js";
+import {
+  processDialogExtInfo,
+  notifyNonDrawExtInfoCommand,
+} from "./cmd_dialog.js";
 
 // ── Hiscore menu tracking ──────────────────────────────────────────────────
 
@@ -181,6 +185,10 @@ function DrawExtInfoCmd(data: string): void {
   }
   if (shouldBufferHiscoreMessage(type, subtype)) {
     hiscoreBuffer.push(message);
+    return;
+  }
+  if (processDialogExtInfo(color, type, subtype, message)) {
+    // Suppressed by dialog state machine (Replies: header or key/value line).
     return;
   }
   gameEvents.emit(
@@ -582,6 +590,12 @@ export function dispatchPacket(packet: ArrayBuffer): void {
     }
   } catch (err) {
     LOG(LogLevel.Error, "dispatch", `Exception handling ${cmdName}: ${err}`);
+  }
+
+  // Any server packet other than drawextinfo can end an active dialog
+  // option-collection run.
+  if (cmdName !== "drawextinfo") {
+    notifyNonDrawExtInfoCommand();
   }
 
   const elapsed = performance.now() - t0;

@@ -27,11 +27,13 @@
     MSG_TYPE_CLIENT,
     MSG_TYPE_MISC,
     MSG_TYPE_MOTD,
+    SC_ALWAYS,
   } from "../lib/protocol";
   import { getCpl } from "../lib/init";
   import { type MessageSpan, colorForNdi, parseMarkup } from "../lib/markup";
   import { gameEvents } from "../lib/events";
   import { MSG_BUFFER_MAX, MSG_BUFFER_TRIM } from "../lib/constants";
+  import { sendCommand } from "../lib/player";
 
   let { inputDisabled = false }: { inputDisabled?: boolean } = $props();
 
@@ -118,6 +120,8 @@
   const ALL_CATEGORY_IDS = new Set(CATEGORY_FILTERS.map((f) => f.id));
 
   let messages: Message[] = $state([]);
+  /** Currently active NPC dialog reply options.  Empty array = none shown. */
+  let dialogOptions: Array<{ key: string; value: string }> = $state([]);
   /**
    * When true, all messages are shown regardless of `enabledCategories`.
    * Starts true so the panel shows everything by default.
@@ -234,6 +238,17 @@
     });
   }
 
+  /**
+   * Handle a click on a dialog-option button.
+   * Sends the key as a "say" command, records the choice in the InfoPanel,
+   * and removes all option buttons.
+   */
+  function handleDialogOptionClick(key: string) {
+    sendCommand(`say ${key}`, 0, SC_ALWAYS);
+    addMessage(0, ` - ${key}`, MSG_TYPE_COMMUNICATION, null);
+    dialogOptions = [];
+  }
+
   onMount(() => {
     const cleanups = [
       gameEvents.on("drawInfo", (color, message) =>
@@ -245,6 +260,13 @@
       gameEvents.on("focusCommandInput", (prefill) => focusInput(prefill)),
       gameEvents.on("clearMessages", () => {
         messages = [];
+      }),
+      gameEvents.on("dialogOptions", (options) => {
+        dialogOptions = options;
+        scrollToBottom();
+      }),
+      gameEvents.on("clearDialogOptions", () => {
+        dialogOptions = [];
       }),
     ];
     return () => {
@@ -357,6 +379,9 @@
     historyIndex = -1;
     savedInput = "";
 
+    // Any user command dismisses pending dialog option buttons.
+    dialogOptions = [];
+
     extendedCommand(cmd);
     commandInput = "";
     blurInput();
@@ -400,6 +425,16 @@
         </div>
       {/each}
     </div>
+    {#if dialogOptions.length > 0}
+      <div class="dialog-options">
+        {#each dialogOptions as option}
+          <button
+            class="dialog-option-btn"
+            onclick={() => handleDialogOptionClick(option.key)}
+          >{option.value}</button>
+        {/each}
+      </div>
+    {/if}
     <div class="input-row" class:disabled={inputDisabled}>
       <input
         type="text"
@@ -525,6 +560,36 @@
   .input-row.disabled {
     opacity: 0.4;
     pointer-events: none;
+  }
+
+  /* ── Dialog option buttons ───────────────────────────────────── */
+
+  .dialog-options {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 4px 6px;
+    border-top: 1px solid var(--border);
+    background: var(--bg-panel);
+  }
+
+  .dialog-option-btn {
+    width: 100%;
+    padding: 0.3rem 0.6rem;
+    text-align: left;
+    border: 1px solid var(--border-mid);
+    border-radius: 3px;
+    background: #1e2a1e;
+    color: var(--text-bright);
+    cursor: pointer;
+    font-family: var(--mono);
+    font-size: 0.82rem;
+    border-left: none;
+  }
+
+  .dialog-option-btn:hover {
+    background: #2a3e2a;
+    border-color: #5a9a5a;
   }
 
   input {

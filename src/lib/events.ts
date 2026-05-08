@@ -107,6 +107,15 @@ export interface GameEventMap {
   /** Starting map choices from `replyinfo startingmap`. */
   startingMapReceived: [maps: StartingMapEntry[]];
 
+  // Dialog system events
+  /**
+   * Emitted when the server dialog system has collected one or more reply
+   * options.  The InfoPanel should render each option as a clickable button.
+   */
+  dialogOptions: [options: Array<{ key: string; value: string }>];
+  /** Emitted to clear any currently displayed dialog-option buttons. */
+  clearDialogOptions: [];
+
   // UI-internal events (component-to-component communication)
   /** Hiscore data received in response to a menu-triggered request. */
   hiscoreResult: [message: string];
