@@ -24,9 +24,9 @@ import { gameEvents } from "./events.js";
 // ── State machine ─────────────────────────────────────────────────────────────
 
 const enum DialogState {
-  Idle,        // No dialog in progress
+  Idle, // No dialog in progress
   AfterDialog, // Received MSG_TYPE_DIALOG, waiting for "Replies:"
-  Collecting,  // Got "Replies:", accumulating " - key: value" lines
+  Collecting, // Got "Replies:", accumulating " - key: value" lines
 }
 
 let state: DialogState = DialogState.Idle;
@@ -95,8 +95,8 @@ export function processDialogExtInfo(
     // Keys are expected to be simple identifiers (word characters and hyphens).
     const match = /^ - ([\w-]+): (.+)$/.exec(message);
     if (match) {
-      const [, key = "", value = ""] = match;
-      pendingOptions.push({ key, value });
+      // match[1] and match[2] are always defined when the regex matches.
+      pendingOptions.push({ key: match[1]!, value: match[2]! });
       return true; // Suppress option line from InfoPanel
     }
     // A communication line that doesn't match the option format ends collection.
