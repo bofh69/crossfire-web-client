@@ -3,7 +3,25 @@
  * Port of old/common/p_cmd.c (excluding script-related commands).
  */
 
-import { CommCat, LogLevel, type ConsoleCommand } from "./protocol";
+import {
+  CommCat,
+  LogLevel,
+  type ConsoleCommand,
+  NDI_BLACK,
+  NDI_WHITE,
+  NDI_NAVY,
+  NDI_RED,
+  NDI_ORANGE,
+  NDI_BLUE,
+  NDI_DK_ORANGE,
+  NDI_GREEN,
+  NDI_LT_GREEN,
+  NDI_GREY,
+  NDI_BROWN,
+  NDI_GOLD,
+  NDI_TAN,
+} from "./protocol";
+import { NDI_COLORS } from "./markup";
 import { LOG } from "./misc";
 import { sendCommand, setLastCommand } from "./player";
 import { resetBindings } from "./keys";
@@ -241,6 +259,31 @@ function debugPickAndLog(
   gameEvents.emit("debugPickTile", mode);
 }
 
+const NDI_COLOR_NAMES: Array<[number, string]> = [
+  [NDI_BLACK, "BLACK"],
+  [NDI_WHITE, "WHITE"],
+  [NDI_NAVY, "NAVY"],
+  [NDI_RED, "RED"],
+  [NDI_ORANGE, "ORANGE"],
+  [NDI_BLUE, "BLUE"],
+  [NDI_DK_ORANGE, "DK_ORANGE"],
+  [NDI_GREEN, "GREEN"],
+  [NDI_LT_GREEN, "LT_GREEN"],
+  [NDI_GREY, "GREY"],
+  [NDI_BROWN, "BROWN"],
+  [NDI_GOLD, "GOLD"],
+  [NDI_TAN, "TAN"],
+];
+
+function commandDebugColors(): void {
+  drawInfo("Message colors:");
+  for (const [ndi, name] of NDI_COLOR_NAMES) {
+    const hex = NDI_COLORS[ndi] ?? "#cccccc";
+    const hexCode = hex.slice(1); // strip '#'
+    drawInfo(`[color=${hexCode}]${name}: ${hex}[/color]`);
+  }
+}
+
 function commandDebug(args: string): void {
   const trimmed = args.trim();
   const spaceIdx = trimmed.indexOf(" ");
@@ -306,14 +349,18 @@ function commandDebug(args: string): void {
       LOG(LogLevel.Info, "debug", line);
     }
     drawInfo("Player virtual-map position logged to the browser console.");
+  } else if (sub === "colors") {
+    commandDebugColors();
   } else {
+    // Keep the subcommands sorted alphabetically
     drawInfo(
       "Usage: debug <subcommand>\n" +
         "Subcommands:\n" +
-        "  perf         Toggle performance logging on/off\n" +
         "  bigface      Click a tile to log bigface/multitile info\n" +
         "  bigfaces     Log all currently active bigface entries to the console\n" +
+        "  colors       Show all message colors with their names\n" +
         "  face <num>   Log all known data for face <num>, including pixel size\n" +
+        "  perf         Toggle performance logging on/off\n" +
         "  pos          Log the player's current position in the virtual map\n" +
         "  tile         Click a tile to log all tile info\n" +
         "  watch        Pick a tile to watch; logs all server updates to it (run again to stop)",
@@ -325,6 +372,7 @@ function commandDebug(args: string): void {
 // Command table
 // ---------------------------------------------------------------------------
 
+// Keep these commands sorted alphabetically by name
 const builtinCommands: ConsoleCommand[] = [
   {
     name: "bind",
@@ -342,6 +390,35 @@ const builtinCommands: ConsoleCommand[] = [
       "  bind cast fireball\n" +
       "    Opens the bind dialog with 'cast fireball' ready to be assigned.",
     handler: commandBind,
+  },
+  {
+    name: "clear",
+    category: CommCat.Misc,
+    description: "Clear the message panel",
+    handler: commandClear,
+  },
+  {
+    name: "debug",
+    category: CommCat.Debug,
+    description:
+      "Debugging tools (colors, perf, bigface, bigfaces, face, pos, tile, watch)",
+    longDescription:
+      "Syntax:\n" +
+      "  debug colors       Show all message colors with their names in the info panel\n" +
+      "  debug perf         Toggle periodic performance logging on/off\n" +
+      "  debug bigface      Click a tile to log bigface/multitile info to the console\n" +
+      "  debug bigfaces     Log all currently active bigface entries to the console\n" +
+      "  debug face <num>   Log all known data for face <num>, including pixel size,\n" +
+      "                     image URL, smooth face mapping, and any pending name/checksum\n" +
+      "  debug pos          Log the player's current position in the virtual map\n" +
+      "  debug tile         Click a tile to log all tile data to the console\n" +
+      "  debug watch        Click a tile to start watching; every server update to that\n" +
+      "                     cell is logged at info level.  Run again to stop watching.\n" +
+      "\n" +
+      "Performance logging is off by default.  The bigface, tile and watch\n" +
+      "subcommands prompt you to click on the game map; the data is\n" +
+      "written to the browser developer console at info level.",
+    handler: commandDebug,
   },
   {
     name: "gamepad_bind",
@@ -367,12 +444,6 @@ const builtinCommands: ConsoleCommand[] = [
     handler: commandHelp,
   },
   {
-    name: "clear",
-    category: CommCat.Misc,
-    description: "Clear the message panel",
-    handler: commandClear,
-  },
-  {
     name: "magicmap",
     category: CommCat.Misc,
     description: "Show last received magic map",
@@ -389,28 +460,6 @@ const builtinCommands: ConsoleCommand[] = [
     category: CommCat.Misc,
     description: "Take items from the ground",
     handler: commandTake,
-  },
-  {
-    name: "debug",
-    category: CommCat.Debug,
-    description:
-      "Debugging tools (perf, bigface, bigfaces, face, pos, tile, watch)",
-    longDescription:
-      "Syntax:\n" +
-      "  debug perf         Toggle periodic performance logging on/off\n" +
-      "  debug bigface      Click a tile to log bigface/multitile info to the console\n" +
-      "  debug bigfaces     Log all currently active bigface entries to the console\n" +
-      "  debug face <num>   Log all known data for face <num>, including pixel size,\n" +
-      "                     image URL, smooth face mapping, and any pending name/checksum\n" +
-      "  debug pos          Log the player's current position in the virtual map\n" +
-      "  debug tile         Click a tile to log all tile data to the console\n" +
-      "  debug watch        Click a tile to start watching; every server update to that\n" +
-      "                     cell is logged at info level.  Run again to stop watching.\n" +
-      "\n" +
-      "Performance logging is off by default.  The bigface, tile and watch\n" +
-      "subcommands prompt you to click on the game map; the data is\n" +
-      "written to the browser developer console at info level.",
-    handler: commandDebug,
   },
 ];
 
