@@ -753,7 +753,6 @@
 <div class="login-container">
   <h1>⚔ Welcome to Crossfire ⚔</h1>
   <h2>The Multiplayer Adventure Game</h2>
-
   {#if !connected}
     <div class="login-form">
       {#if !hideAddressInput}
@@ -777,6 +776,10 @@
     {#if errorMessage}
       <p class="error">{errorMessage}</p>
     {/if}
+    <p class="game-info">
+      Learn more about the game
+      <a href="https://crossfire.real-time.com/" target="_blank">here</a>.
+    </p>
   {:else}
     <div class="connected-layout">
       {#if serverInfoSections.length > 0}
@@ -1184,6 +1187,12 @@
     font-size: 1rem;
     margin-top: 0rem;
     margin-bottom: 1rem;
+  }
+
+  .game-info {
+    font-size: 0.9rem;
+    color: var(--text-warm-dim);
+    margin: 0;
   }
 
   .connected-layout {
