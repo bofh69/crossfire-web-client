@@ -43,10 +43,10 @@ export interface InfoLine {
 export const NDI_COLORS: Record<number, string> = {
   [NDI_BLACK]: "#cccccc", // Black on dark bg → light gray
   [NDI_WHITE]: "#ffffff",
-  [NDI_NAVY]: "#6060cc",
+  [NDI_NAVY]: "#8080ee",
   [NDI_RED]: "#ff4444",
   [NDI_ORANGE]: "#ff8800",
-  [NDI_BLUE]: "#4488ff",
+  [NDI_BLUE]: "#66aaff",
   [NDI_DK_ORANGE]: "#cc6600",
   [NDI_GREEN]: "#44cc44",
   [NDI_LT_GREEN]: "#88ff88",
