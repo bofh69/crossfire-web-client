@@ -53,19 +53,19 @@ export interface NdiColorDefinition {
 }
 
 export const NDI_COLOR_DEFINITIONS: NdiColorDefinition[] = [
-  { id: NDI_BLACK, name: "BLACK", defaultColor: "#cccccc" }, // Black on dark bg → light gray
-  { id: NDI_WHITE, name: "WHITE", defaultColor: "#ffffff" },
-  { id: NDI_NAVY, name: "NAVY", defaultColor: "#8080ee" },
-  { id: NDI_RED, name: "RED", defaultColor: "#ff4444" },
-  { id: NDI_ORANGE, name: "ORANGE", defaultColor: "#ff8800" },
-  { id: NDI_BLUE, name: "BLUE", defaultColor: "#66aaff" },
-  { id: NDI_DK_ORANGE, name: "DK_ORANGE", defaultColor: "#cc6600" },
-  { id: NDI_GREEN, name: "GREEN", defaultColor: "#44cc44" },
-  { id: NDI_LT_GREEN, name: "LT_GREEN", defaultColor: "#88ff88" },
-  { id: NDI_GREY, name: "GREY", defaultColor: "#999999" },
-  { id: NDI_BROWN, name: "BROWN", defaultColor: "#aa7744" },
-  { id: NDI_GOLD, name: "GOLD", defaultColor: "#ffcc00" },
-  { id: NDI_TAN, name: "TAN", defaultColor: "#ccaa88" },
+  { id: NDI_BLACK, name: "Black", defaultColor: "#cccccc" }, // Black on dark bg → light gray
+  { id: NDI_WHITE, name: "White", defaultColor: "#ffffff" },
+  { id: NDI_NAVY, name: "Navy", defaultColor: "#8080ee" },
+  { id: NDI_RED, name: "Red", defaultColor: "#ff4444" },
+  { id: NDI_ORANGE, name: "Orange", defaultColor: "#ff8800" },
+  { id: NDI_BLUE, name: "Blue", defaultColor: "#66aaff" },
+  { id: NDI_DK_ORANGE, name: "Dark Orange", defaultColor: "#cc6600" },
+  { id: NDI_GREEN, name: "Green", defaultColor: "#44cc44" },
+  { id: NDI_LT_GREEN, name: "Light Green", defaultColor: "#88ff88" },
+  { id: NDI_GREY, name: "Grey", defaultColor: "#999999" },
+  { id: NDI_BROWN, name: "Brown", defaultColor: "#aa7744" },
+  { id: NDI_GOLD, name: "Gold", defaultColor: "#ffcc00" },
+  { id: NDI_TAN, name: "Tan", defaultColor: "#ccaa88" },
 ];
 
 const DEFAULT_NDI_COLORS: Record<number, string> = Object.fromEntries(
