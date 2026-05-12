@@ -127,6 +127,8 @@ export interface GameEventMap {
   openKeyBind: [];
   /** Ask the MenuBar to start a "bind last command to gamepad button" flow. */
   openGamepadBind: [];
+  /** InfoPanel named colors or background changed. */
+  infoPanelColorsChanged: [];
   /** Hotbar slot data or gamepad-select state changed. */
   hotbarUpdate: [];
   /** Increase the tile zoom level by one step. */

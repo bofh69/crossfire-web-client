@@ -30,7 +30,12 @@
     SC_ALWAYS,
   } from "../lib/protocol";
   import { getCpl } from "../lib/init";
-  import { type MessageSpan, colorForNdi, parseMarkup } from "../lib/markup";
+  import {
+    type MessageSpan,
+    colorForNdi,
+    getInfoPanelBackgroundColor,
+    parseMarkup,
+  } from "../lib/markup";
   import { gameEvents } from "../lib/events";
   import { MSG_BUFFER_MAX, MSG_BUFFER_TRIM } from "../lib/constants";
   import { sendCommand } from "../lib/player";
@@ -142,6 +147,7 @@
   let historyIndex = $state(-1);
   // Current input saved before browsing so we can restore it on ArrowDown.
   let savedInput = $state("");
+  let infoPanelBackgroundColor = $state(getInfoPanelBackgroundColor());
 
   let displayMessages = $derived(
     showAll
@@ -272,6 +278,9 @@
       gameEvents.on("clearDialogOptions", () => {
         dialogOptions = [];
       }),
+      gameEvents.on("infoPanelColorsChanged", () => {
+        infoPanelBackgroundColor = getInfoPanelBackgroundColor();
+      }),
     ];
     return () => {
       for (const unsub of cleanups) unsub();
@@ -392,7 +401,7 @@
   }
 </script>
 
-<div class="info-panel">
+<div class="info-panel" style:--info-panel-bg={infoPanelBackgroundColor}>
   <div class="filter-sidebar">
     <button
       class="filter-btn"
@@ -457,10 +466,11 @@
 
 <style>
   .info-panel {
+    --resolved-info-panel-bg: var(--info-panel-bg, var(--bg-panel));
     display: flex;
     flex-direction: row;
     height: 100%;
-    background: var(--bg-panel);
+    background: var(--resolved-info-panel-bg);
     border: 1px solid var(--border);
   }
 
@@ -575,7 +585,7 @@
     gap: 2px;
     padding: 4px 6px;
     border-top: 1px solid var(--border);
-    background: var(--bg-panel);
+    background: var(--resolved-info-panel-bg);
   }
 
   .dialog-option-btn {
