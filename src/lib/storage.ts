@@ -6,6 +6,14 @@
 
 const STORAGE_PREFIX = "crossfire_";
 const DB_NAME = "crossfire_cache";
+const CONFIG_BACKUP_MAGIC = "crossfire-web-client-config-backup";
+const CONFIG_BACKUP_VERSION = 1;
+
+export interface ConfigBackupV1 {
+  magic: typeof CONFIG_BACKUP_MAGIC;
+  version: typeof CONFIG_BACKUP_VERSION;
+  values: Record<string, unknown>;
+}
 
 // ──────────────────────────────────────────────────────────────────────────────
 // localStorage helpers (configuration and keybindings)
@@ -34,6 +42,58 @@ export function loadConfig<T>(key: string, defaultValue: T): T {
   } catch {
     return defaultValue;
   }
+}
+
+export function exportConfigBackup(): ConfigBackupV1 {
+  const values: Record<string, unknown> = {};
+  const localStorageKeys = Object.keys(localStorage);
+  for (const fullKey of localStorageKeys) {
+    if (!fullKey.startsWith(STORAGE_PREFIX)) continue;
+    const key = fullKey.substring(STORAGE_PREFIX.length);
+    const raw = localStorage.getItem(fullKey);
+    if (raw === null) continue;
+    try {
+      values[key] = JSON.parse(raw) as unknown;
+    } catch {
+      values[key] = raw;
+    }
+  }
+  return {
+    magic: CONFIG_BACKUP_MAGIC,
+    version: CONFIG_BACKUP_VERSION,
+    values,
+  };
+}
+
+export function importConfigBackup(rawData: unknown): void {
+  if (!isConfigBackupV1(rawData)) {
+    throw new Error("Invalid configuration backup file.");
+  }
+
+  const keysToRemove: string[] = [];
+  const localStorageKeys = Object.keys(localStorage);
+  for (const key of localStorageKeys) {
+    if (key.startsWith(STORAGE_PREFIX)) {
+      keysToRemove.push(key);
+    }
+  }
+  for (const key of keysToRemove) {
+    localStorage.removeItem(key);
+  }
+
+  for (const [key, value] of Object.entries(rawData.values)) {
+    localStorage.setItem(STORAGE_PREFIX + key, JSON.stringify(value));
+  }
+}
+
+function isConfigBackupV1(data: unknown): data is ConfigBackupV1 {
+  if (!data || typeof data !== "object") return false;
+  const obj = data as Record<string, unknown>;
+  if (obj.magic !== CONFIG_BACKUP_MAGIC) return false;
+  if (obj.version !== CONFIG_BACKUP_VERSION) return false;
+  if (!obj.values || typeof obj.values !== "object") return false;
+  if (Array.isArray(obj.values)) return false;
+  return true;
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
