@@ -565,11 +565,17 @@
     appState = "login";
   }
 
+  function refreshHotbarVisibility() {
+    hotbarVisible =
+      getHotbarSlots().some((s) => s !== null) || isHotbarGamepadMode();
+  }
+
   function wireCallbacks() {
+    refreshHotbarVisibility();
+
     eventCleanups.push(
       gameEvents.on("hotbarUpdate", () => {
-        hotbarVisible =
-          getHotbarSlots().some((s) => s !== null) || isHotbarGamepadMode();
+        refreshHotbarVisibility();
       }),
 
       gameEvents.on("statsUpdate", (stats: Partial<Stats>) => {
