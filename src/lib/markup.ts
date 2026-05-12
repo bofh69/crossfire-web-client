@@ -24,6 +24,8 @@ import {
   NDI_GOLD,
   NDI_TAN,
 } from "./protocol";
+import { gameEvents } from "./events";
+import { loadConfig, saveConfig } from "./storage";
 
 export interface MessageSpan {
   text: string;
@@ -40,7 +42,7 @@ export interface InfoLine {
   spans: MessageSpan[];
 }
 
-export const NDI_COLORS: Record<number, string> = {
+const DEFAULT_NDI_COLORS: Record<number, string> = {
   [NDI_BLACK]: "#cccccc", // Black on dark bg → light gray
   [NDI_WHITE]: "#ffffff",
   [NDI_NAVY]: "#8080ee",
@@ -55,9 +57,208 @@ export const NDI_COLORS: Record<number, string> = {
   [NDI_GOLD]: "#ffcc00",
   [NDI_TAN]: "#ccaa88",
 };
+const DEFAULT_NDI_FALLBACK = "#cccccc";
 
+export const NDI_COLORS: Record<number, string> = { ...DEFAULT_NDI_COLORS };
+export const INFO_PANEL_BACKGROUND_DEFAULT = "#1a1a1a";
+
+export interface NdiColorDefinition {
+  id: number;
+  name: string;
+  defaultColor: string;
+}
+
+export const NDI_COLOR_DEFINITIONS: NdiColorDefinition[] = [
+  {
+    id: NDI_BLACK,
+    name: "NDI_BLACK",
+    defaultColor: DEFAULT_NDI_COLORS[NDI_BLACK]!,
+  },
+  {
+    id: NDI_WHITE,
+    name: "NDI_WHITE",
+    defaultColor: DEFAULT_NDI_COLORS[NDI_WHITE]!,
+  },
+  {
+    id: NDI_NAVY,
+    name: "NDI_NAVY",
+    defaultColor: DEFAULT_NDI_COLORS[NDI_NAVY]!,
+  },
+  { id: NDI_RED, name: "NDI_RED", defaultColor: DEFAULT_NDI_COLORS[NDI_RED]! },
+  {
+    id: NDI_ORANGE,
+    name: "NDI_ORANGE",
+    defaultColor: DEFAULT_NDI_COLORS[NDI_ORANGE]!,
+  },
+  {
+    id: NDI_BLUE,
+    name: "NDI_BLUE",
+    defaultColor: DEFAULT_NDI_COLORS[NDI_BLUE]!,
+  },
+  {
+    id: NDI_DK_ORANGE,
+    name: "NDI_DK_ORANGE",
+    defaultColor: DEFAULT_NDI_COLORS[NDI_DK_ORANGE]!,
+  },
+  {
+    id: NDI_GREEN,
+    name: "NDI_GREEN",
+    defaultColor: DEFAULT_NDI_COLORS[NDI_GREEN]!,
+  },
+  {
+    id: NDI_LT_GREEN,
+    name: "NDI_LT_GREEN",
+    defaultColor: DEFAULT_NDI_COLORS[NDI_LT_GREEN]!,
+  },
+  {
+    id: NDI_GREY,
+    name: "NDI_GREY",
+    defaultColor: DEFAULT_NDI_COLORS[NDI_GREY]!,
+  },
+  {
+    id: NDI_BROWN,
+    name: "NDI_BROWN",
+    defaultColor: DEFAULT_NDI_COLORS[NDI_BROWN]!,
+  },
+  {
+    id: NDI_GOLD,
+    name: "NDI_GOLD",
+    defaultColor: DEFAULT_NDI_COLORS[NDI_GOLD]!,
+  },
+  {
+    id: NDI_TAN,
+    name: "NDI_TAN",
+    defaultColor: DEFAULT_NDI_COLORS[NDI_TAN]!,
+  },
+];
+
+interface StoredInfoPanelColors {
+  background: string;
+  ndiColors: Record<string, string>;
+}
+
+const INFO_PANEL_COLOR_STORAGE_KEY = "info_panel_colors";
+let configuredNdiColors: Record<number, string> = { ...DEFAULT_NDI_COLORS };
+let configuredInfoPanelBackgroundColor = INFO_PANEL_BACKGROUND_DEFAULT;
+
+function normalizeHexColor(value: string, fallback: string): string {
+  const trimmed = value.trim();
+  if (/^#([0-9a-fA-F]{6})$/.test(trimmed)) {
+    return trimmed.toLowerCase();
+  }
+  if (/^[0-9a-fA-F]{6}$/.test(trimmed)) {
+    return `#${trimmed.toLowerCase()}`;
+  }
+  return fallback;
+}
+
+function applyInfoPanelColorCssVariables(): void {
+  if (typeof document === "undefined") return;
+  const root = document.documentElement;
+  for (const def of NDI_COLOR_DEFINITIONS) {
+    root.style.setProperty(
+      `--ndi-color-${def.id}`,
+      configuredNdiColors[def.id]!,
+    );
+  }
+  root.style.setProperty("--info-panel-bg", configuredInfoPanelBackgroundColor);
+}
+
+function persistInfoPanelColors(): void {
+  const ndiColors: Record<string, string> = {};
+  for (const def of NDI_COLOR_DEFINITIONS) {
+    ndiColors[String(def.id)] = configuredNdiColors[def.id]!;
+  }
+  saveConfig<StoredInfoPanelColors>(INFO_PANEL_COLOR_STORAGE_KEY, {
+    background: configuredInfoPanelBackgroundColor,
+    ndiColors,
+  });
+}
+
+function emitInfoPanelColorsChanged(): void {
+  gameEvents.emit("infoPanelColorsChanged");
+}
+
+function loadInfoPanelColorsFromStorage(): void {
+  if (typeof localStorage === "undefined") {
+    applyInfoPanelColorCssVariables();
+    return;
+  }
+  const stored = loadConfig<StoredInfoPanelColors | null>(
+    INFO_PANEL_COLOR_STORAGE_KEY,
+    null,
+  );
+  if (stored !== null && typeof stored === "object") {
+    configuredInfoPanelBackgroundColor = normalizeHexColor(
+      stored.background ?? INFO_PANEL_BACKGROUND_DEFAULT,
+      INFO_PANEL_BACKGROUND_DEFAULT,
+    );
+    const nextColors: Record<number, string> = { ...DEFAULT_NDI_COLORS };
+    for (const def of NDI_COLOR_DEFINITIONS) {
+      nextColors[def.id] = normalizeHexColor(
+        stored.ndiColors?.[String(def.id)] ?? def.defaultColor,
+        def.defaultColor,
+      );
+    }
+    configuredNdiColors = nextColors;
+  }
+  applyInfoPanelColorCssVariables();
+}
+
+loadInfoPanelColorsFromStorage();
+
+/**
+ * Returns a CSS variable reference for the configured NDI color, with a hex
+ * fallback.
+ */
 export function colorForNdi(ndi: number): string {
-  return NDI_COLORS[ndi] ?? "#cccccc";
+  const fallback = configuredNdiColors[ndi] ?? DEFAULT_NDI_FALLBACK;
+  return `var(--ndi-color-${ndi}, ${fallback})`;
+}
+
+export function getDefaultNdiColor(ndi: number): string {
+  return DEFAULT_NDI_COLORS[ndi] ?? DEFAULT_NDI_FALLBACK;
+}
+
+export function getInfoPanelBackgroundColor(): string {
+  return configuredInfoPanelBackgroundColor;
+}
+
+export function getConfiguredNdiColor(ndi: number): string {
+  return configuredNdiColors[ndi] ?? getDefaultNdiColor(ndi);
+}
+
+export function getConfiguredNdiColors(): Record<number, string> {
+  return { ...configuredNdiColors };
+}
+
+export function setInfoPanelColors(
+  background: string,
+  ndiColors: Record<number, string>,
+): void {
+  const nextColors: Record<number, string> = { ...DEFAULT_NDI_COLORS };
+  for (const def of NDI_COLOR_DEFINITIONS) {
+    nextColors[def.id] = normalizeHexColor(
+      ndiColors[def.id] ?? configuredNdiColors[def.id] ?? def.defaultColor,
+      def.defaultColor,
+    );
+  }
+  configuredInfoPanelBackgroundColor = normalizeHexColor(
+    background,
+    INFO_PANEL_BACKGROUND_DEFAULT,
+  );
+  configuredNdiColors = nextColors;
+  applyInfoPanelColorCssVariables();
+  persistInfoPanelColors();
+  emitInfoPanelColorsChanged();
+}
+
+export function resetInfoPanelColorsToDefaults(): void {
+  configuredNdiColors = { ...DEFAULT_NDI_COLORS };
+  configuredInfoPanelBackgroundColor = INFO_PANEL_BACKGROUND_DEFAULT;
+  applyInfoPanelColorCssVariables();
+  persistInfoPanelColors();
+  emitInfoPanelColorsChanged();
 }
 
 /**

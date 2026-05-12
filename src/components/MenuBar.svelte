@@ -17,6 +17,7 @@
   let pickupMenu: PickupMenu | undefined = $state();
   let keyboardMenu: KeyboardMenu | undefined = $state();
   let gamepadMenu: GamepadMenu | undefined = $state();
+  let configMenu: ConfigMenu | undefined = $state();
   let infoMenu: InfoMenu | undefined = $state();
 
   /** Milliseconds after the cursor leaves the menu-bar before the open dropdown closes. */
@@ -87,6 +88,7 @@
     return (
       (keyboardMenu?.isDialogActive() ?? false) ||
       (gamepadMenu?.isDialogActive() ?? false) ||
+      (configMenu?.isDialogActive() ?? false) ||
       (infoMenu?.isDialogActive() ?? false)
     );
   }
@@ -147,6 +149,7 @@
     onClose={closeMenu}
   />
   <ConfigMenu
+    bind:this={configMenu}
     fading={menuFading}
     isOpen={activeMenu === "config"}
     onToggle={() => toggleMenu("config")}
