@@ -8,6 +8,7 @@
   } from "../../lib/sound";
   import { gameEvents } from "../../lib/events";
   import { useConfig, wantConfig, saveCurrentConfig } from "../../lib/init";
+  import { exportConfigBackup, importConfigBackup } from "../../lib/storage";
   import {
     getConfiguredNdiColors,
     getDefaultNdiColor,
@@ -34,6 +35,9 @@
   let editableNdiColors = $state<Record<number, string>>({});
   let selectedColorTarget = $state("background");
   let selectedColorInput: HTMLInputElement | undefined = $state();
+  let restoreFileInput: HTMLInputElement | undefined = $state();
+  let showRestoreConfirmDialog = $state(false);
+  let pendingRestoreData: unknown = $state(null);
 
   function updateMusicVolume(event: Event) {
     const input = event.currentTarget as HTMLInputElement;
@@ -75,6 +79,81 @@
     onClose();
   }
 
+  function backupConfig() {
+    const backup = exportConfigBackup();
+    const blob = new Blob([JSON.stringify(backup, null, 2)], {
+      type: "application/json",
+    });
+    const formattedDateTime = new Date()
+      .toISOString()
+      .substring(0, 19)
+      .replace(/:/g, "-");
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `crossfire-config-backup-v${backup.version}-${formattedDateTime}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    onClose();
+  }
+
+  function restoreConfig() {
+    restoreFileInput?.click();
+    onClose();
+  }
+
+  async function handleRestoreFileSelected(event: Event) {
+    const input = event.currentTarget as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+
+    try {
+      const text = await file.text();
+      let parsed: unknown;
+      try {
+        parsed = JSON.parse(text) as unknown;
+      } catch {
+        throw new Error(
+          "The selected file is not a valid JSON configuration backup.",
+        );
+      }
+      pendingRestoreData = parsed;
+      showRestoreConfirmDialog = true;
+    } catch (error) {
+      showRestoreError(error);
+    } finally {
+      input.value = "";
+    }
+  }
+
+  function confirmRestoreConfig() {
+    if (pendingRestoreData === null || pendingRestoreData === undefined) {
+      showRestoreConfirmDialog = false;
+      return;
+    }
+    try {
+      importConfigBackup(pendingRestoreData);
+      window.location.reload();
+    } catch (error) {
+      showRestoreError(error);
+      pendingRestoreData = null;
+      showRestoreConfirmDialog = false;
+    }
+  }
+
+  function showRestoreError(error: unknown) {
+    const message =
+      error instanceof Error ? error.message : "Unknown restore error.";
+    alert(`Failed to restore configuration: ${message}`);
+  }
+
+  function cancelRestoreConfig() {
+    pendingRestoreData = null;
+    showRestoreConfirmDialog = false;
+  }
+
   async function openColorsDialog() {
     editableBackgroundColor = getInfoPanelBackgroundColor();
     editableNdiColors = getConfiguredNdiColors();
@@ -89,11 +168,15 @@
     showColorsDialog = false;
   }
 
-  function handleColorsDialogKeydown(event: KeyboardEvent) {
-    if (showColorsDialog && event.key === "Escape") {
+  function handleDialogKeydown(event: KeyboardEvent) {
+    if (
+      (showColorsDialog || showRestoreConfirmDialog) &&
+      event.key === "Escape"
+    ) {
       event.preventDefault();
       event.stopPropagation();
-      closeColorsDialog();
+      if (showColorsDialog) closeColorsDialog();
+      if (showRestoreConfirmDialog) cancelRestoreConfig();
     }
   }
 
@@ -176,11 +259,11 @@
 
   /** Returns true while the colors configuration dialog is open. */
   export function isDialogActive(): boolean {
-    return showColorsDialog;
+    return showColorsDialog || showRestoreConfirmDialog;
   }
 </script>
 
-<svelte:window onkeydown={handleColorsDialogKeydown} />
+<svelte:window onkeydown={handleDialogKeydown} />
 
 <div class="menu-item">
   <button
@@ -265,6 +348,28 @@
           handleZoomOut();
         }}>Zoom Out</button
       >
+      <div class="separator"></div>
+      <button
+        onclick={backupConfig}
+        oncontextmenu={(e) => {
+          e.preventDefault();
+          backupConfig();
+        }}>Backup Config…</button
+      >
+      <button
+        onclick={restoreConfig}
+        oncontextmenu={(e) => {
+          e.preventDefault();
+          restoreConfig();
+        }}>Restore Config…</button
+      >
+      <input
+        type="file"
+        accept="application/json,.json"
+        bind:this={restoreFileInput}
+        onchange={handleRestoreFileSelected}
+        style="display: none"
+      />
     </div>
   {/if}
 </div>
@@ -321,6 +426,23 @@
         >
         <button onclick={saveColors} class="btn-primary">Save</button>
         <button onclick={closeColorsDialog}>Cancel</button>
+      </div>
+    </div>
+  </div>
+{/if}
+
+{#if showRestoreConfirmDialog}
+  <div class="dialog-overlay">
+    <div class="dialog">
+      <p class="dialog-title">Restore Config</p>
+      <p class="dialog-prompt">
+        Replace all saved configuration with the selected backup file?
+      </p>
+      <div class="dialog-buttons">
+        <button class="btn-primary" onclick={confirmRestoreConfig}
+          >Restore</button
+        >
+        <button onclick={cancelRestoreConfig}>Cancel</button>
       </div>
     </div>
   </div>
