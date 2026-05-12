@@ -3,25 +3,8 @@
  * Port of old/common/p_cmd.c (excluding script-related commands).
  */
 
-import {
-  CommCat,
-  LogLevel,
-  type ConsoleCommand,
-  NDI_BLACK,
-  NDI_WHITE,
-  NDI_NAVY,
-  NDI_RED,
-  NDI_ORANGE,
-  NDI_BLUE,
-  NDI_DK_ORANGE,
-  NDI_GREEN,
-  NDI_LT_GREEN,
-  NDI_GREY,
-  NDI_BROWN,
-  NDI_GOLD,
-  NDI_TAN,
-} from "./protocol";
-import { NDI_COLORS } from "./markup";
+import { CommCat, LogLevel, type ConsoleCommand } from "./protocol";
+import { NDI_COLOR_DEFINITIONS, NDI_COLORS } from "./markup";
 import { LOG } from "./misc";
 import { sendCommand, setLastCommand } from "./player";
 import { resetBindings } from "./keys";
@@ -259,28 +242,12 @@ function debugPickAndLog(
   gameEvents.emit("debugPickTile", mode);
 }
 
-const NDI_COLOR_NAMES: Array<[number, string]> = [
-  [NDI_BLACK, "BLACK"],
-  [NDI_WHITE, "WHITE"],
-  [NDI_NAVY, "NAVY"],
-  [NDI_RED, "RED"],
-  [NDI_ORANGE, "ORANGE"],
-  [NDI_BLUE, "BLUE"],
-  [NDI_DK_ORANGE, "DK_ORANGE"],
-  [NDI_GREEN, "GREEN"],
-  [NDI_LT_GREEN, "LT_GREEN"],
-  [NDI_GREY, "GREY"],
-  [NDI_BROWN, "BROWN"],
-  [NDI_GOLD, "GOLD"],
-  [NDI_TAN, "TAN"],
-];
-
 function commandDebugColors(): void {
   drawInfo("Message colors:");
-  for (const [ndi, name] of NDI_COLOR_NAMES) {
-    const hex = NDI_COLORS[ndi] ?? "#cccccc";
+  for (const def of NDI_COLOR_DEFINITIONS) {
+    const hex = NDI_COLORS[def.id] ?? "#cccccc";
     const hexCode = hex.slice(1); // strip '#'
-    drawInfo(`[color=${hexCode}]${name}: ${hex}[/color]`);
+    drawInfo(`[color=${hexCode}]${def.name}: ${hex}[/color]`);
   }
 }
 

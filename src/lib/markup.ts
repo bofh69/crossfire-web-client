@@ -42,24 +42,8 @@ export interface InfoLine {
   spans: MessageSpan[];
 }
 
-const DEFAULT_NDI_COLORS: Record<number, string> = {
-  [NDI_BLACK]: "#cccccc", // Black on dark bg → light gray
-  [NDI_WHITE]: "#ffffff",
-  [NDI_NAVY]: "#8080ee",
-  [NDI_RED]: "#ff4444",
-  [NDI_ORANGE]: "#ff8800",
-  [NDI_BLUE]: "#66aaff",
-  [NDI_DK_ORANGE]: "#cc6600",
-  [NDI_GREEN]: "#44cc44",
-  [NDI_LT_GREEN]: "#88ff88",
-  [NDI_GREY]: "#999999",
-  [NDI_BROWN]: "#aa7744",
-  [NDI_GOLD]: "#ffcc00",
-  [NDI_TAN]: "#ccaa88",
-};
 const DEFAULT_NDI_FALLBACK = "#cccccc";
 
-export const NDI_COLORS: Record<number, string> = { ...DEFAULT_NDI_COLORS };
 export const INFO_PANEL_BACKGROUND_DEFAULT = "#1a1a1a";
 
 export interface NdiColorDefinition {
@@ -69,68 +53,26 @@ export interface NdiColorDefinition {
 }
 
 export const NDI_COLOR_DEFINITIONS: NdiColorDefinition[] = [
-  {
-    id: NDI_BLACK,
-    name: "NDI_BLACK",
-    defaultColor: DEFAULT_NDI_COLORS[NDI_BLACK]!,
-  },
-  {
-    id: NDI_WHITE,
-    name: "NDI_WHITE",
-    defaultColor: DEFAULT_NDI_COLORS[NDI_WHITE]!,
-  },
-  {
-    id: NDI_NAVY,
-    name: "NDI_NAVY",
-    defaultColor: DEFAULT_NDI_COLORS[NDI_NAVY]!,
-  },
-  { id: NDI_RED, name: "NDI_RED", defaultColor: DEFAULT_NDI_COLORS[NDI_RED]! },
-  {
-    id: NDI_ORANGE,
-    name: "NDI_ORANGE",
-    defaultColor: DEFAULT_NDI_COLORS[NDI_ORANGE]!,
-  },
-  {
-    id: NDI_BLUE,
-    name: "NDI_BLUE",
-    defaultColor: DEFAULT_NDI_COLORS[NDI_BLUE]!,
-  },
-  {
-    id: NDI_DK_ORANGE,
-    name: "NDI_DK_ORANGE",
-    defaultColor: DEFAULT_NDI_COLORS[NDI_DK_ORANGE]!,
-  },
-  {
-    id: NDI_GREEN,
-    name: "NDI_GREEN",
-    defaultColor: DEFAULT_NDI_COLORS[NDI_GREEN]!,
-  },
-  {
-    id: NDI_LT_GREEN,
-    name: "NDI_LT_GREEN",
-    defaultColor: DEFAULT_NDI_COLORS[NDI_LT_GREEN]!,
-  },
-  {
-    id: NDI_GREY,
-    name: "NDI_GREY",
-    defaultColor: DEFAULT_NDI_COLORS[NDI_GREY]!,
-  },
-  {
-    id: NDI_BROWN,
-    name: "NDI_BROWN",
-    defaultColor: DEFAULT_NDI_COLORS[NDI_BROWN]!,
-  },
-  {
-    id: NDI_GOLD,
-    name: "NDI_GOLD",
-    defaultColor: DEFAULT_NDI_COLORS[NDI_GOLD]!,
-  },
-  {
-    id: NDI_TAN,
-    name: "NDI_TAN",
-    defaultColor: DEFAULT_NDI_COLORS[NDI_TAN]!,
-  },
+  { id: NDI_BLACK, name: "BLACK", defaultColor: "#cccccc" }, // Black on dark bg → light gray
+  { id: NDI_WHITE, name: "WHITE", defaultColor: "#ffffff" },
+  { id: NDI_NAVY, name: "NAVY", defaultColor: "#8080ee" },
+  { id: NDI_RED, name: "RED", defaultColor: "#ff4444" },
+  { id: NDI_ORANGE, name: "ORANGE", defaultColor: "#ff8800" },
+  { id: NDI_BLUE, name: "BLUE", defaultColor: "#66aaff" },
+  { id: NDI_DK_ORANGE, name: "DK_ORANGE", defaultColor: "#cc6600" },
+  { id: NDI_GREEN, name: "GREEN", defaultColor: "#44cc44" },
+  { id: NDI_LT_GREEN, name: "LT_GREEN", defaultColor: "#88ff88" },
+  { id: NDI_GREY, name: "GREY", defaultColor: "#999999" },
+  { id: NDI_BROWN, name: "BROWN", defaultColor: "#aa7744" },
+  { id: NDI_GOLD, name: "GOLD", defaultColor: "#ffcc00" },
+  { id: NDI_TAN, name: "TAN", defaultColor: "#ccaa88" },
 ];
+
+const DEFAULT_NDI_COLORS: Record<number, string> = Object.fromEntries(
+  NDI_COLOR_DEFINITIONS.map((def) => [def.id, def.defaultColor]),
+);
+
+export const NDI_COLORS: Record<number, string> = { ...DEFAULT_NDI_COLORS };
 
 interface StoredInfoPanelColors {
   background: string;
@@ -158,7 +100,7 @@ function applyInfoPanelColorCssVariables(): void {
   for (const def of NDI_COLOR_DEFINITIONS) {
     root.style.setProperty(
       `--ndi-color-${def.id}`,
-      configuredNdiColors[def.id]!,
+      configuredNdiColors[def.id] ?? def.defaultColor,
     );
   }
   root.style.setProperty("--info-panel-bg", configuredInfoPanelBackgroundColor);
@@ -167,7 +109,7 @@ function applyInfoPanelColorCssVariables(): void {
 function persistInfoPanelColors(): void {
   const ndiColors: Record<string, string> = {};
   for (const def of NDI_COLOR_DEFINITIONS) {
-    ndiColors[String(def.id)] = configuredNdiColors[def.id]!;
+    ndiColors[String(def.id)] = configuredNdiColors[def.id] ?? def.defaultColor;
   }
   saveConfig<StoredInfoPanelColors>(INFO_PANEL_COLOR_STORAGE_KEY, {
     background: configuredInfoPanelBackgroundColor,

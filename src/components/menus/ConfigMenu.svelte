@@ -122,10 +122,6 @@
     };
   }
 
-  function formatNdiColorName(name: string): string {
-    return name.replace(/^NDI_/, "");
-  }
-
   function getSelectedNdiId(): number | null {
     if (!selectedColorTarget.startsWith("ndi:")) return null;
     return Number(selectedColorTarget.substring(4));
@@ -145,7 +141,7 @@
     const def = NDI_COLOR_DEFINITIONS.find(
       (entry) => entry.id === selectedNdiId,
     );
-    return formatNdiColorName(def?.name ?? "UNKNOWN");
+    return def?.name ?? "UNKNOWN";
   }
 
   function getSelectedExampleTextColor(): string {
@@ -283,9 +279,7 @@
         <select id="color-target" bind:value={selectedColorTarget}>
           <option value="background">Background</option>
           {#each NDI_COLOR_DEFINITIONS as def}
-            <option value={`ndi:${def.id}`}
-              >{formatNdiColorName(def.name)}</option
-            >
+            <option value={`ndi:${def.id}`}>{def.name}</option>
           {/each}
         </select>
         <input
@@ -312,7 +306,7 @@
             <span
               class="preview-name"
               style:color={editableNdiColors[def.id] ?? def.defaultColor}
-              >{formatNdiColorName(def.name)}</span
+              >{def.name}</span
             >
             <span style:color={editableNdiColors[def.id] ?? def.defaultColor}
               >The quick brown fox jumps over the lazy dragon.</span
