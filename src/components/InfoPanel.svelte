@@ -25,6 +25,7 @@
     MSG_TYPE_ADMIN,
     MSG_TYPE_COMMAND,
     MSG_TYPE_CLIENT,
+    MSG_TYPE_CLIENT_NOTICE,
     MSG_TYPE_MISC,
     MSG_TYPE_MOTD,
     SC_ALWAYS,
@@ -359,6 +360,7 @@
     view: PanelViewId,
   ) {
     e.preventDefault();
+    console.log(message);
     contextMenu = { x: e.clientX - 8, y: e.clientY - 8, message, view };
   }
 
@@ -468,7 +470,7 @@
   onMount(() => {
     const cleanups = [
       gameEvents.on("drawInfo", (color, message) =>
-        addMessage(color, message, null, null),
+        addMessage(color, message, MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE),
       ),
       gameEvents.on("drawExtInfo", (color, type, subtype, message) =>
         addMessage(color, message, type, subtype),
