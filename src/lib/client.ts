@@ -6,11 +6,7 @@
 
 import { VERSION_CS, VERSION_SC, LogLevel } from "./protocol";
 import { CrossfireSocket, SockList } from "./newsocket";
-import {
-  dispatchPacket,
-  setSocket as setCommandsSocket,
-  clearNotifications,
-} from "./commands";
+import { dispatchPacket, clearNotifications } from "./commands";
 import { notifyMapsizeSent } from "./cmd_map";
 import { gameEvents } from "./events";
 import { wantConfig, useConfig } from "./init";
@@ -19,6 +15,7 @@ import { setCSocket as setItemSocket } from "./item";
 import { LOG } from "./misc";
 
 let csocket: CrossfireSocket | null = null;
+const textEncoder = new TextEncoder();
 
 // ── Heartbeat ─────────────────────────────────────────────────────────────────
 
@@ -126,7 +123,6 @@ export async function clientConnect(
   csocket = sock;
 
   // Propagate the socket to the other modules.
-  setCommandsSocket(sock);
   setPlayerSocket(sock);
   setItemSocket(sock);
 
@@ -217,6 +213,12 @@ export function clientNegotiate(): void {
 
 // ── Account-based login commands (loginmethod >= 1) ─────────────────────────
 
+function addLengthPrefixedString(sl: SockList, value: string): void {
+  const valueBytes = textEncoder.encode(value);
+  sl.addChar(valueBytes.length);
+  sl.addString(value);
+}
+
 /**
  * Build and send a length-prefixed string pair used by accountlogin and
  * accountnew packets.  Each string is preceded by a single byte giving its
@@ -228,13 +230,9 @@ function buildAccountAuthPacket(
   password: string,
 ): SockList {
   const sl = new SockList();
-  const nameBytes = new TextEncoder().encode(name);
-  const pwBytes = new TextEncoder().encode(password);
   sl.addString(`${command} `);
-  sl.addChar(nameBytes.length);
-  sl.addString(name);
-  sl.addChar(pwBytes.length);
-  sl.addString(password);
+  addLengthPrefixedString(sl, name);
+  addLengthPrefixedString(sl, password);
   return sl;
 }
 
@@ -286,15 +284,10 @@ export function sendAccountAddPlayer(
 ): void {
   if (!csocket) return;
   const sl = new SockList();
-  const enc = new TextEncoder();
   sl.addString("accountaddplayer ");
   sl.addChar(force);
-  const nameBytes = enc.encode(charName);
-  sl.addChar(nameBytes.length);
-  sl.addString(charName);
-  const pwBytes = enc.encode(charPassword);
-  sl.addChar(pwBytes.length);
-  sl.addString(charPassword);
+  addLengthPrefixedString(sl, charName);
+  addLengthPrefixedString(sl, charPassword);
   csocket.send(sl);
 }
 
@@ -359,7 +352,7 @@ export function sendCreatePlayer(
   if (!csocket) return;
 
   const sl = new SockList();
-  const enc = new TextEncoder();
+  const enc = textEncoder;
 
   sl.addString("createplayer ");
 

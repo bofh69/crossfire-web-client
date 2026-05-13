@@ -20,9 +20,8 @@ import {
   SC_ALWAYS,
 } from "./protocol.js";
 
-import { getStringFromData, CrossfireSocket } from "./newsocket.js";
+import { getStringFromData } from "./newsocket.js";
 import { BinaryReader } from "./binary_reader.js";
-import { setCSocket as setItemSocket } from "./item.js";
 import {
   getImageInfo,
   getImageSums,
@@ -106,6 +105,8 @@ import {
   notifyNonDrawExtInfoCommand,
 } from "./cmd_dialog.js";
 
+const textDecoder = new TextDecoder();
+
 // ── Hiscore menu tracking ──────────────────────────────────────────────────
 
 /**
@@ -144,12 +145,6 @@ export function cancelPendingMenuHiscore(): void {
   hiscoreBuffer = [];
 }
 
-// ── Socket management ──────────────────────────────────────────────────────
-
-export function setSocket(sock: CrossfireSocket): void {
-  setItemSocket(sock);
-}
-
 // ── Small / protocol-level handlers (kept here) ────────────────────────────
 
 function DrawInfoCmd(data: string): void {
@@ -171,14 +166,14 @@ function shouldBufferHiscoreMessage(type: number, subtype: number): boolean {
 }
 
 function DrawExtInfoCmd(data: string): void {
-  const s1 = data.indexOf(" ");
-  const s2 = s1 >= 0 ? data.indexOf(" ", s1 + 1) : -1;
-  const s3 = s2 >= 0 ? data.indexOf(" ", s2 + 1) : -1;
-  if (s2 < 0) return;
+  const firstSpace = data.indexOf(" ");
+  const secondSpace = firstSpace >= 0 ? data.indexOf(" ", firstSpace + 1) : -1;
+  const thirdSpace = secondSpace >= 0 ? data.indexOf(" ", secondSpace + 1) : -1;
+  if (secondSpace < 0) return;
   const color = parseInt(data);
-  const type = parseInt(data.substring(s1 + 1));
-  const subtype = parseInt(data.substring(s2 + 1));
-  const message = s3 >= 0 ? data.substring(s3 + 1) : "";
+  const type = parseInt(data.substring(firstSpace + 1));
+  const subtype = parseInt(data.substring(secondSpace + 1));
+  const message = thirdSpace >= 0 ? data.substring(thirdSpace + 1) : "";
   if (maybeCaptureMapinfoExtInfo(color, type, subtype, message)) {
     // Captured for mapinfo comc processing — not forwarded to InfoPanel yet.
     return;
@@ -268,7 +263,6 @@ function FailureCmd(data: string): void {
 function AccountPlayersCmd(data: DataView, len: number): void {
   const bytes = new Uint8Array(data.buffer, data.byteOffset, len);
   const players: AccountPlayer[] = [];
-  const decoder = new TextDecoder();
 
   // ACL_ type constants (from old/common/shared/newclient.h)
   const ACL_NAME = 1;
@@ -280,30 +274,27 @@ function AccountPlayersCmd(data: DataView, len: number): void {
   const ACL_MAP = 7;
   const ACL_FACE_NUM = 8;
 
+  const newRecord = (): AccountPlayer => ({
+    name: "",
+    charClass: "",
+    race: "",
+    face: "",
+    party: "",
+    map: "",
+    level: 0,
+    faceNum: 0,
+  });
+
   // byte 0 is the number of characters; skip it and start reading fields.
   let pos = 1;
-  let name = "",
-    charClass = "",
-    race = "",
-    face = "",
-    party = "",
-    map = "";
-  let level = 0,
-    faceNum = 0;
+  let record = newRecord();
 
   while (pos < len) {
     const flen = bytes[pos]!;
     if (flen === 0) {
       // End of this character's data — emit the accumulated record.
-      players.push({ name, charClass, race, face, party, map, level, faceNum });
-      name = "";
-      charClass = "";
-      race = "";
-      face = "";
-      party = "";
-      map = "";
-      level = 0;
-      faceNum = 0;
+      players.push(record);
+      record = newRecord();
       pos++;
       continue;
     }
@@ -323,31 +314,31 @@ function AccountPlayersCmd(data: DataView, len: number): void {
       );
       switch (fieldType) {
         case ACL_LEVEL:
-          level = fieldDv.getInt16(0, false);
+          record.level = fieldDv.getInt16(0, false);
           break;
         case ACL_FACE_NUM:
-          faceNum = fieldDv.getUint16(0, false);
+          record.faceNum = fieldDv.getUint16(0, false);
           break;
       }
     }
     switch (fieldType) {
       case ACL_NAME:
-        name = decoder.decode(fieldValue);
+        record.name = textDecoder.decode(fieldValue);
         break;
       case ACL_CLASS:
-        charClass = decoder.decode(fieldValue);
+        record.charClass = textDecoder.decode(fieldValue);
         break;
       case ACL_RACE:
-        race = decoder.decode(fieldValue);
+        record.race = textDecoder.decode(fieldValue);
         break;
       case ACL_FACE:
-        face = decoder.decode(fieldValue);
+        record.face = textDecoder.decode(fieldValue);
         break;
       case ACL_PARTY:
-        party = decoder.decode(fieldValue);
+        record.party = textDecoder.decode(fieldValue);
         break;
       case ACL_MAP:
-        map = decoder.decode(fieldValue);
+        record.map = textDecoder.decode(fieldValue);
         break;
     }
     pos += flen;
@@ -369,107 +360,148 @@ function VersionCmd(data: string): void {
   gameEvents.emit("version", csVer, scVer, verStr);
 }
 
+type ReplyInfoHandler = (payload: Uint8Array, infoType: string) => void;
+const ASCII_SPACE = 32;
+const ASCII_NEWLINE = 10;
+
+function handleSkillInfo(payload: Uint8Array): void {
+  const text = textDecoder.decode(payload);
+  for (const line of text.split("\n")) {
+    const colonIdx = line.indexOf(":");
+    if (colonIdx < 0) continue;
+    const statNum = parseInt(line.substring(0, colonIdx));
+    const name = line.substring(colonIdx + 1).trim();
+    const idx = statNum - CS_STAT_SKILLINFO;
+    if (idx >= 0 && idx < CS_NUM_SKILLS && name.length > 0) {
+      skillNames[idx] = name;
+    }
+  }
+  gameEvents.emit("statsUpdate", playerStats);
+}
+
+function handleSkillExtra(payload: Uint8Array): void {
+  // Binary format: repeated { uint16 skill_number, uint16 desc_len, string desc }
+  // terminated by skill_number == 0
+  const dv = new DataView(
+    payload.buffer,
+    payload.byteOffset,
+    payload.byteLength,
+  );
+  let pos = 0;
+  while (pos + 2 <= payload.length) {
+    const skillNum = dv.getUint16(pos, false);
+    pos += 2;
+    if (skillNum === 0) break;
+    if (pos + 2 > payload.length) break;
+    const descLen = dv.getUint16(pos, false);
+    pos += 2;
+    if (pos + descLen > payload.length) break;
+    const desc = textDecoder.decode(payload.subarray(pos, pos + descLen));
+    pos += descLen;
+    const idx = skillNum - CS_STAT_SKILLINFO;
+    if (idx >= 0 && idx < CS_NUM_SKILLS) {
+      skillDescriptions[idx] = desc;
+    }
+  }
+  gameEvents.emit("statsUpdate", playerStats);
+}
+
+function handleExpTable(payload: Uint8Array): void {
+  if (payload.length < 2) return;
+  const dv = new DataView(
+    payload.buffer,
+    payload.byteOffset,
+    payload.byteLength,
+  );
+  const maxLevel = dv.getUint16(0, false);
+  expTable.length = 0;
+  expTable.push(BigInt(0));
+  for (let level = 1; level <= maxLevel; level++) {
+    const pos = 2 + (level - 1) * 8;
+    if (pos + 8 > payload.length) break;
+    expTable.push(dv.getBigInt64(pos, false));
+  }
+}
+
+function handleReplyInfoText(payload: Uint8Array, infoType: string): void {
+  gameEvents.emit("replyInfo", infoType, textDecoder.decode(payload));
+}
+
+const replyInfoHandlers = new Map<string, ReplyInfoHandler>([
+  ["image_info", (payload) => getImageInfo(payload, payload.length)],
+  [
+    "image_sums",
+    (payload) =>
+      getImageSums(
+        getStringFromData(payload, 0, payload.length),
+        payload.length,
+      ),
+  ],
+  ["skill_info", handleSkillInfo],
+  ["skill_extra", handleSkillExtra],
+  ["exp_table", handleExpTable],
+  ["motd", handleReplyInfoText],
+  ["news", handleReplyInfoText],
+  ["rules", handleReplyInfoText],
+  [
+    "knowledge_info",
+    (payload) => parseKnowledgeInfo(textDecoder.decode(payload)),
+  ],
+  [
+    "race_list",
+    (payload) =>
+      gameEvents.emit(
+        "raceListReceived",
+        parseRaceClassList(textDecoder.decode(payload)),
+      ),
+  ],
+  [
+    "class_list",
+    (payload) =>
+      gameEvents.emit(
+        "classListReceived",
+        parseRaceClassList(textDecoder.decode(payload)),
+      ),
+  ],
+  [
+    "race_info",
+    (payload) =>
+      gameEvents.emit("raceInfoReceived", parseRaceClassInfo(payload)),
+  ],
+  [
+    "class_info",
+    (payload) =>
+      gameEvents.emit("classInfoReceived", parseRaceClassInfo(payload)),
+  ],
+  [
+    "newcharinfo",
+    (payload) =>
+      gameEvents.emit("newCharInfoReceived", parseNewCharInfo(payload)),
+  ],
+  [
+    "startingmap",
+    (payload) =>
+      gameEvents.emit("startingMapReceived", parseStartingMapInfo(payload)),
+  ],
+]);
+
+function findInfoTypeSeparator(bytes: Uint8Array): number {
+  for (let i = 0; i < bytes.length; i++) {
+    if (bytes[i] === ASCII_SPACE || bytes[i] === ASCII_NEWLINE) {
+      return i;
+    }
+  }
+  return -1;
+}
+
 function ReplyInfoCmd(data: DataView, len: number): void {
   const bytes = new Uint8Array(data.buffer, data.byteOffset, len);
-  let spaceIdx = -1;
-  for (let i = 0; i < len; i++) {
-    if (bytes[i] === 32 || bytes[i] === 10) {
-      spaceIdx = i;
-      break;
-    }
-  }
-  if (spaceIdx < 0) return;
-  const infoType = getStringFromData(bytes, 0, spaceIdx);
+  const separatorIdx = findInfoTypeSeparator(bytes);
+  if (separatorIdx < 0) return;
 
-  if (infoType === "image_info") {
-    getImageInfo(bytes.subarray(spaceIdx + 1), len - spaceIdx - 1);
-  } else if (infoType === "image_sums") {
-    const sumsData = getStringFromData(bytes, spaceIdx + 1, len - spaceIdx - 1);
-    getImageSums(sumsData, len - spaceIdx - 1);
-  } else if (infoType === "skill_info") {
-    const text = new TextDecoder().decode(bytes.subarray(spaceIdx + 1));
-    for (const line of text.split("\n")) {
-      const colonIdx = line.indexOf(":");
-      if (colonIdx < 0) continue;
-      const statNum = parseInt(line.substring(0, colonIdx));
-      const name = line.substring(colonIdx + 1).trim();
-      const idx = statNum - CS_STAT_SKILLINFO;
-      if (idx >= 0 && idx < CS_NUM_SKILLS && name.length > 0) {
-        skillNames[idx] = name;
-      }
-    }
-    gameEvents.emit("statsUpdate", playerStats);
-  } else if (infoType === "skill_extra") {
-    // Binary format: repeated { uint16 skill_number, uint16 desc_len, string desc }
-    // terminated by skill_number == 0
-    const rest = bytes.subarray(spaceIdx + 1);
-    const dv = new DataView(rest.buffer, rest.byteOffset, rest.byteLength);
-    let pos = 0;
-    while (pos + 2 <= rest.length) {
-      const skillNum = dv.getUint16(pos, false);
-      pos += 2;
-      if (skillNum === 0) break;
-      if (pos + 2 > rest.length) break;
-      const descLen = dv.getUint16(pos, false);
-      pos += 2;
-      if (pos + descLen > rest.length) break;
-      const desc = new TextDecoder().decode(rest.subarray(pos, pos + descLen));
-      pos += descLen;
-      const idx = skillNum - CS_STAT_SKILLINFO;
-      if (idx >= 0 && idx < CS_NUM_SKILLS) {
-        skillDescriptions[idx] = desc;
-      }
-    }
-    gameEvents.emit("statsUpdate", playerStats);
-  } else if (infoType === "exp_table") {
-    const rest = bytes.subarray(spaceIdx + 1);
-    if (rest.length < 2) return;
-    const dv = new DataView(rest.buffer, rest.byteOffset, rest.byteLength);
-    const maxLevel = dv.getUint16(0, false);
-    expTable.length = 0;
-    expTable.push(BigInt(0));
-    for (let level = 1; level <= maxLevel; level++) {
-      const pos = 2 + (level - 1) * 8;
-      if (pos + 8 > rest.length) break;
-      expTable.push(dv.getBigInt64(pos, false));
-    }
-  } else if (
-    infoType === "motd" ||
-    infoType === "news" ||
-    infoType === "rules"
-  ) {
-    const text = new TextDecoder().decode(bytes.subarray(spaceIdx + 1));
-    gameEvents.emit("replyInfo", infoType, text);
-  } else if (infoType === "knowledge_info") {
-    const text = new TextDecoder().decode(bytes.subarray(spaceIdx + 1));
-    parseKnowledgeInfo(text);
-  } else if (infoType === "race_list") {
-    const text = new TextDecoder().decode(bytes.subarray(spaceIdx + 1));
-    gameEvents.emit("raceListReceived", parseRaceClassList(text));
-  } else if (infoType === "class_list") {
-    const text = new TextDecoder().decode(bytes.subarray(spaceIdx + 1));
-    gameEvents.emit("classListReceived", parseRaceClassList(text));
-  } else if (infoType === "race_info") {
-    gameEvents.emit(
-      "raceInfoReceived",
-      parseRaceClassInfo(bytes.subarray(spaceIdx + 1)),
-    );
-  } else if (infoType === "class_info") {
-    gameEvents.emit(
-      "classInfoReceived",
-      parseRaceClassInfo(bytes.subarray(spaceIdx + 1)),
-    );
-  } else if (infoType === "newcharinfo") {
-    gameEvents.emit(
-      "newCharInfoReceived",
-      parseNewCharInfo(bytes.subarray(spaceIdx + 1)),
-    );
-  } else if (infoType === "startingmap") {
-    gameEvents.emit(
-      "startingMapReceived",
-      parseStartingMapInfo(bytes.subarray(spaceIdx + 1)),
-    );
-  }
+  const infoType = getStringFromData(bytes, 0, separatorIdx);
+  const payload = bytes.subarray(separatorIdx + 1);
+  replyInfoHandlers.get(infoType)?.(payload, infoType);
   LOG(LogLevel.Debug, "ReplyInfoCmd", `Info type: ${infoType}`);
 }
 
@@ -554,7 +586,7 @@ export function dispatchPacket(packet: ArrayBuffer): void {
   let spaceIdx = bytes.indexOf(32);
   if (spaceIdx < 0) spaceIdx = bytes.length;
 
-  const cmdName = new TextDecoder().decode(bytes.subarray(0, spaceIdx));
+  const cmdName = textDecoder.decode(bytes.subarray(0, spaceIdx));
   const entry = commandTable.get(cmdName);
 
   const dataStart = spaceIdx < bytes.length ? spaceIdx + 1 : bytes.length;
@@ -572,7 +604,7 @@ export function dispatchPacket(packet: ArrayBuffer): void {
   try {
     switch (entry.type) {
       case "text": {
-        const textData = new TextDecoder().decode(bytes.subarray(dataStart));
+        const textData = textDecoder.decode(bytes.subarray(dataStart));
         if (logReceivedCommands)
           LOG(LogLevel.Debug, "RX", `${cmdName} ${textData}`);
         (entry.handler as TextHandler)(textData);

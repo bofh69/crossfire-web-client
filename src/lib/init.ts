@@ -3,7 +3,7 @@
  * Port of old/common/init.c configuration and startup logic.
  */
 
-import type { Player } from "./protocol";
+import type { Player, Stats, Item } from "./protocol";
 import {
   CS_NUM_SKILLS,
   InputState,
@@ -314,7 +314,74 @@ export function clientInit(): void {
 function initPlayerData(): void {
   const ob = playerItem();
   const below = mapItem();
-  const p: Player = {
+  const p = makeDefaultPlayer(ob, below);
+  cplInstance = p;
+  setCplInItem(p);
+  setCplInPlayer(p);
+}
+
+function makeDefaultStats(): Stats {
+  return {
+    title: "",
+    Str: 0,
+    Dex: 0,
+    Con: 0,
+    Wis: 0,
+    Cha: 0,
+    Int: 0,
+    Pow: 0,
+    wc: 0,
+    ac: 0,
+    level: 0,
+    hp: 0,
+    maxhp: 0,
+    sp: 0,
+    maxsp: 0,
+    grace: 0,
+    maxgrace: 0,
+    exp: BigInt(0),
+    food: 0,
+    dam: 0,
+    speed: 0,
+    weaponSp: 0,
+    attuned: 0,
+    repelled: 0,
+    denied: 0,
+    flags: 0,
+    resists: new Array(30).fill(0),
+    resistChange: false,
+    skillLevel: new Array(CS_NUM_SKILLS).fill(0),
+    skillExp: new Array(CS_NUM_SKILLS).fill(BigInt(0)),
+    weightLimit: 0,
+    golemHp: 0,
+    golemMaxhp: 0,
+    range: "",
+    raceStr: 0,
+    raceInt: 0,
+    raceWis: 0,
+    raceDex: 0,
+    raceCon: 0,
+    raceCha: 0,
+    racePow: 0,
+    baseStr: 0,
+    baseInt: 0,
+    baseWis: 0,
+    baseDex: 0,
+    baseCon: 0,
+    baseCha: 0,
+    basePow: 0,
+    appliedStr: 0,
+    appliedInt: 0,
+    appliedWis: 0,
+    appliedDex: 0,
+    appliedCon: 0,
+    appliedCha: 0,
+    appliedPow: 0,
+  };
+}
+
+function makeDefaultPlayer(ob: Item, below: Item): Player {
+  return {
     ob,
     below,
     container: null,
@@ -324,63 +391,7 @@ function initPlayerData(): void {
     inputText: "",
     ranges: [],
     readySpell: 0,
-    stats: {
-      title: "",
-      Str: 0,
-      Dex: 0,
-      Con: 0,
-      Wis: 0,
-      Cha: 0,
-      Int: 0,
-      Pow: 0,
-      wc: 0,
-      ac: 0,
-      level: 0,
-      hp: 0,
-      maxhp: 0,
-      sp: 0,
-      maxsp: 0,
-      grace: 0,
-      maxgrace: 0,
-      exp: BigInt(0),
-      food: 0,
-      dam: 0,
-      speed: 0,
-      weaponSp: 0,
-      attuned: 0,
-      repelled: 0,
-      denied: 0,
-      flags: 0,
-      resists: new Array(30).fill(0),
-      resistChange: false,
-      skillLevel: new Array(CS_NUM_SKILLS).fill(0),
-      skillExp: new Array(CS_NUM_SKILLS).fill(BigInt(0)),
-      weightLimit: 0,
-      golemHp: 0,
-      golemMaxhp: 0,
-      range: "",
-      raceStr: 0,
-      raceInt: 0,
-      raceWis: 0,
-      raceDex: 0,
-      raceCon: 0,
-      raceCha: 0,
-      racePow: 0,
-      baseStr: 0,
-      baseInt: 0,
-      baseWis: 0,
-      baseDex: 0,
-      baseCon: 0,
-      baseCha: 0,
-      basePow: 0,
-      appliedStr: 0,
-      appliedInt: 0,
-      appliedWis: 0,
-      appliedDex: 0,
-      appliedCon: 0,
-      appliedCha: 0,
-      appliedPow: 0,
-    },
+    stats: makeDefaultStats(),
     spelldata: [],
     title: "",
     range: "",
@@ -401,9 +412,6 @@ function initPlayerData(): void {
     mapyres: 0,
     name: "",
   };
-  cplInstance = p;
-  setCplInItem(p);
-  setCplInPlayer(p);
 }
 
 /**
