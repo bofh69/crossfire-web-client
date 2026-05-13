@@ -14,6 +14,44 @@
   let menuFading = $state(false);
   let fadeTimer: ReturnType<typeof setTimeout> | null = null;
 
+  let menuEl: HTMLDivElement | undefined = $state();
+  let adjustedX = $state(0);
+  let adjustedY = $state(0);
+  /** Hidden until we've clamped the position, to avoid a visible flash. */
+  let menuVisible = $state(false);
+  let rafId = 0;
+
+  $effect(() => {
+    // Track x and y reactively so we re-run when the caller moves the menu.
+    const nx = x;
+    const ny = y;
+    adjustedX = nx;
+    adjustedY = ny;
+    menuVisible = false;
+
+    // Cancel any previous pending frame so only the latest values are used.
+    cancelAnimationFrame(rafId);
+    rafId = requestAnimationFrame(() => {
+      const el = menuEl;
+      if (!el) {
+        menuVisible = true;
+        return;
+      }
+      const rect = el.getBoundingClientRect();
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      let cx = nx;
+      let cy = ny;
+      // Shift left if menu overflows right edge.
+      if (rect.right > vw) cx = Math.max(0, cx - (rect.right - vw));
+      // Shift up if menu overflows bottom edge.
+      if (rect.bottom > vh) cy = Math.max(0, cy - (rect.bottom - vh));
+      adjustedX = cx;
+      adjustedY = cy;
+      menuVisible = true;
+    });
+  });
+
   function clearFadeTimer() {
     if (fadeTimer !== null) {
       clearTimeout(fadeTimer);
@@ -48,10 +86,12 @@
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
+  bind:this={menuEl}
   class="context-menu"
   class:fading={menuFading}
-  style:left="{x}px"
-  style:top="{y}px"
+  style:left="{adjustedX}px"
+  style:top="{adjustedY}px"
+  style:visibility={menuVisible ? "visible" : "hidden"}
   onmouseenter={handleMouseEnter}
   onmouseleave={handleMouseLeave}
   onclick={(e) => e.stopPropagation()}
