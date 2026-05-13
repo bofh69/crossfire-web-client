@@ -111,10 +111,21 @@ let activeBigfaces: Set<BigCell> = new Set();
 export { moveToX, moveToY, moveToAttack } from "./mapdata_moveto";
 
 /** Global map rendering offsets used for local scroll prediction. */
-export let globalOffsetX = 0;
-export let globalOffsetY = 0;
-export let wantOffsetX = 0;
-export let wantOffsetY = 0;
+let globalOffsetX = 0;
+let globalOffsetY = 0;
+let wantOffsetX = 0;
+let wantOffsetY = 0;
+
+/** True in development builds where extra bounds assertions should run. */
+const DEV_ASSERTIONS = import.meta.env.DEV;
+
+export function getGlobalOffset(): Readonly<{ x: number; y: number }> {
+  return { x: globalOffsetX, y: globalOffsetY };
+}
+
+export function getWantOffset(): Readonly<{ x: number; y: number }> {
+  return { x: wantOffsetX, y: wantOffsetY };
+}
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Callbacks for external dependencies not yet in the TypeScript codebase
@@ -191,11 +202,32 @@ updateMoveToCallbacks();
 
 /** Get the map cell at absolute coordinates. */
 function cellAt(x: number, y: number): MapCell {
+  if (DEV_ASSERTIONS) {
+    if (x < 0 || y < 0 || x >= mapWidth || y >= mapHeight) {
+      throw new RangeError(
+        `cellAt: (${x},${y}) out of bounds for map ${mapWidth}x${mapHeight}`,
+      );
+    }
+  }
   return cells[x]![y]!;
 }
 
 /** Get the BigCell at view coordinates and layer index. */
 function bigfaceAt(x: number, y: number, layer: number): BigCell {
+  if (DEV_ASSERTIONS) {
+    if (
+      x < 0 ||
+      y < 0 ||
+      x >= MAX_VIEW ||
+      y >= MAX_VIEW ||
+      layer < 0 ||
+      layer >= MAXLAYERS
+    ) {
+      throw new RangeError(
+        `bigfaceAt: (${x},${y},${layer}) out of bounds (${MAX_VIEW}x${MAX_VIEW}, layers=${MAXLAYERS})`,
+      );
+    }
+  }
   return bigfaces[x]![y]![layer]!;
 }
 

@@ -2,6 +2,8 @@
  * binary_reader.ts — Auto-advancing binary buffer reader for the Crossfire protocol.
  */
 
+const textDecoder = new TextDecoder();
+
 /**
  * Reads typed values from a DataView, automatically advancing the internal
  * position after each read.  Throws {@link RangeError} if a read would exceed
@@ -110,7 +112,7 @@ export class BinaryReader {
       len,
     );
     this._pos += len;
-    return new TextDecoder().decode(bytes);
+    return textDecoder.decode(bytes);
   }
 
   /**
@@ -128,7 +130,7 @@ export class BinaryReader {
       this._pos - start,
     );
     if (this._pos < this._len) this._pos++; // consume the NUL byte
-    return new TextDecoder().decode(bytes);
+    return textDecoder.decode(bytes);
   }
 
   /**

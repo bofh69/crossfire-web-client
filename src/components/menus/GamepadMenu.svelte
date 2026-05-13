@@ -14,7 +14,6 @@
     getButtonCommand,
     getButtonMappings,
     getStickConfig,
-    directionName,
     saveGamepadButtonScopes,
     getActiveProfileName,
     type AxisConfigTarget,
@@ -23,6 +22,7 @@
   } from "../../lib/gamepad";
   import { getLastCommand } from "../../lib/player";
   import { gameEvents } from "../../lib/events";
+  import { directionName } from "../../lib/directions";
 
   type DialogMode =
     | "idle"

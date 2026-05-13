@@ -47,13 +47,47 @@ import { LOG } from "./misc";
 // ──────────────────────────────────────────────────────────────────────────────
 
 const NUM_ITEM_TYPES = 256;
+const ITEM_TYPE = {
+  CONTAINER: 1,
+  MELEE_WEAPON: 2,
+  RANGED_WEAPON: 3,
+  BODY_ARMOR: 10,
+  HEAD_ARMOR: 11,
+  SHIELD: 12,
+  FEET_OR_HANDS: 13,
+  WAIST: 14,
+  CLOAK: 15,
+  ARMS: 16,
+  FOOD_OR_DRINK: 20,
+  GEM: 30,
+  CURRENCY: 31,
+  ROD: 45,
+  WAND: 47,
+  STAFF: 48,
+  HORN: 52,
+  AMULET: 53,
+  RING: 54,
+  SCROLL: 55,
+  SPELLBOOK: 56,
+  READABLE: 57,
+  POTION: 59,
+  BALM_OR_DUST_OR_FIGURINE: 61,
+  ITEM_BUILDING_SCROLL: 63,
+  SKILL_OBJECT: 65,
+  KEY: 67,
+  BODY_PART: 70,
+  MINERAL_OR_ALCHEMY: 71,
+  TOOL_OR_LIGHT: 80,
+  MISC_OR_QUEST: 90,
+  FURNITURE: 100,
+} as const;
 
 const itemTypes: (string[] | null)[] = new Array<string[] | null>(
   NUM_ITEM_TYPES,
 ).fill(null);
 
 // Containers
-itemTypes[1] = [
+itemTypes[ITEM_TYPE.CONTAINER] = [
   "sack",
   "Luggage",
   "pouch",
@@ -63,7 +97,7 @@ itemTypes[1] = [
   "key ring",
 ];
 // Melee weapons
-itemTypes[2] = [
+itemTypes[ITEM_TYPE.MELEE_WEAPON] = [
   "axe",
   "club",
   "dagger",
@@ -110,7 +144,7 @@ itemTypes[2] = [
   "Trident",
 ];
 // Ranged weapons
-itemTypes[3] = [
+itemTypes[ITEM_TYPE.RANGED_WEAPON] = [
   "^bow",
   "elven bow",
   "long bow",
@@ -121,21 +155,28 @@ itemTypes[3] = [
   "boulder",
 ];
 // Body armor
-itemTypes[10] = ["mail", "leather", "^robe", "shirt", "apron", "hauberk"];
+itemTypes[ITEM_TYPE.BODY_ARMOR] = [
+  "mail",
+  "leather",
+  "^robe",
+  "shirt",
+  "apron",
+  "hauberk",
+];
 // Head armor
-itemTypes[11] = ["helmet", "Crown", "crown"];
+itemTypes[ITEM_TYPE.HEAD_ARMOR] = ["helmet", "Crown", "crown"];
 // Shields
-itemTypes[12] = ["shield", "Demonspawn Shield"];
+itemTypes[ITEM_TYPE.SHIELD] = ["shield", "Demonspawn Shield"];
 // Feet / hands
-itemTypes[13] = ["boot", "glove", "gauntlet", "shoe"];
+itemTypes[ITEM_TYPE.FEET_OR_HANDS] = ["boot", "glove", "gauntlet", "shoe"];
 // Waist
-itemTypes[14] = ["girdle"];
+itemTypes[ITEM_TYPE.WAIST] = ["girdle"];
 // Cloaks
-itemTypes[15] = ["cloak"];
+itemTypes[ITEM_TYPE.CLOAK] = ["cloak"];
 // Arms
-itemTypes[16] = ["bracer"];
+itemTypes[ITEM_TYPE.ARMS] = ["bracer"];
 // Food & drink
-itemTypes[20] = [
+itemTypes[ITEM_TYPE.FOOD_OR_DRINK] = [
   "apple",
   "booze",
   "bread",
@@ -159,7 +200,7 @@ itemTypes[20] = [
   "^water",
 ];
 // Gems
-itemTypes[30] = [
+itemTypes[ITEM_TYPE.GEM] = [
   "diamond",
   "emerald",
   "gold nugget",
@@ -168,23 +209,23 @@ itemTypes[30] = [
   "sapphire",
 ];
 // Currency
-itemTypes[31] = ["coin"];
+itemTypes[ITEM_TYPE.CURRENCY] = ["coin"];
 // Rods
-itemTypes[45] = ["rod", "Rod"];
+itemTypes[ITEM_TYPE.ROD] = ["rod", "Rod"];
 // Wands
-itemTypes[47] = ["wand"];
+itemTypes[ITEM_TYPE.WAND] = ["wand"];
 // Staffs
-itemTypes[48] = ["staff"];
+itemTypes[ITEM_TYPE.STAFF] = ["staff"];
 // Horns
-itemTypes[52] = ["horn"];
+itemTypes[ITEM_TYPE.HORN] = ["horn"];
 // Amulets
-itemTypes[53] = ["amulet"];
+itemTypes[ITEM_TYPE.AMULET] = ["amulet"];
 // Rings
-itemTypes[54] = ["ring", "Ring "];
+itemTypes[ITEM_TYPE.RING] = ["ring", "Ring "];
 // Scrolls
-itemTypes[55] = ["scroll"];
+itemTypes[ITEM_TYPE.SCROLL] = ["scroll"];
 // Spellbooks
-itemTypes[56] = [
+itemTypes[ITEM_TYPE.SPELLBOOK] = [
   "grimore",
   "grimoire",
   "hymnal",
@@ -197,7 +238,7 @@ itemTypes[56] = [
   "tome",
 ];
 // Readables / books
-itemTypes[57] = [
+itemTypes[ITEM_TYPE.READABLE] = [
   "book",
   "catalog",
   "codex",
@@ -224,11 +265,16 @@ itemTypes[57] = [
   "volume",
 ];
 // Potions
-itemTypes[59] = ["potion", "bottle"];
+itemTypes[ITEM_TYPE.POTION] = ["potion", "bottle"];
 // Balms / dust / figurines
-itemTypes[61] = ["^balm", "^dust", "dust ", "figurine"];
+itemTypes[ITEM_TYPE.BALM_OR_DUST_OR_FIGURINE] = [
+  "^balm",
+  "^dust",
+  "dust ",
+  "figurine",
+];
 // Item building scrolls
-itemTypes[63] = [
+itemTypes[ITEM_TYPE.ITEM_BUILDING_SCROLL] = [
   "Improve",
   "Lower Weapon",
   "Enchant Weapon",
@@ -236,11 +282,16 @@ itemTypes[63] = [
   "Enchant Armour",
 ];
 // Skill objects
-itemTypes[65] = ["holy symbol", "lockpick", "talisman", "writing pen"];
+itemTypes[ITEM_TYPE.SKILL_OBJECT] = [
+  "holy symbol",
+  "lockpick",
+  "talisman",
+  "writing pen",
+];
 // Keys
-itemTypes[67] = ["key", "Key"];
+itemTypes[ITEM_TYPE.KEY] = ["key", "Key"];
 // Body parts
-itemTypes[70] = [
+itemTypes[ITEM_TYPE.BODY_PART] = [
   "arm",
   "claw",
   "corpse",
@@ -267,11 +318,18 @@ itemTypes[70] = [
   "^wing",
 ];
 // Minerals / alchemy
-itemTypes[71] = ["dirt", "lead", "mandrake root", "pile", "rock", "stone"];
+itemTypes[ITEM_TYPE.MINERAL_OR_ALCHEMY] = [
+  "dirt",
+  "lead",
+  "mandrake root",
+  "pile",
+  "rock",
+  "stone",
+];
 // Tools / light
-itemTypes[80] = ["flint and steel", "torch"];
+itemTypes[ITEM_TYPE.TOOL_OR_LIGHT] = ["flint and steel", "torch"];
 // Misc / quest
-itemTypes[90] = [
+itemTypes[ITEM_TYPE.MISC_OR_QUEST] = [
   "clock",
   "flower",
   "Gate Pass",
@@ -285,7 +343,7 @@ itemTypes[90] = [
   "Apartment Extender",
 ];
 // Furniture
-itemTypes[100] = ["chair", "table"];
+itemTypes[ITEM_TYPE.FURNITURE] = ["chair", "table"];
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Apply‐type display strings (indexed by ApplyType enum value).

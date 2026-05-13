@@ -7,10 +7,11 @@
  *  • bind / unbind command implementations
  *  • Persistence via localStorage
  *
- * Modifier key mapping (old → new):
- *   Shift      → fire modifier
- *   Alt        → run modifier
- *   Control    → ctrl modifier
+ * Modifier key mapping (old → new), preserving legacy C flag semantics:
+ * KEYF_MOD_CTRL is the run bit and KEYF_MOD_ALT is the alt bit.
+ *   Shift      → fire modifier (KEYF_MOD_SHIFT)
+ *   Alt        → run modifier (KEYF_MOD_CTRL)
+ *   Control    → alt modifier (KEYF_MOD_ALT)
  *   Meta       → meta modifier
  *   apostrophe → command mode
  */
@@ -30,6 +31,7 @@ import {
 import { clear_move_to } from "./mapdata";
 import { LOG } from "./misc";
 import { LogLevel } from "./protocol";
+import { directionFromCommand } from "./directions";
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Flag definitions (matching the C KEYF_* constants)
@@ -43,33 +45,6 @@ export const KEYF_MOD_MASK =
   KEYF_MOD_SHIFT | KEYF_MOD_CTRL | KEYF_MOD_ALT | KEYF_MOD_META;
 export const KEYF_ANY = 1 << 4; // Match regardless of modifiers
 export const KEYF_EDIT = 1 << 5; // Enter command-editing mode
-
-// ──────────────────────────────────────────────────────────────────────────────
-// Direction names (indexed 0–8, matching C `directions[]`)
-// ──────────────────────────────────────────────────────────────────────────────
-
-const directions: readonly string[] = [
-  "stay",
-  "north",
-  "northeast",
-  "east",
-  "southeast",
-  "south",
-  "southwest",
-  "west",
-  "northwest",
-];
-
-/**
- * If `command` is a direction word return its direction index (0–8),
- * otherwise return -1.
- */
-function directionFromCommand(command: string): number {
-  for (let i = 0; i < directions.length; i++) {
-    if (command === directions[i]) return i;
-  }
-  return -1;
-}
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Keybinding structure

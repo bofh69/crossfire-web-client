@@ -24,6 +24,8 @@ import { SLOW_PACKET_THRESHOLD_MS } from "./constants";
 
 /** Maximum payload size for a SockList (MAXSOCKBUF minus 2-byte length header). */
 const MAX_DATA_SIZE = MAXSOCKBUF - 2;
+const textEncoder = new TextEncoder();
+const textDecoder = new TextDecoder();
 
 /**
  * Buffer builder for constructing binary Crossfire protocol packets.
@@ -93,7 +95,7 @@ export class SockList {
 
   /** Add raw string bytes (no null terminator). */
   addString(s: string): void {
-    const encoded = new TextEncoder().encode(s);
+    const encoded = textEncoder.encode(s);
     let writeLen = encoded.length;
     if (this._len + writeLen > MAX_DATA_SIZE) {
       writeLen = MAX_DATA_SIZE - this._len;
@@ -148,7 +150,7 @@ export function getStringFromData(
   offset: number,
   len: number,
 ): string {
-  return new TextDecoder().decode(data.subarray(offset, offset + len));
+  return textDecoder.decode(data.subarray(offset, offset + len));
 }
 
 // ---------------------------------------------------------------------------
@@ -245,7 +247,7 @@ export class CrossfireSocket {
     }
     const data = sl.getData();
     // Log the outgoing binary packet as a text preview (first 64 bytes decoded).
-    const preview = new TextDecoder().decode(
+    const preview = textDecoder.decode(
       data.subarray(0, Math.min(64, data.length)),
     );
     LOG(
@@ -269,7 +271,7 @@ export class CrossfireSocket {
       return;
     }
     LOG(LogLevel.Debug, "CrossfireSocket", `[TX] ${cmd}`);
-    const encoded = new TextEncoder().encode(cmd);
+    const encoded = textEncoder.encode(cmd);
     this.lastSentAt = Date.now();
     this.ws.send(encoded);
     this.commandSent++;
@@ -287,7 +289,7 @@ export class CrossfireSocket {
       payload = new Uint8Array(ev.data);
     } else {
       // Fallback: treat text frames as UTF-8 bytes.
-      payload = new TextEncoder().encode(ev.data as string);
+      payload = textEncoder.encode(ev.data as string);
     }
 
     if (payload.length === 0) {

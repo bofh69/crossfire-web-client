@@ -90,26 +90,6 @@ const WALK_DELAY_MS = 80;
 // Direction helpers
 // ──────────────────────────────────────────────────────────────────────────────
 
-/** Direction names indexed 0–8 (matching protocol direction indices). */
-const directionNames: readonly string[] = [
-  "stay",
-  "north",
-  "northeast",
-  "east",
-  "southeast",
-  "south",
-  "southwest",
-  "west",
-  "northwest",
-];
-
-/**
- * Convert a direction index (0–8) to a human-readable name.
- */
-export function directionName(dir: number): string {
-  return directionNames[dir] ?? "stay";
-}
-
 /**
  * Convert an (x, y) analog stick position to a direction index 0–8, using
  * polar coordinates with angular hysteresis to prevent flickering between

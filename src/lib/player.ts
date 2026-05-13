@@ -15,19 +15,7 @@ import {
 import { CrossfireSocket, SockList } from "./newsocket";
 import { useConfig } from "./init";
 import { LOG } from "./misc";
-
-/** Direction strings indexed by numeric direction (0–8). */
-const directions: readonly string[] = [
-  "stay",
-  "north",
-  "northeast",
-  "east",
-  "southeast",
-  "south",
-  "southwest",
-  "west",
-  "northwest",
-];
+import { directionName } from "./directions";
 
 let csocket: CrossfireSocket | null = null;
 let cpl: Player | null = null;
@@ -174,20 +162,10 @@ export function clearRun(): void {
 // ── Direction helpers ────────────────────────────────────────────────────────
 
 /**
- * Convert a direction number (0–8) to its command string.
- */
-export function dirToCommand(dir: number): string {
-  if (dir >= 0 && dir < directions.length) {
-    return directions[dir]!;
-  }
-  return "stay";
-}
-
-/**
  * Send a directional walk command for the given direction.
  */
 export function walkDir(dir: number): void {
-  sendCommand(dirToCommand(dir), -1, SC_MOVETO);
+  sendCommand(directionName(dir), -1, SC_MOVETO);
 }
 
 // ── Core command sending ─────────────────────────────────────────────────────
