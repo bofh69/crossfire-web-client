@@ -14,6 +14,7 @@
     getFaceBitmapCacheSize,
     isFaceBitmapPending,
     getSmoothFace,
+    getCurrentFacesetTileSize,
   } from "../lib/image";
   import { lookAt } from "../lib/player";
   import { set_move_to, moveToX, moveToY } from "../lib/mapdata";
@@ -30,7 +31,6 @@
   import {
     SLOW_DRAW_THRESHOLD_MS,
     DRAW_STATS_INTERVAL_MS,
-    TILE_SIZE,
     SELF_TICK_INTERVAL_MS,
   } from "../lib/constants";
   import { loadConfig, saveConfig } from "../lib/storage";
@@ -54,15 +54,16 @@
   /**
    * Return the largest integer scale factor such that at least MIN_TILES tiles
    * still fit in both container dimensions.  Scale is always ≥ 1, so tiles are
-   * always drawn at 32×32, 64×64, 96×96, … (exact multiples of TILE_SIZE).
-   * This avoids the sub-pixel interpolation that makes pixel art look blurry.
+   * always drawn at baseTs×baseTs, 2×baseTs, … (exact multiples of the faceset
+   * tile size).  This avoids the sub-pixel interpolation that makes pixel art
+   * look blurry.
    */
-  function computeScale(cw: number, ch: number): number {
+  function computeScale(cw: number, ch: number, baseTs: number): number {
     if (cw <= 0 || ch <= 0) return 1;
     let scale = 1;
     while (
-      Math.floor(cw / (TILE_SIZE * (scale + 1))) >= MIN_TILES &&
-      Math.floor(ch / (TILE_SIZE * (scale + 1))) >= MIN_TILES
+      Math.floor(cw / (baseTs * (scale + 1))) >= MIN_TILES &&
+      Math.floor(ch / (baseTs * (scale + 1))) >= MIN_TILES
     ) {
       scale++;
     }
@@ -83,8 +84,14 @@
     loadConfig<number | null>(ZOOM_STORAGE_KEY, null),
   );
 
+  /**
+   * Base tile size in pixels derived from the currently selected faceset.
+   * Updated whenever `facesetInfoUpdated` fires.
+   */
+  let baseTileSize = $state(getCurrentFacesetTileSize());
+
   /** Effective tile size used in the last draw — kept for click-to-tile mapping. */
-  let currentTileSize = TILE_SIZE;
+  let currentTileSize = getCurrentFacesetTileSize();
   /**
    * Display offset saved from the last drawMap call.  When the container needs
    * more tiles than the server viewport provides, the server viewport is
@@ -118,8 +125,9 @@
    */
   $effect(() => {
     if (containerW <= 0 || containerH <= 0) return;
-    const scale = storedScale ?? computeScale(containerW, containerH);
-    const tileSize = TILE_SIZE * scale;
+    const scale =
+      storedScale ?? computeScale(containerW, containerH, baseTileSize);
+    const tileSize = baseTileSize * scale;
     const desiredW = Math.ceil(containerW / tileSize);
     const desiredH = Math.ceil(containerH / tileSize);
     if (desiredW === lastRequestedW && desiredH === lastRequestedH) return;
@@ -183,19 +191,25 @@
         scheduleRedraw();
       }),
       gameEvents.on("zoomIn", () => {
-        const current = storedScale ?? computeScale(containerW, containerH);
+        const current =
+          storedScale ?? computeScale(containerW, containerH, baseTileSize);
         storedScale = Math.min(current + 1, MAX_SCALE);
         saveConfig(ZOOM_STORAGE_KEY, storedScale);
         scheduleRedraw();
       }),
       gameEvents.on("zoomOut", () => {
-        const current = storedScale ?? computeScale(containerW, containerH);
+        const current =
+          storedScale ?? computeScale(containerW, containerH, baseTileSize);
         storedScale = Math.max(current - 1, MIN_SCALE);
         saveConfig(ZOOM_STORAGE_KEY, storedScale);
         scheduleRedraw();
       }),
       gameEvents.on("debugPickTile", (mode) => {
         debugPickMode = mode;
+      }),
+      gameEvents.on("facesetInfoUpdated", () => {
+        baseTileSize = getCurrentFacesetTileSize();
+        scheduleRedraw();
       }),
     ];
     return () => {
@@ -244,7 +258,9 @@
    * @param ax, ay   Absolute (virtual-map) coordinates of the tile.
    * @param layer    Layer being drawn.
    * @param px, py   Pixel position of the tile's top-left corner on the canvas.
-   * @param tileSize Effective tile size in pixels (TILE_SIZE × integer scale).
+   * @param tileSize Effective tile size in pixels (baseTs × integer scale).
+   * @param baseTs   Base tile size in pixels from the active faceset (used for
+   *                 source pixel offsets within the smooth-face sprite sheet).
    */
   function drawsmooth(
     ctx: CanvasRenderingContext2D,
@@ -254,6 +270,7 @@
     px: number,
     py: number,
     tileSize: number,
+    baseTs: number,
     missingFaces: Set<number>,
   ): void {
     const cell = mapdata_cell(ax, ay);
@@ -336,10 +353,10 @@
       if (weight > 0) {
         ctx.drawImage(
           smoothImg,
-          weight * TILE_SIZE,
+          weight * baseTs,
           0,
-          TILE_SIZE,
-          TILE_SIZE,
+          baseTs,
+          baseTs,
           px,
           py,
           tileSize,
@@ -350,10 +367,10 @@
       if (weightC > 0) {
         ctx.drawImage(
           smoothImg,
-          weightC * TILE_SIZE,
-          TILE_SIZE,
-          TILE_SIZE,
-          TILE_SIZE,
+          weightC * baseTs,
+          baseTs,
+          baseTs,
+          baseTs,
           px,
           py,
           tileSize,
@@ -397,8 +414,9 @@
     // Integer multiples keep pixel art crisp (32 → 64 → 96 → …).
     // The server fills the view with more or fewer tiles (via clientMapsize);
     // we request enough tiles to cover the container (see the $effect above).
-    const scale = storedScale ?? computeScale(containerW, containerH);
-    const tileSize = TILE_SIZE * scale;
+    const scale =
+      storedScale ?? computeScale(containerW, containerH, baseTileSize);
+    const tileSize = baseTileSize * scale;
     currentTileSize = tileSize;
 
     // Number of tiles required to fill the container.  This may be larger than
@@ -552,7 +570,17 @@
           drawResolvedFace(tailInfo.face, tailInfo.dx, tailInfo.dy, false);
 
           if (useConfig.smooth) {
-            drawsmooth(ctx, ax, ay, layer, px, py, tileSize, missingFaces);
+            drawsmooth(
+              ctx,
+              ax,
+              ay,
+              layer,
+              px,
+              py,
+              tileSize,
+              baseTileSize,
+              missingFaces,
+            );
           }
         }
       }

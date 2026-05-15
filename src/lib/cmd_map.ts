@@ -36,7 +36,7 @@ import {
   mapdata_apply_magicmap,
 } from "./mapdata.js";
 import { animations } from "./item.js";
-import { addSmooth } from "./image.js";
+import { addSmooth, setCurrentFaceset } from "./image.js";
 import { useConfig, getCpl } from "./init.js";
 import { LOG } from "./misc.js";
 import { gameEvents } from "./events.js";
@@ -272,6 +272,11 @@ export function SetupCmd(data: string): void {
       const method = parseInt(value, 10);
       if (!isNaN(method)) {
         gameEvents.emit("loginMethodConfirmed", method);
+      }
+    } else if (key === "faceset" && value !== "FALSE") {
+      const faceset = parseInt(value, 10);
+      if (!isNaN(faceset)) {
+        setCurrentFaceset(faceset);
       }
     }
     LOG(LogLevel.Debug, "SetupCmd", `${key} = ${value}`);

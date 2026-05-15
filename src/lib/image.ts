@@ -15,7 +15,7 @@ import { LogLevel, MAXPIXMAPNUM, MAX_FACE_SETS } from "./protocol.js";
 import { TILE_SIZE } from "./constants.js";
 import { gameEvents } from "./events.js";
 
-import type { FaceInformation } from "./protocol.js";
+import type { FaceInformation, FaceSet } from "./protocol.js";
 
 // ---------------------------------------------------------------------------
 // Magic-map synthetic face constants
@@ -243,6 +243,47 @@ export function getSmoothFace(face: number): number {
   return smoothFaces.get(face) ?? 0;
 }
 
+/** Return whether the server provided faceset metadata via `replyinfo image_info`. */
+export function hasFacesetInfo(): boolean {
+  return faceInfo.haveFacesetInfo;
+}
+
+/** Return known server-provided facesets. */
+export function getAvailableFacesets(): FaceSet[] {
+  return faceInfo.facesets.filter(
+    (faceset) =>
+      faceset.fullname !== "" ||
+      faceset.prefix !== "" ||
+      faceset.comment !== "",
+  );
+}
+
+/** Return the currently active server faceset index. */
+export function getCurrentFaceset(): number {
+  return faceInfo.faceset;
+}
+
+/**
+ * Return the base tile size in pixels for the currently active faceset.
+ * Parses the faceset's `size` field (e.g. "32x32", "24x24") and returns the
+ * width component.  Falls back to TILE_SIZE when the field is absent or
+ * unparseable.
+ */
+export function getCurrentFacesetTileSize(): number {
+  const faceset = faceInfo.facesets[faceInfo.faceset];
+  if (!faceset?.size) return TILE_SIZE;
+  const match = /^(\d+)/.exec(faceset.size);
+  if (!match) return TILE_SIZE;
+  const parsed = parseInt(match[1]!, 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : TILE_SIZE;
+}
+
+/** Update the currently active server faceset index. */
+export function setCurrentFaceset(faceset: number): void {
+  faceInfo.faceset = Math.max(0, Math.floor(faceset));
+  gameEvents.emit("facesetInfoUpdated");
+}
+
 // ---------------------------------------------------------------------------
 // Smooth face mapping
 // ---------------------------------------------------------------------------
@@ -408,6 +449,7 @@ export function getImageInfo(data: Uint8Array, len: number): void {
 
   faceInfo.numImages = parseInt(lines[0]!, 10) || 0;
   faceInfo.bmapsChecksum = parseInt(lines[1]!, 10) || 0;
+  faceInfo.facesets = [];
 
   for (let i = 2; i < lines.length; i++) {
     const line = lines[i];
@@ -451,6 +493,7 @@ export function getImageInfo(data: Uint8Array, len: number): void {
     };
   }
   faceInfo.haveFacesetInfo = true;
+  gameEvents.emit("facesetInfoUpdated");
 }
 
 // ---------------------------------------------------------------------------

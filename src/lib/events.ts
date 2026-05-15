@@ -138,6 +138,8 @@ export interface GameEventMap {
 
   /** Emitted by image.ts once a face's async bitmap decode settles. */
   faceReady: [faceNum: number];
+  /** Emitted when available/current faceset information changes. */
+  facesetInfoUpdated: [];
 
   // Debug events
   /** Request the GameMap to enter "pick a tile" mode for debugging. */
