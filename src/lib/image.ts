@@ -95,6 +95,7 @@ export function registerMagicMapFaces(): void {
     ctx.fillRect(0, 0, TILE_SIZE, TILE_SIZE);
     faceUrls.set(faceId, canvas.toDataURL("image/png"));
     faceSizes.set(faceId, { w: TILE_SIZE, h: TILE_SIZE });
+    scheduleFaceBitmapDecode(faceId, canvas, "registerMagicMapFaces");
   }
 
   const cx = TILE_SIZE / 2;
@@ -144,6 +145,7 @@ export function registerMagicMapFaces(): void {
 
     faceUrls.set(faceId, canvas.toDataURL("image/png"));
     faceSizes.set(faceId, { w: TILE_SIZE, h: TILE_SIZE });
+    scheduleFaceBitmapDecode(faceId, canvas, "registerMagicMapFaces");
   }
 }
 
@@ -282,6 +284,7 @@ export function initCommonCacheData(): void {
   faceInfo.haveFacesetInfo = false;
   faceInfo.cacheHits = 0;
   faceInfo.cacheMisses = 0;
+  registerMagicMapFaces();
 }
 
 /**
@@ -302,6 +305,7 @@ export function resetImageCacheData(): void {
   faceSizes.clear();
   faceToName.clear();
   faceChecksums.clear();
+  registerMagicMapFaces();
 }
 
 // ---------------------------------------------------------------------------
@@ -579,12 +583,20 @@ function applyFacePngBytes(pnum: number, pngBytes: Uint8Array): void {
   const dims = readPngDimensionsSync(pngBytes);
   faceSizes.set(pnum, dims);
 
+  scheduleFaceBitmapDecode(pnum, blob, "Image2Cmd");
+}
+
+function scheduleFaceBitmapDecode(
+  pnum: number,
+  source: ImageBitmapSource,
+  logContext: string,
+): void {
   if (typeof createImageBitmap !== "function") {
     if (!loggedMissingCreateImageBitmap) {
       loggedMissingCreateImageBitmap = true;
       LOG(
         LogLevel.Warning,
-        "Image2Cmd",
+        logContext,
         "createImageBitmap is not available; map face bitmaps cannot be decoded",
       );
     }
@@ -594,7 +606,7 @@ function applyFacePngBytes(pnum: number, pngBytes: Uint8Array): void {
   const version = (faceBitmapVersions.get(pnum) ?? 0) + 1;
   faceBitmapVersions.set(pnum, version);
   pendingFaceBitmaps.add(pnum);
-  void createImageBitmap(blob)
+  void createImageBitmap(source)
     .then((bitmap) => {
       if (faceBitmapVersions.get(pnum) !== version) {
         bitmap.close();
@@ -609,7 +621,7 @@ function applyFacePngBytes(pnum: number, pngBytes: Uint8Array): void {
     .catch((error: unknown) => {
       LOG(
         LogLevel.Warning,
-        "Image2Cmd",
+        logContext,
         `createImageBitmap failed for face ${pnum}: ${String(error)}`,
       );
     })
