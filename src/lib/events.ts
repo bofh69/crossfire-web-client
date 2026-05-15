@@ -136,6 +136,9 @@ export interface GameEventMap {
   /** Decrease the tile zoom level by one step. */
   zoomOut: [];
 
+  /** Emitted by image.ts once a face's ImageBitmap has finished decoding. */
+  faceReady: [faceNum: number];
+
   // Debug events
   /** Request the GameMap to enter "pick a tile" mode for debugging. */
   debugPickTile: [mode: "bigface" | "tile"];

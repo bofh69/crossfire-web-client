@@ -13,6 +13,7 @@ import { BinaryReader } from "./binary_reader.js";
 import { LOG } from "./misc.js";
 import { LogLevel, MAXPIXMAPNUM, MAX_FACE_SETS } from "./protocol.js";
 import { TILE_SIZE } from "./constants.js";
+import { gameEvents } from "./events.js";
 
 import type { FaceInformation } from "./protocol.js";
 
@@ -594,6 +595,7 @@ function applyFacePngBytes(pnum: number, pngBytes: Uint8Array): void {
         prev.close();
       }
       faceBitmaps.set(pnum, bitmap);
+      gameEvents.emit("faceReady", pnum);
     })
     .catch((error: unknown) => {
       LOG(
