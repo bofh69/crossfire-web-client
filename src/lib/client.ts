@@ -109,6 +109,19 @@ export function getConfiguredFacesetForCurrentServer(): number | null {
 }
 
 /**
+ * Persist the faceset for the connected server so it is used on the next
+ * connection.  Does NOT send a setup command to the currently connected server.
+ * Returns true if the current server URL is known, false otherwise.
+ */
+export function persistFacesetForNextConnection(faceset: number): boolean {
+  if (!connectedServerUrl) return false;
+  const normalized = normalizeFaceset(faceset);
+  configuredFacesetsByUrl[connectedServerUrl] = normalized;
+  persistConfiguredFacesets();
+  return true;
+}
+
+/**
  * Persist the faceset for the connected server and request an immediate server
  * switch via `setup faceset`.
  */
