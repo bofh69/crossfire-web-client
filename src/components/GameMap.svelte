@@ -12,6 +12,7 @@
   import {
     getFaceBitmap,
     getFaceBitmapCacheSize,
+    isFaceBitmapPending,
     getSmoothFace,
   } from "../lib/image";
   import { lookAt } from "../lib/player";
@@ -421,6 +422,25 @@
 
     const canvasW = displayW * tileSize;
     const canvasH = displayH * tileSize;
+
+    for (let layer = 0; layer < MAXLAYERS; layer++) {
+      for (let vy = 0; vy < displayH; vy++) {
+        for (let vx = 0; vx < displayW; vx++) {
+          const ax = plPos.x + vx - startOffsetX;
+          const ay = plPos.y + vy - startOffsetY;
+          if (!mapdata_contains(ax, ay)) continue;
+          const cell = mapdata_cell(ax, ay);
+          if (cell.state === MapCellState.Empty) continue;
+
+          const headInfo = mapdata_head_face_info(ax, ay, layer);
+          if (headInfo.face !== 0 && isFaceBitmapPending(headInfo.face)) return;
+
+          const tailInfo = mapdata_tail_face_info(ax, ay, layer);
+          if (tailInfo.face !== 0 && isFaceBitmapPending(tailInfo.face)) return;
+        }
+      }
+    }
+
     if (c.width !== canvasW) c.width = canvasW;
     if (c.height !== canvasH) c.height = canvasH;
 

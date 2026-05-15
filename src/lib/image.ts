@@ -158,6 +158,8 @@ const faceUrls = new Map<number, string>();
 const faceBitmaps = new Map<number, ImageBitmap>();
 /** Monotonic version per face to ignore stale async bitmap decodes. */
 const faceBitmapVersions = new Map<number, number>();
+/** Faces whose current ImageBitmap decode is still in flight. */
+const pendingFaceBitmaps = new Set<number>();
 /** Guard so missing createImageBitmap support is logged once. */
 let loggedMissingCreateImageBitmap = false;
 
@@ -201,6 +203,11 @@ export function getFaceUrl(face: number): string | null {
 /** Return the decoded ImageBitmap for a face, or `null` if not yet ready. */
 export function getFaceBitmap(face: number): ImageBitmap | null {
   return faceBitmaps.get(face) ?? null;
+}
+
+/** Return whether a face's current ImageBitmap decode is still pending. */
+export function isFaceBitmapPending(face: number): boolean {
+  return pendingFaceBitmaps.has(face);
 }
 
 /** Return the number of cached decoded face ImageBitmaps. */
@@ -255,6 +262,7 @@ export function initCommonCacheData(): void {
   faceUrls.clear();
   faceBitmaps.clear();
   faceBitmapVersions.clear();
+  pendingFaceBitmaps.clear();
   faceSizes.clear();
   smoothFaces.clear();
   faceToName.clear();
@@ -290,6 +298,7 @@ export function resetImageCacheData(): void {
   faceUrls.clear();
   faceBitmaps.clear();
   faceBitmapVersions.clear();
+  pendingFaceBitmaps.clear();
   faceSizes.clear();
   faceToName.clear();
   faceChecksums.clear();
@@ -584,6 +593,7 @@ function applyFacePngBytes(pnum: number, pngBytes: Uint8Array): void {
 
   const version = (faceBitmapVersions.get(pnum) ?? 0) + 1;
   faceBitmapVersions.set(pnum, version);
+  pendingFaceBitmaps.add(pnum);
   void createImageBitmap(blob)
     .then((bitmap) => {
       if (faceBitmapVersions.get(pnum) !== version) {
@@ -595,7 +605,6 @@ function applyFacePngBytes(pnum: number, pngBytes: Uint8Array): void {
         prev.close();
       }
       faceBitmaps.set(pnum, bitmap);
-      gameEvents.emit("faceReady", pnum);
     })
     .catch((error: unknown) => {
       LOG(
@@ -603,6 +612,11 @@ function applyFacePngBytes(pnum: number, pngBytes: Uint8Array): void {
         "Image2Cmd",
         `createImageBitmap failed for face ${pnum}: ${String(error)}`,
       );
+    })
+    .finally(() => {
+      if (faceBitmapVersions.get(pnum) !== version) return;
+      pendingFaceBitmaps.delete(pnum);
+      gameEvents.emit("faceReady", pnum);
     });
 }
 
