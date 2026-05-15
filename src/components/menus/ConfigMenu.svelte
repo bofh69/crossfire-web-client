@@ -11,7 +11,7 @@
   import { exportConfigBackup, importConfigBackup } from "../../lib/storage";
   import {
     clientIsConnected,
-    configureCurrentServerFaceset,
+    persistFacesetForNextConnection,
     getConfiguredFacesetForCurrentServer,
   } from "../../lib/client";
   import {
@@ -28,6 +28,7 @@
     setInfoPanelColors,
   } from "../../lib/markup";
   import type { FaceSet } from "../../lib/protocol";
+  import { MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE } from "../../lib/protocol";
 
   interface Props {
     fading: boolean;
@@ -117,7 +118,17 @@
     );
     if (!Number.isFinite(nextFaceset)) return;
     selectedFaceset = String(nextFaceset);
-    configureCurrentServerFaceset(nextFaceset);
+    if (persistFacesetForNextConnection(nextFaceset)) {
+      const chosen = availableFacesets.find((f) => f.setnum === nextFaceset);
+      const label = chosen ? facesetLabel(chosen) : String(nextFaceset);
+      gameEvents.emit(
+        "drawExtInfo",
+        0,
+        MSG_TYPE_CLIENT,
+        MSG_TYPE_CLIENT_NOTICE,
+        `Faceset set to "${label}". The change will take effect on the next connection.`,
+      );
+    }
   }
 
   function backupConfig() {
@@ -359,22 +370,6 @@
         />
         <span>{sfxVolume}%</span>
       </div>
-      {#if clientIsConnected() && hasFacesetInfo() && availableFacesets.length > 0}
-        <div class="faceset-row">
-          <label for="faceset-select">Faceset</label>
-          <select
-            id="faceset-select"
-            value={selectedFaceset}
-            onchange={changeFaceset}
-          >
-            {#each availableFacesets as faceset}
-              <option value={String(faceset.setnum)}>
-                {facesetLabel(faceset)}
-              </option>
-            {/each}
-          </select>
-        </div>
-      {/if}
       <div class="separator"></div>
       <button
         onclick={openColorsDialog}
@@ -420,6 +415,23 @@
         }}>Zoom Out</button
       >
       <div class="separator"></div>
+      {#if clientIsConnected() && hasFacesetInfo() && availableFacesets.length > 0}
+        <div class="faceset-row">
+          <label for="faceset-select">Faceset</label>
+          <select
+            id="faceset-select"
+            value={selectedFaceset}
+            onchange={changeFaceset}
+          >
+            {#each availableFacesets as faceset}
+              <option value={String(faceset.setnum)} title={faceset.comment}>
+                {facesetLabel(faceset)}
+              </option>
+            {/each}
+          </select>
+        </div>
+        <div class="separator"></div>
+      {/if}
       <button
         onclick={backupConfig}
         oncontextmenu={(e) => {
