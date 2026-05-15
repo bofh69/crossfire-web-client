@@ -106,6 +106,8 @@ import {
 } from "./cmd_dialog.js";
 
 const textDecoder = new TextDecoder();
+const DEFAULT_PICKUP_MODE = 0x80000000 >>> 0; // PU_NEWMODE
+let latestPickupMode = DEFAULT_PICKUP_MODE;
 
 // ── Hiscore menu tracking ──────────────────────────────────────────────────
 
@@ -248,8 +250,14 @@ function ComcCmd(data: DataView, len: number): void {
 
 function PickupCmd(data: DataView, len: number): void {
   const mode = new BinaryReader(data, len).readUint32();
+  latestPickupMode = mode >>> 0;
   LOG(LogLevel.Debug, "PickupCmd", `Pickup mode: ${mode}`);
   gameEvents.emit("pickupUpdate", mode);
+}
+
+/** Last pickup mode received from the server (or default when none received). */
+export function getLatestPickupMode(): number {
+  return latestPickupMode;
 }
 
 function FailureCmd(data: string): void {

@@ -7,6 +7,7 @@
   import KeyboardMenu from "./menus/KeyboardMenu.svelte";
   import GamepadMenu from "./menus/GamepadMenu.svelte";
   import { gameEvents } from "../lib/events";
+  import { getLatestPickupMode } from "../lib/commands";
 
   interface Props {
     onDisconnect: () => void;
@@ -27,7 +28,7 @@
   let menuFadeTimer: ReturnType<typeof setTimeout> | null = null;
 
   /** Persist the pickup mode so it survives menu close/reopen. */
-  let currentPickupMode = $state(0x80000000 >>> 0); // PU_NEWMODE
+  let currentPickupMode = $state(getLatestPickupMode());
 
   /** The currently readied range item (spell, skill, bow, etc.). */
   let currentRange = $state("");
