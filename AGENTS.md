@@ -1,1 +1,2 @@
+- When adding things in lists, like imports, fields etc, keep the items in alphabetical order unless there is a good reason not to.
 - Always run `npm run check` and `npm run format:check` before committing.
