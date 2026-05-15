@@ -173,6 +173,7 @@
     const cleanups = [
       gameEvents.on("mapUpdate", () => scheduleRedraw()),
       gameEvents.on("newMap", () => scheduleRedraw()),
+      gameEvents.on("faceReady", () => scheduleRedraw()),
       gameEvents.on("tick", () => {
         if (tickSkipsRemaining > 0) {
           tickSkipsRemaining--;
