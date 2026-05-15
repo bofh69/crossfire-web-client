@@ -159,6 +159,9 @@
           FILTERS.some((f) => invFilters.has(f.id) && f.test(item)),
         ),
   );
+  let totalInventoryWeight = $derived(
+    playerItems.reduce((sum, item) => sum + Math.max(0, item.weight), 0),
+  );
 
   /** Key used to persist filters for a given character name. */
   function filtersKey(charName: string): string {
@@ -397,17 +400,24 @@
 <div class="inventory" bind:this={invContainerEl}>
   <div class="inv-section" style:flex="{invSplitFrac} 0 0">
     <h3>
-      Inventory ({filteredPlayerItems.length}{invFilters.size > 0
-        ? `/${playerItems.length}`
-        : ""})
-      {#if itemCount > 0}
-        <span class="item-count">
-          {itemCount}
-          <!-- svelte-ignore a11y_click_events_have_key_events -->
-          <!-- svelte-ignore a11y_no_static_element_interactions -->
-          <span class="count-clear" onclick={clearCount}>✕</span>
-        </span>
-      {/if}
+      <span
+        >Inventory ({filteredPlayerItems.length}{invFilters.size > 0
+          ? `/${playerItems.length}`
+          : ""})</span
+      >
+      <span class="inv-header-right">
+        <span class="inv-total-weight"
+          >{formatWeight(totalInventoryWeight)}</span
+        >
+        {#if itemCount > 0}
+          <span class="item-count">
+            {itemCount}
+            <!-- svelte-ignore a11y_click_events_have_key_events -->
+            <!-- svelte-ignore a11y_no_static_element_interactions -->
+            <span class="count-clear" onclick={clearCount}>✕</span>
+          </span>
+        {/if}
+      </span>
     </h3>
     <div class="inv-filter-bar" role="toolbar" aria-label="Inventory filter">
       {#each FILTERS as f (f.id)}
@@ -615,7 +625,6 @@
   }
 
   .item-count {
-    margin-left: auto;
     display: flex;
     align-items: center;
     gap: 0.2rem;
@@ -635,6 +644,19 @@
   .count-clear:hover {
     color: var(--danger-text);
     background: var(--bg-card);
+  }
+
+  .inv-header-right {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+  }
+
+  .inv-total-weight {
+    color: var(--text-dim);
+    font-size: 0.72rem;
+    font-weight: normal;
   }
 
   .item-list {
