@@ -13,9 +13,33 @@ import { wantConfig, useConfig } from "./init";
 import { setSocket as setPlayerSocket } from "./player";
 import { setCSocket as setItemSocket } from "./item";
 import { LOG } from "./misc";
+import { loadConfig, saveConfig } from "./storage";
 
 let csocket: CrossfireSocket | null = null;
 const textEncoder = new TextEncoder();
+const FACESET_BY_URL_KEY = "faceset_by_ws_url";
+let connectedServerUrl: string | null = null;
+const configuredFacesetsByUrl = loadConfig<Record<string, number>>(
+  FACESET_BY_URL_KEY,
+  {},
+);
+
+function normalizeFaceset(value: number): number {
+  if (!Number.isFinite(value)) return 0;
+  return Math.max(0, Math.floor(value));
+}
+
+function getFacesetForUrl(url: string): number {
+  const configured = configuredFacesetsByUrl[url];
+  if (typeof configured === "number") {
+    return normalizeFaceset(configured);
+  }
+  return 0;
+}
+
+function persistConfiguredFacesets(): void {
+  saveConfig(FACESET_BY_URL_KEY, configuredFacesetsByUrl);
+}
 
 // ── Heartbeat ─────────────────────────────────────────────────────────────────
 
@@ -73,6 +97,32 @@ export function clientIsConnected(): boolean {
   return csocket !== null;
 }
 
+/** Return the current server URL, or null if not connected. */
+export function getCurrentServerUrl(): string | null {
+  return connectedServerUrl;
+}
+
+/** Return the configured faceset for the connected server, if available. */
+export function getConfiguredFacesetForCurrentServer(): number | null {
+  if (!connectedServerUrl) return null;
+  return getFacesetForUrl(connectedServerUrl);
+}
+
+/**
+ * Persist the faceset for the connected server and request an immediate server
+ * switch via `setup faceset`.
+ */
+export function configureCurrentServerFaceset(faceset: number): boolean {
+  if (!csocket || !connectedServerUrl) {
+    return false;
+  }
+  const normalized = normalizeFaceset(faceset);
+  configuredFacesetsByUrl[connectedServerUrl] = normalized;
+  persistConfiguredFacesets();
+  csocket.sendString(`setup faceset ${normalized}`);
+  return true;
+}
+
 // ── Connection lifecycle ─────────────────────────────────────────────────────
 
 /**
@@ -107,6 +157,7 @@ export async function clientConnect(
   sock.onDisconnect = () => {
     LOG(LogLevel.Info, "client", "Server disconnected");
     csocket = null;
+    connectedServerUrl = null;
     stopHeartbeat();
     beatUnsubscribe?.();
     beatUnsubscribe = null;
@@ -121,6 +172,7 @@ export async function clientConnect(
   await sock.connect();
 
   csocket = sock;
+  connectedServerUrl = url;
 
   // Propagate the socket to the other modules.
   setPlayerSocket(sock);
@@ -190,14 +242,16 @@ export function clientNegotiate(): void {
   const ticks = wantConfig.serverTicks ? 1 : 0;
   const darkness = wantConfig.lighting > 0 ? 1 : 0;
   const cache = wantConfig.cache ? 1 : 0;
+  const faceset = connectedServerUrl ? getFacesetForUrl(connectedServerUrl) : 0;
 
   csocket.sendString(
     `setup map2cmd 1 tick ${ticks} sound2 ${sound} darkness ${darkness} ` +
-      `spellmon 1 spellmon 2 faceset 0 facecache ${cache} ` +
+      `spellmon 1 spellmon 2 faceset ${faceset} facecache ${cache} ` +
       `want_pickup 1 newmapcmd 1 extendedTextInfos 1 extended_stats 1 notifications 2 ` +
       `loginmethod ${wantConfig.loginMethod}`,
   );
 
+  csocket.sendString("requestinfo image_info");
   csocket.sendString("requestinfo skill_info");
   csocket.sendString("requestinfo skill_extra 1");
   csocket.sendString("requestinfo exp_table");

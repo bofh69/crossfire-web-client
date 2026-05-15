@@ -10,6 +10,16 @@
   import { useConfig, wantConfig, saveCurrentConfig } from "../../lib/init";
   import { exportConfigBackup, importConfigBackup } from "../../lib/storage";
   import {
+    clientIsConnected,
+    configureCurrentServerFaceset,
+    getConfiguredFacesetForCurrentServer,
+  } from "../../lib/client";
+  import {
+    getAvailableFacesets,
+    getCurrentFaceset,
+    hasFacesetInfo,
+  } from "../../lib/image";
+  import {
     getConfiguredNdiColors,
     getDefaultNdiColor,
     getInfoPanelBackgroundColor,
@@ -17,6 +27,7 @@
     NDI_COLOR_DEFINITIONS,
     setInfoPanelColors,
   } from "../../lib/markup";
+  import type { FaceSet } from "../../lib/protocol";
 
   interface Props {
     fading: boolean;
@@ -38,6 +49,8 @@
   let restoreFileInput: HTMLInputElement | undefined = $state();
   let showRestoreConfirmDialog = $state(false);
   let pendingRestoreData: unknown = $state(null);
+  let availableFacesets = $state<FaceSet[]>([]);
+  let selectedFaceset = $state("0");
 
   function updateMusicVolume(event: Event) {
     const input = event.currentTarget as HTMLInputElement;
@@ -77,6 +90,34 @@
   function handleZoomOut() {
     gameEvents.emit("zoomOut");
     onClose();
+  }
+
+  function facesetLabel(faceset: FaceSet): string {
+    if (faceset.fullname) return faceset.fullname;
+    if (faceset.comment) return faceset.comment;
+    if (faceset.prefix) return faceset.prefix;
+    return `Faceset ${faceset.setnum}`;
+  }
+
+  function refreshFacesets() {
+    const facesets = getAvailableFacesets();
+    let preferredFaceset =
+      getConfiguredFacesetForCurrentServer() ?? getCurrentFaceset();
+    const availableSetnums = new Set(facesets.map((f) => f.setnum));
+    if (facesets.length > 0 && !availableSetnums.has(preferredFaceset)) {
+      preferredFaceset = facesets[0]!.setnum;
+    }
+    availableFacesets = facesets;
+    selectedFaceset = String(preferredFaceset);
+  }
+
+  function changeFaceset(event: Event) {
+    const nextFaceset = Number(
+      (event.currentTarget as HTMLSelectElement).value,
+    );
+    if (!Number.isFinite(nextFaceset)) return;
+    selectedFaceset = String(nextFaceset);
+    configureCurrentServerFaceset(nextFaceset);
   }
 
   function backupConfig() {
@@ -261,6 +302,20 @@
   export function isDialogActive(): boolean {
     return showColorsDialog || showRestoreConfirmDialog;
   }
+
+  $effect(() => {
+    if (isOpen) refreshFacesets();
+  });
+
+  $effect(() => {
+    const unsub = gameEvents.on("facesetInfoUpdated", refreshFacesets);
+    return unsub;
+  });
+
+  $effect(() => {
+    const unsub = gameEvents.on("disconnect", refreshFacesets);
+    return unsub;
+  });
 </script>
 
 <svelte:window onkeydown={handleDialogKeydown} />
@@ -304,6 +359,22 @@
         />
         <span>{sfxVolume}%</span>
       </div>
+      {#if clientIsConnected() && hasFacesetInfo() && availableFacesets.length > 0}
+        <div class="faceset-row">
+          <label for="faceset-select">Faceset</label>
+          <select
+            id="faceset-select"
+            value={selectedFaceset}
+            onchange={changeFaceset}
+          >
+            {#each availableFacesets as faceset}
+              <option value={String(faceset.setnum)}>
+                {facesetLabel(faceset)}
+              </option>
+            {/each}
+          </select>
+        </div>
+      {/if}
       <div class="separator"></div>
       <button
         onclick={openColorsDialog}
@@ -477,6 +548,31 @@
   .slider-row span {
     text-align: right;
     font-variant-numeric: tabular-nums;
+  }
+
+  .faceset-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.2rem;
+    padding: 0.25rem 0.5rem;
+    color: var(--text);
+    font-size: 0.75rem;
+  }
+
+  .faceset-row label {
+    cursor: default;
+  }
+
+  .faceset-row select {
+    width: 100%;
+    min-width: 14rem;
+    padding: 0.2rem 0.35rem;
+    border: 1px solid var(--border-light);
+    border-radius: 3px;
+    background: var(--bg-lighter);
+    color: var(--text);
+    font-family: var(--mono);
+    font-size: 0.75rem;
   }
 
   .colors-dialog {
