@@ -23,6 +23,7 @@
   import { onMount } from "svelte";
   import {
     clientConnect,
+    clientDisconnect,
     clientNegotiate,
     sendAddMe,
     sendAccountLogin,
@@ -287,11 +288,52 @@
       await clientConnect(serverAddress);
       connected = true;
       statusMessage = "Connected. Negotiating...";
+      // Reflect the connected server in the URL so the page can be bookmarked
+      // or shared and will auto-connect on reload.
+      const params = new URLSearchParams(window.location.search);
+      params.set("server", serverAddress);
+      history.replaceState(null, "", "?" + params.toString());
       clientNegotiate();
     } catch (e) {
       errorMessage = `Connection failed: ${e instanceof Error ? e.message : String(e)}`;
       connecting = false;
       statusMessage = "";
+    }
+  }
+
+  function handleDisconnectBtn() {
+    clientDisconnect();
+    // Reset all connected state back to the initial (pre-connect) screen.
+    connected = false;
+    connecting = false;
+    accountLoginVisible = false;
+    characterSelectVisible = false;
+    createCharVisible = false;
+    startingMapVisible = false;
+    addExistingVisible = false;
+    characterList = [];
+    addMeSuccessReceived = false;
+    charInfoRequested = false;
+    errorMessage = "";
+    statusMessage = "";
+    queryPrompt = "";
+    queryInput = "";
+    serverInfoSections = [];
+    // Clear the module-level caches so a fresh connection gets a clean slate.
+    _cachedInfoSections = [];
+    _cachedLoginMethod = 0;
+    // Remove the server query parameter from the URL, unless it was already
+    // present when the page was loaded (i.e. the user navigated here with a
+    // server pre-configured — keep it so it stays available after disconnect).
+    if (!urlParamServer) {
+      const params = new URLSearchParams(window.location.search);
+      params.delete("server");
+      const newSearch = params.toString();
+      history.replaceState(
+        null,
+        "",
+        newSearch ? "?" + newSearch : location.pathname,
+      );
     }
   }
 
@@ -1114,6 +1156,7 @@
             {:else}
               <button type="submit">Log In</button>
             {/if}
+            <button onclick={handleDisconnectBtn}>Disconnect</button>
           </form>
         {:else if queryPrompt}
           <!-- Legacy query-based login (loginmethod 0) -->
