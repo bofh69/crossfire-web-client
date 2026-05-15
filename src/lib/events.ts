@@ -136,7 +136,7 @@ export interface GameEventMap {
   /** Decrease the tile zoom level by one step. */
   zoomOut: [];
 
-  /** Emitted by image.ts once a face's ImageBitmap has finished decoding. */
+  /** Emitted by image.ts once a face's async bitmap decode settles. */
   faceReady: [faceNum: number];
 
   // Debug events
