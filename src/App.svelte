@@ -697,7 +697,7 @@
       : undefined}
   >
     <div class="menu-area">
-      <MenuBar bind:this={menuBar} onDisconnect={handleDisconnect} />
+      <MenuBar bind:this={menuBar} />
       <div class="status-indicators">
         {#if fireOn}<span class="indicator fire">Fire</span>{/if}
         {#if runOn}<span class="indicator run">Run</span>{/if}

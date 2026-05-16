@@ -9,11 +9,6 @@
   import { gameEvents } from "../lib/events";
   import { getLatestPickupMode } from "../lib/commands";
 
-  interface Props {
-    onDisconnect: () => void;
-  }
-  let { onDisconnect }: Props = $props();
-
   let activeMenu = $state<string | null>(null);
   let pickupMenu: PickupMenu | undefined = $state();
   let keyboardMenu: KeyboardMenu | undefined = $state();
@@ -110,7 +105,6 @@
     isOpen={activeMenu === "file"}
     onToggle={() => toggleMenu("file")}
     onClose={closeMenu}
-    {onDisconnect}
   />
 
   <div class="menu-item">
