@@ -663,46 +663,11 @@ function mapdataClear(x: number, y: number): void {
         expandNeedUpdateFromLayer(px, py, i);
       }
     }
-    // Snapshot visible layer data into the fog arrays.
-    //
-    // Special case: if the only non-zero layer is a single face that spans
-    // more than one tile in at least one dimension (sizeX > 1 || sizeY > 1),
-    // only copy that layer and leave the existing fogHeads/fogTails for every
-    // other layer unchanged.  This preserves the underlying floor/wall fog data
-    // when the visible update consisted solely of a multi-tile sprite.
-    let bigFaceLayerIdx = -1;
-    let facesFound = 0;
+    // Snapshot the visible layer data into the fog arrays so the cell can be
+    // rendered as fog-of-war after the state change.
     for (let i = 0; i < MAXLAYERS; i++) {
-      const h = cell.heads[i]!;
-      if (h.face !== 0) {
-        facesFound++;
-        if (h.sizeX > 1 || h.sizeY > 1) {
-          bigFaceLayerIdx = i;
-        }
-      }
-    }
-    const onlyBigFace = facesFound === 1 && bigFaceLayerIdx !== -1;
-
-    if (facesFound === 0) {
-      // This can happen in the clear-then-bigface update sequence after
-      // mapdata_clear_old() has prepared visible arrays; preserve prior fog
-      // snapshot until an explicit layer update arrives.
-    } else if (onlyBigFace) {
-      // Only propagate the single multi-tile-face layer; keep existing fog
-      // data for all other layers.
-      Object.assign(
-        cell.fogHeads[bigFaceLayerIdx]!,
-        cell.heads[bigFaceLayerIdx]!,
-      );
-      Object.assign(
-        cell.fogTails[bigFaceLayerIdx]!,
-        cell.tails[bigFaceLayerIdx]!,
-      );
-    } else {
-      for (let i = 0; i < MAXLAYERS; i++) {
-        Object.assign(cell.fogHeads[i]!, cell.heads[i]!);
-        Object.assign(cell.fogTails[i]!, cell.tails[i]!);
-      }
+      Object.assign(cell.fogHeads[i]!, cell.heads[i]!);
+      Object.assign(cell.fogTails[i]!, cell.tails[i]!);
     }
   }
 
@@ -1180,42 +1145,7 @@ export function mapdata_set_check_space(x: number, y: number): void {
   }
 
   if (!isBlank) {
-    // Allow a Fog transition even when the cell is not completely blank, but
-    // all non-zero *head* faces are multi-tile (big faces) and there is no
-    // darkness.  This handles the server sequence where the server clears the
-    // regular layers of a head tile that holds a big face and leaves only the
-    // big face: without this check the cell would stay Visible forever because
-    // the big face head keeps it from being considered blank.
-    let hasSmallFaceOrDarkness = cell.darkness !== 0;
-    for (let i = 0; i < MAXLAYERS; i++) {
-      const h = cell.heads[i]!;
-      if (h.face > 0 && h.sizeX === 1 && h.sizeY === 1) {
-        hasSmallFaceOrDarkness = true;
-        break;
-      }
-    }
-    if (hasSmallFaceOrDarkness) {
-      return;
-    }
-
-    // Only trigger a Fog transition if the fog snapshot already contains
-    // small-face data worth displaying in fog mode.  Without this guard a
-    // cell that just entered the view for the first time (Empty→Visible) with
-    // only a big-face update would be immediately pushed back to Fog with an
-    // empty fog snapshot.  On the next visit the server would not re-transmit
-    // the big face (because its "last sent" record says the client has it),
-    // so the face would be lost.
-    let fogHasSmallFace = false;
-    for (let i = 0; i < MAXLAYERS; i++) {
-      const fh = cell.fogHeads[i]!;
-      if (fh.face > 0 && fh.sizeX === 1 && fh.sizeY === 1) {
-        fogHasSmallFace = true;
-        break;
-      }
-    }
-    if (!fogHasSmallFace) {
-      return;
-    }
+    return;
   }
 
   if (x < viewWidth && y < viewHeight) {
@@ -1325,41 +1255,15 @@ export function mapdata_clear_old(x: number, y: number): void {
   const px = pl_pos.x + x;
   const py = pl_pos.y + y;
 
-  const cell = cellAt(px, py);
-
-  if (cell.state === MapCellState.Fog) {
-    cell.needUpdate = true;
-    // Clear the current visible layer data, then restore only multi-tile
-    // layers from the fog snapshot.  This preserves big-face layers that the
-    // server may omit in incremental updates, while still allowing omitted 1x1
-    // layers to be removed by the clear-old pass.
+  if (cellAt(px, py).state === MapCellState.Fog) {
+    cellAt(px, py).needUpdate = true;
     for (let i = 0; i < MAXLAYERS; i++) {
       expandClearFaceFromLayer(px, py, i);
-      const fh = cell.fogHeads[i]!;
-      if (fh.face !== 0 && (fh.sizeX > 1 || fh.sizeY > 1)) {
-        expandSetFace(px, py, i, fh.face, false);
-        // Restore animation metadata that expandSetFace does not set.
-        const h = cell.heads[i]!;
-        h.animation = fh.animation;
-        h.animationSpeed = fh.animationSpeed;
-        h.animationLeft = fh.animationLeft;
-        h.animationPhase = fh.animationPhase;
-      }
     }
-    cell.darkness = 0;
-  } else if (cell.state === MapCellState.Visible) {
-    // Save a fog snapshot of the current visible layers before the server
-    // starts clearing/updating individual layers.  This ensures that if the
-    // cell ends up with only a big face (and transitions to Fog via
-    // mapdata_set_check_space), the snapshot already contains the previous
-    // floor/wall faces for the other layers.
-    for (let i = 0; i < MAXLAYERS; i++) {
-      Object.assign(cell.fogHeads[i]!, cell.heads[i]!);
-      Object.assign(cell.fogTails[i]!, cell.tails[i]!);
-    }
+    cellAt(px, py).darkness = 0;
   }
 
-  cell.state = MapCellState.Visible;
+  cellAt(px, py).state = MapCellState.Visible;
   notifyWatchedCell(
     px,
     py,
@@ -1378,20 +1282,12 @@ export function mapdata_set_face_layer(
   const py = pl_pos.y + y;
 
   if (x < viewWidth && y < viewHeight) {
-    const cell = cellAt(px, py);
-    cell.needUpdate = true;
+    cellAt(px, py).needUpdate = true;
     if (face > 0) {
       expandSetFace(px, py, layer, face, true);
     } else {
       notifyWatchedCell(px, py, `layer ${layer} face cleared`);
       expandClearFaceFromLayer(px, py, layer);
-    }
-
-    // When a layer update arrives while the cell is Fog, propagate only that
-    // layer into fog arrays so preserved fog layers remain intact.
-    if (cell.state === MapCellState.Fog) {
-      Object.assign(cell.fogHeads[layer]!, cell.heads[layer]!);
-      Object.assign(cell.fogTails[layer]!, cell.tails[layer]!);
     }
   } else {
     expandSetBigface(x, y, layer, face, true);
@@ -1864,11 +1760,9 @@ export function mapdata_restore_fog(key: string): void {
     for (let i = 0; i < MAXLAYERS; i++) {
       // MapCellLayer and MapCellTailLayer contain only number primitives;
       // Object.assign produces a fully independent copy.
-      // Write to both the visible arrays and the fog arrays:
-      //   heads/tails     – needed by expandClearFaceFromLayer when map2
-      //                     subsequently marks this cell Visible and clears
-      //                     any multi-tile tail data that was stored here.
-      //   fogHeads/fogTails – used for rendering while state === Fog.
+      // Write to both the visible arrays (so expandClearFaceFromLayer can
+      // clean up multi-tile tails when the cell later returns to visible)
+      // and the fog arrays (used for rendering while state === Fog).
       Object.assign(cell.heads[i]!, entry.heads[i]!);
       Object.assign(cell.tails[i]!, entry.tails[i]!);
       Object.assign(cell.fogHeads[i]!, entry.heads[i]!);
