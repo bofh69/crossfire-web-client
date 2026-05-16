@@ -16,8 +16,8 @@
   let { fading, isOpen, onToggle, onClose }: Props = $props();
 
   let showAboutDialog = $state(false);
-  let showHiscoreDialog = $state(false);
   let showHelpDialog = $state(false);
+  let showHiscoreDialog = $state(false);
   let hiscoreRows = $state<HiscoreRow[]>([]);
   let hiscorePending = $state(false);
 
