@@ -17,6 +17,7 @@
 
   let showAboutDialog = $state(false);
   let showHiscoreDialog = $state(false);
+  let showHelpDialog = $state(false);
   let hiscoreRows = $state<HiscoreRow[]>([]);
   let hiscorePending = $state(false);
 
@@ -27,6 +28,15 @@
 
   function closeAbout() {
     showAboutDialog = false;
+  }
+
+  function showHelp() {
+    showHelpDialog = true;
+    onClose();
+  }
+
+  function closeHelp() {
+    showHelpDialog = false;
   }
 
   function showHiscore() {
@@ -53,7 +63,9 @@
   });
 
   export function isDialogActive(): boolean {
-    return showAboutDialog || showHiscoreDialog || hiscorePending;
+    return (
+      showAboutDialog || showHelpDialog || showHiscoreDialog || hiscorePending
+    );
   }
 </script>
 
@@ -74,6 +86,13 @@
           e.preventDefault();
           showHiscore();
         }}>Hiscore</button
+      >
+      <button
+        onclick={showHelp}
+        oncontextmenu={(e) => {
+          e.preventDefault();
+          showHelp();
+        }}>Help</button
       >
       <button
         onclick={showAbout}
@@ -137,6 +156,32 @@
       </p>
       <div class="dialog-buttons">
         <button onclick={closeAbout}>Close</button>
+      </div>
+    </div>
+  </div>
+{/if}
+
+{#if showHelpDialog}
+  <div class="dialog-overlay">
+    <div class="dialog dialog-wide">
+      <p class="dialog-title">Help</p>
+      <p>
+        Type <strong>help</strong> in the command input to see in-game help about
+        commands.
+      </p>
+      <p>
+        Default key bindings are available in <strong>Keyboard</strong> →
+        <strong>Show key bindings</strong>.
+      </p>
+      <p>
+        Use <strong>Alt</strong> together with a movement key to run.
+      </p>
+      <p>
+        Use <strong>Shift</strong> with direction keys to fire the currently applied
+        object, spell, or prayer.
+      </p>
+      <div class="dialog-buttons">
+        <button onclick={closeHelp}>Close</button>
       </div>
     </div>
   </div>
