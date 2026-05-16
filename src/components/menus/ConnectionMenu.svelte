@@ -1,19 +1,16 @@
 <script lang="ts">
-  import { clientDisconnect } from "../../lib/client";
+  import { disconnectAndReload } from "../../lib/disconnect";
 
   interface Props {
     fading: boolean;
     isOpen: boolean;
     onToggle: () => void;
     onClose: () => void;
-    onDisconnect: () => void;
   }
-  let { fading, isOpen, onToggle, onClose, onDisconnect }: Props = $props();
+  let { fading, isOpen, onToggle, onClose }: Props = $props();
 
   function handleDisconnect() {
-    clientDisconnect();
-    onDisconnect();
-    onClose();
+    disconnectAndReload();
   }
 
   function registerWebCrossfireHandler() {

@@ -23,18 +23,18 @@
   import { onMount } from "svelte";
   import {
     clientConnect,
-    clientDisconnect,
     clientNegotiate,
-    sendAddMe,
+    getAccountPassword,
+    sendAccountAddPlayer,
     sendAccountLogin,
     sendAccountNew,
     sendAccountPlay,
-    sendAccountAddPlayer,
-    sendRequestInfo,
+    sendAddMe,
     sendCreatePlayer,
+    sendRequestInfo,
     setAccountPassword,
-    getAccountPassword,
   } from "../lib/client";
+  import { disconnectAndReload } from "../lib/disconnect";
   import { gameEvents } from "../lib/events";
   import { sendReply } from "../lib/player";
   import {
@@ -302,39 +302,7 @@
   }
 
   function handleDisconnectBtn() {
-    clientDisconnect();
-    // Reset all connected state back to the initial (pre-connect) screen.
-    connected = false;
-    connecting = false;
-    accountLoginVisible = false;
-    characterSelectVisible = false;
-    createCharVisible = false;
-    startingMapVisible = false;
-    addExistingVisible = false;
-    characterList = [];
-    addMeSuccessReceived = false;
-    charInfoRequested = false;
-    errorMessage = "";
-    statusMessage = "";
-    queryPrompt = "";
-    queryInput = "";
-    serverInfoSections = [];
-    // Clear the module-level caches so a fresh connection gets a clean slate.
-    _cachedInfoSections = [];
-    _cachedLoginMethod = 0;
-    // Remove the server query parameter from the URL, unless it was already
-    // present when the page was loaded (i.e. the user navigated here with a
-    // server pre-configured — keep it so it stays available after disconnect).
-    if (!urlParamServer) {
-      const params = new URLSearchParams(window.location.search);
-      params.delete("server");
-      const newSearch = params.toString();
-      history.replaceState(
-        null,
-        "",
-        newSearch ? "?" + newSearch : location.pathname,
-      );
-    }
+    disconnectAndReload();
   }
 
   function clearQuery() {
