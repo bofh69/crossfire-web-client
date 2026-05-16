@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
+  import { capitalizeFirstLetter } from "../lib/misc";
   import {
     extendedCommand,
     completeCommand,
@@ -28,6 +29,7 @@
     MSG_TYPE_CLIENT_NOTICE,
     MSG_TYPE_MISC,
     MSG_TYPE_MOTD,
+    NDI_WHITE,
     SC_ALWAYS,
   } from "../lib/protocol";
   import { getCpl } from "../lib/init";
@@ -571,17 +573,7 @@
     inputEl?.blur();
   }
 
-  function submitCommand() {
-    const cmd = commandInput.trim();
-
-    // Empty input or bare chat prefix → just unfocus, don't send anything.
-    if (cmd.length === 0 || cmd === CHAT_PREFIX.trim()) {
-      commandInput = "";
-      historyIndex = -1;
-      blurInput();
-      return;
-    }
-
+  function runUserCommand(cmd: string, blurAfter: boolean): void {
     // Append to history, avoiding consecutive duplicates.
     if (
       commandHistory.length === 0 ||
@@ -597,7 +589,45 @@
 
     extendedCommand(cmd);
     commandInput = "";
-    blurInput();
+    if (blurAfter) {
+      blurInput();
+    }
+  }
+
+  function handleSpanCommandClick(
+    command: string | undefined,
+    commandKind: "cmd" | "help" | undefined,
+    linkText: string,
+  ): void {
+    if (!command) return;
+    const cmd = command.trim();
+    if (cmd.length === 0 || cmd === CHAT_PREFIX.trim()) return;
+    if (commandKind === "help") {
+      const heading = linkText.trim();
+      if (heading.length > 0) {
+        addMessage(
+          NDI_WHITE,
+          capitalizeFirstLetter(heading),
+          MSG_TYPE_CLIENT,
+          MSG_TYPE_CLIENT_NOTICE,
+        );
+      }
+    }
+    runUserCommand(cmd, false);
+  }
+
+  function submitCommand() {
+    const cmd = commandInput.trim();
+
+    // Empty input or bare chat prefix → just unfocus, don't send anything.
+    if (cmd.length === 0 || cmd === CHAT_PREFIX.trim()) {
+      commandInput = "";
+      historyIndex = -1;
+      blurInput();
+      return;
+    }
+
+    runUserCommand(cmd, true);
   }
 </script>
 
@@ -647,14 +677,26 @@
                 >
                   {#if msg.count > 1}<span class="repeat-count"
                       >{msg.count}×</span
-                    >{/if}{#each msg.spans as span}<span
-                      style:color={span.color}
-                      style:font-weight={span.bold ? "bold" : "normal"}
-                      style:font-style={span.italic ? "italic" : "normal"}
-                      style:text-decoration={span.underline
-                        ? "underline"
-                        : "none"}>{span.text}</span
-                    >{/each}
+                    >{/if}{#each msg.spans as span}{#if span.command}<button
+                        class="message-link"
+                        onclick={() =>
+                          handleSpanCommandClick(
+                            span.command,
+                            span.commandKind,
+                            span.text,
+                          )}
+                        style:color={span.color}
+                        style:font-weight={span.bold ? "bold" : "normal"}
+                        style:font-style={span.italic ? "italic" : "normal"}
+                        >{span.text}</button
+                      >{:else}<span
+                        style:color={span.color}
+                        style:font-weight={span.bold ? "bold" : "normal"}
+                        style:font-style={span.italic ? "italic" : "normal"}
+                        style:text-decoration={span.underline
+                          ? "underline"
+                          : "none"}>{span.text}</span
+                      >{/if}{/each}
                 </div>
               {/each}
             </div>
@@ -705,14 +747,26 @@
                 >
                   {#if msg.count > 1}<span class="repeat-count"
                       >{msg.count}×</span
-                    >{/if}{#each msg.spans as span}<span
-                      style:color={span.color}
-                      style:font-weight={span.bold ? "bold" : "normal"}
-                      style:font-style={span.italic ? "italic" : "normal"}
-                      style:text-decoration={span.underline
-                        ? "underline"
-                        : "none"}>{span.text}</span
-                    >{/each}
+                    >{/if}{#each msg.spans as span}{#if span.command}<button
+                        class="message-link"
+                        onclick={() =>
+                          handleSpanCommandClick(
+                            span.command,
+                            span.commandKind,
+                            span.text,
+                          )}
+                        style:color={span.color}
+                        style:font-weight={span.bold ? "bold" : "normal"}
+                        style:font-style={span.italic ? "italic" : "normal"}
+                        >{span.text}</button
+                      >{:else}<span
+                        style:color={span.color}
+                        style:font-weight={span.bold ? "bold" : "normal"}
+                        style:font-style={span.italic ? "italic" : "normal"}
+                        style:text-decoration={span.underline
+                          ? "underline"
+                          : "none"}>{span.text}</span
+                      >{/if}{/each}
                 </div>
               {/each}
             </div>
@@ -755,14 +809,26 @@
                 >
                   {#if msg.count > 1}<span class="repeat-count"
                       >{msg.count}×</span
-                    >{/if}{#each msg.spans as span}<span
-                      style:color={span.color}
-                      style:font-weight={span.bold ? "bold" : "normal"}
-                      style:font-style={span.italic ? "italic" : "normal"}
-                      style:text-decoration={span.underline
-                        ? "underline"
-                        : "none"}>{span.text}</span
-                    >{/each}
+                    >{/if}{#each msg.spans as span}{#if span.command}<button
+                        class="message-link"
+                        onclick={() =>
+                          handleSpanCommandClick(
+                            span.command,
+                            span.commandKind,
+                            span.text,
+                          )}
+                        style:color={span.color}
+                        style:font-weight={span.bold ? "bold" : "normal"}
+                        style:font-style={span.italic ? "italic" : "normal"}
+                        >{span.text}</button
+                      >{:else}<span
+                        style:color={span.color}
+                        style:font-weight={span.bold ? "bold" : "normal"}
+                        style:font-style={span.italic ? "italic" : "normal"}
+                        style:text-decoration={span.underline
+                          ? "underline"
+                          : "none"}>{span.text}</span
+                      >{/if}{/each}
                 </div>
               {/each}
             </div>
@@ -988,6 +1054,23 @@
 
   .message:hover {
     background: rgba(255, 255, 255, 0.03);
+  }
+
+  .message .message-link {
+    border: none;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    display: inline;
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+    padding: 0;
+    text-decoration: underline;
+  }
+
+  .message .message-link:hover {
+    color: #8fc1ff;
   }
 
   .repeat-count {

@@ -33,6 +33,8 @@ export interface MessageSpan {
   bold: boolean;
   italic: boolean;
   underline: boolean;
+  command?: string;
+  commandKind?: "cmd" | "help";
 }
 
 /** A single parsed line from a server info block (motd/news/rules). */
@@ -213,22 +215,36 @@ export function parseMarkup(text: string, baseColor: string): MessageSpan[] {
   let italic = false;
   let underline = false;
   let color = baseColor;
+  let commandTag: "cmd" | "help" | null = null;
   let current = text;
+
+  function emitSpan(spanText: string): void {
+    if (spanText.length === 0) return;
+    const commandText = spanText.trim();
+    spans.push({
+      text: spanText,
+      color,
+      bold,
+      italic,
+      underline,
+      command:
+        commandTag === "cmd"
+          ? commandText || undefined
+          : commandTag === "help"
+            ? commandText
+              ? `help ${commandText}`
+              : undefined
+            : undefined,
+      commandKind: commandTag ?? undefined,
+    });
+  }
 
   while (true) {
     const openBracket = current.indexOf("[");
     if (openBracket < 0) break;
 
     // Emit text before the bracket
-    if (openBracket > 0) {
-      spans.push({
-        text: current.substring(0, openBracket),
-        color,
-        bold,
-        italic,
-        underline,
-      });
-    }
+    emitSpan(current.substring(0, openBracket));
     current = current.substring(openBracket + 1);
 
     const closeBracket = current.indexOf("]");
@@ -239,28 +255,34 @@ export function parseMarkup(text: string, baseColor: string): MessageSpan[] {
 
     if (tag === "b") {
       bold = true;
-    } else if (tag === "/b") {
-      bold = false;
-    } else if (tag === "i") {
-      italic = true;
-    } else if (tag === "/i") {
-      italic = false;
-    } else if (tag === "ul") {
-      underline = true;
-    } else if (tag === "/ul") {
-      underline = false;
-    } else if (tag === "/color") {
-      color = baseColor;
+    } else if (tag === "cmd") {
+      commandTag = "cmd";
     } else if (tag.startsWith("color=")) {
       color = "#" + tag.substring(6);
+    } else if (tag === "help") {
+      commandTag = "help";
+    } else if (tag === "i") {
+      italic = true;
+    } else if (tag === "ul") {
+      underline = true;
+    } else if (tag === "/b") {
+      bold = false;
+    } else if (tag === "/cmd") {
+      commandTag = null;
+    } else if (tag === "/color") {
+      color = baseColor;
+    } else if (tag === "/help") {
+      commandTag = null;
+    } else if (tag === "/i") {
+      italic = false;
+    } else if (tag === "/ul") {
+      underline = false;
     }
     // Ignore other tags (fixed, arcane, hand, strange, print, etc.)
   }
 
   // Emit any remaining text
-  if (current.length > 0) {
-    spans.push({ text: current, color, bold, italic, underline });
-  }
+  emitSpan(current);
 
   return spans;
 }
