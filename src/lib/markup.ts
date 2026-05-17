@@ -56,6 +56,40 @@ const MARKUP_FONT_FIXED = "var(--markup-font-fixed, var(--mono))";
 const MARKUP_FONT_HAND = "var(--markup-font-hand, var(--serif))";
 const MARKUP_FONT_PRINT = "var(--markup-font-print, var(--serif))";
 const MARKUP_FONT_STRANGE = "var(--markup-font-strange, var(--serif))";
+const STRANGE_FONT_RUNE_DIGRAPHS: ReadonlyArray<readonly [string, string]> = [
+  ["ae", "ᚫ"],
+  ["ng", "ᛝ"],
+  ["oe", "ᛟ"],
+  ["th", "ᚦ"],
+];
+const STRANGE_FONT_RUNE_MAP: Readonly<Record<string, string>> = {
+  a: "ᚨ",
+  b: "ᛒ",
+  c: "ᚲ",
+  d: "ᛞ",
+  e: "ᛖ",
+  f: "ᚠ",
+  g: "ᚷ",
+  h: "ᚺ",
+  i: "ᛁ",
+  j: "ᛃ",
+  k: "ᚲ",
+  l: "ᛚ",
+  m: "ᛗ",
+  n: "ᚾ",
+  o: "ᛟ",
+  p: "ᛈ",
+  q: "ᚲ",
+  r: "ᚱ",
+  s: "ᛋ",
+  t: "ᛏ",
+  u: "ᚢ",
+  v: "ᚹ",
+  w: "ᚹ",
+  x: "ᛉ",
+  y: "ᛃ",
+  z: "ᛉ",
+};
 
 export const INFO_PANEL_BACKGROUND_DEFAULT = "#1a1a1a";
 
@@ -105,6 +139,38 @@ function normalizeHexColor(value: string, fallback: string): string {
     return `#${trimmed.toLowerCase()}`;
   }
   return fallback;
+}
+
+/**
+ * Transliterate Latin text to approximate runes for `[strange]` spans.
+ *
+ * @param text The source text to transliterate.
+ * @returns The display text with supported Latin letters replaced by rune glyphs.
+ */
+function transliterateLatinToRunes(text: string): string {
+  const normalizedText = text
+    .normalize("NFKD")
+    .replace(/\p{Mark}+/gu, "")
+    .toLowerCase();
+  let result = "";
+
+  for (let i = 0; i < normalizedText.length; i++) {
+    const digraph = normalizedText.slice(i, i + 2);
+    const digraphRune = STRANGE_FONT_RUNE_DIGRAPHS.find(
+      ([latin]) => latin === digraph,
+    )?.[1];
+
+    if (digraphRune !== undefined) {
+      result += digraphRune;
+      i++;
+      continue;
+    }
+
+    const character = normalizedText[i] ?? "";
+    result += STRANGE_FONT_RUNE_MAP[character] ?? character;
+  }
+
+  return result;
 }
 
 function applyInfoPanelColorCssVariables(): void {
@@ -234,8 +300,12 @@ export function parseMarkup(text: string, baseColor: string): MessageSpan[] {
   function emitSpan(spanText: string): void {
     if (spanText.length === 0) return;
     const commandText = spanText.trim();
+    const renderedText =
+      fontFamily === MARKUP_FONT_STRANGE
+        ? transliterateLatinToRunes(spanText)
+        : spanText;
     spans.push({
-      text: spanText,
+      text: renderedText,
       color,
       bold,
       fontFamily,
