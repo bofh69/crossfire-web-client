@@ -80,7 +80,7 @@ const MAX_FACE_SIZE = 16;
 const CURRENT_MAX_VIEW = 33;
 
 /** Minimum virtual-map dimension (tiles) regardless of viewport size. */
-const FOG_MAP_MIN_SIZE = 192;
+const FOG_MAP_MIN_SIZE = 512;
 
 /** Short alias kept in sync with the protocol constant. */
 const L = MAXLAYERS;
