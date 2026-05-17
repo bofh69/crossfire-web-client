@@ -238,7 +238,7 @@ function debugPickAndLog(
     debugClickUnsub?.();
     debugClickUnsub = null;
     for (const line of dumpFn(ax, ay)) {
-      LOG(LogLevel.Info, "debug", line);
+      drawInfo(line);
     }
   });
   gameEvents.emit("debugPickTile", mode);
@@ -279,9 +279,9 @@ function commandDebug(args: string): void {
     );
   } else if (sub === "bigfaces") {
     for (const line of mapdata_debug_all_bigfaces()) {
-      LOG(LogLevel.Info, "debug", line);
+      drawInfo(line);
     }
-    drawInfo("All active bigface data logged to the browser console.");
+    drawInfo("All active bigface data displayed above.");
   } else if (sub === "watch") {
     const current = getWatchedCell();
     if (current !== null) {
@@ -295,7 +295,7 @@ function commandDebug(args: string): void {
         debugClickUnsub?.();
         debugClickUnsub = null;
         setWatchedCell({ ax, ay }, (event) =>
-          LOG(LogLevel.Info, "debug:watch", `(${ax},${ay}) ${event}`),
+          drawInfo(`[debug watch] (${ax},${ay}) ${event}`),
         );
         drawInfo(
           `Now watching cell at absolute (${ax}, ${ay}). Run debug watch again to stop.`,
@@ -309,15 +309,15 @@ function commandDebug(args: string): void {
       drawInfo("Usage: debug face <face-number>\nExample: debug face 1234");
     } else {
       for (const line of image_debug_face(faceNum)) {
-        LOG(LogLevel.Info, "debug", line);
+        drawInfo(line);
       }
-      drawInfo(`Face ${faceNum} data logged to the browser console.`);
+      drawInfo(`Displayed face ${faceNum} data.`);
     }
   } else if (sub === "pos") {
     for (const line of mapdata_debug_player_pos()) {
-      LOG(LogLevel.Info, "debug", line);
+      drawInfo(line);
     }
-    drawInfo("Player virtual-map position logged to the browser console.");
+    drawInfo("Displayed player virtual-map position.");
   } else if (sub === "colors") {
     commandDebugColors();
   } else if (sub === "mem") {
@@ -344,15 +344,15 @@ function commandDebug(args: string): void {
     drawInfo(
       "Usage: debug <subcommand>\n" +
         "Subcommands:\n" +
-        "  bigface      Click a tile to log bigface/multitile info\n" +
-        "  bigfaces     Log all currently active bigface entries to the console\n" +
+        "  bigface      Click a tile to display bigface/multitile info\n" +
+        "  bigfaces     Display all currently active bigface entries\n" +
         "  colors       Show all message colors with their names\n" +
-        "  face <num>   Log all known data for face <num>, including pixel size\n" +
+        "  face <num>   Display all known data for face <num>, including pixel size\n" +
         "  mem          Show map and fog-cache memory usage statistics\n" +
         "  perf         Toggle performance logging on/off\n" +
-        "  pos          Log the player's current position in the virtual map\n" +
-        "  tile         Click a tile to log all tile info\n" +
-        "  watch        Pick a tile to watch; logs all server updates to it (run again to stop)",
+        "  pos          Display the player's current position in the virtual map\n" +
+        "  tile         Click a tile to display all tile info\n" +
+        "  watch        Pick a tile to watch; displays all server updates to it (run again to stop)",
     );
   }
 }
@@ -393,21 +393,21 @@ const builtinCommands: ConsoleCommand[] = [
       "Debugging tools (bigface, bigfaces, colors, face, mem, perf, pos, tile, watch)",
     longDescription:
       "Syntax:\n" +
-      "  debug bigface      Click a tile to log bigface/multitile info to the console\n" +
-      "  debug bigfaces     Log all currently active bigface entries to the console\n" +
+      "  debug bigface      Click a tile to display bigface/multitile info in the info panel\n" +
+      "  debug bigfaces     Display all currently active bigface entries in the info panel\n" +
       "  debug colors       Show all message colors with their names in the info panel\n" +
-      "  debug face <num>   Log all known data for face <num>, including pixel size,\n" +
+      "  debug face <num>   Display all known data for face <num>, including pixel size,\n" +
       "                     image URL, smooth face mapping, and any pending name/checksum\n" +
       "  debug mem          Show virtual-map and fog-cache memory usage statistics\n" +
       "  debug perf         Toggle periodic performance logging on/off\n" +
-      "  debug pos          Log the player's current position in the virtual map\n" +
-      "  debug tile         Click a tile to log all tile data to the console\n" +
+      "  debug pos          Display the player's current position in the virtual map\n" +
+      "  debug tile         Click a tile to display all tile data in the info panel\n" +
       "  debug watch        Click a tile to start watching; every server update to that\n" +
-      "                     cell is logged at info level.  Run again to stop watching.\n" +
+      "                     cell is displayed in the info panel.  Run again to stop watching.\n" +
       "\n" +
       "Performance logging is off by default.  The bigface, tile and watch\n" +
       "subcommands prompt you to click on the game map; the data is\n" +
-      "written to the browser developer console at info level.",
+      "displayed in the info panel.",
     handler: commandDebug,
   },
   {
