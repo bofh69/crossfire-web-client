@@ -232,27 +232,6 @@ function bigfaceAt(x: number, y: number, layer: number): BigCell {
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
-// Layer-state helpers
-//
-// A cell stores layer data in two separate sets of arrays:
-//   heads / tails     – live data for the Visible state
-//   fogHeads / fogTails – snapshot copied from heads/tails on Visible→Fog
-//
-// These helpers select the correct set based on the cell's current state so
-// that callers do not need to repeat the conditional everywhere.
-// ──────────────────────────────────────────────────────────────────────────────
-
-/** Return the head layers to use for rendering/reading the given cell. */
-function layerHeads(cell: MapCell): MapCellLayer[] {
-  return cell.state === MapCellState.Fog ? cell.fogHeads : cell.heads;
-}
-
-/** Return the tail layers to use for rendering/reading the given cell. */
-function layerTails(cell: MapCell): MapCellTailLayer[] {
-  return cell.state === MapCellState.Fog ? cell.fogTails : cell.tails;
-}
-
-// ──────────────────────────────────────────────────────────────────────────────
 // Factory helpers
 // ──────────────────────────────────────────────────────────────────────────────
 
@@ -275,21 +254,15 @@ function newTailLayer(): MapCellTailLayer {
 function newCell(): MapCell {
   const heads: MapCellLayer[] = [];
   const tails: MapCellTailLayer[] = [];
-  const fogHeads: MapCellLayer[] = [];
-  const fogTails: MapCellTailLayer[] = [];
   const smooth: number[] = [];
   for (let i = 0; i < MAXLAYERS; i++) {
     heads.push(newLayer());
     tails.push(newTailLayer());
-    fogHeads.push(newLayer());
-    fogTails.push(newTailLayer());
     smooth.push(0);
   }
   return {
     heads,
     tails,
-    fogHeads,
-    fogTails,
     labels: [],
     smooth,
     darkness: 0,
@@ -313,18 +286,6 @@ function resetCell(cell: MapCell): void {
     t.face = 0;
     t.sizeX = 0;
     t.sizeY = 0;
-    const fh = cell.fogHeads[i]!;
-    fh.face = 0;
-    fh.sizeX = 1;
-    fh.sizeY = 1;
-    fh.animation = 0;
-    fh.animationSpeed = 0;
-    fh.animationLeft = 0;
-    fh.animationPhase = 0;
-    const ft = cell.fogTails[i]!;
-    ft.face = 0;
-    ft.sizeX = 0;
-    ft.sizeY = 0;
     cell.smooth[i] = 0;
   }
   cell.labels = [];
@@ -663,12 +624,6 @@ function mapdataClear(x: number, y: number): void {
         expandNeedUpdateFromLayer(px, py, i);
       }
     }
-    // Snapshot the visible layer data into the fog arrays so the cell can be
-    // rendered as fog-of-war after the state change.
-    for (let i = 0; i < MAXLAYERS; i++) {
-      Object.assign(cell.fogHeads[i]!, cell.heads[i]!);
-      Object.assign(cell.fogTails[i]!, cell.tails[i]!);
-    }
   }
 
   cell.state = MapCellState.Fog;
@@ -818,8 +773,6 @@ function copyCellData(src: MapCell, dst: MapCell): void {
   for (let i = 0; i < MAXLAYERS; i++) {
     Object.assign(dst.heads[i]!, src.heads[i]!);
     Object.assign(dst.tails[i]!, src.tails[i]!);
-    Object.assign(dst.fogHeads[i]!, src.fogHeads[i]!);
-    Object.assign(dst.fogTails[i]!, src.fogTails[i]!);
     dst.smooth[i] = src.smooth[i]!;
   }
   dst.labels = src.labels.slice();
@@ -854,14 +807,9 @@ export function mapdata_can_smooth(
   y: number,
   layer: number,
 ): boolean {
-  const cell = cellAt(x, y);
-  // `smooth` is set by the server for visible cells and is not separately
-  // tracked for fog state, so it is read directly from the cell regardless
-  // of state.  `layerHeads` is used for the face check so that fog cells
-  // (which store renderable faces in fogHeads) are handled correctly.
   return (
-    (layerHeads(cell)[layer]!.face === 0 && layer > 0) ||
-    cell.smooth[layer]! !== 0
+    (cellAt(x, y).heads[layer]!.face === 0 && layer > 0) ||
+    cellAt(x, y).smooth[layer]! !== 0
   );
 }
 
@@ -902,7 +850,7 @@ export function mapdata_face(x: number, y: number, layer: number): number {
   if (!mapdataHasTile(x, y, layer)) {
     return 0;
   }
-  return layerHeads(cellAt(pl_pos.x + x, pl_pos.y + y))[layer]!.face;
+  return cellAt(pl_pos.x + x, pl_pos.y + y).heads[layer]!.face;
 }
 
 /**
@@ -937,8 +885,7 @@ export function mapdata_head_face_info(
   my: number,
   layer: number,
 ): { face: number; dx: number; dy: number } {
-  const cell = cellAt(mx, my);
-  const head = layerHeads(cell)[layer]!;
+  const head = cellAt(mx, my).heads[layer]!;
 
   if (head.face !== 0) {
     // dx/dy = 0: the head tile IS the head; no shift needed.
@@ -978,7 +925,7 @@ export function mapdata_tail_face_info(
   my: number,
   layer: number,
 ): { face: number; dx: number; dy: number } {
-  const tail = layerTails(cellAt(mx, my))[layer]!;
+  const tail = cellAt(mx, my).tails[layer]!;
 
   if (tail.face !== 0) {
     const hx = mx + tail.sizeX;
@@ -1045,21 +992,19 @@ export function mapdata_bigface(
 
   const px = pl_pos.x + x;
   const py = pl_pos.y + y;
-  const cell = cellAt(px, py);
-  let result = layerTails(cell)[layer]!.face;
+  let result = cellAt(px, py).tails[layer]!.face;
 
   if (result !== 0) {
-    const dx = layerTails(cell)[layer]!.sizeX;
-    const dy = layerTails(cell)[layer]!.sizeY;
-    const headCell = cellAt(px + dx, py + dy);
-    const w = layerHeads(headCell)[layer]!.sizeX;
-    const h = layerHeads(headCell)[layer]!.sizeY;
+    const dx = cellAt(px, py).tails[layer]!.sizeX;
+    const dy = cellAt(px, py).tails[layer]!.sizeY;
+    const w = cellAt(px + dx, py + dy).heads[layer]!.sizeX;
+    const h = cellAt(px + dx, py + dy).heads[layer]!.sizeY;
 
     let clearBigface: boolean;
-    if (cell.state === MapCellState.Fog) {
+    if (cellAt(px, py).state === MapCellState.Fog) {
       clearBigface = false;
     } else if (x + dx < viewWidth && y + dy < viewHeight) {
-      clearBigface = headCell.state === MapCellState.Fog;
+      clearBigface = cellAt(px + dx, py + dy).state === MapCellState.Fog;
     } else {
       clearBigface = bigfaceAt(x + dx, y + dy, layer).head.face === 0;
     }
@@ -1487,10 +1432,8 @@ export function mapdata_save_fog(key: string): void {
       // Check if the cell has any drawable content worth caching.
       let hasContent = cell.darkness !== 0;
       if (!hasContent) {
-        const lh = layerHeads(cell);
-        const lt = layerTails(cell);
         for (let i = 0; i < MAXLAYERS; i++) {
-          if (lh[i]!.face !== 0 || lt[i]!.face !== 0) {
+          if (cell.heads[i]!.face !== 0 || cell.tails[i]!.face !== 0) {
             hasContent = true;
             break;
           }
@@ -1505,11 +1448,8 @@ export function mapdata_save_fog(key: string): void {
 
       // MapCellLayer and MapCellTailLayer contain only number primitives,
       // so the spread operator produces a fully independent copy.
-      // Use the state-appropriate layer arrays so that fog cells are saved
-      // from their frozen fog snapshot (fogHeads/fogTails) and visible cells
-      // from their live data (heads/tails).
-      const heads = layerHeads(cell).map((h) => ({ ...h }));
-      const tails = layerTails(cell).map((t) => ({ ...t }));
+      const heads = cell.heads.map((h) => ({ ...h }));
+      const tails = cell.tails.map((t) => ({ ...t }));
       const smooth = cell.smooth.slice();
       const labels = cell.labels.map((l) => ({ ...l }));
 
@@ -1760,13 +1700,8 @@ export function mapdata_restore_fog(key: string): void {
     for (let i = 0; i < MAXLAYERS; i++) {
       // MapCellLayer and MapCellTailLayer contain only number primitives;
       // Object.assign produces a fully independent copy.
-      // Write to both the visible arrays (so expandClearFaceFromLayer can
-      // clean up multi-tile tails when the cell later returns to visible)
-      // and the fog arrays (used for rendering while state === Fog).
       Object.assign(cell.heads[i]!, entry.heads[i]!);
       Object.assign(cell.tails[i]!, entry.tails[i]!);
-      Object.assign(cell.fogHeads[i]!, entry.heads[i]!);
-      Object.assign(cell.fogTails[i]!, entry.tails[i]!);
       cell.smooth[i] = entry.smooth[i]!;
     }
     cell.darkness = entry.darkness;
@@ -1851,16 +1786,10 @@ export function mapdata_apply_magicmap(
       }
 
       // Place the synthetic solid-colour face in layer 0.
-      // Write to both heads (for expandClearFaceFromLayer compatibility on
-      // Fog→Visible transition) and fogHeads (used for fog rendering).
       const head0 = cell.heads[0]!;
       head0.face = MAGIC_MAP_FACE_BASE | colorIdx;
       head0.sizeX = 1;
       head0.sizeY = 1;
-      const fogHead0 = cell.fogHeads[0]!;
-      fogHead0.face = MAGIC_MAP_FACE_BASE | colorIdx;
-      fogHead0.sizeX = 1;
-      fogHead0.sizeY = 1;
 
       // Wall tiles: add a wall-line face on layer 1.
       // Build a 4-bit neighbor mask and select the matching wall shape.
@@ -1875,10 +1804,6 @@ export function mapdata_apply_magicmap(
         head1.face = MAGIC_MAP_WALL_FACE_BASE | neighborMask;
         head1.sizeX = 1;
         head1.sizeY = 1;
-        const fogHead1 = cell.fogHeads[1]!;
-        fogHead1.face = MAGIC_MAP_WALL_FACE_BASE | neighborMask;
-        fogHead1.sizeX = 1;
-        fogHead1.sizeY = 1;
       }
 
       cell.state = MapCellState.Fog;
