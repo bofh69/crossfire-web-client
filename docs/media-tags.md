@@ -4,8 +4,8 @@ This document is a quick explanation of tags that can be used in extended
 messages. For informations on what extended messages are at protocol level,
 please refer to the protocol file in doc/Developers/protocol
 
-Quick example
-=============
+# Quick example
+
 [b]And now, for your pleasure only, an example[/b]
 
 [i]This is an old letter, full of dirt and partially destroyed
@@ -20,8 +20,8 @@ in ancient languages. I need your help for
 [hand]please come as fast as possible my friend.
 [print][b]The bottom of letter seems deliberatly shredded.
 
-What is it?
-===========
+# What is it?
+
 Media tag are special mark up that are send with extended text. Situation in
 which such case happend are, but not limited to, book reading, signs reading,
 motd, news, rules. Media tags are made of delimiters, with inside them the
@@ -43,7 +43,7 @@ closing tags and so no notion of tag inside a tag (in bbcode, it would probably
 appear in bold). This all was made to ensure all client can safetly ignore tags
 they don't understand and make the parsing process straight forward.
 
-Tags are reset on each drawextinfo call.  The two blocks of code are not
+Tags are reset on each drawextinfo call. The two blocks of code are not
 equivalant:
 
 draw_ext_info(..., "[b]yadda yadda yadda");
@@ -54,11 +54,11 @@ vs
 draw_ext_info(..., "[b]yadda yadda yadda\nyeah, whatever")
 
 In the first case, only yadda.. is in bold, because all tags get reset on the
-next draw_ext_info.  In the second case, since it is all in one draw_ext_info,
+next draw_ext_info. In the second case, since it is all in one draw_ext_info,
 everything is bold.
 
-How does it work?
-=================
+# How does it work?
+
 All tags start with character '[' and ends with character ']'. Between those is
 the tag itself, made of the name and optionally the arguments. There is no rule
 as how the arguments are to be handled. This all depends on the tag. The only
@@ -69,44 +69,44 @@ intepretation of tags.
 
 Format of a tag: [<tagname><arguments part>]
 
-Existing tags
-=============
-[b]             activate the bold flag.
-[/b]            deactivate the bold flag
-[i]             activate the italic flag
-[/i]            deactivate the italic flag
-[ul]		start underline of text
-[/ul]		end underline of text
-[fixed]         set the font to fixed width
-[arcane]        set the font to a magical one (old english, etc - readable,
-		but old looking)
-[hand]          set the font to hand writing
-[strange]       set the font to 'strange unknown language'.  This is a runic
-		script and is not comprehensible.  As such, any strange
-		text should basically be gibberish.  If you do something
-		like 'the password is [strange]secret', with the idea
-		that players will not be able to figure it out, you are
-		wrong, because there is no way to ensure that the client
-		will not just print out 'the password is secret'.  Instead,
-		you should randomize the characters, eg,
-		 'the password is [strange]terdsfa' - if the player has
-		a proper font installed, these will appear as strange
-		runic characters.
-		Another use could be something like:
-		'The scroll says [strange]undecipherable text' - if
-		client has a normal font, they will see the undecipherable
-		text.  If they have a proper font installed, they will
-		see strange runic symbols.
-[print]         set the font to the client default one
-[color=<value>] activate color and set it to <value> (see color section bottom)
-[/color]        deactivate color
-[help]          starts a link to a help topic/command.
-[/help]         ends the help link.
+# Existing tags
 
-Colors
-======
+[b] activate the bold flag.
+[/b] deactivate the bold flag
+[i] activate the italic flag
+[/i] deactivate the italic flag
+[ul] start underline of text
+[/ul] end underline of text
+[fixed] set the font to fixed width
+[arcane] set the font to a magical one (old english, etc - readable,
+but old looking)
+[hand] set the font to hand writing
+[strange] set the font to 'strange unknown language'. This is a runic
+script and is not comprehensible. As such, any strange
+text should basically be gibberish. If you do something
+like 'the password is [strange]secret', with the idea
+that players will not be able to figure it out, you are
+wrong, because there is no way to ensure that the client
+will not just print out 'the password is secret'. Instead,
+you should randomize the characters, eg,
+'the password is [strange]terdsfa' - if the player has
+a proper font installed, these will appear as strange
+runic characters.
+Another use could be something like:
+'The scroll says [strange]undecipherable text' - if
+client has a normal font, they will see the undecipherable
+text. If they have a proper font installed, they will
+see strange runic symbols.
+[print] set the font to the client default one
+[color=<value>] activate color and set it to <value> (see color section bottom)
+[/color] deactivate color
+[help] starts a link to a help topic/command.
+[/help] ends the help link.
+
+# Colors
+
 Colors are handled the way XParseColor handle them. This process is quite
-complex.  It is suggested you always use standard color names, ideally
+complex. It is suggested you always use standard color names, ideally
 restricting yourself to standard crossfire color names, eg
 
 [color=Red], [color=DodgerBlue] [color=DarkSeaGreen]
@@ -127,22 +127,22 @@ However, if the color is instead '[color=white]', the styles for the gtk2
 client can be set to draw white text as black, and thus still be readable.
 This style adjustment is much harder when using rgb type values.
 
-It is also suggested the changes of color be used sparingly.  If you really
+It is also suggested the changes of color be used sparingly. If you really
 want to draw attention to a word, it is suggested you use the underline
-tag, [ul], as in no other case would that be drawn.  Italics and bold
+tag, [ul], as in no other case would that be drawn. Italics and bold
 may be used for actual font descriptions (white text on white background
 may instead by drawn as bold black text on white background to
-distingiush from normal black text).  Likewise, it is possible that some
+distingiush from normal black text). Likewise, it is possible that some
 of the fonts the player uses may be italic fonts (handwriting being
 a likely case), and applying an italic style to an already italicized
 font has no effect.
 
-help
-====
+# help
+
 The help tag is used to create a link from the word/phrase so a player
 can click on the link and the client will send the "help <word>" command to
 the server.
 
 For example:
 How to use help:
-  'help [help]topics[/help]    (list of help topics)
+'help [help]topics[/help] (list of help topics)
