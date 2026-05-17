@@ -3,7 +3,7 @@
   import "@fontsource/fira-code";
   import "@fontsource/fira-mono";
   import "@fontsource/modern-antiqua";
-  import "@fontsource/noto-sans-runic";
+  import "@fontsource/noto-sans-runic/runic.css";
   import "@fontsource/uncial-antiqua";
   import { onMount } from "svelte";
   import { clientInit, getCpl } from "./lib/init";
