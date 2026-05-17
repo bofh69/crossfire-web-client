@@ -607,7 +607,7 @@
       if (heading.length > 0) {
         addMessage(
           NDI_WHITE,
-          capitalizeFirstLetter(heading),
+          "[cmd]Help[/cmd] " + capitalizeFirstLetter(heading),
           MSG_TYPE_CLIENT,
           MSG_TYPE_CLIENT_NOTICE,
         );
