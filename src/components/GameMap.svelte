@@ -1,9 +1,13 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import {
-    mapdata_cell,
     mapdata_can_smooth,
     mapdata_contains,
+    mapdata_get_state,
+    mapdata_get_head_face,
+    mapdata_get_smooth,
+    mapdata_get_darkness,
+    mapdata_get_labels,
     mapdata_head_face_info,
     mapdata_tail_face_info,
     getViewSize,
@@ -273,19 +277,17 @@
     baseTs: number,
     missingFaces: Set<number>,
   ): void {
-    const cell = mapdata_cell(ax, ay);
-
     // Smooth only makes sense when there is visible content on some layer ≤ current.
     let hasFace = false;
     for (let i = 0; i <= layer; i++) {
-      if (cell.heads[i]!.face !== 0) {
+      if (mapdata_get_head_face(ax, ay, i) !== 0) {
         hasFace = true;
         break;
       }
     }
     if (!hasFace || !mapdata_can_smooth(ax, ay, layer)) return;
 
-    const mySmooth = cell.smooth[layer]!;
+    const mySmooth = mapdata_get_smooth(ax, ay, layer);
 
     // Collect neighbour smooth data.
     for (let i = 0; i < 8; i++) {
@@ -295,10 +297,10 @@
         _slevels[i] = 0;
         _sfaces[i] = 0;
       } else {
-        const ncell = mapdata_cell(emx, emy);
-        if (ncell.smooth[layer]! > mySmooth) {
-          _slevels[i] = ncell.smooth[layer]!;
-          _sfaces[i] = getSmoothFace(ncell.heads[layer]!.face);
+        const nSmooth = mapdata_get_smooth(emx, emy, layer);
+        if (nSmooth > mySmooth) {
+          _slevels[i] = nSmooth;
+          _sfaces[i] = getSmoothFace(mapdata_get_head_face(emx, emy, layer));
         } else {
           _slevels[i] = 0;
           _sfaces[i] = 0;
@@ -443,8 +445,7 @@
           const ax = plPos.x + vx - startOffsetX;
           const ay = plPos.y + vy - startOffsetY;
           if (!mapdata_contains(ax, ay)) continue;
-          const cell = mapdata_cell(ax, ay);
-          if (cell.state === MapCellState.Empty) continue;
+          if (mapdata_get_state(ax, ay) === MapCellState.Empty) continue;
 
           const headInfo = mapdata_head_face_info(ax, ay, layer);
           if (headInfo.face !== 0 && isFaceBitmapPending(headInfo.face)) return;
@@ -477,12 +478,12 @@
         const ax = plPos.x + vx - startOffsetX;
         const ay = plPos.y + vy - startOffsetY;
         if (!mapdata_contains(ax, ay)) continue;
-        const cell = mapdata_cell(ax, ay);
-        if (cell.state === MapCellState.Empty) continue;
+        const state1 = mapdata_get_state(ax, ay);
+        if (state1 === MapCellState.Empty) continue;
         tilesDrawn++;
         const px = vx * tileSize;
         const py = vy * tileSize;
-        if (cell.state === MapCellState.Fog) {
+        if (state1 === MapCellState.Fog) {
           ctx.fillStyle = "#1a1a1a";
           ctx.fillRect(px, py, tileSize, tileSize);
         }
@@ -500,10 +501,11 @@
           const ax = plPos.x + vx - startOffsetX;
           const ay = plPos.y + vy - startOffsetY;
           if (!mapdata_contains(ax, ay)) continue;
-          const cell = mapdata_cell(ax, ay);
-          if (cell.state === MapCellState.Empty) continue;
+          if (mapdata_get_state(ax, ay) === MapCellState.Empty) continue;
 
-          const head = cell.heads[layer]!;
+          // Capture head face for this cell/layer so drawResolvedFace can
+          // reference it without allocating a MapCell object.
+          const headFaceOnCell = mapdata_get_head_face(ax, ay, layer);
 
           const px = vx * tileSize;
           const py = vy * tileSize;
@@ -547,7 +549,7 @@
                 drawCtx.restore();
                 imagesDrawn++;
               }
-            } else if (placeholderForHead && head.face !== 0) {
+            } else if (placeholderForHead && headFaceOnCell !== 0) {
               missingFaces.add(face);
               drawPlaceholder(px, py, tileSize, layer);
               placeholders++;
@@ -623,8 +625,7 @@
           // Fog, Empty and out-of-bounds → full grayscale (alpha 255).
           let maskAlpha = 255;
           if (mapdata_contains(ax, ay)) {
-            const cell = mapdata_cell(ax, ay);
-            if (cell.state === MapCellState.Visible) {
+            if (mapdata_get_state(ax, ay) === MapCellState.Visible) {
               maskAlpha = 0;
             }
             // Fog and Empty fall through → maskAlpha stays 255.
@@ -687,14 +688,15 @@
           // appear brighter than the surrounding darkness).
           let alpha = 0.8;
           if (mapdata_contains(ax, ay)) {
-            const cell = mapdata_cell(ax, ay);
-            if (cell.state === MapCellState.Visible) {
-              alpha =
-                cell.darkness > 0 ? Math.min(cell.darkness / 255, 0.8) : 0;
-            } else if (cell.state === MapCellState.Fog) {
+            const state3 = mapdata_get_state(ax, ay);
+            if (state3 === MapCellState.Visible) {
+              const dark3 = mapdata_get_darkness(ax, ay);
+              alpha = dark3 > 0 ? Math.min(dark3 / 255, 0.8) : 0;
+            } else if (state3 === MapCellState.Fog) {
               // Dim out-of-sight tiles to indicate they're no longer visible,
               // matching the old client which added +0.2 opacity for fog-of-war cells.
-              alpha = Math.min(cell.darkness / 255 + 0.2, 0.8);
+              const dark3 = mapdata_get_darkness(ax, ay);
+              alpha = Math.min(dark3 / 255 + 0.2, 0.8);
             }
             // MapCellState.Empty falls through — treated as fully dark (alpha=0.8).
           }
@@ -726,9 +728,9 @@
         const ax = plPos.x + vx - startOffsetX;
         const ay = plPos.y + vy - startOffsetY;
         if (!mapdata_contains(ax, ay)) continue;
-        const cell = mapdata_cell(ax, ay);
-        if (cell.state !== MapCellState.Visible || cell.labels.length === 0)
-          continue;
+        if (mapdata_get_state(ax, ay) !== MapCellState.Visible) continue;
+        const labels = mapdata_get_labels(ax, ay);
+        if (labels.length === 0) continue;
 
         const isPlayerTile = vx === playerVX && vy === playerVY;
         const px = vx * tileSize;
@@ -739,7 +741,7 @@
         let belowLabelTopY = py;
         let labelIndex = 0;
 
-        for (const lbl of cell.labels) {
+        for (const lbl of labels) {
           // Don't show the player's own name above their character.
           if (isPlayerTile && lbl.subtype === Map2Label.Player) continue;
           const metrics = ctx.measureText(lbl.label);

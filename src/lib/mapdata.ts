@@ -3,8 +3,13 @@
  * Converted from old/common/mapdata.c and old/common/mapdata.h.
  *
  * Manages a virtual fog-of-war map with a scrollable view area.  Big (multi-
- * tile) faces are tracked both inside the view area (in the cells array) and
- * outside (in the bigfaces array).
+ * tile) faces are tracked both inside the view area (in typed flat arrays)
+ * and outside (in the bigfaces array).
+ *
+ * Memory layout: 13 flat TypedArrays replace the previous per-cell JS-object
+ * tree.  At ~153 bytes/cell vs ~1 KiB/cell this cuts static map memory by
+ * roughly 6×.  Combined with dynamic map sizing (Phase 2) the working set
+ * fits well under 64 MiB.
  */
 
 import {
@@ -60,17 +65,25 @@ export type { MapCell, MapCellLayer, MapCellTailLayer, MapLabel };
 // Internal constants
 // ──────────────────────────────────────────────────────────────────────────────
 
-/** Size of the virtual fog-of-war map. */
-const FOG_MAP_SIZE = 512;
-
-/** After shifting: minimum distance of the view area to the map border. */
-const FOG_BORDER_MIN = 128;
+/**
+ * Minimum distance (tiles) from the view area to the virtual-map border
+ * before the map is recentered.  Reduced from 128 to 64; combined with
+ * typed-array storage this still gives ample fog-of-war memory while
+ * keeping the map allocation smaller.
+ */
+const FOG_BORDER_MIN = 64;
 
 /** Maximum size of a big face image in tiles. */
 const MAX_FACE_SIZE = 16;
 
 /** Maximum view size used for animation iteration. */
 const CURRENT_MAX_VIEW = 33;
+
+/** Minimum virtual-map dimension (tiles) regardless of viewport size. */
+const FOG_MAP_MIN_SIZE = 192;
+
+/** Short alias kept in sync with the protocol constant. */
+const L = MAXLAYERS;
 
 // ──────────────────────────────────────────────────────────────────────────────
 // BigCell – tracks multi-tile faces outside the view area
@@ -88,6 +101,10 @@ interface BigCell {
 // Module state
 // ──────────────────────────────────────────────────────────────────────────────
 
+// cellFlags bit encoding
+const FLAG_NEED_UPDATE = 0x01;
+const FLAG_NEED_RESMOOTH = 0x02;
+
 /** Internal player position on the virtual map (top-left of view). */
 let pl_pos: PlayerPosition = { x: 0, y: 0 };
 
@@ -98,16 +115,41 @@ let script_pos: PlayerPosition = { x: 0, y: 0 };
 let viewWidth = 0;
 let viewHeight = 0;
 
-/** The virtual map. */
-let cells: MapCell[][] = [];
+/** Virtual map dimensions. */
 let mapWidth = 0;
 let mapHeight = 0;
 
-/** Big-face tracking outside the view area. */
+// ── Scalar per-cell typed arrays ─────────────────────────────────────────────
+let cellState = new Uint8Array(0);
+let cellDarkness = new Uint8Array(0);
+/** bit 0 = needUpdate, bit 1 = needResmooth */
+let cellFlags = new Uint8Array(0);
+
+// ── Head layer fields [idx * L + layer] ──────────────────────────────────────
+let headFace = new Uint32Array(0);
+let headSizeX = new Uint8Array(0);
+let headSizeY = new Uint8Array(0);
+let headAnim = new Uint16Array(0);
+let headAnimSpeed = new Uint8Array(0);
+let headAnimLeft = new Uint8Array(0);
+let headAnimPhase = new Uint16Array(0);
+
+// ── Tail layer fields [idx * L + layer] ──────────────────────────────────────
+let tailFace = new Uint32Array(0);
+let tailSizeX = new Uint8Array(0);
+let tailSizeY = new Uint8Array(0);
+
+// ── Smooth values [idx * L + layer] ──────────────────────────────────────────
+let smooth = new Uint8Array(0);
+
+/** Sparse label storage: keyed by flat cell index. */
+let cellLabels = new Map<number, MapLabel[]>();
+
+/** Big-face tracking outside the view area (objects, small fixed size). */
 let bigfaces: BigCell[][][] = [];
 let activeBigfaces: Set<BigCell> = new Set();
 
-/** Move-to destination — re-exported from mapdata_moveto.ts. */
+/** Move-to destination – re-exported from mapdata_moveto.ts. */
 export { moveToX, moveToY, moveToAttack } from "./mapdata_moveto";
 
 /** Global map rendering offsets used for local scroll prediction. */
@@ -193,26 +235,18 @@ function updateMoveToCallbacks(): void {
 updateMoveToCallbacks();
 
 // ──────────────────────────────────────────────────────────────────────────────
-// Array access helpers
-//
-// cells and bigfaces are always fully initialised before use (see mapdataAlloc
-// and initBigfaces).  The non-null assertions below are safe by construction;
-// the helpers centralise them so callers stay readable.
+// Flat-index helpers
 // ──────────────────────────────────────────────────────────────────────────────
 
-/** Get the map cell at absolute coordinates. */
-function cellAt(x: number, y: number): MapCell {
-  if (DEV_ASSERTIONS) {
-    if (x < 0 || y < 0 || x >= mapWidth || y >= mapHeight) {
-      throw new RangeError(
-        `cellAt: (${x},${y}) out of bounds for map ${mapWidth}x${mapHeight}`,
-      );
-    }
-  }
-  return cells[x]![y]!;
+/** Cell index (column-major): ci(x, y) = x * mapHeight + y */
+function ci(x: number, y: number): number {
+  return x * mapHeight + y;
 }
 
-/** Get the BigCell at view coordinates and layer index. */
+// ──────────────────────────────────────────────────────────────────────────────
+// BigCell access helpers (bigfaces[] still uses objects)
+// ──────────────────────────────────────────────────────────────────────────────
+
 function bigfaceAt(x: number, y: number, layer: number): BigCell {
   if (DEV_ASSERTIONS) {
     if (
@@ -232,79 +266,8 @@ function bigfaceAt(x: number, y: number, layer: number): BigCell {
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
-// Factory helpers
-// ──────────────────────────────────────────────────────────────────────────────
-
-function newLayer(): MapCellLayer {
-  return {
-    face: 0,
-    sizeX: 1,
-    sizeY: 1,
-    animation: 0,
-    animationSpeed: 0,
-    animationLeft: 0,
-    animationPhase: 0,
-  };
-}
-
-function newTailLayer(): MapCellTailLayer {
-  return { face: 0, sizeX: 0, sizeY: 0 };
-}
-
-function newCell(): MapCell {
-  const heads: MapCellLayer[] = [];
-  const tails: MapCellTailLayer[] = [];
-  const smooth: number[] = [];
-  for (let i = 0; i < MAXLAYERS; i++) {
-    heads.push(newLayer());
-    tails.push(newTailLayer());
-    smooth.push(0);
-  }
-  return {
-    heads,
-    tails,
-    labels: [],
-    smooth,
-    darkness: 0,
-    needUpdate: false,
-    needResmooth: false,
-    state: MapCellState.Empty,
-  };
-}
-
-function resetCell(cell: MapCell): void {
-  for (let i = 0; i < MAXLAYERS; i++) {
-    const h = cell.heads[i]!;
-    h.face = 0;
-    h.sizeX = 1;
-    h.sizeY = 1;
-    h.animation = 0;
-    h.animationSpeed = 0;
-    h.animationLeft = 0;
-    h.animationPhase = 0;
-    const t = cell.tails[i]!;
-    t.face = 0;
-    t.sizeX = 0;
-    t.sizeY = 0;
-    cell.smooth[i] = 0;
-  }
-  cell.labels = [];
-  cell.darkness = 0;
-  cell.needUpdate = false;
-  cell.needResmooth = false;
-  cell.state = MapCellState.Empty;
-}
-
-// ──────────────────────────────────────────────────────────────────────────────
 // Internal helpers
 // ──────────────────────────────────────────────────────────────────────────────
-
-/** Clear cells[x][y .. y+lenY-1]. */
-function clearCells(x: number, y: number, lenY: number): void {
-  for (let i = 0; i < lenY; i++) {
-    resetCell(cellAt(x, y + i));
-  }
-}
 
 /** Clamp the image size to the valid range. */
 function getImageSize(face: number): { w: number; h: number } {
@@ -314,8 +277,36 @@ function getImageSize(face: number): { w: number; h: number } {
   return { w, h };
 }
 
+/** Clear a contiguous slice of cells in column x, rows y..y+lenY-1. */
+function clearCells(x: number, y: number, lenY: number): void {
+  const startIdx = ci(x, y);
+  const endIdx = startIdx + lenY;
+
+  cellState.fill(MapCellState.Empty, startIdx, endIdx);
+  cellDarkness.fill(0, startIdx, endIdx);
+  cellFlags.fill(0, startIdx, endIdx);
+
+  for (let i = startIdx; i < endIdx; i++) {
+    cellLabels.delete(i);
+  }
+
+  const startLi = startIdx * L;
+  const endLi = endIdx * L;
+  headFace.fill(0, startLi, endLi);
+  headSizeX.fill(1, startLi, endLi);
+  headSizeY.fill(1, startLi, endLi);
+  headAnim.fill(0, startLi, endLi);
+  headAnimSpeed.fill(0, startLi, endLi);
+  headAnimLeft.fill(0, startLi, endLi);
+  headAnimPhase.fill(0, startLi, endLi);
+  tailFace.fill(0, startLi, endLi);
+  tailSizeX.fill(0, startLi, endLi);
+  tailSizeY.fill(0, startLi, endLi);
+  smooth.fill(0, startLi, endLi);
+}
+
 function markResmooth(x: number, y: number, layer: number): void {
-  if (cellAt(x, y).smooth[layer]! > 1) {
+  if (smooth[ci(x, y) * L + layer]! > 1) {
     for (let sdx = -1; sdx < 2; sdx++) {
       for (let sdy = -1; sdy < 2; sdy++) {
         if (
@@ -325,7 +316,8 @@ function markResmooth(x: number, y: number, layer: number): void {
           y + sdy > 0 &&
           y + sdy < mapHeight
         ) {
-          cellAt(x + sdx, y + sdy).needResmooth = true;
+          cellFlags[ci(x + sdx, y + sdy)] =
+            cellFlags[ci(x + sdx, y + sdy)]! | FLAG_NEED_RESMOOTH;
         }
       }
     }
@@ -333,21 +325,22 @@ function markResmooth(x: number, y: number, layer: number): void {
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
-// Face expansion (inside the view area – the_map.cells)
+// Face expansion (inside the view area)
 // ──────────────────────────────────────────────────────────────────────────────
 
 function expandNeedUpdate(x: number, y: number, w: number, h: number): void {
   for (let dx = 0; dx < w; dx++) {
     for (let dy = 0; dy < h; dy++) {
-      cellAt(x - dx, y - dy).needUpdate = true;
+      cellFlags[ci(x - dx, y - dy)] =
+        cellFlags[ci(x - dx, y - dy)]! | FLAG_NEED_UPDATE;
     }
   }
 }
 
 function expandNeedUpdateFromLayer(x: number, y: number, layer: number): void {
-  const head = cellAt(x, y).heads[layer]!;
-  if (head.face !== 0) {
-    expandNeedUpdate(x, y, head.sizeX, head.sizeY);
+  const lIdx = ci(x, y) * L + layer;
+  if (headFace[lIdx]! !== 0) {
+    expandNeedUpdate(x, y, headSizeX[lIdx]!, headSizeY[lIdx]!);
   }
 }
 
@@ -358,49 +351,46 @@ function expandClearFace(
   h: number,
   layer: number,
 ): void {
-  const cell = cellAt(x, y);
+  const hIdx = ci(x, y);
+  const hLIdx = hIdx * L + layer;
+  const face = headFace[hLIdx]!;
+
   for (let dx = 0; dx < w; dx++) {
     for (let dy = dx === 0 ? 1 : 0; dy < h; dy++) {
-      const tail = cellAt(x - dx, y - dy).tails[layer]!;
+      const tIdx = ci(x - dx, y - dy);
+      const tLIdx = tIdx * L + layer;
       if (
-        tail.face === cell.heads[layer]!.face &&
-        tail.sizeX === dx &&
-        tail.sizeY === dy
+        tailFace[tLIdx]! === face &&
+        tailSizeX[tLIdx]! === dx &&
+        tailSizeY[tLIdx]! === dy
       ) {
-        tail.face = 0;
-        tail.sizeX = 0;
-        tail.sizeY = 0;
-        cellAt(x - dx, y - dy).needUpdate = true;
+        tailFace[tLIdx] = 0;
+        tailSizeX[tLIdx] = 0;
+        tailSizeY[tLIdx] = 0;
+        cellFlags[tIdx] = cellFlags[tIdx]! | FLAG_NEED_UPDATE;
       }
       markResmooth(x - dx, y - dy, layer);
     }
   }
 
-  const head = cell.heads[layer]!;
-  head.face = 0;
-  head.animation = 0;
-  head.animationSpeed = 0;
-  head.animationLeft = 0;
-  head.animationPhase = 0;
-  head.sizeX = 1;
-  head.sizeY = 1;
-  cell.needUpdate = true;
-  cell.needResmooth = true;
+  headFace[hLIdx] = 0;
+  headAnim[hLIdx] = 0;
+  headAnimSpeed[hLIdx] = 0;
+  headAnimLeft[hLIdx] = 0;
+  headAnimPhase[hLIdx] = 0;
+  headSizeX[hLIdx] = 1;
+  headSizeY[hLIdx] = 1;
+  cellFlags[hIdx] = cellFlags[hIdx]! | FLAG_NEED_UPDATE | FLAG_NEED_RESMOOTH;
   markResmooth(x, y, layer);
 }
 
 function expandClearFaceFromLayer(x: number, y: number, layer: number): void {
-  const head = cellAt(x, y).heads[layer]!;
-  if (head.face !== 0 && head.sizeX > 0 && head.sizeY > 0) {
-    expandClearFace(x, y, head.sizeX, head.sizeY, layer);
+  const lIdx = ci(x, y) * L + layer;
+  if (headFace[lIdx]! !== 0 && headSizeX[lIdx]! > 0 && headSizeY[lIdx]! > 0) {
+    expandClearFace(x, y, headSizeX[lIdx]!, headSizeY[lIdx]!, layer);
   }
 }
 
-/**
- * Set a face in cells[][].  If `clear` is true, clear the old face first.
- * Animation updates pass `clear=false` because animations are always the same
- * size and we don't want to clobber animation metadata.
- */
 function expandSetFace(
   x: number,
   y: number,
@@ -408,27 +398,29 @@ function expandSetFace(
   face: number,
   clear: boolean,
 ): void {
-  const cell = cellAt(x, y);
+  const hIdx = ci(x, y);
+  const hLIdx = hIdx * L + layer;
 
   if (clear) {
     expandClearFaceFromLayer(x, y, layer);
   }
 
   const { w, h } = getImageSize(face);
-  cell.heads[layer]!.face = face;
-  cell.heads[layer]!.sizeX = w;
-  cell.heads[layer]!.sizeY = h;
-  cell.needUpdate = true;
+  headFace[hLIdx] = face;
+  headSizeX[hLIdx] = w;
+  headSizeY[hLIdx] = h;
+  cellFlags[hIdx] = cellFlags[hIdx]! | FLAG_NEED_UPDATE;
   markResmooth(x, y, layer);
   notifyWatchedCell(x, y, `layer ${layer} face=${face} size=${w}x${h}`);
 
   for (let dx = 0; dx < w; dx++) {
     for (let dy = dx === 0 ? 1 : 0; dy < h; dy++) {
-      const tail = cellAt(x - dx, y - dy).tails[layer]!;
-      tail.face = face;
-      tail.sizeX = dx;
-      tail.sizeY = dy;
-      cellAt(x - dx, y - dy).needUpdate = true;
+      const tIdx = ci(x - dx, y - dy);
+      const tLIdx = tIdx * L + layer;
+      tailFace[tLIdx] = face;
+      tailSizeX[tLIdx] = dx;
+      tailSizeY[tLIdx] = dy;
+      cellFlags[tIdx] = cellFlags[tIdx]! | FLAG_NEED_UPDATE;
       markResmooth(x - dx, y - dy, layer);
       notifyWatchedCell(
         x - dx,
@@ -468,7 +460,9 @@ function expandClearBigface(
           y - dy < viewHeight
         ) {
           if (setNeedUpdate) {
-            cellAt(pl_pos.x + x - dx, pl_pos.y + y - dy).needUpdate = true;
+            cellFlags[ci(pl_pos.x + x - dx, pl_pos.y + y - dy)] =
+              cellFlags[ci(pl_pos.x + x - dx, pl_pos.y + y - dy)]! |
+              FLAG_NEED_UPDATE;
           }
         }
       }
@@ -542,10 +536,31 @@ function expandSetBigface(
         y - dy >= 0 &&
         y - dy < viewHeight
       ) {
-        cellAt(pl_pos.x + x - dx, pl_pos.y + y - dy).needUpdate = true;
+        cellFlags[ci(pl_pos.x + x - dx, pl_pos.y + y - dy)] =
+          cellFlags[ci(pl_pos.x + x - dx, pl_pos.y + y - dy)]! |
+          FLAG_NEED_UPDATE;
       }
     }
   }
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Dynamic fog-map sizing
+// ──────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Compute the virtual-map size needed for a given view.
+ *
+ * Each side requires FOG_BORDER_MIN tiles for recentering room plus
+ * MAX_FACE_SIZE tiles for big-face overhangs.  The result is rounded up
+ * to the next multiple of 64 for alignment, with a minimum of
+ * FOG_MAP_MIN_SIZE.
+ */
+function computeFogMapSize(viewW: number, viewH: number): number {
+  const margin = 2 * (FOG_BORDER_MIN + MAX_FACE_SIZE);
+  const needed = Math.max(FOG_MAP_MIN_SIZE, Math.max(viewW, viewH) + margin);
+  // Round up to next multiple of 64.
+  return Math.ceil(needed / 64) * 64;
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -553,16 +568,35 @@ function expandSetBigface(
 // ──────────────────────────────────────────────────────────────────────────────
 
 function mapdataAlloc(w: number, h: number): void {
-  cells = [];
   mapWidth = w;
   mapHeight = h;
-  for (let x = 0; x < w; x++) {
-    const col: MapCell[] = [];
-    for (let y = 0; y < h; y++) {
-      col.push(newCell());
-    }
-    cells.push(col);
-  }
+  const N = w * h;
+  const NL = N * L;
+
+  cellState = new Uint8Array(N);
+  cellDarkness = new Uint8Array(N);
+  cellFlags = new Uint8Array(N);
+
+  headFace = new Uint32Array(NL);
+  headSizeX = new Uint8Array(NL);
+  headSizeY = new Uint8Array(NL);
+  headAnim = new Uint16Array(NL);
+  headAnimSpeed = new Uint8Array(NL);
+  headAnimLeft = new Uint8Array(NL);
+  headAnimPhase = new Uint16Array(NL);
+
+  tailFace = new Uint32Array(NL);
+  tailSizeX = new Uint8Array(NL);
+  tailSizeY = new Uint8Array(NL);
+
+  smooth = new Uint8Array(NL);
+
+  // headSizeX/Y default to 1 (single tile) so that callers can read them
+  // before any face has been placed.
+  headSizeX.fill(1);
+  headSizeY.fill(1);
+
+  cellLabels = new Map();
 }
 
 function initBigfaces(): void {
@@ -573,8 +607,16 @@ function initBigfaces(): void {
       bigfaces[x]![y] = [];
       for (let i = 0; i < MAXLAYERS; i++) {
         bigfaces[x]![y]![i] = {
-          head: newLayer(),
-          tail: newTailLayer(),
+          head: {
+            face: 0,
+            sizeX: 1,
+            sizeY: 1,
+            animation: 0,
+            animationSpeed: 0,
+            animationLeft: 0,
+            animationPhase: 0,
+          },
+          tail: { face: 0, sizeX: 0, sizeY: 0 },
           x,
           y,
           layer: i,
@@ -585,12 +627,13 @@ function initBigfaces(): void {
   activeBigfaces = new Set();
 }
 
-function mapdataInit(): void {
-  mapdataAlloc(FOG_MAP_SIZE, FOG_MAP_SIZE);
+function mapdataInit(viewW: number, viewH: number): void {
+  const size = computeFogMapSize(viewW, viewH);
+  mapdataAlloc(size, size);
   viewWidth = 0;
   viewHeight = 0;
-  pl_pos.x = Math.floor(mapWidth / 2);
-  pl_pos.y = Math.floor(mapHeight / 2);
+  pl_pos.x = Math.floor(size / 2);
+  pl_pos.y = Math.floor(size / 2);
 
   initBigfaces();
 
@@ -605,32 +648,35 @@ function mapdataInit(): void {
 // ──────────────────────────────────────────────────────────────────────────────
 
 /**
- * Transition a visible cell to fog state.  `x` and `y` are *view-relative*
- * coordinates (NOT absolute map coordinates).
+ * Transition a visible cell to fog state.  x, y are view-relative.
  */
 function mapdataClear(x: number, y: number): void {
   const px = pl_pos.x + x;
   const py = pl_pos.y + y;
+  const idx = ci(px, py);
 
-  const cell = cellAt(px, py);
-  if (cell.state === MapCellState.Empty) {
+  if (cellState[idx]! === MapCellState.Empty) {
     return;
   }
 
-  if (cell.state === MapCellState.Visible) {
-    cell.needUpdate = true;
-    for (let i = 0; i < MAXLAYERS; i++) {
-      if (cell.heads[i]!.face) {
-        expandNeedUpdateFromLayer(px, py, i);
+  if (cellState[idx]! === MapCellState.Visible) {
+    cellFlags[idx] = cellFlags[idx]! | FLAG_NEED_UPDATE;
+    for (let l = 0; l < L; l++) {
+      if (headFace[idx * L + l]! !== 0) {
+        expandNeedUpdateFromLayer(px, py, l);
       }
     }
   }
 
-  cell.state = MapCellState.Fog;
+  cellState[idx] = MapCellState.Fog;
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Virtual map recentering
+//
+// Uses TypedArray.copyWithin (handles overlapping like memmove) to shift the
+// column-major flat arrays.  This replaces the previous per-cell object copy
+// loop with a series of native bulk moves.
 // ──────────────────────────────────────────────────────────────────────────────
 
 function recenterVirtualMapView(diffX: number, diffY: number): void {
@@ -682,9 +728,21 @@ function recenterVirtualMapView(diffX: number, diffY: number): void {
     shiftY <= -mapHeight ||
     shiftY >= mapHeight
   ) {
-    for (let dx = 0; dx < mapWidth; dx++) {
-      clearCells(dx, 0, mapHeight);
-    }
+    cellState.fill(MapCellState.Empty);
+    cellDarkness.fill(0);
+    cellFlags.fill(0);
+    headFace.fill(0);
+    headSizeX.fill(1);
+    headSizeY.fill(1);
+    headAnim.fill(0);
+    headAnimSpeed.fill(0);
+    headAnimLeft.fill(0);
+    headAnimPhase.fill(0);
+    tailFace.fill(0);
+    tailSizeX.fill(0);
+    tailSizeY.fill(0);
+    smooth.fill(0);
+    cellLabels.clear();
     pl_pos.x = Math.floor(mapWidth / 2 - viewWidth / 2);
     pl_pos.y = Math.floor(mapHeight / 2 - viewHeight / 2);
     return;
@@ -716,38 +774,67 @@ function recenterVirtualMapView(diffX: number, diffY: number): void {
     lenY = mapHeight - shiftY;
   }
 
-  // Shift columns. We must iterate in the right direction to avoid
-  // overwriting source data before it is copied.
-  if (shiftX < 0) {
-    for (let i = 0; i < lenX; i++) {
-      const sx = srcX + i;
-      const dx = dstX + i;
-      for (let j = 0; j < lenY; j++) {
-        copyCellData(cellAt(sx, srcY + j), cellAt(dx, dstY + j));
+  // Shift column by column.  TypedArray.copyWithin handles overlapping
+  // regions correctly (like memmove) so direction of iteration does not matter.
+  for (let i = 0; i < lenX; i++) {
+    const srcColBase = (srcX + i) * mapHeight;
+    const dstColBase = (dstX + i) * mapHeight;
+
+    // Scalar fields (1 element per cell).
+    cellState.copyWithin(
+      dstColBase + dstY,
+      srcColBase + srcY,
+      srcColBase + srcY + lenY,
+    );
+    cellDarkness.copyWithin(
+      dstColBase + dstY,
+      srcColBase + srcY,
+      srcColBase + srcY + lenY,
+    );
+    cellFlags.copyWithin(
+      dstColBase + dstY,
+      srcColBase + srcY,
+      srcColBase + srcY + lenY,
+    );
+
+    // Layer fields (L elements per cell).
+    const srcLiBase = (srcColBase + srcY) * L;
+    const dstLiBase = (dstColBase + dstY) * L;
+    const copyLenL = lenY * L;
+
+    headFace.copyWithin(dstLiBase, srcLiBase, srcLiBase + copyLenL);
+    headSizeX.copyWithin(dstLiBase, srcLiBase, srcLiBase + copyLenL);
+    headSizeY.copyWithin(dstLiBase, srcLiBase, srcLiBase + copyLenL);
+    headAnim.copyWithin(dstLiBase, srcLiBase, srcLiBase + copyLenL);
+    headAnimSpeed.copyWithin(dstLiBase, srcLiBase, srcLiBase + copyLenL);
+    headAnimLeft.copyWithin(dstLiBase, srcLiBase, srcLiBase + copyLenL);
+    headAnimPhase.copyWithin(dstLiBase, srcLiBase, srcLiBase + copyLenL);
+    tailFace.copyWithin(dstLiBase, srcLiBase, srcLiBase + copyLenL);
+    tailSizeX.copyWithin(dstLiBase, srcLiBase, srcLiBase + copyLenL);
+    tailSizeY.copyWithin(dstLiBase, srcLiBase, srcLiBase + copyLenL);
+    smooth.copyWithin(dstLiBase, srcLiBase, srcLiBase + copyLenL);
+  }
+
+  // Shift labels: rebuild the sparse map with updated indices.
+  // Only entries within the copy source region survive; their key is offset
+  // by (shiftX, shiftY) in cell coordinates.
+  if (cellLabels.size > 0) {
+    const newLabels = new Map<number, MapLabel[]>();
+    for (const [oldIdx, labels] of cellLabels) {
+      const oldX = Math.floor(oldIdx / mapHeight);
+      const oldY = oldIdx % mapHeight;
+      if (
+        oldX >= srcX &&
+        oldX < srcX + lenX &&
+        oldY >= srcY &&
+        oldY < srcY + lenY
+      ) {
+        const newX = oldX - srcX + dstX;
+        const newY = oldY - srcY + dstY;
+        newLabels.set(newX * mapHeight + newY, labels);
       }
     }
-  } else if (shiftX > 0) {
-    for (let i = lenX - 1; i >= 0; i--) {
-      const sx = srcX + i;
-      const dx = dstX + i;
-      for (let j = 0; j < lenY; j++) {
-        copyCellData(cellAt(sx, srcY + j), cellAt(dx, dstY + j));
-      }
-    }
-  } else {
-    // shiftX === 0 but shiftY !== 0
-    for (let i = 0; i < lenX; i++) {
-      const col = dstX + i;
-      if (shiftY < 0) {
-        for (let j = 0; j < lenY; j++) {
-          copyCellData(cellAt(col, srcY + j), cellAt(col, dstY + j));
-        }
-      } else {
-        for (let j = lenY - 1; j >= 0; j--) {
-          copyCellData(cellAt(col, srcY + j), cellAt(col, dstY + j));
-        }
-      }
-    }
+    cellLabels = newLabels;
   }
 
   // Clear newly opened areas.
@@ -768,27 +855,51 @@ function recenterVirtualMapView(diffX: number, diffY: number): void {
   }
 }
 
-/** Copy all data from one cell to another (shallow copy is fine). */
-function copyCellData(src: MapCell, dst: MapCell): void {
-  for (let i = 0; i < MAXLAYERS; i++) {
-    Object.assign(dst.heads[i]!, src.heads[i]!);
-    Object.assign(dst.tails[i]!, src.tails[i]!);
-    dst.smooth[i] = src.smooth[i]!;
-  }
-  dst.labels = src.labels.slice();
-  dst.darkness = src.darkness;
-  dst.needUpdate = src.needUpdate;
-  dst.needResmooth = src.needResmooth;
-  dst.state = src.state;
-}
-
 // ──────────────────────────────────────────────────────────────────────────────
 // Public API
 // ──────────────────────────────────────────────────────────────────────────────
 
-/** Get the cell at absolute map coordinates. */
-export function mapdata_cell(x: number, y: number): MapCell {
-  return cellAt(x, y);
+/**
+ * Build a MapCell snapshot from the typed arrays at absolute map coordinates.
+ * Used by the fog-cache, debug tools, and any code that needs the full
+ * MapCell interface.  Not called in the hot render path (use the scalar
+ * accessors below instead).
+ */
+export function mapdata_cell(mx: number, my: number): MapCell {
+  const idx = ci(mx, my);
+  const idxL = idx * L;
+  const heads: MapCellLayer[] = new Array(L);
+  const tails: MapCellTailLayer[] = new Array(L);
+  const smoothArr: number[] = new Array(L);
+  for (let l = 0; l < L; l++) {
+    const lOff = idxL + l;
+    heads[l] = {
+      face: headFace[lOff]!,
+      sizeX: headSizeX[lOff]!,
+      sizeY: headSizeY[lOff]!,
+      animation: headAnim[lOff]!,
+      animationSpeed: headAnimSpeed[lOff]!,
+      animationLeft: headAnimLeft[lOff]!,
+      animationPhase: headAnimPhase[lOff]!,
+    };
+    tails[l] = {
+      face: tailFace[lOff]!,
+      sizeX: tailSizeX[lOff]!,
+      sizeY: tailSizeY[lOff]!,
+    };
+    smoothArr[l] = smooth[lOff]!;
+  }
+  const f = cellFlags[idx]!;
+  return {
+    heads,
+    tails,
+    labels: cellLabels.get(idx) ?? [],
+    smooth: smoothArr,
+    darkness: cellDarkness[idx]!,
+    needUpdate: (f & FLAG_NEED_UPDATE) !== 0,
+    needResmooth: (f & FLAG_NEED_RESMOOTH) !== 0,
+    state: cellState[idx]! as MapCellState,
+  };
 }
 
 /** Check whether the map contains the given absolute coordinates. */
@@ -807,10 +918,8 @@ export function mapdata_can_smooth(
   y: number,
   layer: number,
 ): boolean {
-  return (
-    (cellAt(x, y).heads[layer]!.face === 0 && layer > 0) ||
-    cellAt(x, y).smooth[layer]! !== 0
-  );
+  const lIdx = ci(x, y) * L + layer;
+  return (headFace[lIdx]! === 0 && layer > 0) || smooth[lIdx]! !== 0;
 }
 
 /**
@@ -818,14 +927,24 @@ export function mapdata_can_smooth(
  * function, and whenever a new display size is negotiated with the server.
  */
 export function mapdata_set_size(viewx: number, viewy: number): void {
+  const neededSize = computeFogMapSize(viewx, viewy);
+
   if (mapWidth === 0) {
     // First call: allocate the virtual map from scratch.
-    mapdataInit();
-  } else if (viewWidth > 0 && viewHeight > 0) {
-    // Adjust pl_pos so the player centre stays at the same absolute
-    // position when the viewport dimensions change.
-    pl_pos.x += Math.floor(viewWidth / 2) - Math.floor(viewx / 2);
-    pl_pos.y += Math.floor(viewHeight / 2) - Math.floor(viewy / 2);
+    mapdataInit(viewx, viewy);
+  } else {
+    if (viewWidth > 0 && viewHeight > 0) {
+      // Adjust pl_pos so the player centre stays at the same absolute
+      // position when the viewport dimensions change.
+      pl_pos.x += Math.floor(viewWidth / 2) - Math.floor(viewx / 2);
+      pl_pos.y += Math.floor(viewHeight / 2) - Math.floor(viewy / 2);
+    }
+    // Grow the map if the new viewport requires more room.
+    if (neededSize > mapWidth) {
+      mapdataAlloc(neededSize, neededSize);
+      pl_pos.x = Math.floor(neededSize / 2) - Math.floor(viewx / 2);
+      pl_pos.y = Math.floor(neededSize / 2) - Math.floor(viewy / 2);
+    }
   }
   viewWidth = viewx;
   viewHeight = viewy;
@@ -833,7 +952,21 @@ export function mapdata_set_size(viewx: number, viewy: number): void {
 
 /** Deallocate all map data. */
 export function mapdata_free(): void {
-  cells = [];
+  cellState = new Uint8Array(0);
+  cellDarkness = new Uint8Array(0);
+  cellFlags = new Uint8Array(0);
+  headFace = new Uint32Array(0);
+  headSizeX = new Uint8Array(0);
+  headSizeY = new Uint8Array(0);
+  headAnim = new Uint16Array(0);
+  headAnimSpeed = new Uint8Array(0);
+  headAnimLeft = new Uint8Array(0);
+  headAnimPhase = new Uint16Array(0);
+  tailFace = new Uint32Array(0);
+  tailSizeX = new Uint8Array(0);
+  tailSizeY = new Uint8Array(0);
+  smooth = new Uint8Array(0);
+  cellLabels = new Map();
   mapWidth = 0;
   mapHeight = 0;
   bigfaces = [];
@@ -850,22 +983,12 @@ export function mapdata_face(x: number, y: number, layer: number): number {
   if (!mapdataHasTile(x, y, layer)) {
     return 0;
   }
-  return cellAt(pl_pos.x + x, pl_pos.y + y).heads[layer]!.face;
+  return headFace[ci(pl_pos.x + x, pl_pos.y + y) * L + layer]!;
 }
 
 /**
  * Return the face at absolute map coordinates and set dx/dy offsets for
  * drawing.  Returns 0 if nothing to draw.
- *
- * dx/dy are in tile units relative to the current tile's view position.
- * The caller should compute the draw origin as:
- *   drawX = (vx + dx) * tileSize + tileSize - imageWidth
- *   drawY = (vy + dy) * tileSize + tileSize - imageHeight
- * This bottom-right-aligns the image to the head tile regardless of whether
- * the current tile is the head or a tail.
- *
- * Falls back to bigfaces[] when the face data lives outside the server
- * viewport (bigface head is at view coordinates ≥ viewWidth/viewHeight).
  */
 export function mapdata_face_info(
   mx: number,
@@ -885,34 +1008,21 @@ export function mapdata_head_face_info(
   my: number,
   layer: number,
 ): { face: number; dx: number; dy: number } {
-  const head = cellAt(mx, my).heads[layer]!;
+  const lIdx = ci(mx, my) * L + layer;
+  const face = headFace[lIdx]!;
 
-  if (head.face !== 0) {
-    // dx/dy = 0: the head tile IS the head; no shift needed.
-    return {
-      face: head.face,
-      dx: 0,
-      dy: 0,
-    };
+  if (face !== 0) {
+    return { face, dx: 0, dy: 0 };
   }
 
   // Fallback: check bigfaces[] for tiles whose bigface head is outside the
-  // server viewport.  expandSetBigface() stores head/tail data only in
-  // bigfaces[], not in cells[], so the branches above return nothing for
-  // in-viewport tail tiles that belong to an out-of-viewport bigface head.
+  // server viewport.
   const viewX = mx - pl_pos.x;
   const viewY = my - pl_pos.y;
   if (viewX >= 0 && viewX < MAX_VIEW && viewY >= 0 && viewY < MAX_VIEW) {
-    // Case A: this tile is the bigface HEAD (outside the server viewport
-    // but still within the extended-fog canvas).
     const bigHead = bigfaceAt(viewX, viewY, layer).head;
     if (bigHead.face !== 0) {
-      // dx/dy = 0: this tile is the head itself.
-      return {
-        face: bigHead.face,
-        dx: 0,
-        dy: 0,
-      };
+      return { face: bigHead.face, dx: 0, dy: 0 };
     }
   }
 
@@ -925,32 +1035,24 @@ export function mapdata_tail_face_info(
   my: number,
   layer: number,
 ): { face: number; dx: number; dy: number } {
-  const tail = cellAt(mx, my).tails[layer]!;
+  const lIdx = ci(mx, my) * L + layer;
+  const tFace = tailFace[lIdx]!;
 
-  if (tail.face !== 0) {
-    const hx = mx + tail.sizeX;
-    const hy = my + tail.sizeY;
+  if (tFace !== 0) {
+    const hdx = tailSizeX[lIdx]!;
+    const hdy = tailSizeY[lIdx]!;
+    const hx = mx + hdx;
+    const hy = my + hdy;
     if (!mapdata_contains(hx, hy)) {
-      // Head cell is outside the virtual map — skip to avoid an OOB access.
       return { face: 0, dx: 0, dy: 0 };
     }
-    // dx/dy = tail offset: adding these to the current view position gives
-    // the head tile's view position, which the renderer needs to bottom-right-
-    // align the image.
-    return {
-      face: tail.face,
-      dx: tail.sizeX,
-      dy: tail.sizeY,
-    };
+    return { face: tFace, dx: hdx, dy: hdy };
   }
 
-  // Fallback: check bigfaces[] for tiles whose bigface head is outside the
-  // server viewport.
+  // Fallback: check bigfaces[].
   const viewX = mx - pl_pos.x;
   const viewY = my - pl_pos.y;
   if (viewX >= 0 && viewX < MAX_VIEW && viewY >= 0 && viewY < MAX_VIEW) {
-    // Case B: this tile is a bigface TAIL whose head is outside the
-    // server viewport.
     const bigTail = bigfaceAt(viewX, viewY, layer).tail;
     if (bigTail.face !== 0) {
       const hdx = bigTail.sizeX;
@@ -963,13 +1065,7 @@ export function mapdata_tail_face_info(
         headViewY >= 0 &&
         headViewY < MAX_VIEW
       ) {
-        // dx/dy = offset to the head tile so the renderer can bottom-right-
-        // align the image to the head tile's corner.
-        return {
-          face: bigTail.face,
-          dx: hdx,
-          dy: hdy,
-        };
+        return { face: bigTail.face, dx: hdx, dy: hdy };
       }
     }
   }
@@ -978,8 +1074,7 @@ export function mapdata_tail_face_info(
 }
 
 /**
- * Return the big-face ("tail") information at a view position.  Detects
- * and clears obsolete fog-of-war big faces.
+ * Return the big-face ("tail") information at a view position.
  */
 export function mapdata_bigface(
   x: number,
@@ -992,19 +1087,21 @@ export function mapdata_bigface(
 
   const px = pl_pos.x + x;
   const py = pl_pos.y + y;
-  let result = cellAt(px, py).tails[layer]!.face;
+  const lIdx = ci(px, py) * L + layer;
+  let result = tailFace[lIdx]!;
 
   if (result !== 0) {
-    const dx = cellAt(px, py).tails[layer]!.sizeX;
-    const dy = cellAt(px, py).tails[layer]!.sizeY;
-    const w = cellAt(px + dx, py + dy).heads[layer]!.sizeX;
-    const h = cellAt(px + dx, py + dy).heads[layer]!.sizeY;
+    const dx = tailSizeX[lIdx]!;
+    const dy = tailSizeY[lIdx]!;
+    const headLIdx = ci(px + dx, py + dy) * L + layer;
+    const w = headSizeX[headLIdx]!;
+    const h = headSizeY[headLIdx]!;
 
     let clearBigface: boolean;
-    if (cellAt(px, py).state === MapCellState.Fog) {
+    if (cellState[ci(px, py)]! === MapCellState.Fog) {
       clearBigface = false;
     } else if (x + dx < viewWidth && y + dy < viewHeight) {
-      clearBigface = cellAt(px + dx, py + dy).state === MapCellState.Fog;
+      clearBigface = cellState[ci(px + dx, py + dy)]! === MapCellState.Fog;
     } else {
       clearBigface = bigfaceAt(x + dx, y + dy, layer).head.face === 0;
     }
@@ -1028,7 +1125,7 @@ export function mapdata_bigface(
   return { face: 0, ww: 1, hh: 1 };
 }
 
-/** Return the big-face head at a view position (used by OpenGL-style renderers). */
+/** Return the big-face head at a view position. */
 export function mapdata_bigface_head(
   x: number,
   y: number,
@@ -1077,15 +1174,16 @@ export function mapdata_set_check_space(x: number, y: number): void {
     return;
   }
 
+  const idx = ci(px, py);
+  const lBase = idx * L;
   let isBlank = true;
-  const cell = cellAt(px, py);
-  for (let i = 0; i < MAXLAYERS; i++) {
-    if (cell.heads[i]!.face > 0 || cell.tails[i]!.face > 0) {
+  for (let l = 0; l < L; l++) {
+    if (headFace[lBase + l]! !== 0 || tailFace[lBase + l]! !== 0) {
       isBlank = false;
       break;
     }
   }
-  if (cell.darkness !== 0) {
+  if (cellDarkness[idx]! !== 0) {
     isBlank = false;
   }
 
@@ -1114,18 +1212,19 @@ export function mapdata_set_darkness(
 }
 
 function setDarkness(x: number, y: number, darkness: number): void {
-  if (cellAt(x, y).darkness === darkness) {
+  const idx = ci(x, y);
+  if (cellDarkness[idx]! === darkness) {
     return;
   }
-  cellAt(x, y).darkness = darkness;
-  cellAt(x, y).needUpdate = true;
+  cellDarkness[idx] = darkness;
+  cellFlags[idx] = cellFlags[idx]! | FLAG_NEED_UPDATE;
 }
 
 /** Set smooth value for a layer.  View-relative coordinates. */
 export function mapdata_set_smooth(
   x: number,
   y: number,
-  smooth: number,
+  smoothVal: number,
   layer: number,
 ): void {
   const DX = [0, 1, 1, 1, 0, -1, -1, -1];
@@ -1133,24 +1232,25 @@ export function mapdata_set_smooth(
 
   const px = pl_pos.x + x;
   const py = pl_pos.y + y;
+  const lIdx = ci(px, py) * L + layer;
 
-  if (cellAt(px, py).smooth[layer]! !== smooth) {
+  if (smooth[lIdx]! !== smoothVal) {
     for (let i = 0; i < 8; i++) {
       const rx = px + DX[i]!;
       const ry = py + DY[i]!;
       if (rx < 0 || ry < 0 || mapWidth <= rx || mapHeight <= ry) {
         continue;
       }
-      cellAt(rx, ry).needResmooth = true;
+      cellFlags[ci(rx, ry)] = cellFlags[ci(rx, ry)]! | FLAG_NEED_RESMOOTH;
     }
-    cellAt(px, py).needResmooth = true;
-    cellAt(px, py).smooth[layer] = smooth;
+    cellFlags[ci(px, py)] = cellFlags[ci(px, py)]! | FLAG_NEED_RESMOOTH;
+    smooth[lIdx] = smoothVal;
   }
 }
 
 /** Clear all labels at absolute map coordinates. */
 export function mapdata_clear_label(px: number, py: number): void {
-  cellAt(px, py).labels = [];
+  cellLabels.delete(ci(px, py));
 }
 
 /** Clear all labels at view-relative coordinates. */
@@ -1158,9 +1258,7 @@ export function mapdata_clear_label_view(x: number, y: number): void {
   if (!(x < viewWidth && y < viewHeight)) {
     return;
   }
-  const px = pl_pos.x + x;
-  const py = pl_pos.y + y;
-  mapdata_clear_label(px, py);
+  mapdata_clear_label(pl_pos.x + x, pl_pos.y + y);
 }
 
 /** Add a label at view-relative coordinates. */
@@ -1176,15 +1274,21 @@ export function mapdata_add_label(
 
   const px = pl_pos.x + x;
   const py = pl_pos.y + y;
+  const idx = ci(px, py);
 
   if (subtype === 0) {
     notifyWatchedCell(px, py, "labels cleared");
-    mapdata_clear_label(px, py);
+    cellLabels.delete(idx);
     return;
   }
 
-  cellAt(px, py).labels.push({ subtype, label });
-  cellAt(px, py).needUpdate = true;
+  let arr = cellLabels.get(idx);
+  if (!arr) {
+    arr = [];
+    cellLabels.set(idx, arr);
+  }
+  arr.push({ subtype, label });
+  cellFlags[idx] = cellFlags[idx]! | FLAG_NEED_UPDATE;
   notifyWatchedCell(px, py, `label added: subtype=${subtype} "${label}"`);
 }
 
@@ -1199,16 +1303,17 @@ export function mapdata_clear_old(x: number, y: number): void {
 
   const px = pl_pos.x + x;
   const py = pl_pos.y + y;
+  const idx = ci(px, py);
 
-  if (cellAt(px, py).state === MapCellState.Fog) {
-    cellAt(px, py).needUpdate = true;
-    for (let i = 0; i < MAXLAYERS; i++) {
-      expandClearFaceFromLayer(px, py, i);
+  if (cellState[idx]! === MapCellState.Fog) {
+    cellFlags[idx] = cellFlags[idx]! | FLAG_NEED_UPDATE;
+    for (let l = 0; l < L; l++) {
+      expandClearFaceFromLayer(px, py, l);
     }
-    cellAt(px, py).darkness = 0;
+    cellDarkness[idx] = 0;
   }
 
-  cellAt(px, py).state = MapCellState.Visible;
+  cellState[idx] = MapCellState.Visible;
   notifyWatchedCell(
     px,
     py,
@@ -1227,7 +1332,7 @@ export function mapdata_set_face_layer(
   const py = pl_pos.y + y;
 
   if (x < viewWidth && y < viewHeight) {
-    cellAt(px, py).needUpdate = true;
+    cellFlags[ci(px, py)] = cellFlags[ci(px, py)]! | FLAG_NEED_UPDATE;
     if (face > 0) {
       expandSetFace(px, py, layer, face, true);
     } else {
@@ -1281,10 +1386,11 @@ export function mapdata_set_anim_layer(
     mapdata_clear_old(x, y);
     if (face > 0) {
       expandSetFace(px, py, layer, face, true);
-      cellAt(px, py).heads[layer]!.animation = animation;
-      cellAt(px, py).heads[layer]!.animationPhase = phase;
-      cellAt(px, py).heads[layer]!.animationSpeed = animSpeed;
-      cellAt(px, py).heads[layer]!.animationLeft = speedLeft;
+      const lIdx = ci(px, py) * L + layer;
+      headAnim[lIdx] = animation;
+      headAnimPhase[lIdx] = phase;
+      headAnimSpeed[lIdx] = animSpeed;
+      headAnimLeft[lIdx] = speedLeft;
       notifyWatchedCell(
         px,
         py,
@@ -1317,8 +1423,9 @@ export function mapdata_scroll(dx: number, dy: number): void {
             bc.y - by >= 0 &&
             bc.y - by < viewHeight
           ) {
-            cellAt(pl_pos.x + bc.x - bx, pl_pos.y + bc.y - by).needUpdate =
-              true;
+            cellFlags[ci(pl_pos.x + bc.x - bx, pl_pos.y + bc.y - by)] =
+              cellFlags[ci(pl_pos.x + bc.x - bx, pl_pos.y + bc.y - by)]! |
+              FLAG_NEED_UPDATE;
           }
         }
       }
@@ -1326,7 +1433,8 @@ export function mapdata_scroll(dx: number, dy: number): void {
   } else {
     for (let x = 0; x < viewWidth; x++) {
       for (let y = 0; y < viewHeight; y++) {
-        cellAt(pl_pos.x + x, pl_pos.y + y).needUpdate = true;
+        cellFlags[ci(pl_pos.x + x, pl_pos.y + y)] =
+          cellFlags[ci(pl_pos.x + x, pl_pos.y + y)]! | FLAG_NEED_UPDATE;
       }
     }
   }
@@ -1380,12 +1488,22 @@ export function mapdata_newmap(): void {
   wantOffsetX = 0;
   wantOffsetY = 0;
 
-  for (let x = 0; x < mapWidth; x++) {
-    clearCells(x, 0, mapHeight);
-    for (let y = 0; y < mapHeight; y++) {
-      cellAt(x, y).needUpdate = true;
-    }
-  }
+  // Clear all cells and mark them all needUpdate.
+  cellState.fill(MapCellState.Empty);
+  cellDarkness.fill(0);
+  cellFlags.fill(FLAG_NEED_UPDATE);
+  headFace.fill(0);
+  headSizeX.fill(1);
+  headSizeY.fill(1);
+  headAnim.fill(0);
+  headAnimSpeed.fill(0);
+  headAnimLeft.fill(0);
+  headAnimPhase.fill(0);
+  tailFace.fill(0);
+  tailSizeX.fill(0);
+  tailSizeY.fill(0);
+  smooth.fill(0);
+  cellLabels.clear();
 
   // Clear bigfaces.
   for (const bc of activeBigfaces) {
@@ -1395,28 +1513,15 @@ export function mapdata_newmap(): void {
   clearMoveToInternal();
 }
 
-/**
- * Snapshot all fog and visible cells in the virtual map and hand the result
- * to the fog cache under `key`.
- *
- * Coordinates are stored map-relative:
- *   map_x = abs_x − originX  (= view_x + script_pos.x)
- *   map_y = abs_y − originY
- *
- * where `originX = pl_pos.x − script_pos.x` is the scroll-invariant virtual-map
- * origin for this visit (the value pl_pos had when the player first entered the
- * map).  Storing the origin in the snapshot lets the restore logic correctly
- * compute the baseline alignment offset even when the player has scrolled many
- * tiles before leaving.
- */
+// ──────────────────────────────────────────────────────────────────────────────
+// Fog-of-war snapshot: save
+// ──────────────────────────────────────────────────────────────────────────────
+
 export function mapdata_save_fog(key: string): void {
-  // Skip if the current map path is not yet known (e.g. first login before
-  // the server's mapinfo response has been processed).  Nothing useful to cache.
   if (!key) {
     return;
   }
 
-  // Scroll-invariant origin for this map visit.
   const originX = pl_pos.x - script_pos.x;
   const originY = pl_pos.y - script_pos.y;
 
@@ -1424,16 +1529,16 @@ export function mapdata_save_fog(key: string): void {
 
   for (let ax = 0; ax < mapWidth; ax++) {
     for (let ay = 0; ay < mapHeight; ay++) {
-      const cell = cellAt(ax, ay);
-      if (cell.state === MapCellState.Empty) {
+      const idx = ci(ax, ay);
+      if (cellState[idx]! === MapCellState.Empty) {
         continue;
       }
 
-      // Check if the cell has any drawable content worth caching.
-      let hasContent = cell.darkness !== 0;
+      const lBase = idx * L;
+      let hasContent = cellDarkness[idx]! !== 0;
       if (!hasContent) {
-        for (let i = 0; i < MAXLAYERS; i++) {
-          if (cell.heads[i]!.face !== 0 || cell.tails[i]!.face !== 0) {
+        for (let l = 0; l < L; l++) {
+          if (headFace[lBase + l]! !== 0 || tailFace[lBase + l]! !== 0) {
             hasContent = true;
             break;
           }
@@ -1443,24 +1548,37 @@ export function mapdata_save_fog(key: string): void {
         continue;
       }
 
-      const map_x = ax - originX;
-      const map_y = ay - originY;
+      const heads: MapCellLayer[] = [];
+      const tails: MapCellTailLayer[] = [];
+      const smoothArr: number[] = [];
+      for (let l = 0; l < L; l++) {
+        const lOff = lBase + l;
+        heads.push({
+          face: headFace[lOff]!,
+          sizeX: headSizeX[lOff]!,
+          sizeY: headSizeY[lOff]!,
+          animation: headAnim[lOff]!,
+          animationSpeed: headAnimSpeed[lOff]!,
+          animationLeft: headAnimLeft[lOff]!,
+          animationPhase: headAnimPhase[lOff]!,
+        });
+        tails.push({
+          face: tailFace[lOff]!,
+          sizeX: tailSizeX[lOff]!,
+          sizeY: tailSizeY[lOff]!,
+        });
+        smoothArr.push(smooth[lOff]!);
+      }
 
-      // MapCellLayer and MapCellTailLayer contain only number primitives,
-      // so the spread operator produces a fully independent copy.
-      const heads = cell.heads.map((h) => ({ ...h }));
-      const tails = cell.tails.map((t) => ({ ...t }));
-      const smooth = cell.smooth.slice();
-      const labels = cell.labels.map((l) => ({ ...l }));
-
+      const savedLabels = cellLabels.get(idx);
       cells_to_save.push({
-        x: map_x,
-        y: map_y,
+        x: ax - originX,
+        y: ay - originY,
         heads,
         tails,
-        smooth,
-        darkness: cell.darkness,
-        labels,
+        smooth: smoothArr,
+        darkness: cellDarkness[idx]!,
+        labels: savedLabels ? savedLabels.map((lab) => ({ ...lab })) : [],
       });
     }
   }
@@ -1533,10 +1651,6 @@ function findFogRestoreOffset(
   restoreOriginX: number,
   restoreOriginY: number,
 ): { dx: number; dy: number } | null {
-  // Build a lookup from packed (x, y, layer) → face for layers 0..FOG_ALIGN_LAYERS-1.
-  // Coordinate range is bounded by the virtual map size (FOG_MAP_SIZE = 512).
-  // Pack as ((x + 1024) * 4096 + (y + 1024)) * MAXLAYERS + layer to get
-  // unique non-negative keys.
   const snapFaces = new Map<number, number>();
   for (const cell of snapshot.cells) {
     for (let layer = 0; layer < FOG_ALIGN_LAYERS; layer++) {
@@ -1550,22 +1664,20 @@ function findFogRestoreOffset(
     }
   }
 
-  // Collect scroll-stable coords and per-layer faces for all currently Visible
-  // cells that have at least one non-zero face in the tracked layers.
-  // vx_adj = ax − restoreOriginX matches the save-time coordinate system.
   const visibleCells: Array<{
     vx: number;
     vy: number;
     faces: (number | undefined)[];
   }> = [];
+
   for (let ax = 0; ax < mapWidth; ax++) {
     for (let ay = 0; ay < mapHeight; ay++) {
-      const cell = cellAt(ax, ay);
-      if (cell.state !== MapCellState.Visible) continue;
+      const idx = ci(ax, ay);
+      if (cellState[idx]! !== MapCellState.Visible) continue;
       const faces: (number | undefined)[] = [];
       let hasContent = false;
       for (let layer = 0; layer < FOG_ALIGN_LAYERS; layer++) {
-        const f = cell.heads[layer]?.face ?? 0;
+        const f = headFace[idx * L + layer]!;
         faces.push(f !== 0 ? f : undefined);
         if (f !== 0) hasContent = true;
       }
@@ -1579,7 +1691,6 @@ function findFogRestoreOffset(
   }
 
   if (visibleCells.length === 0 || snapFaces.size === 0) {
-    // No data available to determine alignment — skip restore.
     LOG(
       LogLevel.Info,
       "mapdata",
@@ -1588,8 +1699,6 @@ function findFogRestoreOffset(
     return null;
   }
 
-  // The expected offset between the two visits' coordinate systems.
-  // Search ±R around this baseline so small entry-point differences are tolerated.
   const baseDx = snapshot.meta.originX - restoreOriginX;
   const baseDy = snapshot.meta.originY - restoreOriginY;
 
@@ -1602,8 +1711,6 @@ function findFogRestoreOffset(
     for (let ody = baseDy - R; ody <= baseDy + R; ody++) {
       let score = 0;
       for (const { vx, vy, faces } of visibleCells) {
-        // At this offset, the snap coordinate that should underlie this
-        // visible cell is (vx − odx, vy − ody).
         const sx = vx - odx;
         const sy = vy - ody;
         const base = ((sx + 1024) * 4096 + (sy + 1024)) * MAXLAYERS;
@@ -1615,8 +1722,7 @@ function findFogRestoreOffset(
         }
       }
       // Prefer higher score; break ties in favour of the offset closest
-      // to the baseline — i.e. the player re-entered near the same spot
-      // they left, which is more likely than a large displacement.
+      // to the baseline.
       const dist = Math.abs(odx - baseDx) + Math.abs(ody - baseDy);
       const bestDist = Math.abs(bestDx - baseDx) + Math.abs(bestDy - baseDy);
       if (score > bestScore || (score === bestScore && dist < bestDist)) {
@@ -1652,19 +1758,6 @@ function findFogRestoreOffset(
  *
  * Must be called after the server's visible-area map2 packets have been
  * processed (so the current Visible cells can be used for alignment).
- *
- * A correlation search over ±FOG_ALIGN_SEARCH_RADIUS tiles around the
- * expected baseline offset finds the best alignment between the snapshot and
- * the current visible data.  If the best correlation is too low the restore
- * is skipped entirely — the player has entered the map at an unrelated
- * location.
- *
- * Each accepted snapshot cell is placed at:
- *   abs_x = restoreOriginX + map_x + dx
- *   abs_y = restoreOriginY + map_y + dy
- * where `restoreOriginX = pl_pos.x − script_pos.x` is the scroll-invariant
- * virtual-map origin for the current visit.
- * only if the target cell is still Empty (not yet written by map2).
  */
 export function mapdata_restore_fog(key: string): void {
   const snapshot = cacheGetFog(key);
@@ -1672,7 +1765,6 @@ export function mapdata_restore_fog(key: string): void {
     return;
   }
 
-  // Scroll-invariant origin for the current map visit.
   const restoreOriginX = pl_pos.x - script_pos.x;
   const restoreOriginY = pl_pos.y - script_pos.y;
 
@@ -1691,23 +1783,37 @@ export function mapdata_restore_fog(key: string): void {
       continue;
     }
 
-    const cell = cellAt(ax, ay);
-    if (cell.state !== MapCellState.Empty) {
-      // Already written by map2 — don't overwrite live data.
+    const idx = ci(ax, ay);
+    if (cellState[idx]! !== MapCellState.Empty) {
       continue;
     }
 
-    for (let i = 0; i < MAXLAYERS; i++) {
-      // MapCellLayer and MapCellTailLayer contain only number primitives;
-      // Object.assign produces a fully independent copy.
-      Object.assign(cell.heads[i]!, entry.heads[i]!);
-      Object.assign(cell.tails[i]!, entry.tails[i]!);
-      cell.smooth[i] = entry.smooth[i]!;
+    const lBase = idx * L;
+    for (let l = 0; l < L; l++) {
+      const lOff = lBase + l;
+      const h = entry.heads[l]!;
+      const t = entry.tails[l]!;
+      headFace[lOff] = h.face;
+      headSizeX[lOff] = h.sizeX;
+      headSizeY[lOff] = h.sizeY;
+      headAnim[lOff] = h.animation;
+      headAnimSpeed[lOff] = h.animationSpeed;
+      headAnimLeft[lOff] = h.animationLeft;
+      headAnimPhase[lOff] = h.animationPhase;
+      tailFace[lOff] = t.face;
+      tailSizeX[lOff] = t.sizeX;
+      tailSizeY[lOff] = t.sizeY;
+      smooth[lOff] = entry.smooth[l]!;
     }
-    cell.darkness = entry.darkness;
-    cell.labels = entry.labels.map((l) => ({ ...l }));
-    cell.state = MapCellState.Fog;
-    cell.needUpdate = true;
+    cellDarkness[idx] = entry.darkness;
+    if (entry.labels.length > 0) {
+      cellLabels.set(
+        idx,
+        entry.labels.map((lab) => ({ ...lab })),
+      );
+    }
+    cellState[idx] = MapCellState.Fog;
+    cellFlags[idx] = cellFlags[idx]! | FLAG_NEED_UPDATE;
     restored++;
   }
 
@@ -1718,26 +1824,12 @@ export function mapdata_restore_fog(key: string): void {
   );
 }
 
+// ──────────────────────────────────────────────────────────────────────────────
+// Magicmap
+// ──────────────────────────────────────────────────────────────────────────────
+
 /**
  * Fill empty virtual-map cells with data derived from a server magicmap packet.
- *
- * The magicmap is a `mmapx × mmapy` grid where each byte encodes a tile type
- * (bits 7–4: FACE_WALL / FACE_FLOOR flags; bits 3–0: colour index).  The
- * player's position within the magicmap is `(pmapx, pmapy)`.
- *
- * For each non-void cell (colour ≠ 0) that corresponds to an Empty slot in
- * the virtual map, this function places a client-generated solid-colour face
- * (at layer 0) and marks the cell as Fog so the game map renderer displays
- * it as explored-but-not-currently-visible area.  Cells already in Visible
- * or Fog state (written by map2) are left unchanged.
- *
- * Wall tiles additionally receive a wall-line face on layer 1 chosen from
- * all 16 shapes that encode which of the four cardinal neighbors are also
- * walls (above=bit3, below=bit2, left=bit1, right=bit0).
- *
- * Coordinate mapping:
- *   playerAbsX = pl_pos.x + Math.floor(viewWidth / 2)
- *   ax = playerAbsX + (mx - pmapx)
  */
 export function mapdata_apply_magicmap(
   data: Uint8Array,
@@ -1756,7 +1848,6 @@ export function mapdata_apply_magicmap(
     return (data[my * mmapx + mx]! & FACE_WALL) !== 0;
   }
 
-  // Player's centre position on the virtual map.
   const vw = useConfig.mapWidth || viewWidth;
   const vh = useConfig.mapHeight || viewHeight;
   const playerAbsX = pl_pos.x + Math.floor(vw / 2);
@@ -1768,7 +1859,6 @@ export function mapdata_apply_magicmap(
       const val = data[my * mmapx + mx]!;
       const colorIdx = val & FACE_COLOR_MASK;
       if (colorIdx === 0) {
-        // Index 0 = void/black — leave the cell empty.
         continue;
       }
 
@@ -1779,20 +1869,16 @@ export function mapdata_apply_magicmap(
         continue;
       }
 
-      const cell = cellAt(ax, ay);
-      if (cell.state !== MapCellState.Empty) {
-        // Already set by map2 (Visible) or a previous fog restore — leave it.
+      const idx = ci(ax, ay);
+      if (cellState[idx]! !== MapCellState.Empty) {
         continue;
       }
 
-      // Place the synthetic solid-colour face in layer 0.
-      const head0 = cell.heads[0]!;
-      head0.face = MAGIC_MAP_FACE_BASE | colorIdx;
-      head0.sizeX = 1;
-      head0.sizeY = 1;
+      const lBase = idx * L;
+      headFace[lBase + 0] = MAGIC_MAP_FACE_BASE | colorIdx;
+      headSizeX[lBase + 0] = 1;
+      headSizeY[lBase + 0] = 1;
 
-      // Wall tiles: add a wall-line face on layer 1.
-      // Build a 4-bit neighbor mask and select the matching wall shape.
       if (val & FACE_WALL) {
         const neighborMask =
           (isWall(mx, my - 1) ? MAGIC_MAP_WALL_ABOVE : 0) |
@@ -1800,20 +1886,23 @@ export function mapdata_apply_magicmap(
           (isWall(mx - 1, my) ? MAGIC_MAP_WALL_LEFT : 0) |
           (isWall(mx + 1, my) ? MAGIC_MAP_WALL_RIGHT : 0);
 
-        const head1 = cell.heads[1]!;
-        head1.face = MAGIC_MAP_WALL_FACE_BASE | neighborMask;
-        head1.sizeX = 1;
-        head1.sizeY = 1;
+        headFace[lBase + 1] = MAGIC_MAP_WALL_FACE_BASE | neighborMask;
+        headSizeX[lBase + 1] = 1;
+        headSizeY[lBase + 1] = 1;
       }
 
-      cell.state = MapCellState.Fog;
-      cell.needUpdate = true;
+      cellState[idx] = MapCellState.Fog;
+      cellFlags[idx] = cellFlags[idx]! | FLAG_NEED_UPDATE;
       applied++;
     }
   }
 
   LOG(LogLevel.Info, "mapdata", `Applied ${applied} magicmap cells`);
 }
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Animation tick
+// ──────────────────────────────────────────────────────────────────────────────
 
 export function mapdata_animation(): void {
   // Update synchronized animations.
@@ -1836,28 +1925,29 @@ export function mapdata_animation(): void {
 
   for (let x = 0; x < maxX; x++) {
     for (let y = 0; y < maxY; y++) {
-      const mapSpace = cellAt(pl_pos.x + x, pl_pos.y + y);
+      const idx = ci(pl_pos.x + x, pl_pos.y + y);
 
-      if (mapSpace.state !== MapCellState.Visible) {
+      if (cellState[idx]! !== MapCellState.Visible) {
         continue;
       }
 
+      const lBase = idx * L;
+
       for (let layer = 0; layer < MAXLAYERS; layer++) {
         // Animate cell heads.
-        const cell = mapSpace.heads[layer]!;
-        if (cell.animation) {
-          cell.animationLeft++;
-          if (cell.animationLeft >= cell.animationSpeed) {
-            cell.animationLeft = 0;
-            cell.animationPhase++;
+        const lIdx = lBase + layer;
+        const anim = headAnim[lIdx]!;
+        if (anim) {
+          headAnimLeft[lIdx] = headAnimLeft[lIdx]! + 1;
+          if (headAnimLeft[lIdx]! >= headAnimSpeed[lIdx]!) {
+            headAnimLeft[lIdx] = 0;
+            headAnimPhase[lIdx] = headAnimPhase[lIdx]! + 1;
             if (
-              cell.animationPhase >=
-              (animations[cell.animation]?.numAnimations ?? 0)
+              headAnimPhase[lIdx]! >= (animations[anim]?.numAnimations ?? 0)
             ) {
-              cell.animationPhase = 0;
+              headAnimPhase[lIdx] = 0;
             }
-            const face =
-              animations[cell.animation]?.faces[cell.animationPhase] ?? 0;
+            const face = animations[anim]?.faces[headAnimPhase[lIdx]] ?? 0;
             if (face > 0) {
               expandSetFace(pl_pos.x + x, pl_pos.y + y, layer, face, false);
             } else {
@@ -1866,7 +1956,7 @@ export function mapdata_animation(): void {
           }
         }
 
-        // Animate bigface heads.
+        // Animate bigface heads (bigfaces[] still uses objects).
         const bfCell = bigfaces[x]?.[y]?.[layer]?.head;
         if (bfCell && bfCell.animation) {
           bfCell.animationLeft++;
@@ -1893,10 +1983,6 @@ export function mapdata_animation(): void {
 // Player position and movement (delegated to mapdata_moveto.ts)
 // ──────────────────────────────────────────────────────────────────────────────
 
-/**
- * Compute the actual player position (centre of the view) in absolute map
- * coordinates.
- */
 export function pl_mpos(): { px: number; py: number } {
   const vw = useConfig.mapWidth || viewWidth;
   const vh = useConfig.mapHeight || viewHeight;
@@ -1915,19 +2001,106 @@ export {
 } from "./mapdata_moveto";
 
 // ──────────────────────────────────────────────────────────────────────────────
-// Internal helper
+// Scalar accessor exports (hot render path – no object allocation)
 // ──────────────────────────────────────────────────────────────────────────────
 
-function mapdataHasTile(x: number, y: number, layer: number): boolean {
-  return (
-    x >= 0 &&
-    x < viewWidth &&
-    y >= 0 &&
-    y < viewHeight &&
-    layer >= 0 &&
-    layer < MAXLAYERS
-  );
+/** State of the cell at absolute map coordinates. */
+export function mapdata_get_state(mx: number, my: number): MapCellState {
+  return cellState[ci(mx, my)]! as MapCellState;
 }
+
+/** Head face ID for the given layer at absolute map coordinates. */
+export function mapdata_get_head_face(
+  mx: number,
+  my: number,
+  layer: number,
+): number {
+  return headFace[ci(mx, my) * L + layer]!;
+}
+
+/** Smooth value for the given layer at absolute map coordinates. */
+export function mapdata_get_smooth(
+  mx: number,
+  my: number,
+  layer: number,
+): number {
+  return smooth[ci(mx, my) * L + layer]!;
+}
+
+/** Darkness value at absolute map coordinates. */
+export function mapdata_get_darkness(mx: number, my: number): number {
+  return cellDarkness[ci(mx, my)]!;
+}
+
+const EMPTY_LABELS: readonly MapLabel[] = Object.freeze([]);
+
+/** Labels at absolute map coordinates (empty frozen array when none). */
+export function mapdata_get_labels(
+  mx: number,
+  my: number,
+): readonly MapLabel[] {
+  return cellLabels.get(ci(mx, my)) ?? EMPTY_LABELS;
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Memory diagnostics
+// ──────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Return a snapshot of current map memory usage.
+ *
+ * `estimatedBytes` is the exact number of bytes held by the typed arrays.
+ * `heapBytes` is `performance.memory.usedJSHeapSize` when available
+ * (Chrome with --enable-precise-memory-info; not available in Firefox).
+ */
+export function mapdata_memory_stats(): {
+  mapDimensions: { width: number; height: number };
+  viewDimensions: { width: number; height: number };
+  totalCells: number;
+  nonEmptyCells: number;
+  labeledCells: number;
+  typedArrayBytes: number;
+  heapBytes: number | null;
+} {
+  const totalCells = mapWidth * mapHeight;
+  let nonEmpty = 0;
+  for (let i = 0; i < totalCells; i++) {
+    if (cellState[i]! !== MapCellState.Empty) nonEmpty++;
+  }
+
+  const typedArrayBytes =
+    cellState.byteLength +
+    cellDarkness.byteLength +
+    cellFlags.byteLength +
+    headFace.byteLength +
+    headSizeX.byteLength +
+    headSizeY.byteLength +
+    headAnim.byteLength +
+    headAnimSpeed.byteLength +
+    headAnimLeft.byteLength +
+    headAnimPhase.byteLength +
+    tailFace.byteLength +
+    tailSizeX.byteLength +
+    tailSizeY.byteLength +
+    smooth.byteLength;
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const heapBytes = (performance as any).memory?.usedJSHeapSize ?? null;
+
+  return {
+    mapDimensions: { width: mapWidth, height: mapHeight },
+    viewDimensions: { width: viewWidth, height: viewHeight },
+    totalCells,
+    nonEmptyCells: nonEmpty,
+    labeledCells: cellLabels.size,
+    typedArrayBytes,
+    heapBytes,
+  };
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Public getters
+// ──────────────────────────────────────────────────────────────────────────────
 
 /** Expose the internal player position (top-left of view). */
 export function getPlayerPosition(): PlayerPosition {
@@ -1942,6 +2115,21 @@ export function getScriptPosition(): PlayerPosition {
 /** Return the current view dimensions. */
 export function getViewSize(): { width: number; height: number } {
   return { width: viewWidth, height: viewHeight };
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// Internal helper
+// ──────────────────────────────────────────────────────────────────────────────
+
+function mapdataHasTile(x: number, y: number, layer: number): boolean {
+  return (
+    x >= 0 &&
+    x < viewWidth &&
+    y >= 0 &&
+    y < viewHeight &&
+    layer >= 0 &&
+    layer < MAXLAYERS
+  );
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -1997,7 +2185,7 @@ export function mapdata_debug_tile(ax: number, ay: number): string[] {
     return lines;
   }
 
-  const cell = cellAt(ax, ay);
+  const cell = mapdata_cell(ax, ay);
   lines.push(
     `  state=${stateName(cell.state)} darkness=${cell.darkness} needUpdate=${cell.needUpdate} needResmooth=${cell.needResmooth}`,
   );
@@ -2007,7 +2195,7 @@ export function mapdata_debug_tile(ax: number, ay: number): string[] {
     if (hl) lines.push(hl);
     const tl = formatTail(cell.tails[i]!, i);
     if (tl) lines.push(tl);
-    if (cell.smooth[i] !== 0) {
+    if (cell.smooth[i]! !== 0) {
       lines.push(`  smooth ${i}: ${cell.smooth[i]}`);
     }
   }
@@ -2018,7 +2206,6 @@ export function mapdata_debug_tile(ax: number, ay: number): string[] {
     }
   }
 
-  // face_info per layer
   for (let i = 0; i < MAXLAYERS; i++) {
     const info = mapdata_face_info(ax, ay, i);
     if (info.face !== 0) {
@@ -2031,10 +2218,6 @@ export function mapdata_debug_tile(ax: number, ay: number): string[] {
   return lines;
 }
 
-/**
- * Return a human-readable dump of the player's current position in the
- * virtual map.  Returns an array of lines suitable for logging.
- */
 export function mapdata_debug_player_pos(): string[] {
   const lines: string[] = [];
   lines.push(`Player virtual-map position:`);
@@ -2064,10 +2247,9 @@ export function mapdata_debug_bigface(ax: number, ay: number): string[] {
     return lines;
   }
 
-  const cell = cellAt(ax, ay);
+  const cell = mapdata_cell(ax, ay);
   lines.push(`  cell state=${stateName(cell.state)} darkness=${cell.darkness}`);
 
-  // Show head and tail info from cells[]
   let hasCellData = false;
   for (let i = 0; i < MAXLAYERS; i++) {
     const h = cell.heads[i]!;
@@ -2082,11 +2264,10 @@ export function mapdata_debug_bigface(ax: number, ay: number): string[] {
       lines.push(
         `  cells[] TAIL layer ${i}: face=${t.face} offset=(${t.sizeX}, ${t.sizeY})`,
       );
-      // Try to describe the head this tail points to
       const hx = ax + t.sizeX;
       const hy = ay + t.sizeY;
       if (mapdata_contains(hx, hy)) {
-        const headCell = cellAt(hx, hy);
+        const headCell = mapdata_cell(hx, hy);
         const headLayer = headCell.heads[i]!;
         lines.push(
           `    -> head at (${hx}, ${hy}): face=${headLayer.face} size=${headLayer.sizeX}x${headLayer.sizeY} state=${stateName(headCell.state)}`,
@@ -2098,7 +2279,6 @@ export function mapdata_debug_bigface(ax: number, ay: number): string[] {
     }
   }
 
-  // Show bigfaces[] data
   let hasBigfaceData = false;
   if (viewX >= 0 && viewX < MAX_VIEW && viewY >= 0 && viewY < MAX_VIEW) {
     for (let i = 0; i < MAXLAYERS; i++) {
@@ -2113,7 +2293,6 @@ export function mapdata_debug_bigface(ax: number, ay: number): string[] {
         lines.push(
           `  bigfaces[] TAIL layer ${i}: face=${bf.tail.face} offset=(${bf.tail.sizeX}, ${bf.tail.sizeY})`,
         );
-        // Try to describe the head this tail points to
         const hdx = bf.tail.sizeX;
         const hdy = bf.tail.sizeY;
         const headViewX = viewX + hdx;
@@ -2140,7 +2319,6 @@ export function mapdata_debug_bigface(ax: number, ay: number): string[] {
     lines.push("  view position outside bigfaces[] range (0..MAX_VIEW)");
   }
 
-  // face_info per layer
   for (let i = 0; i < MAXLAYERS; i++) {
     const info = mapdata_face_info(ax, ay, i);
     if (info.face !== 0) {
@@ -2159,12 +2337,6 @@ export function mapdata_debug_bigface(ax: number, ay: number): string[] {
 
 /**
  * Return a human-readable dump of all currently active bigface entries.
- * This includes:
- *   - Entries in `activeBigfaces` (multi-tile faces whose head is OUTSIDE
- *     the server viewport on the right/bottom edge, stored in bigfaces[]).
- *   - Multi-tile heads found in cells[] (sizeX > 1 or sizeY > 1) for faces
- *     whose head is within the server viewport or just outside its top/left
- *     edge (up to MAX_FACE_SIZE-1 tiles before the visible area).
  * Returns an array of lines suitable for logging.
  */
 export function mapdata_debug_all_bigfaces(): string[] {
@@ -2173,10 +2345,6 @@ export function mapdata_debug_all_bigfaces(): string[] {
     `  pl_pos=(${pl_pos.x}, ${pl_pos.y}) view=${viewWidth}x${viewHeight}`,
   );
 
-  // --- Section 1: bigfaces stored in cells[] ---
-  // Scan from -(MAX_FACE_SIZE-1) to capture heads sitting just outside the
-  // top/left viewport edge (negative view-relative coords) as well as those
-  // inside the visible area.
   const scanMin = -(MAX_FACE_SIZE - 1);
   const cellsBigfaces: Array<{
     vx: number;
@@ -2193,18 +2361,15 @@ export function mapdata_debug_all_bigfaces(): string[] {
       if (ax < 0 || ax >= mapWidth || ay < 0 || ay >= mapHeight) {
         continue;
       }
-      const cell = cellAt(ax, ay);
+      const idx = ci(ax, ay);
+      const lBase = idx * L;
       for (let layer = 0; layer < MAXLAYERS; layer++) {
-        const h = cell.heads[layer]!;
-        if (h.face !== 0 && (h.sizeX > 1 || h.sizeY > 1)) {
-          cellsBigfaces.push({
-            vx,
-            vy,
-            layer,
-            face: h.face,
-            sizeX: h.sizeX,
-            sizeY: h.sizeY,
-          });
+        const lOff = lBase + layer;
+        const face = headFace[lOff]!;
+        const sx = headSizeX[lOff]!;
+        const sy = headSizeY[lOff]!;
+        if (face !== 0 && (sx > 1 || sy > 1)) {
+          cellsBigfaces.push({ vx, vy, layer, face, sizeX: sx, sizeY: sy });
         }
       }
     }
@@ -2237,7 +2402,6 @@ export function mapdata_debug_all_bigfaces(): string[] {
     }
   }
 
-  // --- Section 2: out-of-viewport bigfaces stored in bigfaces[] ---
   lines.push(
     `Out-of-viewport bigfaces (bigfaces[]): ${activeBigfaces.size} entr${activeBigfaces.size === 1 ? "y" : "ies"}`,
   );
@@ -2252,16 +2416,13 @@ export function mapdata_debug_all_bigfaces(): string[] {
       `  [${index}] view=(${bc.x}, ${bc.y}) abs=(${ax}, ${ay})` +
         ` layer=${bc.layer} face=${bc.head.face} size=${bc.head.sizeX}x${bc.head.sizeY}`,
     );
-    // List which in-view cells this bigface covers as tails.
     for (let dx = 0; dx < bc.head.sizeX; dx++) {
       for (let dy = dx === 0 ? 1 : 0; dy < bc.head.sizeY; dy++) {
         const tvx = bc.x - dx;
         const tvy = bc.y - dy;
         if (tvx >= 0 && tvx < viewWidth && tvy >= 0 && tvy < viewHeight) {
-          const tax = ax - dx;
-          const tay = ay - dy;
           lines.push(
-            `    tail covers view=(${tvx}, ${tvy}) abs=(${tax}, ${tay}) offset=(${dx}, ${dy})`,
+            `    tail covers view=(${tvx}, ${tvy}) abs=(${ax - dx}, ${ay - dy}) offset=(${dx}, ${dy})`,
           );
         }
       }
