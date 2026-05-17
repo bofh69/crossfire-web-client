@@ -277,10 +277,8 @@
 
     // Smooth only makes sense when there is visible content on some layer ≤ current.
     let hasFace = false;
-    const cellEffHeads =
-      cell.state === MapCellState.Fog ? cell.fogHeads : cell.heads;
     for (let i = 0; i <= layer; i++) {
-      if (cellEffHeads[i]!.face !== 0) {
+      if (cell.heads[i]!.face !== 0) {
         hasFace = true;
         break;
       }
@@ -300,9 +298,7 @@
         const ncell = mapdata_cell(emx, emy);
         if (ncell.smooth[layer]! > mySmooth) {
           _slevels[i] = ncell.smooth[layer]!;
-          const nEffHeads =
-            ncell.state === MapCellState.Fog ? ncell.fogHeads : ncell.heads;
-          _sfaces[i] = getSmoothFace(nEffHeads[layer]!.face);
+          _sfaces[i] = getSmoothFace(ncell.heads[layer]!.face);
         } else {
           _slevels[i] = 0;
           _sfaces[i] = 0;
@@ -507,11 +503,7 @@
           const cell = mapdata_cell(ax, ay);
           if (cell.state === MapCellState.Empty) continue;
 
-          // Select the layer arrays appropriate for this cell's state so that
-          // fog cells are rendered from their frozen fog snapshot.
-          const effHeads =
-            cell.state === MapCellState.Fog ? cell.fogHeads : cell.heads;
-          const head = effHeads[layer]!;
+          const head = cell.heads[layer]!;
 
           const px = vx * tileSize;
           const py = vy * tileSize;

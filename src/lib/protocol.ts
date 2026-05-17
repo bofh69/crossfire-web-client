@@ -742,20 +742,8 @@ export interface MapLabel {
 }
 
 export interface MapCell {
-  /** Layer data for the visible state (only valid when state === Visible). */
   heads: MapCellLayer[];
-  /** Tail data for the visible state (only valid when state === Visible). */
   tails: MapCellTailLayer[];
-  /**
-   * Layer data frozen at the last Visible→Fog transition.
-   * Used for rendering when state === Fog.
-   */
-  fogHeads: MapCellLayer[];
-  /**
-   * Tail data frozen at the last Visible→Fog transition.
-   * Used for rendering when state === Fog.
-   */
-  fogTails: MapCellTailLayer[];
   labels: MapLabel[];
   smooth: number[];
   darkness: number;
