@@ -45,6 +45,7 @@
   const MIN_SCALE = 1;
   const MAX_SCALE = 8;
   const MAX_MISSING_FACES_PREVIEW = 12;
+  const PERF_INFO_PREFIX = "[debug perf]";
   const ZOOM_STORAGE_KEY = "tileScale";
   /**
    * Minimum number of tiles that must be visible in each dimension.
@@ -847,11 +848,15 @@
       const dt = (now - lastStatsTime) / 1000;
       if (perfLogging) {
         const avgDrawMs = drawCount > 0 ? drawElapsedTotalMs / drawCount : 0;
-        LOG(
-          LogLevel.Info,
-          "perf:map",
-          `${drawCount} draws in ${dt.toFixed(1)}s (${(drawCount / dt).toFixed(1)} draws/s), avgDrawMap:${avgDrawMs.toFixed(1)}ms, imageBitmapCache:${getFaceBitmapCacheSize()}`,
-        );
+        const cacheSize = getFaceBitmapCacheSize();
+        const drawsPerSec = (drawCount / dt).toFixed(1);
+        const statsLine = [
+          `${PERF_INFO_PREFIX} ${drawCount} draws in ${dt.toFixed(1)}s`,
+          `(${drawsPerSec} draws/s), avgDrawMap:${avgDrawMs.toFixed(1)}ms,`,
+          `imageBitmapCache:${cacheSize}`,
+        ].join(" ");
+        LOG(LogLevel.Info, "perf:map", statsLine);
+        gameEvents.emit("drawInfo", 0, statsLine);
       }
       drawCount = 0;
       drawElapsedTotalMs = 0;
