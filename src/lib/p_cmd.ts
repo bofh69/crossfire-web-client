@@ -22,7 +22,9 @@ import {
   mapdata_debug_bigface,
   mapdata_debug_all_bigfaces,
   mapdata_debug_player_pos,
+  mapdata_memory_stats,
 } from "./mapdata";
+import { fogCacheStats } from "./map_fog_cache";
 import { image_debug_face } from "./image";
 
 // ---------------------------------------------------------------------------
@@ -318,6 +320,25 @@ function commandDebug(args: string): void {
     drawInfo("Player virtual-map position logged to the browser console.");
   } else if (sub === "colors") {
     commandDebugColors();
+  } else if (sub === "mem") {
+    const ms = mapdata_memory_stats();
+    const fc = fogCacheStats();
+    const mapMiB = (ms.typedArrayBytes / 1048576).toFixed(2);
+    const heapMiB =
+      ms.heapBytes !== null
+        ? `${(ms.heapBytes / 1048576).toFixed(1)} MiB`
+        : "n/a (Chrome with --enable-precise-memory-info only)";
+    drawInfo(
+      "Map memory statistics:\n" +
+        `  Virtual map: ${ms.mapDimensions.width}×${ms.mapDimensions.height}` +
+        ` (${ms.totalCells.toLocaleString()} cells)\n` +
+        `  View: ${ms.viewDimensions.width}×${ms.viewDimensions.height}\n` +
+        `  Non-empty cells: ${ms.nonEmptyCells.toLocaleString()}\n` +
+        `  Labeled cells:   ${ms.labeledCells}\n` +
+        `  Typed-array bytes: ${ms.typedArrayBytes.toLocaleString()} B (${mapMiB} MiB)\n` +
+        `  Fog cache: ${fc.entries}/${fc.maxEntries} entries, ${fc.totalCells.toLocaleString()} cells\n` +
+        `  JS heap: ${heapMiB}`,
+    );
   } else {
     // Keep the subcommands sorted alphabetically
     drawInfo(
@@ -327,6 +348,7 @@ function commandDebug(args: string): void {
         "  bigfaces     Log all currently active bigface entries to the console\n" +
         "  colors       Show all message colors with their names\n" +
         "  face <num>   Log all known data for face <num>, including pixel size\n" +
+        "  mem          Show map and fog-cache memory usage statistics\n" +
         "  perf         Toggle performance logging on/off\n" +
         "  pos          Log the player's current position in the virtual map\n" +
         "  tile         Click a tile to log all tile info\n" +
@@ -368,15 +390,16 @@ const builtinCommands: ConsoleCommand[] = [
     name: "debug",
     category: CommCat.Debug,
     description:
-      "Debugging tools (colors, perf, bigface, bigfaces, face, pos, tile, watch)",
+      "Debugging tools (bigface, bigfaces, colors, face, mem, perf, pos, tile, watch)",
     longDescription:
       "Syntax:\n" +
-      "  debug colors       Show all message colors with their names in the info panel\n" +
-      "  debug perf         Toggle periodic performance logging on/off\n" +
       "  debug bigface      Click a tile to log bigface/multitile info to the console\n" +
       "  debug bigfaces     Log all currently active bigface entries to the console\n" +
+      "  debug colors       Show all message colors with their names in the info panel\n" +
       "  debug face <num>   Log all known data for face <num>, including pixel size,\n" +
       "                     image URL, smooth face mapping, and any pending name/checksum\n" +
+      "  debug mem          Show virtual-map and fog-cache memory usage statistics\n" +
+      "  debug perf         Toggle periodic performance logging on/off\n" +
       "  debug pos          Log the player's current position in the virtual map\n" +
       "  debug tile         Click a tile to log all tile data to the console\n" +
       "  debug watch        Click a tile to start watching; every server update to that\n" +

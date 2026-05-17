@@ -98,3 +98,19 @@ export function cacheGetFog(key: string): FogSnapshot | undefined {
 export function cacheClearFog(): void {
   fogCache.clear();
 }
+
+/**
+ * Return summary statistics about the fog cache for the `debug mem`
+ * subcommand.
+ */
+export function fogCacheStats(): {
+  entries: number;
+  maxEntries: number;
+  totalCells: number;
+} {
+  let totalCells = 0;
+  for (const snap of fogCache.values()) {
+    totalCells += snap.cells.length;
+  }
+  return { entries: fogCache.size, maxEntries: FOG_CACHE_MAX_SIZE, totalCells };
+}
