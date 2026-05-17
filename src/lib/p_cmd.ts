@@ -244,12 +244,16 @@ function debugPickAndLog(
   gameEvents.emit("debugPickTile", mode);
 }
 
-function commandDebugColors(): void {
+function commandDebugText(): void {
   drawInfo("Message colors:");
   for (const def of NDI_COLOR_DEFINITIONS) {
     const hex = NDI_COLORS[def.id] ?? "#cccccc";
     const hexCode = hex.slice(1); // strip '#'
     drawInfo(`[color=${hexCode}]${def.name}: ${hex}[/color]`);
+  }
+  drawInfo("Message fonts:");
+  for (const name of ["fixed", "arcane", "hand", "strange"]) {
+    drawInfo(`[${name}]${name}[/${name}]`);
   }
 }
 
@@ -318,8 +322,6 @@ function commandDebug(args: string): void {
       drawInfo(line);
     }
     drawInfo("Displayed player virtual-map position.");
-  } else if (sub === "colors") {
-    commandDebugColors();
   } else if (sub === "mem") {
     const ms = mapdata_memory_stats();
     const fc = fogCacheStats();
@@ -339,6 +341,8 @@ function commandDebug(args: string): void {
         `  Fog cache: ${fc.entries}/${fc.maxEntries} entries, ${fc.totalCells.toLocaleString()} cells\n` +
         `  JS heap: ${heapMiB}`,
     );
+  } else if (sub === "text") {
+    commandDebugText();
   } else {
     // Keep the subcommands sorted alphabetically
     drawInfo(
@@ -346,11 +350,11 @@ function commandDebug(args: string): void {
         "Subcommands:\n" +
         "  bigface      Click a tile to display bigface/multitile info\n" +
         "  bigfaces     Display all currently active bigface entries\n" +
-        "  colors       Show all message colors with their names\n" +
         "  face <num>   Display all known data for face <num>, including pixel size\n" +
         "  mem          Show map and fog-cache memory usage statistics\n" +
         "  perf         Toggle performance logging on/off\n" +
         "  pos          Display the player's current position in the virtual map\n" +
+        "  text         Show all message colors and fonts\n" +
         "  tile         Click a tile to display all tile info\n" +
         "  watch        Pick a tile to watch; displays all server updates to it (run again to stop)",
     );
@@ -389,8 +393,7 @@ const builtinCommands: ConsoleCommand[] = [
   {
     name: "debug",
     category: CommCat.Debug,
-    description:
-      "Debugging tools (bigface, bigfaces, colors, face, mem, perf, pos, tile, watch)",
+    description: "Debugging tools",
     longDescription:
       "Syntax:\n" +
       "  debug bigface      Click a tile to display bigface/multitile info in the info panel\n" +
