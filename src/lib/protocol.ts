@@ -505,47 +505,6 @@ export const SC_ALWAYS = 2;
 export const SC_MOVETO = 3;
 
 // ──────────────────────────────────────────────────────────────────────────────
-// Client configuration constants (CONFIG_*)
-// ──────────────────────────────────────────────────────────────────────────────
-export const CONFIG_DOWNLOAD = 1;
-export const CONFIG_ECHO = 2;
-export const CONFIG_FASTTCP = 3;
-export const CONFIG_CWINDOW = 4;
-export const CONFIG_CACHE = 5;
-export const CONFIG_FOGWAR = 6;
-export const CONFIG_ICONSCALE = 7;
-export const CONFIG_MAPSCALE = 8;
-export const CONFIG_POPUPS = 9;
-export const CONFIG_DISPLAYMODE = 10;
-export const CONFIG_SHOWICON = 11;
-export const CONFIG_TOOLTIPS = 12;
-export const CONFIG_SOUND = 13;
-export const CONFIG_SPLITINFO = 14;
-export const CONFIG_SPLITWIN = 15;
-export const CONFIG_SHOWGRID = 16;
-export const CONFIG_LIGHTING = 17;
-export const CONFIG_TRIMINFO = 18;
-export const CONFIG_MAPWIDTH = 19;
-export const CONFIG_MAPHEIGHT = 20;
-export const CONFIG_FOODBEEP = 21;
-export const CONFIG_DARKNESS = 22;
-export const CONFIG_PORT = 23;
-export const CONFIG_GRAD_COLOR = 24;
-export const CONFIG_RESISTS = 25;
-export const CONFIG_SMOOTH = 26;
-export const CONFIG_SPLASH = 27;
-export const CONFIG_APPLY_CONTAINER = 28;
-export const CONFIG_MAPSCROLL = 29;
-export const CONFIG_SIGNPOPUP = 30;
-export const CONFIG_TIMESTAMP = 31;
-export const CONFIG_AUTO_AFK = 32;
-export const CONFIG_INV_MENU = 33;
-export const CONFIG_MUSIC_VOL = 34;
-export const CONFIG_SERVER_TICKS = 35;
-export const CONFIG_DEBOUNCE = 36;
-export const CONFIG_NUMS = 37;
-
-// ──────────────────────────────────────────────────────────────────────────────
 // Lighting types (CFG_LT_*)
 // ──────────────────────────────────────────────────────────────────────────────
 export const CFG_LT_NONE = 0;
