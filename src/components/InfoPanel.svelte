@@ -688,11 +688,12 @@
                         style:color={span.color}
                         style:font-weight={span.bold ? "bold" : "normal"}
                         style:font-style={span.italic ? "italic" : "normal"}
-                        >{span.text}</button
+                        style:font-family={span.fontFamily}>{span.text}</button
                       >{:else}<span
                         style:color={span.color}
                         style:font-weight={span.bold ? "bold" : "normal"}
                         style:font-style={span.italic ? "italic" : "normal"}
+                        style:font-family={span.fontFamily}
                         style:text-decoration={span.underline
                           ? "underline"
                           : "none"}>{span.text}</span
@@ -758,11 +759,12 @@
                         style:color={span.color}
                         style:font-weight={span.bold ? "bold" : "normal"}
                         style:font-style={span.italic ? "italic" : "normal"}
-                        >{span.text}</button
+                        style:font-family={span.fontFamily}>{span.text}</button
                       >{:else}<span
                         style:color={span.color}
                         style:font-weight={span.bold ? "bold" : "normal"}
                         style:font-style={span.italic ? "italic" : "normal"}
+                        style:font-family={span.fontFamily}
                         style:text-decoration={span.underline
                           ? "underline"
                           : "none"}>{span.text}</span
@@ -820,11 +822,12 @@
                         style:color={span.color}
                         style:font-weight={span.bold ? "bold" : "normal"}
                         style:font-style={span.italic ? "italic" : "normal"}
-                        >{span.text}</button
+                        style:font-family={span.fontFamily}>{span.text}</button
                       >{:else}<span
                         style:color={span.color}
                         style:font-weight={span.bold ? "bold" : "normal"}
                         style:font-style={span.italic ? "italic" : "normal"}
+                        style:font-family={span.fontFamily}
                         style:text-decoration={span.underline
                           ? "underline"
                           : "none"}>{span.text}</span

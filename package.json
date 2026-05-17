@@ -22,7 +22,12 @@
     "vite": "^8.0.1"
   },
   "dependencies": {
+    "@fontsource/caveat": "^5.2.8",
+    "@fontsource/fira-code": "^5.2.7",
+    "@fontsource/fira-mono": "^5.2.7",
     "@fontsource/modern-antiqua": "^5.2.8",
+    "@fontsource/noto-sans-runic": "^5.2.6",
+    "@fontsource/uncial-antiqua": "^5.2.7",
     "prettier-plugin-svelte": "^3.5.1"
   }
 }

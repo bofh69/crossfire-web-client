@@ -3,6 +3,11 @@
  *
  * The Crossfire server can embed simple formatting tags in messages:
  *   [b]/[/b]           bold
+ *   [fixed]            fixed-width font
+ *   [arcane]           arcane font
+ *   [hand]             handwriting font
+ *   [strange]          runic font
+ *   [print]            print font
  *   [i]/[/i]           italic
  *   [ul]/[/ul]         underline
  *   [color=rrggbb]/[/color]  hex colour
@@ -31,6 +36,7 @@ export interface MessageSpan {
   text: string;
   color: string;
   bold: boolean;
+  fontFamily: string;
   italic: boolean;
   underline: boolean;
   command?: string;
@@ -45,6 +51,11 @@ export interface InfoLine {
 }
 
 const DEFAULT_NDI_FALLBACK = "#cccccc";
+const MARKUP_FONT_ARCANE = "var(--markup-font-arcane, var(--serif))";
+const MARKUP_FONT_FIXED = "var(--markup-font-fixed, var(--mono))";
+const MARKUP_FONT_HAND = "var(--markup-font-hand, var(--serif))";
+const MARKUP_FONT_PRINT = "var(--markup-font-print, var(--serif))";
+const MARKUP_FONT_STRANGE = "var(--markup-font-strange, var(--serif))";
 
 export const INFO_PANEL_BACKGROUND_DEFAULT = "#1a1a1a";
 
@@ -215,6 +226,8 @@ export function parseMarkup(text: string, baseColor: string): MessageSpan[] {
   let italic = false;
   let underline = false;
   let color = baseColor;
+  // Crossfire media markup starts in print mode and font tags switch from there.
+  let fontFamily = MARKUP_FONT_PRINT;
   let commandTag: "cmd" | "help" | null = null;
   let current = text;
 
@@ -225,6 +238,7 @@ export function parseMarkup(text: string, baseColor: string): MessageSpan[] {
       text: spanText,
       color,
       bold,
+      fontFamily,
       italic,
       underline,
       command:
@@ -259,6 +273,16 @@ export function parseMarkup(text: string, baseColor: string): MessageSpan[] {
       commandTag = "cmd";
     } else if (tag.startsWith("color=")) {
       color = "#" + tag.substring(6);
+    } else if (tag === "arcane") {
+      fontFamily = MARKUP_FONT_ARCANE;
+    } else if (tag === "fixed") {
+      fontFamily = MARKUP_FONT_FIXED;
+    } else if (tag === "hand") {
+      fontFamily = MARKUP_FONT_HAND;
+    } else if (tag === "print") {
+      fontFamily = MARKUP_FONT_PRINT;
+    } else if (tag === "strange") {
+      fontFamily = MARKUP_FONT_STRANGE;
     } else if (tag === "help") {
       commandTag = "help";
     } else if (tag === "i") {
@@ -278,7 +302,7 @@ export function parseMarkup(text: string, baseColor: string): MessageSpan[] {
     } else if (tag === "/ul") {
       underline = false;
     }
-    // Ignore other tags (fixed, arcane, hand, strange, print, etc.)
+    // Ignore other tags.
   }
 
   // Emit any remaining text
