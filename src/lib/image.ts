@@ -40,7 +40,7 @@ export const MAGIC_MAP_FACE_BASE = 0xfffffe00;
  *   MAGIC_MAP_WALL_LEFT  = 0x2 – wall neighbor to the left
  *   MAGIC_MAP_WALL_RIGHT = 0x1 – wall neighbor to the right
  */
-export const MAGIC_MAP_WALL_FACE_BASE = MAGIC_MAP_FACE_BASE | 0x10;
+export const MAGIC_MAP_WALL_FACE_BASE = (MAGIC_MAP_FACE_BASE | 0x10) >>> 0;
 
 /** Bit set in the wall neighbor mask when there is a wall above. */
 export const MAGIC_MAP_WALL_ABOVE = 0x8;
@@ -88,7 +88,7 @@ export function registerMagicMapFaces(): void {
 
   // --- Solid-colour tiles for each colour index ---
   for (let i = 0; i < MAGIC_MAP_COLORS.length; i++) {
-    const faceId = MAGIC_MAP_FACE_BASE | i;
+    const faceId = (MAGIC_MAP_FACE_BASE | i) >>> 0;
     if (faceUrls.has(faceId)) continue; // already registered
     ctx.clearRect(0, 0, TILE_SIZE, TILE_SIZE);
     ctx.fillStyle = MAGIC_MAP_COLORS[i]!;
@@ -120,7 +120,7 @@ export function registerMagicMapFaces(): void {
 
   // --- 16 wall faces, one per neighbor-bitmask (0..15) ---
   for (let mask = 0; mask <= 0x0f; mask++) {
-    const faceId = MAGIC_MAP_WALL_FACE_BASE | mask;
+    const faceId = (MAGIC_MAP_WALL_FACE_BASE | mask) >>> 0;
     if (faceUrls.has(faceId)) continue;
 
     ctx.clearRect(0, 0, TILE_SIZE, TILE_SIZE);
