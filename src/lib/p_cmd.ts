@@ -251,10 +251,12 @@ function commandDebugText(): void {
     const hexCode = hex.slice(1); // strip '#'
     drawInfo(`[color=${hexCode}]${def.name}: ${hex}[/color]`);
   }
-  drawInfo("Message fonts:");
+  let s = "Message fonts:";
+
   for (const name of ["fixed", "arcane", "hand", "strange"]) {
-    drawInfo(`[${name}]${name}[/${name}]`);
+    s += `[${name}]${name}[print] `;
   }
+  drawInfo(s);
 }
 
 function commandDebug(args: string): void {
