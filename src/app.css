@@ -23,6 +23,11 @@
 
   --serif: "Modern Antiqua", serif;
   --mono: "Courier New", ui-monospace, Consolas, monospace;
+  --markup-font-arcane: "Uncial Antiqua", var(--serif);
+  --markup-font-fixed: "Fira Mono", var(--mono);
+  --markup-font-hand: "Caveat", var(--serif);
+  --markup-font-print: "Fira Code", var(--mono);
+  --markup-font-strange: "Noto Sans Runic", var(--serif);
 
   font: clamp(8px, 1vw, 19px)/1.4 var(--serif);
   color-scheme: dark;
