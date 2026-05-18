@@ -19,6 +19,7 @@
 
   interface FlatItem {
     tag: number;
+    fullName: string;
     name: string;
     dName: string;
     sName: string;
@@ -210,16 +211,62 @@
   let playerListEl: HTMLElement | null = null;
   let groundListEl: HTMLElement | null = null;
 
+  /**
+   * Return the visible item label, including the pluralized count when needed.
+   */
+  function getItemDisplayName(item: Item): string {
+    return item.nrof > 1
+      ? `${item.nrof} ${item.pName || item.dName}`
+      : item.dName;
+  }
+
+  /**
+   * Join attribute names into one parenthesized list with `&` before the final
+   * value.
+   */
+  function formatAttributeList(attributes: string[]): string {
+    if (attributes.length === 0) return "";
+    if (attributes.length === 1) return ` (${attributes[0]})`;
+    if (attributes.length === 2)
+      return ` (${attributes[0]} & ${attributes[1]})`;
+    return ` (${attributes.slice(0, -1).join(", ")} & ${attributes.at(-1)})`;
+  }
+
+  /**
+   * Collapse repeated trailing ` (text)` segments into one grouped list.
+   *
+   * Example: `name (a) (b) (c)` => `name (a, b & c)`.
+   */
+  function normalizeTrailingAttributes(name: string): string {
+    const tailMatch = /((?: \([^()]+\))+)$/.exec(name);
+    if (!tailMatch) return name;
+
+    const tail = tailMatch[1]!;
+    const attributes = [...tail.matchAll(/ \(([^()]+)\)/g)].map(
+      (match) => match[1]!,
+    );
+    if (attributes.length <= 1) return name;
+
+    const prefix = name.slice(0, -tail.length);
+    return `${prefix}${formatAttributeList(attributes)}`;
+  }
+
+  /** Return the full item label, including server-provided status suffixes. */
+  function getItemFullName(item: Item): string {
+    return normalizeTrailingAttributes(
+      `${getItemDisplayName(item)}${item.flags}`,
+    );
+  }
+
+  /** Flatten inventory tree nodes into a linear list for rendering. */
   function flattenItems(root: Item | null, depth = 0): FlatItem[] {
     const result: FlatItem[] = [];
     let item = root?.inv ?? null;
     while (item) {
       result.push({
         tag: item.tag,
-        name:
-          item.nrof > 1
-            ? `${item.nrof} ${item.pName || item.dName}`
-            : item.dName,
+        fullName: getItemFullName(item),
+        name: getItemDisplayName(item),
         dName: item.dName,
         sName: item.sName,
         weight: item.weight,
@@ -439,6 +486,7 @@
           class:cursed={item.cursed}
           class:magical={item.magical}
           style:padding-left="{0.4 + item.depth * 1}rem"
+          title={capitalizeFirstLetter(item.fullName)}
           onclick={() => handleApply(item.tag)}
           oncontextmenu={(e: MouseEvent) => handleContextMenu(e, item, false)}
         >
@@ -479,6 +527,7 @@
           class:cursed={item.cursed}
           class:magical={item.magical}
           style:padding-left="{0.4 + item.depth * 1}rem"
+          title={capitalizeFirstLetter(item.fullName)}
           onclick={() => handleApply(item.tag)}
           oncontextmenu={(e: MouseEvent) => handleContextMenu(e, item, true)}
         >

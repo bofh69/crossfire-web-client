@@ -667,7 +667,7 @@ export function updateItemSort(it: Item): void {
 
 function setFlagString(op: Item): void {
   let f = "";
-  if (op.locked) f += " *";
+  if (op.locked) f += " (locked)";
   if (op.applyType) {
     f +=
       op.applyType < applyStrings.length
