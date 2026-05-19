@@ -147,6 +147,80 @@ export const skillDescriptions: string[] = new Array(CS_NUM_SKILLS).fill("");
 export const expTable: bigint[] = [];
 
 /**
+ * Build a fresh zeroed Stats object for replay/session resets.
+ */
+function buildDefaultPlayerStats(): Stats {
+  return {
+    Str: 0,
+    Dex: 0,
+    Con: 0,
+    Wis: 0,
+    Cha: 0,
+    Int: 0,
+    Pow: 0,
+    wc: 0,
+    ac: 0,
+    level: 0,
+    hp: 0,
+    maxhp: 0,
+    sp: 0,
+    maxsp: 0,
+    grace: 0,
+    maxgrace: 0,
+    exp: BigInt(0),
+    food: 0,
+    dam: 0,
+    speed: 0,
+    weaponSp: 0,
+    attuned: 0,
+    repelled: 0,
+    denied: 0,
+    flags: 0,
+    resists: new Array(30).fill(0),
+    resistChange: false,
+    skillLevel: new Array(CS_NUM_SKILLS).fill(0),
+    skillExp: new Array(CS_NUM_SKILLS).fill(BigInt(0)),
+    weightLimit: 0,
+    golemHp: 0,
+    golemMaxhp: 0,
+    range: "",
+    title: "",
+    raceStr: 0,
+    raceInt: 0,
+    raceWis: 0,
+    raceDex: 0,
+    raceCon: 0,
+    raceCha: 0,
+    racePow: 0,
+    baseStr: 0,
+    baseInt: 0,
+    baseWis: 0,
+    baseDex: 0,
+    baseCon: 0,
+    baseCha: 0,
+    basePow: 0,
+    appliedStr: 0,
+    appliedInt: 0,
+    appliedWis: 0,
+    appliedDex: 0,
+    appliedCon: 0,
+    appliedCha: 0,
+    appliedPow: 0,
+  };
+}
+
+/**
+ * Reset all stats-module state so a fresh session or replay can start from a
+ * deterministic baseline.
+ */
+export function resetStatsState(): void {
+  Object.assign(playerStats, buildDefaultPlayerStats());
+  skillNames.fill("");
+  skillDescriptions.fill("");
+  expTable.length = 0;
+}
+
+/**
  * Compute the 0–100 progress percentage of `exp` within the current level band.
  * Returns 100 if the player is at the maximum known level.
  */

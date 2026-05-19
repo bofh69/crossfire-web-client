@@ -422,6 +422,22 @@ export function setAnimations(a: Animation[]): void {
   animations = a;
 }
 
+/**
+ * Reset all item-module state so a fresh session or replay can start from a
+ * deterministic baseline.
+ */
+export function resetItemState(): void {
+  freeAllItems(player.inv);
+  freeAllItems(map.inv);
+  itemsByTag.clear();
+  player = newItem();
+  map = newItem();
+  map.weight = -1;
+  csocket = null;
+  cpl = null;
+  animations = [];
+}
+
 // ──────────────────────────────────────────────────────────────────────────────
 // Item event callbacks – toolkit implements these via the setters below.
 // ──────────────────────────────────────────────────────────────────────────────

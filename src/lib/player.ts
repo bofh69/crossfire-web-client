@@ -62,6 +62,22 @@ export function setCpl(p: Player): void {
   cpl = p;
 }
 
+/**
+ * Reset all player-command state so a fresh session or replay can start from a
+ * deterministic baseline.
+ */
+export function resetPlayerCommandState(): void {
+  csocket = null;
+  cpl = null;
+  dfire = -1;
+  drun = -1;
+  lastCommand = "";
+  repeatPendingCmd = "";
+  repeatPendingSeq = -1;
+  lastNcomAcked = -1;
+  lastNcomSeqSent = -1;
+}
+
 // ── Player initialization ────────────────────────────────────────────────────
 
 /**
