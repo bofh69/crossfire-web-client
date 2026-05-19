@@ -1390,7 +1390,6 @@ export function mapdata_set_anim_layer(
   }
 
   if (x < viewWidth && y < viewHeight) {
-    mapdata_clear_old(x, y);
     if (face > 0) {
       expandSetFace(px, py, layer, face, true);
       const lIdx = ci(px, py) * L + layer;
