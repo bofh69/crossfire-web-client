@@ -284,7 +284,7 @@
   <aside class="sidebar controls">
     <h1>Replay</h1>
     <label class="file-picker">
-      <span>Replay log</span>
+      <span>Replay log file</span>
       <input
         type="file"
         accept=".log,.txt,text/plain"
@@ -344,7 +344,9 @@
   <aside class="sidebar details">
     <section class="tile-panel">
       <h2>Selected tile</h2>
-      <pre>{selectedTileLines.join("\n")}</pre>
+      <div class="tile-list">
+        <pre>{selectedTileLines.join("\n")}</pre>
+      </div>
     </section>
     <section class="log-panel">
       <div class="panel-header">
@@ -482,13 +484,21 @@
 
   .marks,
   .tile-panel,
+  .tile-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+    overflow: auto;
+    min-height: 0;
+  }
+
   .log-panel {
     display: flex;
     flex-direction: column;
     min-height: 0;
     padding: 0.75rem;
   }
-
   .mark-list,
   .log-list {
     display: flex;
