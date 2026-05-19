@@ -33,6 +33,29 @@ the client.
 Add a query parameter `?loginmethod=0` to use the old login method.
 The new one is the default.
 
+## Convert websocket recording logs
+
+When recording is enabled (`?record`), downloaded logs are in the compact format:
+
+```
+<timestamp>\t<TX|RX>\t<byte_length>\t<base64_payload>
+<timestamp>\t<MARK>\t<json_marker_text>
+```
+
+Use this converter to transform them into:
+
+```
+timestamp TX/RX/MARK text
+```
+
+where `text` is C-string escaped (`\n` for newline, `\xXX` for non-printables).
+
+```bash
+npm run recording:convert -- input.log output.txt
+```
+
+If `output.txt` is omitted, converted output is written to stdout.
+
 ## Protocol changes
 
 Web pages can't use raw TCP sockets so WebSockets has to be used.

@@ -9,7 +9,8 @@
     "dev": "vite",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "recording:convert": "node scripts/convert-ws-recording-log.mjs"
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^7.0.0",
