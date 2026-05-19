@@ -21,6 +21,10 @@
 import { MAXSOCKBUF, VERSION_CS, VERSION_SC, LogLevel } from "./protocol";
 import { LOG } from "./misc";
 import { SLOW_PACKET_THRESHOLD_MS } from "./constants";
+import {
+  recordIncomingWebSocketPayload,
+  recordOutgoingWebSocketPayload,
+} from "./websocket-recording";
 
 /** Maximum payload size for a SockList (MAXSOCKBUF minus 2-byte length header). */
 const MAX_DATA_SIZE = MAXSOCKBUF - 2;
@@ -257,6 +261,7 @@ export class CrossfireSocket {
     );
     this.lastSentAt = Date.now();
     this.ws.send(data);
+    recordOutgoingWebSocketPayload(data);
     this.commandSent++;
   }
 
@@ -274,6 +279,7 @@ export class CrossfireSocket {
     const encoded = textEncoder.encode(cmd);
     this.lastSentAt = Date.now();
     this.ws.send(encoded);
+    recordOutgoingWebSocketPayload(encoded);
     this.commandSent++;
   }
 
@@ -295,6 +301,8 @@ export class CrossfireSocket {
     if (payload.length === 0) {
       return;
     }
+
+    recordIncomingWebSocketPayload(payload);
 
     const t0 = performance.now();
     this.onPacket?.(payload);
