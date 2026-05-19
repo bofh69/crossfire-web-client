@@ -10,26 +10,37 @@
 
 const recordingRequested =
   typeof window !== "undefined" &&
-  new URLSearchParams(window.location.search).has("record");
+  new URLSearchParams(window?.location?.search ?? "").has("record");
 
 let recordingActive = recordingRequested;
 let recordingStartMs = Date.now();
 const recordedLines: string[] = [];
 
+/**
+ * Encode binary payload data to base64 while chunking to avoid call-stack limits.
+ */
 function base64Encode(bytes: Uint8Array): string {
-  const CHUNK_SIZE = 0x8000;
+  // Keep chunks below argument-spread engine limits when passing to
+  // String.fromCharCode(...chunk) in browsers.
+  const base64ChunkSize = 0x8000;
   const chunks: string[] = [];
-  for (let i = 0; i < bytes.length; i += CHUNK_SIZE) {
-    const chunk = bytes.subarray(i, i + CHUNK_SIZE);
+  for (let i = 0; i < bytes.length; i += base64ChunkSize) {
+    const chunk = bytes.subarray(i, i + base64ChunkSize);
     chunks.push(String.fromCharCode(...chunk));
   }
   return btoa(chunks.join(""));
 }
 
+/**
+ * Return elapsed milliseconds since recording started.
+ */
 function elapsedMs(): number {
   return Math.max(0, Date.now() - recordingStartMs);
 }
 
+/**
+ * Append one timestamped TX/RX entry when recording is active.
+ */
 function appendTrafficLine(direction: "RX" | "TX", payload: Uint8Array): void {
   if (!recordingActive) return;
   recordedLines.push(
@@ -37,6 +48,9 @@ function appendTrafficLine(direction: "RX" | "TX", payload: Uint8Array): void {
   );
 }
 
+/**
+ * Build the timestamped filename used for downloaded recording logs.
+ */
 function buildDownloadFilename(): string {
   const timestamp = new Date()
     .toISOString()
