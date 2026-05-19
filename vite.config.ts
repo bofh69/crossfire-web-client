@@ -1,3 +1,4 @@
+import path from "node:path";
 import { defineConfig } from "vite";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
 
@@ -15,6 +16,14 @@ export default defineConfig(() => {
     plugins: [svelte()],
     define: {
       __BUILD_TIME__: JSON.stringify(buildTime),
+    },
+    build: {
+      rollupOptions: {
+        input: {
+          main: path.resolve(__dirname, "index.html"),
+          replay: path.resolve(__dirname, "replay.html"),
+        },
+      },
     },
   };
 });

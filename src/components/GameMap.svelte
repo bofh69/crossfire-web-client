@@ -38,7 +38,7 @@
     SELF_TICK_INTERVAL_MS,
   } from "../lib/constants";
   import { loadConfig, saveConfig } from "../lib/storage";
-  import { perfLogging } from "../lib/debug";
+  import { getWatchedCell, perfLogging } from "../lib/debug";
 
   const BASE_FONT_SIZE = 10;
   const LABEL_PAD = 3;
@@ -801,6 +801,24 @@
         ctx.strokeRect(
           (tvx + startOffsetX) * tileSize + ctx.lineWidth / 2,
           (tvy + startOffsetY) * tileSize + ctx.lineWidth / 2,
+          tileSize - ctx.lineWidth,
+          tileSize - ctx.lineWidth,
+        );
+        ctx.restore();
+      }
+    }
+
+    const watched = getWatchedCell();
+    if (watched !== null) {
+      const wvx = watched.ax - plPos.x;
+      const wvy = watched.ay - plPos.y;
+      if (wvx >= 0 && wvx < displayW && wvy >= 0 && wvy < displayH) {
+        ctx.save();
+        ctx.strokeStyle = "rgba(95, 218, 255, 0.95)";
+        ctx.lineWidth = Math.max(1, Math.round(scale));
+        ctx.strokeRect(
+          (wvx + startOffsetX) * tileSize + ctx.lineWidth / 2,
+          (wvy + startOffsetY) * tileSize + ctx.lineWidth / 2,
           tileSize - ctx.lineWidth,
           tileSize - ctx.lineWidth,
         );

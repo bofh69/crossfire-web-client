@@ -56,6 +56,17 @@ npm run recording:convert -- input.log output.txt
 
 If `output.txt` is omitted, converted output is written to stdout.
 
+## Replay ws-recording logs
+
+There is also a separate unlinked replay page at:
+
+```
+/replay.html
+```
+
+It accepts both the compact downloaded ws-recording logs and the converted text
+format from `npm run recording:convert`.
+
 ## Protocol changes
 
 Web pages can't use raw TCP sockets so WebSockets has to be used.

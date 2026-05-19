@@ -129,6 +129,21 @@ export interface DrawExtInfoEntry {
 let mapinfoBuffer: DrawExtInfoEntry[] = [];
 
 /**
+ * Reset transient map-command state so a fresh session or replay can start
+ * from a deterministic baseline.
+ */
+export function resetMapCommandState(): void {
+  currentMapKey = "";
+  mapinfoNcomSeq = -1;
+  pendingMapsizeSuppressions = 0;
+  lastRequestedMapsizeW = -1;
+  lastRequestedMapsizeH = -1;
+  learnedMapsizeCapW = 0;
+  learnedMapsizeCapH = 0;
+  mapinfoBuffer = [];
+}
+
+/**
  * Called by `DrawExtInfoCmd` while a mapinfo command is in flight.
  * Returns true if the entry was captured (caller must NOT emit it to the
  * InfoPanel immediately — it will be forwarded or suppressed when the comc
