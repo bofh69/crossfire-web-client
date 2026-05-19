@@ -62,7 +62,8 @@ Web pages can't use raw TCP sockets so WebSockets has to be used.
 
 The public crossfire clients don't support WebSockets, so a WebSocket
 proxy has to be used when connecting to them. There is one included in
-the repo that also handles crossfire's protocol's length header.
+the repo (under scripts/) that also handles crossfire's protocol's
+length header.
 
 The [crossfire-server](https://github.com/bofh69/crossfire-server) fork
 has a branch with built in support for WebSockets.
