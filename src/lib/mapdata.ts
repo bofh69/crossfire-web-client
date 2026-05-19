@@ -1187,6 +1187,8 @@ export function mapdata_set_check_space(x: number, y: number): void {
     isBlank = false;
   }
 
+  notifyWatchedCell(pl_pos.x + x, pl_pos.y + y, "space update done");
+
   if (!isBlank) {
     return;
   }
@@ -1246,6 +1248,11 @@ export function mapdata_set_smooth(
     cellFlags[ci(px, py)] = cellFlags[ci(px, py)]! | FLAG_NEED_RESMOOTH;
     smooth[lIdx] = smoothVal;
   }
+  notifyWatchedCell(
+    px,
+    py,
+    "space smooth set to " + smoothVal + " on layer " + layer,
+  );
 }
 
 /** Clear all labels at absolute map coordinates. */
