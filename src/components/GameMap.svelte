@@ -167,6 +167,8 @@
    *
    * Clamps the incoming scale to [MIN_SCALE, MAX_SCALE], stores it in config,
    * and schedules a redraw only when the effective scale actually changes.
+   *
+   * @param nextScale - The desired zoom scale to apply.
    */
   function updateStoredScale(nextScale: number) {
     const clamped = Math.min(Math.max(nextScale, MIN_SCALE), MAX_SCALE);
@@ -438,12 +440,18 @@
     const displayW = containerW > 0 ? Math.ceil(containerW / tileSize) : vw;
     const displayH = containerH > 0 ? Math.ceil(containerH / tileSize) : vh;
 
-    // When the display is wider/taller than the server viewport, shift the
-    // drawing origin so the server viewport stays centred.  When the display
-    // is smaller than the server viewport the offset is 0 (the left/top of the
-    // server viewport aligns with the left/top of the canvas).
-    const startOffsetX = displayW > vw ? Math.floor((displayW - vw) / 2) : 0;
-    const startOffsetY = displayH > vh ? Math.floor((displayH - vh) / 2) : 0;
+    // Shift the drawing origin so the server viewport stays centred in the
+    // canvas regardless of relative sizes.
+    //
+    // When displayW > vw the offset is positive, padding the left and right
+    // sides with fog-of-war tiles drawn from the virtual map.
+    //
+    // When displayW < vw (before the server has shrunk its viewport to match
+    // the new zoom level) the offset is negative, which crops into the server
+    // viewport so that only the tiles nearest the player are drawn and the
+    // player remains centred rather than drifting toward the top-left corner.
+    const startOffsetX = Math.floor((displayW - vw) / 2);
+    const startOffsetY = Math.floor((displayH - vh) / 2);
     currentStartOffsetX = startOffsetX;
     currentStartOffsetY = startOffsetY;
 
@@ -960,6 +968,8 @@
    *
    * Prevents the browser's default Ctrl+wheel page zoom and adjusts map tile
    * scale by one step based on wheel direction.
+   *
+   * @param e - The wheel event from the canvas.
    */
   function handleWheel(e: WheelEvent) {
     if (!e.ctrlKey) return;
