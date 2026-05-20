@@ -162,6 +162,20 @@
    */
   let tickSkipsRemaining = 0;
 
+  /**
+   * Persist and apply a user-selected zoom scale within allowed bounds.
+   *
+   * Clamps the incoming scale to [MIN_SCALE, MAX_SCALE], stores it in config,
+   * and schedules a redraw only when the effective scale actually changes.
+   */
+  function updateStoredScale(nextScale: number) {
+    const clamped = Math.min(Math.max(nextScale, MIN_SCALE), MAX_SCALE);
+    if (storedScale === clamped) return;
+    storedScale = clamped;
+    saveConfig(ZOOM_STORAGE_KEY, storedScale);
+    scheduleRedraw();
+  }
+
   function scheduleRedraw() {
     pendingRedrawCount++;
     if (rafPending) return;
@@ -198,16 +212,12 @@
       gameEvents.on("zoomIn", () => {
         const current =
           storedScale ?? computeScale(containerW, containerH, baseTileSize);
-        storedScale = Math.min(current + 1, MAX_SCALE);
-        saveConfig(ZOOM_STORAGE_KEY, storedScale);
-        scheduleRedraw();
+        updateStoredScale(current + 1);
       }),
       gameEvents.on("zoomOut", () => {
         const current =
           storedScale ?? computeScale(containerW, containerH, baseTileSize);
-        storedScale = Math.max(current - 1, MIN_SCALE);
-        saveConfig(ZOOM_STORAGE_KEY, storedScale);
-        scheduleRedraw();
+        updateStoredScale(current - 1);
       }),
       gameEvents.on("debugPickTile", (mode) => {
         debugPickMode = mode;
@@ -944,6 +954,21 @@
     const dy = tileY - centerY;
     set_move_to(dx, dy);
   }
+
+  /**
+   * Handle Ctrl+wheel zoom on the map canvas.
+   *
+   * Prevents the browser's default Ctrl+wheel page zoom and adjusts map tile
+   * scale by one step based on wheel direction.
+   */
+  function handleWheel(e: WheelEvent) {
+    if (!e.ctrlKey) return;
+    e.preventDefault();
+    if (e.deltaY === 0) return;
+    const current =
+      storedScale ?? computeScale(containerW, containerH, baseTileSize);
+    updateStoredScale(e.deltaY < 0 ? current + 1 : current - 1);
+  }
 </script>
 
 <div
@@ -955,6 +980,7 @@
     bind:this={canvas}
     onclick={handleClick}
     oncontextmenu={handleRightClick}
+    onwheel={handleWheel}
     width={640}
     height={640}
   ></canvas>
