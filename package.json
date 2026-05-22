@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "build": "vite build",
+    "build:singlefile": "vite build --config vite.singlefile.config.ts",
     "check": "svelte-check --tsconfig ./tsconfig.app.json && tsc -p tsconfig.node.json",
     "dev": "vite",
     "format": "prettier --write .",
@@ -20,7 +21,8 @@
     "svelte": "^5.53.12",
     "svelte-check": "^4.4.5",
     "typescript": "~5.9.3",
-    "vite": "^8.0.1"
+    "vite": "^8.0.1",
+    "vite-plugin-singlefile": "^2.3.3"
   },
   "dependencies": {
     "@fontsource/caveat": "^5.2.8",
