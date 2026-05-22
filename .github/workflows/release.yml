@@ -1,0 +1,49 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  upload-artifacts:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run checks
+        run: npm run check
+
+      - name: Run formatting checks
+        run: npm run format:check
+
+      - name: Build
+        run: npm run build
+
+      - name: Compress dist
+        run: tar -czf dist.tar.gz dist/
+
+      - name: Build single-file
+        run: npm run build:singlefile
+
+      - name: Copy single-file index.html
+        run: cp dist-singlefile/index.html index.html
+
+      - name: Upload release assets
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            dist.tar.gz
+            index.html
