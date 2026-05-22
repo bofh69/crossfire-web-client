@@ -11,7 +11,12 @@
   import { capitalizeFirstLetter } from "../lib/misc";
 
   let spellList: Spell[] = $state([]);
-  let contextMenu = $state<{ x: number; y: number; spell: Spell } | null>(null);
+  let contextMenu = $state<{
+    spell: Spell;
+    targetId: string;
+    x: number;
+    y: number;
+  } | null>(null);
   let showSlotPicker = $state(false);
 
   function updateSpells() {
@@ -19,12 +24,25 @@
   }
 
   onMount(() => {
-    const unsub = gameEvents.on("spellUpdate", updateSpells);
+    const cleanups = [
+      gameEvents.on("spellUpdate", updateSpells),
+      gameEvents.on("uiNavTargetChanged", (targetId) => {
+        if (
+          contextMenu &&
+          targetId !== contextMenu.targetId &&
+          !targetId?.startsWith("ui-context-menu-")
+        ) {
+          closeContextMenu();
+        }
+      }),
+    ];
     // Snapshot spells that arrived before this component mounted (e.g. with
     // loginmethod >= 2 the server sends addspell commands before addme_success,
     // so spells[] is already populated by the time this component is created).
     updateSpells();
-    return unsub;
+    return () => {
+      for (const unsub of cleanups) unsub();
+    };
   });
 
   function castSpell(spell: Spell) {
@@ -34,7 +52,12 @@
   function handleContextMenu(e: MouseEvent, spell: Spell) {
     e.preventDefault();
     showSlotPicker = false;
-    contextMenu = { x: e.clientX - 8, y: e.clientY - 8, spell };
+    contextMenu = {
+      spell,
+      targetId: `ui-spell-${spell.tag}`,
+      x: e.clientX - 8,
+      y: e.clientY - 8,
+    };
   }
 
   function closeContextMenu() {
@@ -59,7 +82,13 @@
 </script>
 
 <div class="spell-list">
-  <h3>Spells ({spellList.length})</h3>
+  <h3
+    data-ui-nav-entry="spells"
+    data-ui-nav-id="ui-panel-spells"
+    data-ui-nav-panel="spells"
+  >
+    Spells ({spellList.length})
+  </h3>
   <div class="spells-scroll">
     {#if spellList.length === 0}
       <p class="empty">No spells known</p>
@@ -79,6 +108,11 @@
           {#each spellList as spell (spell.tag)}
             <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
             <tr
+              data-ui-nav-id={`ui-spell-${spell.tag}`}
+              data-ui-nav-group="spell-list"
+              data-ui-nav-group-policy="vertical"
+              data-ui-nav-menu="context"
+              data-ui-nav-panel="spells"
               onclick={() => castSpell(spell)}
               oncontextmenu={(e: MouseEvent) => handleContextMenu(e, spell)}
               title={spell.message || undefined}

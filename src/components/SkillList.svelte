@@ -23,9 +23,12 @@
   }
 
   let skills: SkillEntry[] = $state([]);
-  let contextMenu = $state<{ x: number; y: number; skill: SkillEntry } | null>(
-    null,
-  );
+  let contextMenu = $state<{
+    skill: SkillEntry;
+    targetId: string;
+    x: number;
+    y: number;
+  } | null>(null);
   let showSlotPicker = $state(false);
 
   function updateSkills(stats: Stats) {
@@ -49,14 +52,32 @@
   // set up in App.svelte, so we must load on mount to catch the pre-login data.
   onMount(() => {
     updateSkills(playerStats);
-    const unsub = gameEvents.on("statsUpdate", () => updateSkills(playerStats));
-    return unsub;
+    const cleanups = [
+      gameEvents.on("statsUpdate", () => updateSkills(playerStats)),
+      gameEvents.on("uiNavTargetChanged", (targetId) => {
+        if (
+          contextMenu &&
+          targetId !== contextMenu.targetId &&
+          !targetId?.startsWith("ui-context-menu-")
+        ) {
+          closeContextMenu();
+        }
+      }),
+    ];
+    return () => {
+      for (const unsub of cleanups) unsub();
+    };
   });
 
   function handleContextMenu(e: MouseEvent, skill: SkillEntry) {
     e.preventDefault();
     showSlotPicker = false;
-    contextMenu = { x: e.clientX, y: e.clientY, skill };
+    contextMenu = {
+      skill,
+      targetId: `ui-skill-${skill.index}`,
+      x: e.clientX,
+      y: e.clientY,
+    };
   }
 
   function closeContextMenu() {
@@ -90,7 +111,13 @@
 </script>
 
 <div class="skill-list">
-  <h3>Skills ({skills.length})</h3>
+  <h3
+    data-ui-nav-entry="skills"
+    data-ui-nav-id="ui-panel-skills"
+    data-ui-nav-panel="skills"
+  >
+    Skills ({skills.length})
+  </h3>
   <div class="skills-scroll">
     {#if skills.length === 0}
       <p class="empty">No skills</p>
@@ -107,6 +134,11 @@
           {#each skills as skill (skill.index)}
             <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
             <tr
+              data-ui-nav-id={`ui-skill-${skill.index}`}
+              data-ui-nav-group="skill-list"
+              data-ui-nav-group-policy="vertical"
+              data-ui-nav-menu="context"
+              data-ui-nav-panel="skills"
               oncontextmenu={(e: MouseEvent) => handleContextMenu(e, skill)}
               title={skill.description || undefined}
             >

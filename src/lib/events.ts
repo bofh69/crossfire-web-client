@@ -135,6 +135,8 @@ export interface GameEventMap {
   zoomIn: [];
   /** Decrease the tile zoom level by one step. */
   zoomOut: [];
+  /** Emitted when UI-nav focus moves to another target ID. */
+  uiNavTargetChanged: [targetId: string | null];
 
   /** Emitted by image.ts once a face's async bitmap decode settles. */
   faceReady: [faceNum: number];

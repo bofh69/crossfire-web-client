@@ -334,6 +334,10 @@
 <div class="menu-item">
   <button
     class="menu-button"
+    data-ui-nav-group="menubar"
+    data-ui-nav-group-policy="horizontal"
+    data-ui-nav-id="ui-menu-config"
+    data-ui-nav-panel="menubar"
     onclick={onToggle}
     oncontextmenu={(e) => {
       e.preventDefault();
@@ -372,6 +376,8 @@
       </div>
       <div class="separator"></div>
       <button
+        data-ui-nav-id="ui-menu-config-colors"
+        data-ui-nav-panel="menubar"
         onclick={openColorsDialog}
         oncontextmenu={(e) => {
           e.preventDefault();
@@ -380,6 +386,8 @@
       >
       <div class="separator"></div>
       <button
+        data-ui-nav-id="ui-menu-config-fog"
+        data-ui-nav-panel="menubar"
         onclick={toggleFogGrayscale}
         oncontextmenu={(e) => {
           e.preventDefault();
@@ -390,6 +398,8 @@
           : "Enable Desaturated Fog of War"}</button
       >
       <button
+        data-ui-nav-id="ui-menu-config-darkness"
+        data-ui-nav-panel="menubar"
         onclick={toggleDarknessInterpolation}
         oncontextmenu={(e) => {
           e.preventDefault();
@@ -401,6 +411,8 @@
       >
       <div class="separator"></div>
       <button
+        data-ui-nav-id="ui-menu-config-zoom-in"
+        data-ui-nav-panel="menubar"
         onclick={handleZoomIn}
         oncontextmenu={(e) => {
           e.preventDefault();
@@ -408,6 +420,8 @@
         }}>Zoom In</button
       >
       <button
+        data-ui-nav-id="ui-menu-config-zoom-out"
+        data-ui-nav-panel="menubar"
         onclick={handleZoomOut}
         oncontextmenu={(e) => {
           e.preventDefault();
@@ -433,6 +447,8 @@
         <div class="separator"></div>
       {/if}
       <button
+        data-ui-nav-id="ui-menu-config-backup"
+        data-ui-nav-panel="menubar"
         onclick={backupConfig}
         oncontextmenu={(e) => {
           e.preventDefault();
@@ -440,6 +456,8 @@
         }}>Backup Config…</button
       >
       <button
+        data-ui-nav-id="ui-menu-config-restore"
+        data-ui-nav-panel="menubar"
         onclick={restoreConfig}
         oncontextmenu={(e) => {
           e.preventDefault();

@@ -739,6 +739,7 @@
         <div class="message-pane-header">
           <button
             class="close-view-btn"
+            data-ui-nav-skip="true"
             title="Close left view"
             aria-label="Close left view"
             onclick={() => closeView("left")}>✕</button
@@ -749,6 +750,10 @@
             <button
               class="filter-btn"
               class:active={leftShowAll}
+              data-ui-nav-id="ui-info-left-filter-all"
+              data-ui-nav-group="info-left-filters"
+              data-ui-nav-group-policy="vertical"
+              data-ui-nav-panel="info"
               title={ALL_FILTER.label}
               onclick={() => toggleAll("left")}
               aria-label={ALL_FILTER.label}
@@ -759,6 +764,10 @@
                 class="filter-btn"
                 class:active={leftEnabledCategories.has(filter.id)}
                 class:dimmed={leftShowAll}
+                data-ui-nav-id={`ui-info-left-filter-${filter.id}`}
+                data-ui-nav-group="info-left-filters"
+                data-ui-nav-group-policy="vertical"
+                data-ui-nav-panel="info"
                 title={filter.label}
                 onclick={() => toggleCategory("left", filter.id)}
                 aria-label={filter.label}
@@ -780,6 +789,7 @@
                       >{msg.count}×</span
                     >{/if}{#each msg.spans as span}{#if span.command}<button
                         class="message-link"
+                        data-ui-nav-skip="true"
                         onclick={() =>
                           handleSpanCommandClick(
                             span.command,
@@ -810,6 +820,7 @@
         <div class="message-pane-header">
           <button
             class="close-view-btn"
+            data-ui-nav-skip="true"
             title="Close right view"
             aria-label="Close right view"
             onclick={() => closeView("right")}>✕</button
@@ -820,6 +831,10 @@
             <button
               class="filter-btn"
               class:active={rightShowAll}
+              data-ui-nav-id="ui-info-right-filter-all"
+              data-ui-nav-group="info-right-filters"
+              data-ui-nav-group-policy="vertical"
+              data-ui-nav-panel="info"
               title={ALL_FILTER.label}
               onclick={() => toggleAll("right")}
               aria-label={ALL_FILTER.label}
@@ -830,6 +845,10 @@
                 class="filter-btn"
                 class:active={rightEnabledCategories.has(filter.id)}
                 class:dimmed={rightShowAll}
+                data-ui-nav-id={`ui-info-right-filter-${filter.id}`}
+                data-ui-nav-group="info-right-filters"
+                data-ui-nav-group-policy="vertical"
+                data-ui-nav-panel="info"
                 title={filter.label}
                 onclick={() => toggleCategory("right", filter.id)}
                 aria-label={filter.label}
@@ -851,6 +870,7 @@
                       >{msg.count}×</span
                     >{/if}{#each msg.spans as span}{#if span.command}<button
                         class="message-link"
+                        data-ui-nav-skip="true"
                         onclick={() =>
                           handleSpanCommandClick(
                             span.command,
@@ -883,6 +903,10 @@
             <button
               class="filter-btn"
               class:active={showAll}
+              data-ui-nav-id="ui-info-filter-all"
+              data-ui-nav-group="info-filters"
+              data-ui-nav-group-policy="vertical"
+              data-ui-nav-panel="info"
               title={ALL_FILTER.label}
               onclick={() => toggleAll("single")}
               aria-label={ALL_FILTER.label}
@@ -893,6 +917,10 @@
                 class="filter-btn"
                 class:active={enabledCategories.has(filter.id)}
                 class:dimmed={showAll}
+                data-ui-nav-id={`ui-info-filter-${filter.id}`}
+                data-ui-nav-group="info-filters"
+                data-ui-nav-group-policy="vertical"
+                data-ui-nav-panel="info"
                 title={filter.label}
                 onclick={() => toggleCategory("single", filter.id)}
                 aria-label={filter.label}
@@ -914,6 +942,7 @@
                       >{msg.count}×</span
                     >{/if}{#each msg.spans as span}{#if span.command}<button
                         class="message-link"
+                        data-ui-nav-skip="true"
                         onclick={() =>
                           handleSpanCommandClick(
                             span.command,
@@ -947,6 +976,8 @@
       {#each dialogOptions as option}
         <button
           class="dialog-option-btn"
+          data-ui-nav-id={`ui-info-dialog-option-${option.key}`}
+          data-ui-nav-panel="info"
           onclick={() => handleDialogOptionClick(option.key, option.value)}
           >{option.value}</button
         >
@@ -964,7 +995,11 @@
       placeholder="Type command..."
       disabled={inputDisabled}
     />
-    <button onclick={submitCommand} disabled={inputDisabled}>Send</button>
+    <button
+      data-ui-nav-skip="true"
+      onclick={submitCommand}
+      disabled={inputDisabled}>Send</button
+    >
   </div>
 
   {#if contextMenu}

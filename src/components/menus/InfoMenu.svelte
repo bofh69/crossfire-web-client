@@ -72,6 +72,10 @@
 <div class="menu-item">
   <button
     class="menu-button"
+    data-ui-nav-group="menubar"
+    data-ui-nav-group-policy="horizontal"
+    data-ui-nav-id="ui-menu-info"
+    data-ui-nav-panel="menubar"
     onclick={onToggle}
     oncontextmenu={(e) => {
       e.preventDefault();
@@ -81,6 +85,8 @@
   {#if isOpen}
     <div class="dropdown" class:fading>
       <button
+        data-ui-nav-id="ui-menu-info-hiscore"
+        data-ui-nav-panel="menubar"
         onclick={showHiscore}
         oncontextmenu={(e) => {
           e.preventDefault();
@@ -88,6 +94,8 @@
         }}>Hiscore</button
       >
       <button
+        data-ui-nav-id="ui-menu-info-help"
+        data-ui-nav-panel="menubar"
         onclick={showHelp}
         oncontextmenu={(e) => {
           e.preventDefault();
@@ -95,6 +103,8 @@
         }}>Help</button
       >
       <button
+        data-ui-nav-id="ui-menu-info-about"
+        data-ui-nav-panel="menubar"
         onclick={showAbout}
         oncontextmenu={(e) => {
           e.preventDefault();

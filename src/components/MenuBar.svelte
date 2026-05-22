@@ -79,6 +79,32 @@
     menuFading = false;
   }
 
+  $effect(() => {
+    if (activeMenu === null) return;
+    const rafId = requestAnimationFrame(() => {
+      assignOpenDropdownUiNavAttrs();
+    });
+    return () => cancelAnimationFrame(rafId);
+  });
+
+  function assignOpenDropdownUiNavAttrs() {
+    for (const menuButton of document.querySelectorAll<HTMLButtonElement>(
+      ".menu-bar > .menu-item > .menu-button[data-ui-nav-id]",
+    )) {
+      const menuItem = menuButton.closest(".menu-item");
+      const dropdown = menuItem?.querySelector<HTMLElement>(".dropdown");
+      if (!dropdown) continue;
+      const dropdownGroup = `${menuButton.dataset.uiNavId}-dropdown`;
+      for (const dropdownButton of dropdown.querySelectorAll<HTMLButtonElement>(
+        "button",
+      )) {
+        dropdownButton.dataset.uiNavGroup ||= dropdownGroup;
+        dropdownButton.dataset.uiNavGroupPolicy ||= "vertical";
+        dropdownButton.dataset.uiNavPanel ||= "menubar";
+      }
+    }
+  }
+
   /** Returns true while any key-capture, confirm, or about dialog is showing. */
   export function isDialogActive(): boolean {
     return (
@@ -87,6 +113,14 @@
       (configMenu?.isDialogActive() ?? false) ||
       (infoMenu?.isDialogActive() ?? false)
     );
+  }
+
+  export function hasOpenMenu(): boolean {
+    return activeMenu !== null;
+  }
+
+  export function closeOpenMenu(): void {
+    closeMenu();
   }
 </script>
 
@@ -110,6 +144,11 @@
   <div class="menu-item">
     <button
       class="menu-button"
+      data-ui-nav-entry="menubar"
+      data-ui-nav-group="menubar"
+      data-ui-nav-group-policy="horizontal"
+      data-ui-nav-id="ui-menu-pickup"
+      data-ui-nav-panel="menubar"
       onclick={() => toggleMenu("pickup")}
       oncontextmenu={(e) => {
         e.preventDefault();

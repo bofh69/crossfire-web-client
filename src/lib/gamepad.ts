@@ -52,6 +52,7 @@ import {
   setHotbarGamepadHighlight,
   getHotbarGamepadHighlight,
 } from "./hotbar";
+import { processUiNavGamepad } from "./ui_nav";
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Constants
@@ -457,6 +458,17 @@ function pollGamepad(): void {
   // ── Button-configuration mode ───────────────────────────────────
   if (isButtonConfigActive()) {
     doHandleButtonConfig(gp, gamepadState.prevButtons);
+    return;
+  }
+
+  // ── UI navigation mode ────────────────────────────────────────────
+  if (
+    processUiNavGamepad(
+      gp,
+      gamepadState.prevButtons,
+      gamepadState.activeProfile,
+    )
+  ) {
     return;
   }
 

@@ -58,7 +58,13 @@
 </script>
 
 <div class="protection-list">
-  <h3>Protections</h3>
+  <h3
+    data-ui-nav-entry="protections"
+    data-ui-nav-id="ui-panel-protections"
+    data-ui-nav-panel="protections"
+  >
+    Protections
+  </h3>
   <div class="protections-scroll">
     <table>
       <thead>
@@ -69,7 +75,12 @@
       </thead>
       <tbody>
         {#each protections as prot (prot.index)}
-          <tr>
+          <tr
+            data-ui-nav-id={`ui-protection-${prot.index}`}
+            data-ui-nav-group="protection-list"
+            data-ui-nav-group-policy="vertical"
+            data-ui-nav-panel="protections"
+          >
             <td class="prot-name">{prot.name}</td>
             <td
               class="prot-value"

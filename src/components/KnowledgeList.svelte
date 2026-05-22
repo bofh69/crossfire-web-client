@@ -11,9 +11,10 @@
 
   let items: KnowledgeItem[] = $state([]);
   let contextMenu = $state<{
+    item: KnowledgeItem;
+    targetId: string;
     x: number;
     y: number;
-    item: KnowledgeItem;
   } | null>(null);
 
   function updateKnowledge() {
@@ -43,7 +44,12 @@
 
   function handleContextMenu(e: MouseEvent, item: KnowledgeItem) {
     e.preventDefault();
-    contextMenu = { x: e.clientX - 8, y: e.clientY - 8, item };
+    contextMenu = {
+      item,
+      targetId: `ui-knowledge-${item.code}`,
+      x: e.clientX - 8,
+      y: e.clientY - 8,
+    };
   }
 
   function closeContextMenu() {
@@ -52,13 +58,32 @@
 
   onMount(() => {
     updateKnowledge();
-    const unsub = gameEvents.on("knowledgeUpdate", updateKnowledge);
-    return unsub;
+    const cleanups = [
+      gameEvents.on("knowledgeUpdate", updateKnowledge),
+      gameEvents.on("uiNavTargetChanged", (targetId) => {
+        if (
+          contextMenu &&
+          targetId !== contextMenu.targetId &&
+          !targetId?.startsWith("ui-context-menu-")
+        ) {
+          closeContextMenu();
+        }
+      }),
+    ];
+    return () => {
+      for (const unsub of cleanups) unsub();
+    };
   });
 </script>
 
 <div class="knowledge-list">
-  <h3>Knowledge ({items.length})</h3>
+  <h3
+    data-ui-nav-entry="knowledge"
+    data-ui-nav-id="ui-panel-knowledge"
+    data-ui-nav-panel="knowledge"
+  >
+    Knowledge ({items.length})
+  </h3>
   <div class="knowledge-scroll">
     {#if items.length === 0}
       <p class="empty">No knowledge</p>
@@ -75,6 +100,11 @@
           {#each items as item (item.code)}
             <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
             <tr
+              data-ui-nav-id={`ui-knowledge-${item.code}`}
+              data-ui-nav-group="knowledge-list"
+              data-ui-nav-group-policy="vertical"
+              data-ui-nav-menu="context"
+              data-ui-nav-panel="knowledge"
               onclick={() => showInfo(item)}
               oncontextmenu={(e: MouseEvent) => handleContextMenu(e, item)}
               class="knowledge-row"

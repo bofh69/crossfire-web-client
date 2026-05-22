@@ -97,6 +97,14 @@ be redone.
 
 Bindings can be stored for all characters or the current logged in one.
 
+Press `Tab` to enter UI navigation mode. In that mode the visible UI can be
+navigated with mode-specific keyboard or gamepad controls, `Escape` leaves the
+mode. Return selects items/shows menus in the UI navigation mode.
+
+The local commands `ui_nav` is used to enter the mode. `ui_nav --stay`
+keeps the mode active after running a UI command; by default it exits
+automatically after a UI command is sent.
+
 Left clicking on items activates them.
 
 Right clicking on items and skills brings up a menu.
@@ -120,6 +128,11 @@ Walls are drawn as thin lines.
 
 There is simple gamepad support built in. Currently it only has default
 bindings for my XBox One controller.
+
+When UI navigation mode is active, the controller switches to UI navigation
+bindings instead of the normal gameplay bindings. By default the left stick or
+D-pad moves between UI elements, A activates the current element, X opens the
+current element's menu, and B exits UI navigation mode.
 
 It is possible to configure the client for more controllers, but it
 takes some time. It is probably easier to change it in the code instead.
