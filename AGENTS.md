@@ -2,3 +2,4 @@
 - If there is no good reason not to, follow the DRY principle.
 - When adding things in lists, like imports, fields etc, keep the items in alphabetical order unless there is a good reason not to.
 - Always run `npm run check` and `npm run format:check` before committing.
+- Avoid updating old code unless instructed to do so, or if you are fixing a bug.
