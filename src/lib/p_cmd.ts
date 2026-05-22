@@ -26,6 +26,13 @@ import {
 } from "./mapdata";
 import { fogCacheStats } from "./map_fog_cache";
 import { image_debug_face } from "./image";
+import {
+  enterUiNavMode,
+  exitUiNavMode,
+  isUiNavEnabled,
+  openUiNavMenu,
+  UI_NAV_TARGET_NAMES,
+} from "./ui_nav";
 
 // ---------------------------------------------------------------------------
 // Internal state
@@ -217,6 +224,61 @@ function commandTake(args: string): void {
 
 function commandClear(_args: string): void {
   gameEvents.emit("clearMessages");
+}
+
+function commandUiNav(args: string): void {
+  const parts = args
+    .split(/\s+/)
+    .map((part) => part.trim())
+    .filter((part) => part.length > 0);
+  let autoExitOnCommand = true;
+  let target = "";
+
+  for (const part of parts) {
+    if (part === "--stay") {
+      autoExitOnCommand = false;
+      continue;
+    }
+    if (target.length > 0) {
+      drawInfo(
+        "Usage: ui_nav [--stay] [target]\n" +
+          `Targets: ${UI_NAV_TARGET_NAMES.join(", ")}`,
+      );
+      return;
+    }
+    target = part.toLowerCase();
+  }
+
+  if (
+    target &&
+    !UI_NAV_TARGET_NAMES.includes(
+      target as (typeof UI_NAV_TARGET_NAMES)[number],
+    )
+  ) {
+    drawInfo(
+      `Unknown ui_nav target '${target}'. Available targets: ${UI_NAV_TARGET_NAMES.join(", ")}`,
+    );
+    return;
+  }
+
+  void enterUiNavMode({
+    autoExitOnCommand,
+    target: target || undefined,
+  });
+}
+
+function commandUiNavExit(_args: string): void {
+  exitUiNavMode(true);
+}
+
+function commandUiNavMenu(_args: string): void {
+  if (!isUiNavEnabled()) {
+    drawInfo("ui_nav_menu only works while UI navigation mode is active.");
+    return;
+  }
+  if (!openUiNavMenu()) {
+    drawInfo("The active UI element does not have a menu.");
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -455,6 +517,38 @@ const builtinCommands: ConsoleCommand[] = [
     category: CommCat.Misc,
     description: "Take items from the ground",
     handler: commandTake,
+  },
+  {
+    name: "ui_nav",
+    category: CommCat.Misc,
+    description: "Enter UI navigation mode",
+    longDescription:
+      "Syntax:\n" +
+      "  ui_nav [--stay] [target]\n" +
+      "\n" +
+      "Enters UI navigation mode so the visible game UI can be navigated with\n" +
+      "keyboard-only or gamepad-only controls.\n" +
+      "\n" +
+      "Without a target, the last focused UI element is restored. The first\n" +
+      "time, focus starts in the menubar.\n" +
+      "\n" +
+      "Options:\n" +
+      "  --stay   Keep UI navigation mode active after running a command from the UI\n" +
+      "\n" +
+      `Targets: ${UI_NAV_TARGET_NAMES.join(", ")}`,
+    handler: commandUiNav,
+  },
+  {
+    name: "ui_nav_exit",
+    category: CommCat.Misc,
+    description: "Leave UI navigation mode",
+    handler: commandUiNavExit,
+  },
+  {
+    name: "ui_nav_menu",
+    category: CommCat.Misc,
+    description: "Open the menu for the active UI element",
+    handler: commandUiNavMenu,
   },
 ];
 

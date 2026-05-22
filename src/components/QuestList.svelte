@@ -64,7 +64,13 @@
 </script>
 
 <div class="quest-list">
-  <h3>Quests ({[...quests.values()].length})</h3>
+  <h3
+    data-ui-nav-entry="quests"
+    data-ui-nav-id="ui-panel-quests"
+    data-ui-nav-panel="quests"
+  >
+    Quests ({[...quests.values()].length})
+  </h3>
   <div class="quests-scroll">
     {#if questNodes.length === 0}
       <p class="empty">No quests</p>
@@ -80,6 +86,10 @@
         <tbody>
           {#each questNodes as node (node.quest.code)}
             <tr
+              data-ui-nav-id={`ui-quest-${node.quest.code}`}
+              data-ui-nav-group="quest-list"
+              data-ui-nav-group-policy="vertical"
+              data-ui-nav-panel="quests"
               class:completed={node.quest.end}
               title={node.quest.step || undefined}
             >

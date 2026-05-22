@@ -134,6 +134,7 @@
 
   /** Which submenu is expanded (null = none). */
   let expandedGroup = $state<string | null>(null);
+  const PICKUP_MENU_GROUP = "ui-menu-pickup-dropdown";
 
   /** Update mode from the server (also called by parent on re-mount). */
   export function setPickupMode(mode: number) {
@@ -178,6 +179,10 @@
   {#each controlItems as item}
     <label
       class="pickup-item"
+      data-ui-nav-group={PICKUP_MENU_GROUP}
+      data-ui-nav-group-policy="vertical"
+      data-ui-nav-id={`ui-pickup-control-${item.flag}`}
+      data-ui-nav-panel="menubar"
       oncontextmenu={(e) => {
         e.preventDefault();
         toggleFlag(item.flag);
@@ -198,6 +203,10 @@
   {#each groups as group}
     <button
       class="group-header"
+      data-ui-nav-group={PICKUP_MENU_GROUP}
+      data-ui-nav-group-policy="vertical"
+      data-ui-nav-id={`ui-pickup-group-${group.label.toLowerCase().replaceAll(" ", "-")}`}
+      data-ui-nav-panel="menubar"
       onclick={() => toggleGroup(group.label)}
       oncontextmenu={(e) => {
         e.preventDefault();
@@ -212,6 +221,10 @@
         {#each group.items as item}
           <label
             class="pickup-item sub-item"
+            data-ui-nav-group={PICKUP_MENU_GROUP}
+            data-ui-nav-group-policy="vertical"
+            data-ui-nav-id={`ui-pickup-item-${item.flag}`}
+            data-ui-nav-panel="menubar"
             oncontextmenu={(e) => {
               e.preventDefault();
               toggleFlag(item.flag);
@@ -234,6 +247,10 @@
   <!-- Weight/Value Ratio -->
   <button
     class="group-header"
+    data-ui-nav-group={PICKUP_MENU_GROUP}
+    data-ui-nav-group-policy="vertical"
+    data-ui-nav-id="ui-pickup-group-ratio"
+    data-ui-nav-panel="menubar"
     onclick={() => toggleGroup("ratio")}
     oncontextmenu={(e) => {
       e.preventDefault();
@@ -248,6 +265,10 @@
       {#each ratioItems as r}
         <label
           class="pickup-item sub-item"
+          data-ui-nav-group={PICKUP_MENU_GROUP}
+          data-ui-nav-group-policy="vertical"
+          data-ui-nav-id={`ui-pickup-ratio-${r.value}`}
+          data-ui-nav-panel="menubar"
           oncontextmenu={(e) => {
             e.preventDefault();
             setRatio(r.value);

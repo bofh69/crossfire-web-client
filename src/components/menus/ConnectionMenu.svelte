@@ -63,6 +63,11 @@
 <div class="menu-item">
   <button
     class="menu-button"
+    data-ui-nav-entry="menubar"
+    data-ui-nav-group="menubar"
+    data-ui-nav-group-policy="horizontal"
+    data-ui-nav-id="ui-menu-connection"
+    data-ui-nav-panel="menubar"
     onclick={onToggle}
     oncontextmenu={(e) => {
       e.preventDefault();
@@ -72,6 +77,8 @@
   {#if isOpen}
     <div class="dropdown" class:fading>
       <button
+        data-ui-nav-id="ui-menu-connection-disconnect"
+        data-ui-nav-panel="menubar"
         onclick={handleDisconnect}
         oncontextmenu={(e) => {
           e.preventDefault();
@@ -79,6 +86,8 @@
         }}>Disconnect</button
       >
       <button
+        data-ui-nav-id="ui-menu-connection-register"
+        data-ui-nav-panel="menubar"
         onclick={registerWebCrossfireHandler}
         oncontextmenu={(e) => {
           e.preventDefault();
@@ -87,6 +96,8 @@
       >
       {#if hasWebSocketRecording}
         <button
+          data-ui-nav-id="ui-menu-connection-marker"
+          data-ui-nav-panel="menubar"
           onclick={addRecordingMarker}
           oncontextmenu={(e) => {
             e.preventDefault();
@@ -94,6 +105,8 @@
           }}>Add recording marker</button
         >
         <button
+          data-ui-nav-id="ui-menu-connection-download"
+          data-ui-nav-panel="menubar"
           onclick={downloadRecording}
           oncontextmenu={(e) => {
             e.preventDefault();
@@ -101,6 +114,8 @@
           }}>Download recording log</button
         >
         <button
+          data-ui-nav-id="ui-menu-connection-stop-recording"
+          data-ui-nav-panel="menubar"
           onclick={stopRecording}
           oncontextmenu={(e) => {
             e.preventDefault();

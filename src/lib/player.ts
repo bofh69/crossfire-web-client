@@ -16,6 +16,7 @@ import { CrossfireSocket, SockList } from "./newsocket";
 import { useConfig } from "./init";
 import { LOG } from "./misc";
 import { directionName } from "./directions";
+import { notifyUiNavCommandIssued } from "./ui_nav";
 
 let csocket: CrossfireSocket | null = null;
 let cpl: Player | null = null;
@@ -105,19 +106,35 @@ export function newPlayer(
 // ── Simple commands ──────────────────────────────────────────────────────────
 
 export function lookAt(x: number, y: number): void {
-  csocket?.sendString(`lookat ${x} ${y}`);
+  if (!csocket) {
+    return;
+  }
+  csocket.sendString(`lookat ${x} ${y}`);
+  notifyUiNavCommandIssued();
 }
 
 export function clientSendApply(tag: number): void {
-  csocket?.sendString(`apply ${tag}`);
+  if (!csocket) {
+    return;
+  }
+  csocket.sendString(`apply ${tag}`);
+  notifyUiNavCommandIssued();
 }
 
 export function clientSendExamine(tag: number): void {
-  csocket?.sendString(`examine ${tag}`);
+  if (!csocket) {
+    return;
+  }
+  csocket.sendString(`examine ${tag}`);
+  notifyUiNavCommandIssued();
 }
 
 export function clientSendMove(loc: number, tag: number, nrof: number): void {
-  csocket?.sendString(`move ${loc} ${tag} ${nrof}`);
+  if (!csocket) {
+    return;
+  }
+  csocket.sendString(`move ${loc} ${tag} ${nrof}`);
+  notifyUiNavCommandIssued();
 }
 
 // ── Fire / Run ───────────────────────────────────────────────────────────────
@@ -237,6 +254,7 @@ export function sendCommand(
   if (repeat !== -1 && cpl) {
     cpl.count = 0;
   }
+  notifyUiNavCommandIssued();
   return 1;
 }
 

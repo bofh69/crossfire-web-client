@@ -8,16 +8,17 @@
    *   and highlights the slot the stick is pointing at.
    */
   import { onMount } from "svelte";
+  import ContextMenu from "./ContextMenu.svelte";
+  import { gameEvents } from "../lib/events";
   import {
-    getHotbarSlots,
     activateHotbarSlot,
     clearHotbarSlot,
-    isHotbarGamepadMode,
+    getHotbarSlots,
     getHotbarGamepadHighlight,
+    isHotbarGamepadMode,
   } from "../lib/hotbar";
   import { getFaceUrl } from "../lib/image";
   import { locateItem } from "../lib/item";
-  import { gameEvents } from "../lib/events";
 
   let currentSlots = $state([...getHotbarSlots()]);
   let gamepadMode = $state(false);
@@ -40,6 +41,15 @@
       }),
       gameEvents.on("tick", () => {
         inventoryVersion++;
+      }),
+      gameEvents.on("uiNavTargetChanged", (targetId) => {
+        if (
+          contextMenu &&
+          targetId !== `ui-hotbar-slot-${contextMenu.index}` &&
+          !targetId?.startsWith("ui-context-menu-")
+        ) {
+          closeContextMenu();
+        }
       }),
     ];
     return () => {
@@ -95,6 +105,11 @@
         class="slot"
         class:filled={slot !== null}
         class:gamepad-highlight={gamepadMode && gamepadHighlight === i}
+        data-ui-nav-group="hotbar"
+        data-ui-nav-group-policy="horizontal"
+        data-ui-nav-id={`ui-hotbar-slot-${i}`}
+        data-ui-nav-menu="context"
+        data-ui-nav-panel="hotbar"
         onclick={() => handleSlotClick(i)}
         oncontextmenu={(e: MouseEvent) => handleContextMenu(e, i)}
         title={slot ? `F${i + 1}: ${slot.command}` : `F${i + 1} (empty)`}
@@ -119,16 +134,11 @@
 
 {#if contextMenu}
   {@const idx = contextMenu.index}
-  <div
-    class="context-menu"
-    style:left="{contextMenu.x}px"
-    style:top="{contextMenu.y}px"
-    role="menu"
-  >
+  <ContextMenu x={contextMenu.x} y={contextMenu.y} onClose={closeContextMenu}>
     <button onclick={() => clearSlot(idx)}>
       Clear F{idx + 1}
     </button>
-  </div>
+  </ContextMenu>
 {/if}
 
 <style>
@@ -231,31 +241,5 @@
     text-align: center;
     font-size: 0.6rem;
     line-height: 1.1;
-  }
-
-  .context-menu {
-    position: fixed;
-    background: var(--border);
-    border: 1px solid var(--border-light);
-    border-radius: 4px;
-    display: flex;
-    flex-direction: column;
-    z-index: 200;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
-  }
-
-  .context-menu button {
-    padding: 0.4rem 1rem;
-    border: none;
-    background: none;
-    color: #ddd;
-    text-align: left;
-    cursor: pointer;
-    font-size: 0.8rem;
-  }
-
-  .context-menu button:hover {
-    background: var(--border-mid);
-    color: var(--danger-text);
   }
 </style>

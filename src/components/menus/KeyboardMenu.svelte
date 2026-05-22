@@ -290,6 +290,10 @@
 <div class="menu-item">
   <button
     class="menu-button"
+    data-ui-nav-group="menubar"
+    data-ui-nav-group-policy="horizontal"
+    data-ui-nav-id="ui-menu-keyboard"
+    data-ui-nav-panel="menubar"
     onclick={onToggle}
     oncontextmenu={(e) => {
       e.preventDefault();
@@ -299,6 +303,8 @@
   {#if isOpen}
     <div class="dropdown" class:fading>
       <button
+        data-ui-nav-id="ui-menu-keyboard-bind-last"
+        data-ui-nav-panel="menubar"
         onclick={startBind}
         oncontextmenu={(e) => {
           e.preventDefault();
@@ -306,6 +312,8 @@
         }}>Bind last command to key…</button
       >
       <button
+        data-ui-nav-id="ui-menu-keyboard-bind-command"
+        data-ui-nav-panel="menubar"
         onclick={startBindCmdKey}
         oncontextmenu={(e) => {
           e.preventDefault();
@@ -313,6 +321,8 @@
         }}>Bind command to key…</button
       >
       <button
+        data-ui-nav-id="ui-menu-keyboard-bind-hotbar"
+        data-ui-nav-panel="menubar"
         onclick={startBindCmdHotbar}
         oncontextmenu={(e) => {
           e.preventDefault();
@@ -320,6 +330,8 @@
         }}>Bind command to hotbar slot…</button
       >
       <button
+        data-ui-nav-id="ui-menu-keyboard-unbind"
+        data-ui-nav-panel="menubar"
         onclick={startUnbind}
         oncontextmenu={(e) => {
           e.preventDefault();
@@ -327,6 +339,8 @@
         }}>Unbind a key…</button
       >
       <button
+        data-ui-nav-id="ui-menu-keyboard-show"
+        data-ui-nav-panel="menubar"
         onclick={showBindings}
         oncontextmenu={(e) => {
           e.preventDefault();

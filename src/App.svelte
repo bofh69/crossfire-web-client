@@ -5,7 +5,7 @@
   import "@fontsource/modern-antiqua";
   import "@fontsource/noto-sans-runic/runic.css";
   import "@fontsource/uncial-antiqua";
-  import { onMount } from "svelte";
+  import { onMount, tick } from "svelte";
   import { clientInit, getCpl } from "./lib/init";
   import { initCommands, setPCmdCallbacks } from "./lib/p_cmd";
   import { playerStats } from "./lib/commands";
@@ -70,6 +70,15 @@
     isHotbarGamepadMode,
   } from "./lib/hotbar";
   import { loadConfig, saveConfig } from "./lib/storage";
+  import {
+    exitUiNavMode,
+    firstVisibleInGroup,
+    getUiNavActiveTargetId,
+    handleUiNavKeyDown,
+    isUiNavEnabled,
+    lastVisibleInGroup,
+    setUiNavCallbacks,
+  } from "./lib/ui_nav";
 
   // ── Layout resize ────────────────────────────────────────────────
   const MIN_SIDE_WIDTH = 180;
@@ -240,19 +249,90 @@
   function selectSecondaryTab(tab: SecondaryTab) {
     activeTab = tab;
     lastSecondaryTab = tab;
+    closeTabOverflowMenu();
+  }
+
+  function closeTabOverflowMenu() {
     tabOverflowOpen = false;
     tabOverflowPos = null;
+  }
+
+  function isOverflowTabTargetId(targetId: string | null): boolean {
+    return (
+      targetId === "ui-tab-overflow" ||
+      targetId?.startsWith("ui-tab-overflow-") === true
+    );
+  }
+
+  function openTabOverflowMenu(): boolean {
+    if (!tabOverflow) return false;
+    const btn = document.querySelector<HTMLElement>(
+      '[data-ui-nav-id="ui-tab-overflow"]',
+    );
+    if (!btn) return false;
+    const rect = btn.getBoundingClientRect();
+    tabOverflowPos = { x: rect.left, y: rect.bottom };
+    tabOverflowOpen = true;
+    return true;
+  }
+
+  function closeUiNavMenus(
+    previousTargetId: string | null,
+    nextTargetId: string | null,
+  ): void {
+    if (
+      menuBar?.hasOpenMenu() &&
+      nextTargetId !== previousTargetId &&
+      isNavTargetInGroup(nextTargetId, "menubar")
+    ) {
+      menuBar.closeOpenMenu();
+    }
+    if (
+      menuBar?.hasOpenMenu() &&
+      !isNavTargetInPanel(nextTargetId, "menubar")
+    ) {
+      menuBar.closeOpenMenu();
+    }
+    if (tabOverflowOpen && !isOverflowTabTargetId(nextTargetId)) {
+      closeTabOverflowMenu();
+    }
+  }
+
+  function isNavTargetInPanel(targetId: string | null, panel: string): boolean {
+    if (!targetId) return false;
+    const el = document.querySelector<HTMLElement>(
+      `[data-ui-nav-id="${CSS.escape(targetId)}"]`,
+    );
+    return el?.dataset.uiNavPanel === panel;
+  }
+
+  function isNavTargetInGroup(targetId: string | null, group: string): boolean {
+    if (!targetId) return false;
+    const el = document.querySelector<HTMLElement>(
+      `[data-ui-nav-id="${CSS.escape(targetId)}"]`,
+    );
+    return el?.dataset.uiNavGroup === group;
+  }
+
+  function firstVisibleMenubarDropdownTarget(): string | null {
+    for (const el of document.querySelectorAll<HTMLElement>(
+      '[data-ui-nav-panel="menubar"]',
+    )) {
+      if (el.dataset.uiNavGroup === "menubar") continue;
+      if (el.hidden) continue;
+      const rect = el.getBoundingClientRect();
+      if (rect.width <= 0 || rect.height <= 0) continue;
+      return el.dataset.uiNavId ?? null;
+    }
+    return null;
   }
 
   function handleOverflowBtnClick(e: MouseEvent) {
     e.stopPropagation();
     if (tabOverflowOpen) {
-      tabOverflowOpen = false;
-      tabOverflowPos = null;
+      closeTabOverflowMenu();
     } else {
-      const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-      tabOverflowPos = { x: rect.left, y: rect.bottom };
-      tabOverflowOpen = true;
+      openTabOverflowMenu();
     }
   }
 
@@ -344,6 +424,166 @@
   let menuBar: MenuBar | undefined = $state();
   let showMagicMap = $state(false);
 
+  /** Returns the first navigable hotbar slot, falling back to the first menubar button. */
+  function hotbarOrMenubarTarget(): string | null {
+    return firstVisibleInGroup("hotbar") ?? firstVisibleInGroup("menubar");
+  }
+
+  /** Returns the first visible info filter ID across all pane configurations. */
+  function firstInfoFilterTarget(): string | null {
+    return (
+      firstVisibleInGroup("info-filters") ??
+      firstVisibleInGroup("info-left-filters") ??
+      firstVisibleInGroup("info-right-filters")
+    );
+  }
+
+  /** Returns the first navigable target in the currently active tab's content. */
+  function activeTabFirstTarget(): string | null {
+    if (activeTab === "inventory")
+      return firstVisibleInGroup("inventory-filters");
+    if (activeTab === "spells") return firstVisibleInGroup("spell-list");
+    if (activeTab === "skills") return firstVisibleInGroup("skill-list");
+    if (activeTab === "protections")
+      return firstVisibleInGroup("protection-list");
+    if (activeTab === "quests") return firstVisibleInGroup("quest-list");
+    if (activeTab === "knowledge") return firstVisibleInGroup("knowledge-list");
+    return null;
+  }
+
+  /** Returns the first navigable list entry in the currently active tab's content. */
+  function activeTabFirstListTarget(): string | null {
+    if (activeTab === "inventory") {
+      return (
+        firstVisibleInGroup("ground-items") ??
+        firstVisibleInGroup("inventory-items")
+      );
+    }
+    if (activeTab === "spells") return firstVisibleInGroup("spell-list");
+    if (activeTab === "skills") return firstVisibleInGroup("skill-list");
+    if (activeTab === "protections")
+      return firstVisibleInGroup("protection-list");
+    if (activeTab === "quests") return firstVisibleInGroup("quest-list");
+    if (activeTab === "knowledge") return firstVisibleInGroup("knowledge-list");
+    return null;
+  }
+
+  function uiNavComponentKey(
+    panel: string | null,
+    group: string | null,
+  ): string | null {
+    if (panel === "menubar") return "menubar";
+    if (group === "hotbar") return "hotbar";
+    if (group === "tabs" || group === "tab-overflow-options") return "tabs";
+    if (
+      group === "info-filters" ||
+      group === "info-left-filters" ||
+      group === "info-right-filters"
+    ) {
+      return "info-filters";
+    }
+    if (group === "inventory-filters") return "inventory-filters";
+    if (group === "inventory-items") return "inventory-items";
+    if (group === "ground-items") return "ground-items";
+    if (
+      group === "knowledge-list" ||
+      group === "protection-list" ||
+      group === "quest-list" ||
+      group === "skill-list" ||
+      group === "spell-list"
+    ) {
+      return "active-list";
+    }
+    if (
+      panel === "knowledge" ||
+      panel === "protections" ||
+      panel === "quests" ||
+      panel === "skills" ||
+      panel === "spells"
+    ) {
+      return "active-list";
+    }
+    return null;
+  }
+
+  function uiNavComponentOrder(): string[] {
+    const order = ["menubar"];
+    if (hotbarVisible) {
+      order.push("hotbar");
+    }
+    order.push("tabs");
+    if (activeTab === "inventory") {
+      order.push("inventory-filters", "inventory-items", "ground-items");
+    } else {
+      order.push("active-list");
+    }
+    order.push("info-filters");
+    return order;
+  }
+
+  function uiNavComponentTarget(component: string): string | null {
+    switch (component) {
+      case "active-list":
+        return activeTabFirstListTarget();
+      case "ground-items":
+        return firstVisibleInGroup("ground-items");
+      case "hotbar":
+        return firstVisibleInGroup("hotbar");
+      case "info-filters":
+        return firstInfoFilterTarget();
+      case "inventory-filters":
+        return firstVisibleInGroup("inventory-filters");
+      case "inventory-items":
+        return firstVisibleInGroup("inventory-items");
+      case "menubar":
+        return firstVisibleInGroup("menubar");
+      case "tabs":
+        return firstVisibleInGroup("tabs");
+      default:
+        return null;
+    }
+  }
+
+  function resolveSequentialComponentTarget(
+    panel: string | null,
+    group: string | null,
+    direction: "next" | "prev",
+  ): string | null {
+    const components = uiNavComponentOrder()
+      .map((component) => {
+        return {
+          component,
+          target: uiNavComponentTarget(component),
+        };
+      })
+      .filter((entry): entry is { component: string; target: string } => {
+        return entry.target !== null;
+      });
+    if (components.length === 0) return null;
+
+    const currentComponent = uiNavComponentKey(panel, group);
+    const currentIndex = components.findIndex((entry) => {
+      return entry.component === currentComponent;
+    });
+    if (currentIndex < 0) {
+      return direction === "next"
+        ? components[0]!.target
+        : components[components.length - 1]!.target;
+    }
+    const delta = direction === "next" ? 1 : -1;
+    const nextIndex =
+      (currentIndex + delta + components.length) % components.length;
+    return components[nextIndex]!.target;
+  }
+
+  /** Returns the currently selected secondary tab used by the overflow tab button/menu. */
+  function currentSecondaryTab(): SecondaryTab {
+    if (activeTab === "protections") return "protections";
+    if (activeTab === "quests") return "quests";
+    if (activeTab === "knowledge") return "knowledge";
+    return lastSecondaryTab;
+  }
+
   onMount(() => {
     clientInit();
     initCommands();
@@ -381,6 +621,197 @@
       },
     });
 
+    setUiNavCallbacks({
+      resolveTargetId: async (target: string) => {
+        switch (target) {
+          case "ground":
+            activeTab = "inventory";
+            await tick();
+            return "ui-panel-ground";
+          case "hotbar":
+            return hotbarVisible ? "ui-panel-hotbar" : null;
+          case "info":
+            return "ui-panel-info";
+          case "inventory":
+            activeTab = "inventory";
+            await tick();
+            return "ui-panel-inventory";
+          case "knowledge":
+            activeTab = "knowledge";
+            lastSecondaryTab = "knowledge";
+            await tick();
+            return "ui-panel-knowledge";
+          case "menubar":
+            return "ui-menu-connection";
+          case "protections":
+            activeTab = "protections";
+            lastSecondaryTab = "protections";
+            await tick();
+            return "ui-panel-protections";
+          case "quests":
+            activeTab = "quests";
+            lastSecondaryTab = "quests";
+            await tick();
+            return "ui-panel-quests";
+          case "skills":
+            activeTab = "skills";
+            await tick();
+            return "ui-panel-skills";
+          case "spells":
+            activeTab = "spells";
+            await tick();
+            return "ui-panel-spells";
+          default:
+            return target.startsWith("ui-") ? target : null;
+        }
+      },
+      onEscape: () => {
+        if (tabOverflowOpen) {
+          closeTabOverflowMenu();
+          return true;
+        }
+        if (menuBar?.hasOpenMenu()) {
+          menuBar.closeOpenMenu();
+          return true;
+        }
+        return false;
+      },
+      onExit: () => {
+        closeTabOverflowMenu();
+        menuBar?.closeOpenMenu();
+      },
+      onTargetChanged: (previousTargetId, nextTargetId) => {
+        gameEvents.emit("uiNavTargetChanged", nextTargetId);
+        closeUiNavMenus(previousTargetId, nextTargetId);
+      },
+      resolveSequentialTarget: (panel, group, direction) => {
+        return resolveSequentialComponentTarget(panel, group, direction);
+      },
+      resolveNavBoundary: (_panel, group, direction) => {
+        // Menubar buttons: down → open dropdown entry (if open) else hotbar/info;
+        // boundary left → info; boundary right → tabs
+        if (group === "menubar") {
+          if (direction === "move-down") {
+            if (menuBar?.hasOpenMenu()) {
+              return firstVisibleMenubarDropdownTarget();
+            }
+            return firstVisibleInGroup("hotbar") ?? firstInfoFilterTarget();
+          }
+          if (direction === "move-left") return firstInfoFilterTarget();
+          if (direction === "move-right") return firstVisibleInGroup("tabs");
+        }
+
+        // Hotbar slots: up → menubar; down → info; boundary left → info; boundary right → tabs
+        if (group === "hotbar") {
+          if (direction === "move-up") return firstVisibleInGroup("menubar");
+          if (direction === "move-down") return firstInfoFilterTarget();
+          if (direction === "move-left") return firstInfoFilterTarget();
+          if (direction === "move-right") return firstVisibleInGroup("tabs");
+        }
+
+        // Tab headers: up → hotbar or menubar; down → first content in active tab
+        if (group === "tabs") {
+          if (
+            direction === "move-down" &&
+            getUiNavActiveTargetId() === "ui-tab-overflow" &&
+            !tabOverflowOpen &&
+            openTabOverflowMenu()
+          ) {
+            return "ui-tab-overflow";
+          }
+          if (
+            tabOverflowOpen &&
+            (direction === "move-up" || direction === "move-down")
+          ) {
+            return `ui-tab-overflow-${currentSecondaryTab()}`;
+          }
+          if (direction === "move-up") return hotbarOrMenubarTarget();
+          if (direction === "move-down") return activeTabFirstTarget();
+        }
+
+        // Overflow secondary tabs: up/down stay in list; down from bottom enters selected list.
+        if (group === "tab-overflow-options") {
+          if (direction === "move-up") return "ui-tab-overflow";
+          if (direction === "move-down") return activeTabFirstListTarget();
+        }
+
+        // Info filter sidebar: up → hotbar or menubar; right → active tab's first list entry
+        if (
+          group === "info-filters" ||
+          group === "info-left-filters" ||
+          group === "info-right-filters"
+        ) {
+          if (direction === "move-up") return hotbarOrMenubarTarget();
+          if (direction === "move-right") return activeTabFirstListTarget();
+        }
+
+        // Inventory filter bar: up → first tab; down → first inventory item
+        if (group === "inventory-filters") {
+          if (direction === "move-up") return firstVisibleInGroup("tabs");
+          if (direction === "move-down")
+            return firstVisibleInGroup("inventory-items");
+        }
+
+        // Inventory items: up → inventory filters; left → info filters; right → first ground item
+        if (group === "inventory-items") {
+          if (direction === "move-up")
+            return firstVisibleInGroup("inventory-filters");
+          if (direction === "move-left") return firstInfoFilterTarget();
+          if (direction === "move-right")
+            return firstVisibleInGroup("ground-items");
+        }
+
+        // Ground items: up → last inventory item; left → info filters
+        if (group === "ground-items") {
+          if (direction === "move-up")
+            return lastVisibleInGroup("inventory-items");
+          if (direction === "move-left") return firstInfoFilterTarget();
+        }
+
+        // Spell list: up → tabs; left → info filters; right → last spell
+        if (group === "spell-list") {
+          if (direction === "move-up") return firstVisibleInGroup("tabs");
+          if (direction === "move-left") return firstInfoFilterTarget();
+          if (direction === "move-right")
+            return lastVisibleInGroup("spell-list");
+        }
+
+        // Skill list: up → tabs; left → info filters; right → last skill
+        if (group === "skill-list") {
+          if (direction === "move-up") return firstVisibleInGroup("tabs");
+          if (direction === "move-left") return firstInfoFilterTarget();
+          if (direction === "move-right")
+            return lastVisibleInGroup("skill-list");
+        }
+
+        // Protection list: up → tabs; left → info filters; right → last protection
+        if (group === "protection-list") {
+          if (direction === "move-up") return firstVisibleInGroup("tabs");
+          if (direction === "move-left") return firstInfoFilterTarget();
+          if (direction === "move-right")
+            return lastVisibleInGroup("protection-list");
+        }
+
+        // Quest list: up → tabs; left → info filters; right → last quest
+        if (group === "quest-list") {
+          if (direction === "move-up") return firstVisibleInGroup("tabs");
+          if (direction === "move-left") return firstInfoFilterTarget();
+          if (direction === "move-right")
+            return lastVisibleInGroup("quest-list");
+        }
+
+        // Knowledge list: up → tabs; left → info filters; right → last knowledge entry
+        if (group === "knowledge-list") {
+          if (direction === "move-up") return firstVisibleInGroup("tabs");
+          if (direction === "move-left") return firstInfoFilterTarget();
+          if (direction === "move-right")
+            return lastVisibleInGroup("knowledge-list");
+        }
+
+        return null;
+      },
+    });
+
     // Wire movement callbacks so run_move_to() can issue walk/run commands.
     setWalkDir(walkDir);
     setRunDir(runDir);
@@ -401,6 +832,7 @@
       window.removeEventListener("keyup", handleGlobalKeyUp);
       window.removeEventListener("blur", handleWindowBlur);
       gamepadShutdown();
+      exitUiNavMode(false);
     };
   });
 
@@ -424,6 +856,13 @@
 
     const cpl = getCpl();
     if (!cpl) return;
+
+    if (isUiNavEnabled()) {
+      if (handleUiNavKeyDown(e)) {
+        e.preventDefault();
+      }
+      return;
+    }
 
     // If a text input has focus, let it handle keys normally.
     // The modifier reality-check in the Playing handler will correct
@@ -567,6 +1006,7 @@
     gameQueryYesNo = false;
     showMagicMap = false;
     hotbarVisible = false;
+    exitUiNavMode(false);
     appState = "login";
   }
 
@@ -684,8 +1124,7 @@
 
 <svelte:window
   onclick={() => {
-    tabOverflowOpen = false;
-    tabOverflowPos = null;
+    closeTabOverflowMenu();
   }}
 />
 
@@ -708,7 +1147,12 @@
         {#if runOn}<span class="indicator run">Run</span>{/if}
       </div>
     </div>
-    <div class="hotbar-area">
+    <div
+      class="hotbar-area"
+      data-ui-nav-entry="hotbar"
+      data-ui-nav-id="ui-panel-hotbar"
+      data-ui-nav-panel="hotbar"
+    >
       <Hotbar />
     </div>
     <div class="map-area">
@@ -763,32 +1207,60 @@
         </div>
         <button
           class:active={activeTab === "inventory"}
+          data-ui-nav-id="ui-tab-inventory"
+          data-ui-nav-group="tabs"
+          data-ui-nav-group-policy="horizontal"
+          data-ui-nav-panel="tabs"
           onclick={() => (activeTab = "inventory")}>Items</button
         >
         <button
           class:active={activeTab === "spells"}
+          data-ui-nav-id="ui-tab-spells"
+          data-ui-nav-group="tabs"
+          data-ui-nav-group-policy="horizontal"
+          data-ui-nav-panel="tabs"
           onclick={() => (activeTab = "spells")}>Spells</button
         >
         <button
           class:active={activeTab === "skills"}
+          data-ui-nav-id="ui-tab-skills"
+          data-ui-nav-group="tabs"
+          data-ui-nav-group-policy="horizontal"
+          data-ui-nav-panel="tabs"
           onclick={() => (activeTab = "skills")}>Skills</button
         >
         {#if !tabOverflow}
           <button
             class:active={activeTab === "protections"}
+            data-ui-nav-id="ui-tab-protections"
+            data-ui-nav-group="tabs"
+            data-ui-nav-group-policy="horizontal"
+            data-ui-nav-panel="tabs"
             onclick={() => (activeTab = "protections")}>Protect</button
           >
           <button
             class:active={activeTab === "quests"}
+            data-ui-nav-id="ui-tab-quests"
+            data-ui-nav-group="tabs"
+            data-ui-nav-group-policy="horizontal"
+            data-ui-nav-panel="tabs"
             onclick={() => (activeTab = "quests")}>Quests</button
           >
           <button
             class:active={activeTab === "knowledge"}
+            data-ui-nav-id="ui-tab-knowledge"
+            data-ui-nav-group="tabs"
+            data-ui-nav-group-policy="horizontal"
+            data-ui-nav-panel="tabs"
             onclick={() => (activeTab = "knowledge")}>Know</button
           >
         {:else}
           <button
             class:active={isSecondaryActive}
+            data-ui-nav-id="ui-tab-overflow"
+            data-ui-nav-group="tabs"
+            data-ui-nav-group-policy="horizontal"
+            data-ui-nav-panel="tabs"
             onclick={handleOverflowBtnClick}>{overflowTabLabel} ▾</button
           >
         {/if}
@@ -814,7 +1286,13 @@
         </div>
       </div>
     </div>
-    <div class="info-area" class:query-active={!!gameQueryPrompt}>
+    <div
+      class="info-area"
+      class:query-active={!!gameQueryPrompt}
+      data-ui-nav-entry="info"
+      data-ui-nav-id="ui-panel-info"
+      data-ui-nav-panel="info"
+    >
       <InfoPanel inputDisabled={!!gameQueryPrompt} />
     </div>
     <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
@@ -860,7 +1338,15 @@
       {#each secondaryTabs as tab}
         <button
           class:active={activeTab === tab.id}
+          data-ui-nav-id={`ui-tab-overflow-${tab.id}`}
+          data-ui-nav-group="tab-overflow-options"
+          data-ui-nav-group-policy="vertical"
+          data-ui-nav-panel="tabs"
           role="menuitem"
+          onfocus={() => {
+            activeTab = tab.id;
+            lastSecondaryTab = tab.id;
+          }}
           onclick={() => selectSecondaryTab(tab.id)}>{tab.label}</button
         >
       {/each}

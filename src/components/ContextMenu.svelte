@@ -1,5 +1,6 @@
 <script lang="ts">
   import type { Snippet } from "svelte";
+  import { focusUiNavTarget, isUiNavEnabled } from "../lib/ui_nav";
 
   interface Props {
     x: number;
@@ -20,6 +21,9 @@
   /** Hidden until we've clamped the position, to avoid a visible flash. */
   let menuVisible = $state(false);
   let rafId = 0;
+  let menuId = $state(
+    `ui-context-menu-${Math.random().toString(36).slice(2, 10)}`,
+  );
 
   $effect(() => {
     // Track x and y reactively so we re-run when the caller moves the menu.
@@ -49,6 +53,29 @@
       adjustedX = cx;
       adjustedY = cy;
       menuVisible = true;
+    });
+
+    $effect(() => {
+      const el = menuEl;
+      if (!el) return;
+
+      const buttons = Array.from(
+        el.querySelectorAll<HTMLButtonElement>("button"),
+      );
+      buttons.forEach((button, index) => {
+        button.dataset.uiNavGroup ||= `${menuId}-group`;
+        button.dataset.uiNavGroupPolicy ||= "vertical";
+        button.dataset.uiNavId ||= `${menuId}-item-${index}`;
+        button.dataset.uiNavPanel ||= "menu";
+      });
+      if (isUiNavEnabled() && buttons.length > 0) {
+        requestAnimationFrame(() => {
+          const targetId = buttons[0]?.dataset.uiNavId;
+          if (targetId) {
+            focusUiNavTarget(targetId);
+          }
+        });
+      }
     });
   });
 

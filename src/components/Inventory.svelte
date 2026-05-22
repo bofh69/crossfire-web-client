@@ -16,6 +16,7 @@
   import ContextMenu from "./ContextMenu.svelte";
   import { loadConfig, saveConfig } from "../lib/storage";
   import { capitalizeFirstLetter } from "../lib/misc";
+  import { isUiNavEnabled } from "../lib/ui_nav";
 
   interface FlatItem {
     tag: number;
@@ -199,10 +200,11 @@
   /** Track the last-seen character name so we load filters exactly once per character. */
   let currentCharName = "";
   let contextMenu = $state<{
+    isGround: boolean;
+    item: FlatItem;
+    targetId: string;
     x: number;
     y: number;
-    item: FlatItem;
-    isGround: boolean;
   } | null>(null);
   let itemCount = $state(0);
   let showSlotPicker = $state(false);
@@ -321,6 +323,15 @@
     const cleanups = [
       gameEvents.on("playerUpdate", refreshInventory),
       gameEvents.on("tick", refreshInventory),
+      gameEvents.on("uiNavTargetChanged", (targetId) => {
+        if (
+          contextMenu &&
+          targetId !== contextMenu.targetId &&
+          !targetId?.startsWith("ui-context-menu-")
+        ) {
+          closeContextMenu();
+        }
+      }),
     ];
     return () => {
       for (const unsub of cleanups) unsub();
@@ -396,7 +407,15 @@
     e.preventDefault();
     showSlotPicker = false;
     // Place the menu so the cursor sits slightly inside the top-left corner.
-    contextMenu = { x: e.clientX - 8, y: e.clientY - 8, item, isGround };
+    contextMenu = {
+      isGround,
+      item,
+      targetId: isGround
+        ? `ui-ground-item-${item.tag}`
+        : `ui-inventory-item-${item.tag}`,
+      x: e.clientX - 8,
+      y: e.clientY - 8,
+    };
   }
 
   function closeContextMenu() {
@@ -406,6 +425,13 @@
 
   function handleAddToHotbar(_item: FlatItem) {
     showSlotPicker = true;
+  }
+
+  function handleContextMenuActivate() {
+    if (!contextMenu) {
+      return;
+    }
+    handleApply(contextMenu.item.tag);
   }
 
   function handleSlotSelected(index: number) {
@@ -446,7 +472,11 @@
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div class="inventory" bind:this={invContainerEl}>
   <div class="inv-section" style:flex="{invSplitFrac} 0 0">
-    <h3>
+    <h3
+      data-ui-nav-entry="inventory"
+      data-ui-nav-id="ui-panel-inventory"
+      data-ui-nav-panel="inventory"
+    >
       <span
         >Inventory ({filteredPlayerItems.length}{invFilters.size > 0
           ? `/${playerItems.length}`
@@ -471,6 +501,10 @@
         <button
           class="inv-filter-btn"
           class:active={invFilters.has(f.id)}
+          data-ui-nav-id={`ui-inventory-filter-${f.id}`}
+          data-ui-nav-group="inventory-filters"
+          data-ui-nav-group-policy="horizontal"
+          data-ui-nav-panel="inventory"
           title={f.tooltip}
           aria-label={f.tooltip}
           aria-pressed={invFilters.has(f.id)}
@@ -485,6 +519,15 @@
           class:applied={item.applied}
           class:cursed={item.cursed}
           class:magical={item.magical}
+          data-ui-nav-down-target={item === filteredPlayerItems.at(-1) &&
+          groundItems.length > 0
+            ? `ui-ground-item-${groundItems[0]!.tag}`
+            : undefined}
+          data-ui-nav-id={`ui-inventory-item-${item.tag}`}
+          data-ui-nav-group="inventory-items"
+          data-ui-nav-group-policy="vertical"
+          data-ui-nav-menu="context"
+          data-ui-nav-panel="inventory"
           style:padding-left="{0.4 + item.depth * 1}rem"
           title={capitalizeFirstLetter(item.fullName)}
           onclick={() => handleApply(item.tag)}
@@ -519,13 +562,20 @@
   ></div>
 
   <div class="inv-section" style:flex="{1 - invSplitFrac} 0 0">
-    <h3>Ground ({groundItems.length})</h3>
+    <h3 data-ui-nav-id="ui-panel-ground" data-ui-nav-panel="inventory">
+      Ground ({groundItems.length})
+    </h3>
     <div class="item-list" bind:this={groundListEl}>
       {#each groundItems as item (item.tag)}
         <div
           class="item-row"
           class:cursed={item.cursed}
           class:magical={item.magical}
+          data-ui-nav-id={`ui-ground-item-${item.tag}`}
+          data-ui-nav-group="ground-items"
+          data-ui-nav-group-policy="vertical"
+          data-ui-nav-menu="context"
+          data-ui-nav-panel="inventory"
           style:padding-left="{0.4 + item.depth * 1}rem"
           title={capitalizeFirstLetter(item.fullName)}
           onclick={() => handleApply(item.tag)}
@@ -554,6 +604,15 @@
       {@const realItem = locateItem(item.tag)}
       {@const inContainer =
         openContainer !== null && realItem?.env?.tag === openContainer.tag}
+      {#if isUiNavEnabled()}
+        <button
+          onclick={handleContextMenuActivate}
+          oncontextmenu={(e) => {
+            e.preventDefault();
+            handleContextMenuActivate();
+          }}>Activate</button
+        >
+      {/if}
       {#if isGround}
         <button
           onclick={() => contextMenu && handleExamine(contextMenu.item)}

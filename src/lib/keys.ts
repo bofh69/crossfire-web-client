@@ -213,6 +213,7 @@ function loadDefaultBindings(): void {
     ["s", "F", "brace"],
     ["s", "N", "search"],
     ["t", "N", "ready_skill throwing"],
+    ["Tab", "A", "ui_nav"],
 
     // Nethack-style (Normal)
     ["b", "N", "southwest"],

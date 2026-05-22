@@ -242,6 +242,10 @@
 <div class="menu-item">
   <button
     class="menu-button"
+    data-ui-nav-group="menubar"
+    data-ui-nav-group-policy="horizontal"
+    data-ui-nav-id="ui-menu-gamepad"
+    data-ui-nav-panel="menubar"
     onclick={onToggle}
     oncontextmenu={(e) => {
       e.preventDefault();
@@ -252,6 +256,8 @@
     <div class="dropdown" class:fading>
       {#if isGamepadConnected()}
         <button
+          data-ui-nav-id="ui-menu-gamepad-bind-last"
+          data-ui-nav-panel="menubar"
           onclick={() => startGamepadButtonBind()}
           oncontextmenu={(e) => {
             e.preventDefault();
@@ -259,6 +265,8 @@
           }}>Bind last command to button…</button
         >
         <button
+          data-ui-nav-id="ui-menu-gamepad-bind-command"
+          data-ui-nav-panel="menubar"
           onclick={startBindCmdGp}
           oncontextmenu={(e) => {
             e.preventDefault();
@@ -266,6 +274,8 @@
           }}>Bind command to button…</button
         >
         <button
+          data-ui-nav-id="ui-menu-gamepad-config-walk"
+          data-ui-nav-panel="menubar"
           onclick={() => startGamepadAxisConfig("walk")}
           oncontextmenu={(e) => {
             e.preventDefault();
@@ -273,6 +283,8 @@
           }}>Configure walk/run stick…</button
         >
         <button
+          data-ui-nav-id="ui-menu-gamepad-config-fire"
+          data-ui-nav-panel="menubar"
           onclick={() => startGamepadAxisConfig("fire")}
           oncontextmenu={(e) => {
             e.preventDefault();
@@ -280,6 +292,8 @@
           }}>Configure fire stick…</button
         >
         <button
+          data-ui-nav-id="ui-menu-gamepad-reset"
+          data-ui-nav-panel="menubar"
           onclick={handleResetGamepad}
           oncontextmenu={(e) => {
             e.preventDefault();
@@ -287,6 +301,8 @@
           }}>Reset to defaults</button
         >
         <button
+          data-ui-nav-id="ui-menu-gamepad-show"
+          data-ui-nav-panel="menubar"
           onclick={showGamepadBindings}
           oncontextmenu={(e) => {
             e.preventDefault();
