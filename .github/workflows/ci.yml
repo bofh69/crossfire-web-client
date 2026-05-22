@@ -38,3 +38,12 @@ jobs:
         with:
           name: dist
           path: dist.tar.gz
+
+      - name: Build single-file
+        run: npm run build:singlefile
+
+      - name: Upload single-file artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: index.html
+          path: dist-singlefile/index.html
