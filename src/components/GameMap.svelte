@@ -45,6 +45,8 @@
   const MIN_SCALE = 1;
   const MAX_SCALE = 8;
   const MAX_MISSING_FACES_PREVIEW = 12;
+  /** Apply 55% desaturation, retaining about 45% of the original color. */
+  const FOG_DESATURATION_AMOUNT = 0.55;
   const PERF_INFO_PREFIX = "[debug perf]";
   const ZOOM_STORAGE_KEY = "tileScale";
   /**
@@ -599,13 +601,13 @@
       }
     }
 
-    // Pass 2.5: grayscale overlay for fog-of-war cells.
-    // Fog cells (and Empty / out-of-bounds) are desaturated; Visible cells
+    // Pass 2.5: desaturated overlay for fog-of-war cells.
+    // Fog cells (and Empty / out-of-bounds) keep some of their color; Visible cells
     // remain in full colour.  Cells that straddle the Visible/Fog boundary get
     // a smooth per-pixel fade because the 1-pixel-per-tile mask is bilinearly
     // scaled up to the full canvas resolution before being composited.
     if (useConfig.fogGrayscale) {
-      // --- grayCanvas: full-resolution grayscale copy of the drawn tiles -----
+      // --- grayCanvas: partially desaturated copy of the drawn tiles ----------
       if (
         grayCanvas === null ||
         grayCanvasW !== canvasW ||
@@ -618,8 +620,8 @@
       }
       const grayCtx = grayCanvasCtx!;
       // Draw the current (coloured) main canvas into grayCanvas with a
-      // CSS grayscale filter so every pixel is fully desaturated.
-      grayCtx.filter = "grayscale(1)";
+      // partial grayscale filter so fog retains some of its original color.
+      grayCtx.filter = `grayscale(${FOG_DESATURATION_AMOUNT})`;
       grayCtx.drawImage(c, 0, 0);
       grayCtx.filter = "none";
 
