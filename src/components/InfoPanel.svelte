@@ -161,6 +161,7 @@
     x: number;
     y: number;
     message: Message;
+    selectedText: string | null;
     view: PanelViewId;
   } | null>(null);
 
@@ -356,14 +357,98 @@
     });
   }
 
+  /**
+   * Returns whether the provided DOM node belongs to the info panel tree.
+   *
+   * @param node A node to test.
+   * @returns True when the node resolves inside `.info-panel`.
+   */
+  function isNodeInInfoPanel(node: Node | null): boolean {
+    if (!node) return false;
+    const element = node instanceof Element ? node : node.parentElement;
+    return !!element?.closest(".info-panel");
+  }
+
+  /**
+   * Returns the currently selected text when the active selection is fully
+   * inside the info panel.
+   *
+   * @returns The trimmed selected text, or `null` when no valid info panel
+   * selection exists.
+   */
+  function selectedInfoPanelText(): string | null {
+    const selection = window.getSelection();
+    if (!selection || selection.isCollapsed) return null;
+    if (
+      !isNodeInInfoPanel(selection.anchorNode) ||
+      !isNodeInInfoPanel(selection.focusNode)
+    ) {
+      return null;
+    }
+    const text = selection.toString().trim();
+    return text.length > 0 ? text : null;
+  }
+
+  /**
+   * Copies text to clipboard using the modern Clipboard API, with a fallback
+   * to the legacy `document.execCommand("copy")` path when needed.
+   *
+   * @param text The text to copy.
+   * @returns Resolves when copy succeeds.
+   * @throws When both modern and fallback copy mechanisms fail.
+   */
+  async function copyTextToClipboard(text: string): Promise<void> {
+    if (navigator.clipboard?.writeText) {
+      try {
+        await navigator.clipboard.writeText(text);
+        return;
+      } catch {
+        // Fall back to the legacy copy method when modern clipboard API fails.
+      }
+    }
+    const textArea = document.createElement("textarea");
+    textArea.setAttribute("aria-hidden", "true");
+    textArea.setAttribute("readonly", "");
+    textArea.setAttribute("tabindex", "-1");
+    textArea.value = text;
+    textArea.style.position = "fixed";
+    textArea.style.opacity = "0";
+    document.body.appendChild(textArea);
+    try {
+      textArea.focus();
+      textArea.select();
+      const copied =
+        typeof document.execCommand === "function" &&
+        document.execCommand("copy");
+      if (!copied) {
+        throw new Error("Clipboard copy command was not successful.");
+      }
+    } finally {
+      document.body.removeChild(textArea);
+    }
+  }
+
+  /**
+   * Opens the info panel context menu for a specific message and records any
+   * currently selected info panel text.
+   *
+   * @param e The right-click mouse event.
+   * @param message The clicked message.
+   * @param view The view in which the message appears.
+   */
   function handleMessageContextMenu(
     e: MouseEvent,
     message: Message,
     view: PanelViewId,
   ) {
     e.preventDefault();
-    console.log(message);
-    contextMenu = { x: e.clientX - 8, y: e.clientY - 8, message, view };
+    contextMenu = {
+      x: e.clientX - 8,
+      y: e.clientY - 8,
+      message,
+      selectedText: selectedInfoPanelText(),
+      view,
+    };
   }
 
   function closeContextMenu() {
@@ -392,6 +477,22 @@
     if (!contextMenu) return;
     closeView(contextMenu.view);
     closeContextMenu();
+  }
+
+  /**
+   * Copies currently selected info panel text using the context menu action.
+   *
+   * @returns Resolves after copy has been attempted and the menu is closed.
+   */
+  async function handleCopyFromMenu() {
+    if (!contextMenu?.selectedText) return;
+    try {
+      await copyTextToClipboard(contextMenu.selectedText);
+    } catch (error) {
+      console.error("Failed to copy selected text from info panel:", error);
+    } finally {
+      closeContextMenu();
+    }
   }
 
   function addMessage(
@@ -871,6 +972,17 @@
     {@const menuHasType =
       matchingCategoryIds(menuContext.message.msgType).length > 0}
     {#snippet contextMenuContent()}
+      {#if menuContext.selectedText}
+        <button
+          aria-label="Copy selected text"
+          type="button"
+          onclick={handleCopyFromMenu}
+          oncontextmenu={(e) => {
+            e.preventDefault();
+            void handleCopyFromMenu();
+          }}>Copy</button
+        >
+      {/if}
       <button
         disabled={!menuHasType}
         onclick={handleStopListeningFromMenu}
