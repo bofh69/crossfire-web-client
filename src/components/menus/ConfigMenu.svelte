@@ -386,8 +386,8 @@
           toggleFogGrayscale();
         }}
         >{fogGrayscale
-          ? "Disable Grayscale Fog of War"
-          : "Enable Grayscale Fog of War"}</button
+          ? "Disable Desaturated Fog of War"
+          : "Enable Desaturated Fog of War"}</button
       >
       <button
         onclick={toggleDarknessInterpolation}
