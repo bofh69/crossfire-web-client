@@ -20,7 +20,6 @@
 </script>
 
 <script lang="ts">
-  import { onMount } from "svelte";
   import {
     clientConnect,
     clientNegotiate,
@@ -84,8 +83,10 @@
 
   /** True when the page was loaded on a standard HTTP/HTTPS port (80 or 443).
    *  In that case the server address is derived automatically and the input
-   *  field is hidden. */
+   *  field is hidden.  The `file:` protocol is excluded so that opening the
+   *  built bundle directly from disk still shows the server-address input. */
   const standardPort = (() => {
+    if (window.location.protocol === "file:") return false;
     const port = window.location.port;
     return port === "" || port === "80" || port === "443";
   })();
@@ -114,16 +115,6 @@
   // socket still open, so start in the "connected" state.
   let connected = $state(initChars !== null);
   let connecting = $state(false);
-
-  // Auto-connect immediately when the server address is supplied via URL param.
-  // A brief timeout ensures that all $effects (event subscriptions) have been
-  // registered before the connection attempt begins.
-  // Skip auto-connect when returning from gameplay: the socket is already open.
-  onMount(() => {
-    if (urlParamServer && !connected) {
-      setTimeout(() => handleConnect(), 0);
-    }
-  });
   let errorMessage = $state("");
   let queryPrompt = $state("");
   let lastQueryPrompt = "";
