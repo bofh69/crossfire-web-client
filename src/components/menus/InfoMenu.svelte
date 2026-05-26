@@ -154,6 +154,12 @@
         License, Version 1.1. This license is available with a FAQ at:
         <a href="http://scripts.sil.org/OFL">OFL</a>.
       </p>
+      <p>
+        Other bundled fonts used by the client include Caveat, Fira Code, Fira
+        Mono, Noto Sans Runic, and Uncial Antiqua. These fonts are distributed
+        via Fontsource and licensed under the SIL Open Font License, Version
+        1.1.
+      </p>
       <div class="dialog-buttons">
         <button onclick={closeAbout}>Close</button>
       </div>
