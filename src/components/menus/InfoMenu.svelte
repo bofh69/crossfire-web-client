@@ -160,15 +160,19 @@
       <p>
         The font used is Modern Antiqua. Copyright (c) 2011, wmk69,
         (wmk69@o2.pl), with Reserved Font Names 'ModernAntiqua' and 'Modern
-        Antiqua'. This Font Software is licensed under the SIL Open Font
-        License, Version 1.1. This license is available with a FAQ at:
-        <a href="http://scripts.sil.org/OFL">OFL</a>.
+        Antiqua'.
       </p>
       <p>
         Other bundled fonts used by the client include Caveat, Fira Code, Fira
-        Mono, Noto Sans Runic, and Uncial Antiqua. These fonts are distributed
-        via Fontsource and licensed under the SIL Open Font License, Version
-        1.1.
+        Mono, Noto Sans Runic, and Uncial Antiqua.
+      </p>
+      <p>
+        These fonts are distributed via Fontsource and licensed under the SIL
+        Open Font License, Version 1.1.
+      </p>
+      <p>
+        This license is available with a FAQ at:
+        <a href="http://scripts.sil.org/OFL">OFL</a>.
       </p>
       <div class="dialog-buttons">
         <button onclick={closeAbout}>Close</button>
