@@ -2179,11 +2179,14 @@ export function mapdata_debug_tile(ax: number, ay: number): string[] {
   const lines: string[] = [];
   const viewX = ax - pl_pos.x;
   const viewY = ay - pl_pos.y;
+  const player = pl_mpos();
+  const playerDx = ax - player.px;
+  const playerDy = ay - player.py;
   lines.push(
-    `Tile at absolute (${ax}, ${ay}), view-relative (${viewX}, ${viewY})`,
+    `Tile at absolute (${ax}, ${ay}), view-relative (${viewX}, ${viewY}), player-relative (${playerDx}, ${playerDy})`,
   );
   lines.push(
-    `  pl_pos=(${pl_pos.x}, ${pl_pos.y}) view=${viewWidth}x${viewHeight}`,
+    `  pl_pos=(${pl_pos.x}, ${pl_pos.y}) player=(${player.px}, ${player.py}) view=${viewWidth}x${viewHeight}`,
   );
 
   if (!mapdata_contains(ax, ay)) {
@@ -2241,11 +2244,14 @@ export function mapdata_debug_bigface(ax: number, ay: number): string[] {
   const lines: string[] = [];
   const viewX = ax - pl_pos.x;
   const viewY = ay - pl_pos.y;
+  const player = pl_mpos();
+  const playerDx = ax - player.px;
+  const playerDy = ay - player.py;
   lines.push(
-    `Bigface info at absolute (${ax}, ${ay}), view-relative (${viewX}, ${viewY})`,
+    `Bigface info at absolute (${ax}, ${ay}), view-relative (${viewX}, ${viewY}), player-relative (${playerDx}, ${playerDy})`,
   );
   lines.push(
-    `  pl_pos=(${pl_pos.x}, ${pl_pos.y}) view=${viewWidth}x${viewHeight}`,
+    `  pl_pos=(${pl_pos.x}, ${pl_pos.y}) player=(${player.px}, ${player.py}) view=${viewWidth}x${viewHeight}`,
   );
 
   if (!mapdata_contains(ax, ay)) {
