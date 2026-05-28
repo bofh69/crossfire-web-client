@@ -1,21 +1,21 @@
 {
   "schemaVersion": 1,
   "source": {
-    "replayFileName": "crossfire-ws-recording-2026-05-19_11-28-47-590.log.txt",
-    "markLabel": "with invalid head",
-    "entryIndex": 463
+    "replayFileName": "big-face-in-scorn.log",
+    "markLabel": "big face head updated",
+    "entryIndex": 454
   },
-  "capturedAtIso": "2026-05-28T06:30:05.919Z",
+  "capturedAtIso": "2026-05-28T09:26:52.464Z",
   "mapSize": {
     "width": 512,
     "height": 512
   },
   "viewSize": {
     "width": 25,
-    "height": 25
+    "height": 24
   },
   "playerAbsolute": {
-    "x": 281,
+    "x": 284,
     "y": 278
   },
   "cells": [
@@ -23,11 +23,11 @@
       "dx": -8,
       "dy": -12,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 128,
       "heads": [
         {
           "layer": 0,
-          "face": 999,
+          "face": 1000,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -45,17 +45,17 @@
       "dx": -7,
       "dy": -12,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 128,
       "heads": [
         {
           "layer": 0,
-          "face": 1545,
+          "face": 1546,
           "sizeX": 1,
           "sizeY": 1
         },
         {
           "layer": 1,
-          "face": 4114,
+          "face": 4115,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -73,17 +73,17 @@
       "dx": -6,
       "dy": -12,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 64,
       "heads": [
         {
           "layer": 0,
-          "face": 1332,
+          "face": 1333,
           "sizeX": 1,
           "sizeY": 1
         },
         {
           "layer": 1,
-          "face": 548,
+          "face": 549,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -101,17 +101,17 @@
       "dx": -5,
       "dy": -12,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 64,
       "heads": [
         {
           "layer": 0,
-          "face": 1332,
+          "face": 1333,
           "sizeX": 1,
           "sizeY": 1
         },
         {
           "layer": 1,
-          "face": 1988,
+          "face": 1989,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -129,11 +129,11 @@
       "dx": -4,
       "dy": -12,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 64,
       "heads": [
         {
           "layer": 0,
-          "face": 999,
+          "face": 1000,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -151,11 +151,11 @@
       "dx": -3,
       "dy": -12,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 128,
       "heads": [
         {
           "layer": 0,
-          "face": 999,
+          "face": 1000,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -173,17 +173,17 @@
       "dx": -2,
       "dy": -12,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 128,
       "heads": [
         {
           "layer": 0,
-          "face": 1545,
+          "face": 1546,
           "sizeX": 1,
           "sizeY": 1
         },
         {
           "layer": 1,
-          "face": 832,
+          "face": 833,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -195,28 +195,23 @@
           "value": 40
         }
       ],
-      "labels": [
-        {
-          "subtype": 5,
-          "label": "Drink me!"
-        }
-      ]
+      "labels": []
     },
     {
       "dx": 0,
       "dy": -12,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 64,
       "heads": [
         {
           "layer": 0,
-          "face": 1332,
+          "face": 1333,
           "sizeX": 1,
           "sizeY": 1
         },
         {
           "layer": 1,
-          "face": 528,
+          "face": 529,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -238,13 +233,13 @@
       "heads": [
         {
           "layer": 0,
-          "face": 1332,
+          "face": 1333,
           "sizeX": 1,
           "sizeY": 1
         },
         {
           "layer": 1,
-          "animation": 261,
+          "animation": 262,
           "animationSpeed": 2
         }
       ],
@@ -261,17 +256,17 @@
       "dx": 2,
       "dy": -12,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 64,
       "heads": [
         {
           "layer": 0,
-          "face": 1332,
+          "face": 1333,
           "sizeX": 1,
           "sizeY": 1
         },
         {
           "layer": 1,
-          "face": 541,
+          "face": 542,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -289,11 +284,11 @@
       "dx": -8,
       "dy": -11,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 128,
       "heads": [
         {
           "layer": 0,
-          "face": 999,
+          "face": 1000,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -311,17 +306,17 @@
       "dx": -7,
       "dy": -11,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 128,
       "heads": [
         {
           "layer": 0,
-          "face": 1545,
+          "face": 1546,
           "sizeX": 1,
           "sizeY": 1
         },
         {
           "layer": 1,
-          "face": 592,
+          "face": 593,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -339,11 +334,11 @@
       "dx": -6,
       "dy": -11,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 64,
       "heads": [
         {
           "layer": 0,
-          "face": 1545,
+          "face": 1546,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -365,13 +360,13 @@
       "heads": [
         {
           "layer": 0,
-          "face": 1545,
+          "face": 1546,
           "sizeX": 1,
           "sizeY": 1
         },
         {
           "layer": 1,
-          "animation": 261,
+          "animation": 262,
           "animationSpeed": 2
         }
       ],
@@ -388,11 +383,11 @@
       "dx": -4,
       "dy": -11,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 64,
       "heads": [
         {
           "layer": 0,
-          "face": 999,
+          "face": 1000,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -410,11 +405,11 @@
       "dx": -3,
       "dy": -11,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 128,
       "heads": [
         {
           "layer": 0,
-          "face": 999,
+          "face": 1000,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -432,11 +427,11 @@
       "dx": -2,
       "dy": -11,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 128,
       "heads": [
         {
           "layer": 0,
-          "face": 1332,
+          "face": 1333,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -454,11 +449,11 @@
       "dx": 0,
       "dy": -11,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 64,
       "heads": [
         {
           "layer": 0,
-          "face": 1332,
+          "face": 1333,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -476,11 +471,11 @@
       "dx": 1,
       "dy": -11,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 64,
       "heads": [
         {
           "layer": 0,
-          "face": 1332,
+          "face": 1333,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -498,11 +493,11 @@
       "dx": 2,
       "dy": -11,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 64,
       "heads": [
         {
           "layer": 0,
-          "face": 1332,
+          "face": 1333,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -520,17 +515,17 @@
       "dx": 9,
       "dy": -11,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 64,
       "heads": [
         {
           "layer": 0,
-          "face": 1332,
+          "face": 1333,
           "sizeX": 1,
           "sizeY": 1
         },
         {
           "layer": 1,
-          "face": 6263,
+          "face": 6265,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -548,11 +543,11 @@
       "dx": 10,
       "dy": -11,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 64,
       "heads": [
         {
           "layer": 0,
-          "face": 1332,
+          "face": 1333,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -560,7 +555,7 @@
       "tails": [
         {
           "layer": 1,
-          "face": 539,
+          "face": 540,
           "sizeX": 1,
           "sizeY": 0
         }
@@ -577,17 +572,17 @@
       "dx": 11,
       "dy": -11,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 64,
       "heads": [
         {
           "layer": 0,
-          "face": 1332,
+          "face": 1333,
           "sizeX": 1,
           "sizeY": 1
         },
         {
           "layer": 1,
-          "face": 539,
+          "face": 540,
           "sizeX": 2,
           "sizeY": 1
         }
@@ -605,17 +600,17 @@
       "dx": 12,
       "dy": -11,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 128,
       "heads": [
         {
           "layer": 0,
-          "face": 1332,
+          "face": 1333,
           "sizeX": 1,
           "sizeY": 1
         },
         {
           "layer": 1,
-          "face": 6268,
+          "face": 6270,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -633,11 +628,11 @@
       "dx": -8,
       "dy": -10,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 64,
       "heads": [
         {
           "layer": 0,
-          "face": 999,
+          "face": 1000,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -655,11 +650,11 @@
       "dx": -7,
       "dy": -10,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 128,
       "heads": [
         {
           "layer": 0,
-          "face": 999,
+          "face": 1000,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -677,11 +672,11 @@
       "dx": -6,
       "dy": -10,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 64,
       "heads": [
         {
           "layer": 0,
-          "face": 999,
+          "face": 1000,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -699,11 +694,11 @@
       "dx": -5,
       "dy": -10,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 64,
       "heads": [
         {
           "layer": 0,
-          "face": 999,
+          "face": 1000,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -725,7 +720,7 @@
       "heads": [
         {
           "layer": 0,
-          "face": 999,
+          "face": 1000,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -743,11 +738,11 @@
       "dx": -3,
       "dy": -10,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 64,
       "heads": [
         {
           "layer": 0,
-          "face": 999,
+          "face": 1000,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -765,17 +760,17 @@
       "dx": -2,
       "dy": -10,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 64,
       "heads": [
         {
           "layer": 0,
-          "face": 1332,
+          "face": 1333,
           "sizeX": 1,
           "sizeY": 1
         },
         {
           "layer": 1,
-          "face": 535,
+          "face": 536,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -793,11 +788,11 @@
       "dx": -1,
       "dy": -10,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 64,
       "heads": [
         {
           "layer": 0,
-          "face": 1332,
+          "face": 1333,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -815,11 +810,11 @@
       "dx": 0,
       "dy": -10,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 64,
       "heads": [
         {
           "layer": 0,
-          "face": 1332,
+          "face": 1333,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -837,17 +832,17 @@
       "dx": 1,
       "dy": -10,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 128,
       "heads": [
         {
           "layer": 0,
-          "face": 1332,
+          "face": 1333,
           "sizeX": 1,
           "sizeY": 1
         },
         {
           "layer": 1,
-          "face": 1418,
+          "face": 1419,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -869,17 +864,17 @@
       "dx": 2,
       "dy": -10,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 128,
       "heads": [
         {
           "layer": 0,
-          "face": 1332,
+          "face": 1333,
           "sizeX": 1,
           "sizeY": 1
         },
         {
           "layer": 1,
-          "face": 1410,
+          "face": 1411,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -901,11 +896,11 @@
       "dx": 8,
       "dy": -10,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 128,
       "heads": [
         {
           "layer": 0,
-          "face": 1332,
+          "face": 1333,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -923,17 +918,17 @@
       "dx": 9,
       "dy": -10,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 128,
       "heads": [
         {
           "layer": 0,
-          "face": 1332,
+          "face": 1333,
           "sizeX": 1,
           "sizeY": 1
         },
         {
           "layer": 1,
-          "face": 6262,
+          "face": 6264,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -951,11 +946,11 @@
       "dx": 10,
       "dy": -10,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 128,
       "heads": [
         {
           "layer": 0,
-          "face": 1332,
+          "face": 1333,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -973,11 +968,11 @@
       "dx": 11,
       "dy": -10,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 128,
       "heads": [
         {
           "layer": 0,
-          "face": 1545,
+          "face": 1546,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -995,11 +990,11 @@
       "dx": 12,
       "dy": -10,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 128,
       "heads": [
         {
           "layer": 0,
-          "face": 1332,
+          "face": 1333,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -1017,39 +1012,11 @@
       "dx": -7,
       "dy": -9,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 64,
       "heads": [
         {
           "layer": 0,
-          "face": 1332,
-          "sizeX": 1,
-          "sizeY": 1
-        },
-        {
-          "layer": 1,
-          "face": 5580,
-          "sizeX": 1,
-          "sizeY": 1
-        }
-      ],
-      "tails": [],
-      "smooth": [
-        {
-          "layer": 0,
-          "value": 40
-        }
-      ],
-      "labels": []
-    },
-    {
-      "dx": -6,
-      "dy": -9,
-      "state": "Visible",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 1332,
+          "face": 1333,
           "sizeX": 1,
           "sizeY": 1
         },
@@ -1070,326 +1037,38 @@
       "labels": []
     },
     {
+      "dx": -6,
+      "dy": -9,
+      "state": "Visible",
+      "darkness": 128,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1333,
+          "sizeX": 1,
+          "sizeY": 1
+        },
+        {
+          "layer": 1,
+          "face": 5584,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 40
+        }
+      ],
+      "labels": []
+    },
+    {
       "dx": -5,
       "dy": -9,
       "state": "Visible",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 1332,
-          "sizeX": 1,
-          "sizeY": 1
-        }
-      ],
-      "tails": [],
-      "smooth": [
-        {
-          "layer": 0,
-          "value": 40
-        }
-      ],
-      "labels": []
-    },
-    {
-      "dx": -4,
-      "dy": -9,
-      "state": "Visible",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 999,
-          "sizeX": 1,
-          "sizeY": 1
-        }
-      ],
-      "tails": [],
-      "smooth": [
-        {
-          "layer": 0,
-          "value": 30
-        }
-      ],
-      "labels": []
-    },
-    {
-      "dx": -3,
-      "dy": -9,
-      "state": "Visible",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 999,
-          "sizeX": 1,
-          "sizeY": 1
-        }
-      ],
-      "tails": [],
-      "smooth": [
-        {
-          "layer": 0,
-          "value": 30
-        }
-      ],
-      "labels": []
-    },
-    {
-      "dx": -2,
-      "dy": -9,
-      "state": "Visible",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 1332,
-          "sizeX": 1,
-          "sizeY": 1
-        }
-      ],
-      "tails": [],
-      "smooth": [
-        {
-          "layer": 0,
-          "value": 40
-        }
-      ],
-      "labels": []
-    },
-    {
-      "dx": -1,
-      "dy": -9,
-      "state": "Visible",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 1545,
-          "sizeX": 1,
-          "sizeY": 1
-        }
-      ],
-      "tails": [],
-      "smooth": [
-        {
-          "layer": 0,
-          "value": 40
-        }
-      ],
-      "labels": []
-    },
-    {
-      "dx": 0,
-      "dy": -9,
-      "state": "Visible",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 1332,
-          "sizeX": 1,
-          "sizeY": 1
-        }
-      ],
-      "tails": [],
-      "smooth": [
-        {
-          "layer": 0,
-          "value": 40
-        }
-      ],
-      "labels": []
-    },
-    {
-      "dx": 1,
-      "dy": -9,
-      "state": "Visible",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 1332,
-          "sizeX": 1,
-          "sizeY": 1
-        }
-      ],
-      "tails": [],
-      "smooth": [
-        {
-          "layer": 0,
-          "value": 40
-        }
-      ],
-      "labels": []
-    },
-    {
-      "dx": 2,
-      "dy": -9,
-      "state": "Visible",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 1332,
-          "sizeX": 1,
-          "sizeY": 1
-        }
-      ],
-      "tails": [],
-      "smooth": [
-        {
-          "layer": 0,
-          "value": 40
-        }
-      ],
-      "labels": []
-    },
-    {
-      "dx": 5,
-      "dy": -9,
-      "state": "Visible",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 1332,
-          "sizeX": 1,
-          "sizeY": 1
-        },
-        {
-          "layer": 1,
-          "face": 672,
-          "sizeX": 1,
-          "sizeY": 1
-        }
-      ],
-      "tails": [],
-      "smooth": [
-        {
-          "layer": 0,
-          "value": 40
-        }
-      ],
-      "labels": []
-    },
-    {
-      "dx": 6,
-      "dy": -9,
-      "state": "Visible",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 1332,
-          "sizeX": 1,
-          "sizeY": 1
-        },
-        {
-          "layer": 1,
-          "face": 541,
-          "sizeX": 1,
-          "sizeY": 1
-        }
-      ],
-      "tails": [],
-      "smooth": [
-        {
-          "layer": 0,
-          "value": 40
-        }
-      ],
-      "labels": []
-    },
-    {
-      "dx": 7,
-      "dy": -9,
-      "state": "Visible",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 1332,
-          "sizeX": 1,
-          "sizeY": 1
-        },
-        {
-          "layer": 1,
-          "face": 541,
-          "sizeX": 1,
-          "sizeY": 1
-        }
-      ],
-      "tails": [],
-      "smooth": [
-        {
-          "layer": 0,
-          "value": 40
-        }
-      ],
-      "labels": []
-    },
-    {
-      "dx": 8,
-      "dy": -9,
-      "state": "Visible",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 1332,
-          "sizeX": 1,
-          "sizeY": 1
-        },
-        {
-          "layer": 1,
-          "face": 550,
-          "sizeX": 1,
-          "sizeY": 1
-        }
-      ],
-      "tails": [],
-      "smooth": [
-        {
-          "layer": 0,
-          "value": 40
-        }
-      ],
-      "labels": []
-    },
-    {
-      "dx": 9,
-      "dy": -9,
-      "state": "Visible",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 1545,
-          "sizeX": 1,
-          "sizeY": 1
-        },
-        {
-          "layer": 1,
-          "face": 6262,
-          "sizeX": 1,
-          "sizeY": 1
-        }
-      ],
-      "tails": [],
-      "smooth": [
-        {
-          "layer": 0,
-          "value": 40
-        }
-      ],
-      "labels": []
-    },
-    {
-      "dx": 10,
-      "dy": -9,
-      "state": "Visible",
-      "darkness": 0,
+      "darkness": 64,
       "heads": [
         {
           "layer": 0,
@@ -1408,113 +1087,14 @@
       "labels": []
     },
     {
-      "dx": 11,
-      "dy": -9,
-      "state": "Visible",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 1332,
-          "sizeX": 1,
-          "sizeY": 1
-        }
-      ],
-      "tails": [],
-      "smooth": [
-        {
-          "layer": 0,
-          "value": 40
-        }
-      ],
-      "labels": []
-    },
-    {
-      "dx": 12,
-      "dy": -9,
-      "state": "Visible",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 1545,
-          "sizeX": 1,
-          "sizeY": 1
-        }
-      ],
-      "tails": [],
-      "smooth": [
-        {
-          "layer": 0,
-          "value": 40
-        }
-      ],
-      "labels": []
-    },
-    {
-      "dx": -6,
-      "dy": -8,
-      "state": "Visible",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 1332,
-          "sizeX": 1,
-          "sizeY": 1
-        },
-        {
-          "layer": 1,
-          "face": 5575,
-          "sizeX": 1,
-          "sizeY": 1
-        }
-      ],
-      "tails": [],
-      "smooth": [
-        {
-          "layer": 0,
-          "value": 40
-        }
-      ],
-      "labels": []
-    },
-    {
-      "dx": -5,
-      "dy": -8,
-      "state": "Visible",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 1332,
-          "sizeX": 1,
-          "sizeY": 1
-        },
-        {
-          "layer": 1,
-          "animation": 169,
-          "animationSpeed": 2
-        }
-      ],
-      "tails": [],
-      "smooth": [
-        {
-          "layer": 0,
-          "value": 40
-        }
-      ],
-      "labels": []
-    },
-    {
       "dx": -4,
-      "dy": -8,
+      "dy": -9,
       "state": "Visible",
       "darkness": 0,
       "heads": [
         {
           "layer": 0,
-          "face": 999,
+          "face": 1000,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -1530,13 +1110,13 @@
     },
     {
       "dx": -3,
-      "dy": -8,
+      "dy": -9,
       "state": "Visible",
       "darkness": 0,
       "heads": [
         {
           "layer": 0,
-          "face": 999,
+          "face": 1000,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -1552,19 +1132,13 @@
     },
     {
       "dx": -2,
-      "dy": -8,
+      "dy": -9,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 64,
       "heads": [
         {
           "layer": 0,
-          "face": 1332,
-          "sizeX": 1,
-          "sizeY": 1
-        },
-        {
-          "layer": 1,
-          "face": 516,
+          "face": 1333,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -1580,13 +1154,13 @@
     },
     {
       "dx": -1,
-      "dy": -8,
+      "dy": -9,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 64,
       "heads": [
         {
           "layer": 0,
-          "face": 1332,
+          "face": 1546,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -1602,13 +1176,13 @@
     },
     {
       "dx": 0,
-      "dy": -8,
+      "dy": -9,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 64,
       "heads": [
         {
           "layer": 0,
-          "face": 1545,
+          "face": 1333,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -1624,25 +1198,18 @@
     },
     {
       "dx": 1,
-      "dy": -8,
+      "dy": -9,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 128,
       "heads": [
         {
           "layer": 0,
-          "face": 1332,
+          "face": 1333,
           "sizeX": 1,
           "sizeY": 1
         }
       ],
-      "tails": [
-        {
-          "layer": 1,
-          "face": 607,
-          "sizeX": 0,
-          "sizeY": 1
-        }
-      ],
+      "tails": [],
       "smooth": [
         {
           "layer": 0,
@@ -1653,13 +1220,13 @@
     },
     {
       "dx": 2,
-      "dy": -8,
+      "dy": -9,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 192,
       "heads": [
         {
           "layer": 0,
-          "face": 1545,
+          "face": 1333,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -1669,41 +1236,25 @@
         {
           "layer": 0,
           "value": 40
-        }
-      ],
-      "labels": []
-    },
-    {
-      "dx": 4,
-      "dy": -8,
-      "state": "Visible",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 999,
-          "sizeX": 1,
-          "sizeY": 1
-        }
-      ],
-      "tails": [],
-      "smooth": [
-        {
-          "layer": 0,
-          "value": 30
         }
       ],
       "labels": []
     },
     {
       "dx": 5,
-      "dy": -8,
+      "dy": -9,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 192,
       "heads": [
         {
           "layer": 0,
-          "face": 999,
+          "face": 1333,
+          "sizeX": 1,
+          "sizeY": 1
+        },
+        {
+          "layer": 1,
+          "face": 673,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -1712,20 +1263,26 @@
       "smooth": [
         {
           "layer": 0,
-          "value": 30
+          "value": 40
         }
       ],
       "labels": []
     },
     {
       "dx": 6,
-      "dy": -8,
+      "dy": -9,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 192,
       "heads": [
         {
           "layer": 0,
-          "face": 999,
+          "face": 1333,
+          "sizeX": 1,
+          "sizeY": 1
+        },
+        {
+          "layer": 1,
+          "face": 542,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -1734,20 +1291,26 @@
       "smooth": [
         {
           "layer": 0,
-          "value": 30
+          "value": 40
         }
       ],
       "labels": []
     },
     {
       "dx": 7,
-      "dy": -8,
+      "dy": -9,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 192,
       "heads": [
         {
           "layer": 0,
-          "face": 999,
+          "face": 1333,
+          "sizeX": 1,
+          "sizeY": 1
+        },
+        {
+          "layer": 1,
+          "face": 542,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -1756,363 +1319,20 @@
       "smooth": [
         {
           "layer": 0,
-          "value": 30
+          "value": 40
         }
       ],
       "labels": []
     },
     {
       "dx": 8,
-      "dy": -8,
+      "dy": -9,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 128,
       "heads": [
         {
           "layer": 0,
-          "face": 1332,
-          "sizeX": 1,
-          "sizeY": 1
-        },
-        {
-          "layer": 1,
-          "face": 527,
-          "sizeX": 1,
-          "sizeY": 1
-        }
-      ],
-      "tails": [],
-      "smooth": [
-        {
-          "layer": 0,
-          "value": 40
-        }
-      ],
-      "labels": []
-    },
-    {
-      "dx": 9,
-      "dy": -8,
-      "state": "Visible",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 1332,
-          "sizeX": 1,
-          "sizeY": 1
-        },
-        {
-          "layer": 1,
-          "face": 6262,
-          "sizeX": 1,
-          "sizeY": 1
-        }
-      ],
-      "tails": [],
-      "smooth": [
-        {
-          "layer": 0,
-          "value": 40
-        }
-      ],
-      "labels": []
-    },
-    {
-      "dx": 10,
-      "dy": -8,
-      "state": "Visible",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 1545,
-          "sizeX": 1,
-          "sizeY": 1
-        }
-      ],
-      "tails": [],
-      "smooth": [
-        {
-          "layer": 0,
-          "value": 40
-        }
-      ],
-      "labels": []
-    },
-    {
-      "dx": 11,
-      "dy": -8,
-      "state": "Visible",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 1332,
-          "sizeX": 1,
-          "sizeY": 1
-        }
-      ],
-      "tails": [],
-      "smooth": [
-        {
-          "layer": 0,
-          "value": 40
-        }
-      ],
-      "labels": []
-    },
-    {
-      "dx": 12,
-      "dy": -8,
-      "state": "Visible",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 1332,
-          "sizeX": 1,
-          "sizeY": 1
-        }
-      ],
-      "tails": [],
-      "smooth": [
-        {
-          "layer": 0,
-          "value": 40
-        }
-      ],
-      "labels": []
-    },
-    {
-      "dx": -6,
-      "dy": -7,
-      "state": "Visible",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 1332,
-          "sizeX": 1,
-          "sizeY": 1
-        },
-        {
-          "layer": 1,
-          "face": 5583,
-          "sizeX": 1,
-          "sizeY": 1
-        }
-      ],
-      "tails": [],
-      "smooth": [
-        {
-          "layer": 0,
-          "value": 40
-        }
-      ],
-      "labels": []
-    },
-    {
-      "dx": -5,
-      "dy": -7,
-      "state": "Visible",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 1545,
-          "sizeX": 1,
-          "sizeY": 1
-        },
-        {
-          "layer": 1,
-          "face": 4114,
-          "sizeX": 1,
-          "sizeY": 1
-        }
-      ],
-      "tails": [],
-      "smooth": [
-        {
-          "layer": 0,
-          "value": 40
-        }
-      ],
-      "labels": []
-    },
-    {
-      "dx": -4,
-      "dy": -7,
-      "state": "Visible",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 999,
-          "sizeX": 1,
-          "sizeY": 1
-        }
-      ],
-      "tails": [],
-      "smooth": [
-        {
-          "layer": 0,
-          "value": 30
-        }
-      ],
-      "labels": []
-    },
-    {
-      "dx": -3,
-      "dy": -7,
-      "state": "Visible",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 999,
-          "sizeX": 1,
-          "sizeY": 1
-        }
-      ],
-      "tails": [],
-      "smooth": [
-        {
-          "layer": 0,
-          "value": 30
-        }
-      ],
-      "labels": []
-    },
-    {
-      "dx": -2,
-      "dy": -7,
-      "state": "Visible",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 1332,
-          "sizeX": 1,
-          "sizeY": 1
-        },
-        {
-          "layer": 1,
-          "animation": 261,
-          "animationSpeed": 2
-        }
-      ],
-      "tails": [],
-      "smooth": [
-        {
-          "layer": 0,
-          "value": 40
-        }
-      ],
-      "labels": []
-    },
-    {
-      "dx": -1,
-      "dy": -7,
-      "state": "Visible",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 1545,
-          "sizeX": 1,
-          "sizeY": 1
-        }
-      ],
-      "tails": [],
-      "smooth": [
-        {
-          "layer": 0,
-          "value": 40
-        }
-      ],
-      "labels": []
-    },
-    {
-      "dx": 0,
-      "dy": -7,
-      "state": "Visible",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 1332,
-          "sizeX": 1,
-          "sizeY": 1
-        }
-      ],
-      "tails": [],
-      "smooth": [
-        {
-          "layer": 0,
-          "value": 40
-        }
-      ],
-      "labels": []
-    },
-    {
-      "dx": 1,
-      "dy": -7,
-      "state": "Visible",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 999,
-          "sizeX": 1,
-          "sizeY": 1
-        },
-        {
-          "layer": 1,
-          "face": 607,
-          "sizeX": 1,
-          "sizeY": 2
-        }
-      ],
-      "tails": [],
-      "smooth": [
-        {
-          "layer": 0,
-          "value": 30
-        }
-      ],
-      "labels": []
-    },
-    {
-      "dx": 2,
-      "dy": -7,
-      "state": "Visible",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 1332,
-          "sizeX": 1,
-          "sizeY": 1
-        }
-      ],
-      "tails": [],
-      "smooth": [
-        {
-          "layer": 0,
-          "value": 40
-        }
-      ],
-      "labels": []
-    },
-    {
-      "dx": 3,
-      "dy": -7,
-      "state": "Visible",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 1332,
+          "face": 1333,
           "sizeX": 1,
           "sizeY": 1
         },
@@ -2133,154 +1353,20 @@
       "labels": []
     },
     {
-      "dx": 4,
-      "dy": -7,
-      "state": "Visible",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 999,
-          "sizeX": 1,
-          "sizeY": 1
-        }
-      ],
-      "tails": [],
-      "smooth": [
-        {
-          "layer": 0,
-          "value": 30
-        }
-      ],
-      "labels": []
-    },
-    {
-      "dx": 5,
-      "dy": -7,
-      "state": "Visible",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 1332,
-          "sizeX": 1,
-          "sizeY": 1
-        },
-        {
-          "layer": 1,
-          "face": 6263,
-          "sizeX": 1,
-          "sizeY": 1
-        }
-      ],
-      "tails": [],
-      "smooth": [
-        {
-          "layer": 0,
-          "value": 40
-        }
-      ],
-      "labels": []
-    },
-    {
-      "dx": 6,
-      "dy": -7,
-      "state": "Visible",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 1332,
-          "sizeX": 1,
-          "sizeY": 1
-        },
-        {
-          "layer": 1,
-          "face": 6268,
-          "sizeX": 1,
-          "sizeY": 1
-        }
-      ],
-      "tails": [],
-      "smooth": [
-        {
-          "layer": 0,
-          "value": 40
-        }
-      ],
-      "labels": []
-    },
-    {
-      "dx": 7,
-      "dy": -7,
-      "state": "Visible",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 1332,
-          "sizeX": 1,
-          "sizeY": 1
-        },
-        {
-          "layer": 1,
-          "face": 6268,
-          "sizeX": 1,
-          "sizeY": 1
-        }
-      ],
-      "tails": [],
-      "smooth": [
-        {
-          "layer": 0,
-          "value": 40
-        }
-      ],
-      "labels": []
-    },
-    {
-      "dx": 8,
-      "dy": -7,
-      "state": "Visible",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 1332,
-          "sizeX": 1,
-          "sizeY": 1
-        },
-        {
-          "layer": 1,
-          "face": 6268,
-          "sizeX": 1,
-          "sizeY": 1
-        }
-      ],
-      "tails": [],
-      "smooth": [
-        {
-          "layer": 0,
-          "value": 40
-        }
-      ],
-      "labels": []
-    },
-    {
       "dx": 9,
-      "dy": -7,
+      "dy": -9,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 192,
       "heads": [
         {
           "layer": 0,
-          "face": 1332,
+          "face": 1546,
           "sizeX": 1,
           "sizeY": 1
         },
         {
           "layer": 1,
-          "face": 6269,
+          "face": 6264,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -2296,19 +1382,13 @@
     },
     {
       "dx": 10,
-      "dy": -7,
+      "dy": -9,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 192,
       "heads": [
         {
           "layer": 0,
-          "face": 1332,
-          "sizeX": 1,
-          "sizeY": 1
-        },
-        {
-          "layer": 1,
-          "face": 6268,
+          "face": 1334,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -2324,371 +1404,9 @@
     },
     {
       "dx": 11,
-      "dy": -7,
+      "dy": -9,
       "state": "Visible",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 1332,
-          "sizeX": 1,
-          "sizeY": 1
-        },
-        {
-          "layer": 1,
-          "face": 6268,
-          "sizeX": 1,
-          "sizeY": 1
-        }
-      ],
-      "tails": [],
-      "smooth": [
-        {
-          "layer": 0,
-          "value": 40
-        }
-      ],
-      "labels": []
-    },
-    {
-      "dx": -6,
-      "dy": -6,
-      "state": "Visible",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 999,
-          "sizeX": 1,
-          "sizeY": 1
-        },
-        {
-          "layer": 1,
-          "face": 5622,
-          "sizeX": 1,
-          "sizeY": 1
-        }
-      ],
-      "tails": [],
-      "smooth": [
-        {
-          "layer": 0,
-          "value": 30
-        }
-      ],
-      "labels": []
-    },
-    {
-      "dx": -5,
-      "dy": -6,
-      "state": "Visible",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 999,
-          "sizeX": 1,
-          "sizeY": 1
-        }
-      ],
-      "tails": [],
-      "smooth": [
-        {
-          "layer": 0,
-          "value": 30
-        }
-      ],
-      "labels": []
-    },
-    {
-      "dx": -4,
-      "dy": -6,
-      "state": "Visible",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 999,
-          "sizeX": 1,
-          "sizeY": 1
-        }
-      ],
-      "tails": [],
-      "smooth": [
-        {
-          "layer": 0,
-          "value": 30
-        }
-      ],
-      "labels": []
-    },
-    {
-      "dx": -3,
-      "dy": -6,
-      "state": "Visible",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 999,
-          "sizeX": 1,
-          "sizeY": 1
-        }
-      ],
-      "tails": [],
-      "smooth": [
-        {
-          "layer": 0,
-          "value": 30
-        }
-      ],
-      "labels": []
-    },
-    {
-      "dx": -2,
-      "dy": -6,
-      "state": "Visible",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 1545,
-          "sizeX": 1,
-          "sizeY": 1
-        },
-        {
-          "layer": 1,
-          "face": 4113,
-          "sizeX": 1,
-          "sizeY": 1
-        }
-      ],
-      "tails": [],
-      "smooth": [
-        {
-          "layer": 0,
-          "value": 40
-        }
-      ],
-      "labels": []
-    },
-    {
-      "dx": -1,
-      "dy": -6,
-      "state": "Visible",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 1545,
-          "sizeX": 1,
-          "sizeY": 1
-        }
-      ],
-      "tails": [
-        {
-          "layer": 1,
-          "face": 530,
-          "sizeX": 1,
-          "sizeY": 0
-        }
-      ],
-      "smooth": [
-        {
-          "layer": 0,
-          "value": 40
-        }
-      ],
-      "labels": []
-    },
-    {
-      "dx": 0,
-      "dy": -6,
-      "state": "Visible",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 1332,
-          "sizeX": 1,
-          "sizeY": 1
-        },
-        {
-          "layer": 1,
-          "face": 530,
-          "sizeX": 2,
-          "sizeY": 1
-        }
-      ],
-      "tails": [],
-      "smooth": [
-        {
-          "layer": 0,
-          "value": 40
-        }
-      ],
-      "labels": []
-    },
-    {
-      "dx": 1,
-      "dy": -6,
-      "state": "Visible",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 999,
-          "sizeX": 1,
-          "sizeY": 1
-        }
-      ],
-      "tails": [],
-      "smooth": [
-        {
-          "layer": 0,
-          "value": 30
-        }
-      ],
-      "labels": []
-    },
-    {
-      "dx": 2,
-      "dy": -6,
-      "state": "Visible",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 1332,
-          "sizeX": 1,
-          "sizeY": 1
-        },
-        {
-          "layer": 1,
-          "face": 535,
-          "sizeX": 1,
-          "sizeY": 1
-        }
-      ],
-      "tails": [],
-      "smooth": [
-        {
-          "layer": 0,
-          "value": 40
-        }
-      ],
-      "labels": []
-    },
-    {
-      "dx": 3,
-      "dy": -6,
-      "state": "Visible",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 1332,
-          "sizeX": 1,
-          "sizeY": 1
-        },
-        {
-          "layer": 1,
-          "face": 541,
-          "sizeX": 1,
-          "sizeY": 1
-        }
-      ],
-      "tails": [],
-      "smooth": [
-        {
-          "layer": 0,
-          "value": 40
-        }
-      ],
-      "labels": []
-    },
-    {
-      "dx": 4,
-      "dy": -6,
-      "state": "Visible",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 999,
-          "sizeX": 1,
-          "sizeY": 1
-        }
-      ],
-      "tails": [],
-      "smooth": [
-        {
-          "layer": 0,
-          "value": 30
-        }
-      ],
-      "labels": []
-    },
-    {
-      "dx": 5,
-      "dy": -6,
-      "state": "Visible",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 1332,
-          "sizeX": 1,
-          "sizeY": 1
-        },
-        {
-          "layer": 1,
-          "face": 6255,
-          "sizeX": 1,
-          "sizeY": 1
-        }
-      ],
-      "tails": [],
-      "smooth": [
-        {
-          "layer": 0,
-          "value": 40
-        }
-      ],
-      "labels": []
-    },
-    {
-      "dx": 6,
-      "dy": -6,
-      "state": "Visible",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 1545,
-          "sizeX": 1,
-          "sizeY": 1
-        },
-        {
-          "layer": 1,
-          "animation": 261,
-          "animationSpeed": 2
-        }
-      ],
-      "tails": [],
-      "smooth": [
-        {
-          "layer": 0,
-          "value": 40
-        }
-      ],
-      "labels": []
-    },
-    {
-      "dx": 7,
-      "dy": -6,
-      "state": "Visible",
-      "darkness": 0,
+      "darkness": 192,
       "heads": [
         {
           "layer": 0,
@@ -2707,141 +1425,14 @@
       "labels": []
     },
     {
-      "dx": 8,
-      "dy": -6,
-      "state": "Visible",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 1545,
-          "sizeX": 1,
-          "sizeY": 1
-        }
-      ],
-      "tails": [
-        {
-          "layer": 1,
-          "face": 644,
-          "sizeX": 4,
-          "sizeY": 2
-        }
-      ],
-      "smooth": [
-        {
-          "layer": 0,
-          "value": 40
-        }
-      ],
-      "labels": []
-    },
-    {
-      "dx": 9,
-      "dy": -6,
-      "state": "Visible",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 1332,
-          "sizeX": 1,
-          "sizeY": 1
-        }
-      ],
-      "tails": [
-        {
-          "layer": 1,
-          "face": 644,
-          "sizeX": 3,
-          "sizeY": 2
-        }
-      ],
-      "smooth": [
-        {
-          "layer": 0,
-          "value": 40
-        }
-      ],
-      "labels": []
-    },
-    {
-      "dx": 10,
-      "dy": -6,
-      "state": "Visible",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 1332,
-          "sizeX": 1,
-          "sizeY": 1
-        }
-      ],
-      "tails": [
-        {
-          "layer": 1,
-          "face": 644,
-          "sizeX": 2,
-          "sizeY": 2
-        }
-      ],
-      "smooth": [
-        {
-          "layer": 0,
-          "value": 40
-        }
-      ],
-      "labels": []
-    },
-    {
-      "dx": 11,
-      "dy": -6,
-      "state": "Empty",
-      "darkness": 0,
-      "heads": [],
-      "tails": [
-        {
-          "layer": 1,
-          "face": 644,
-          "sizeX": 1,
-          "sizeY": 2
-        }
-      ],
-      "smooth": [],
-      "labels": []
-    },
-    {
       "dx": 12,
-      "dy": -6,
-      "state": "Empty",
-      "darkness": 0,
-      "heads": [],
-      "tails": [
-        {
-          "layer": 1,
-          "face": 644,
-          "sizeX": 0,
-          "sizeY": 2
-        }
-      ],
-      "smooth": [],
-      "labels": []
-    },
-    {
-      "dx": -6,
-      "dy": -5,
+      "dy": -9,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 192,
       "heads": [
         {
           "layer": 0,
-          "face": 999,
-          "sizeX": 1,
-          "sizeY": 1
-        },
-        {
-          "layer": 1,
-          "face": 5622,
+          "face": 1546,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -2850,42 +1441,75 @@
       "smooth": [
         {
           "layer": 0,
-          "value": 30
+          "value": 40
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": -6,
+      "dy": -8,
+      "state": "Visible",
+      "darkness": 192,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1333,
+          "sizeX": 1,
+          "sizeY": 1
+        },
+        {
+          "layer": 1,
+          "face": 5577,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 40
         }
       ],
       "labels": []
     },
     {
       "dx": -5,
-      "dy": -5,
+      "dy": -8,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 128,
       "heads": [
         {
           "layer": 0,
-          "face": 999,
+          "face": 1333,
           "sizeX": 1,
           "sizeY": 1
+        },
+        {
+          "layer": 1,
+          "animation": 170,
+          "animationSpeed": 2
         }
       ],
       "tails": [],
       "smooth": [
         {
           "layer": 0,
-          "value": 30
+          "value": 40
         }
       ],
       "labels": []
     },
     {
       "dx": -4,
-      "dy": -5,
+      "dy": -8,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 64,
       "heads": [
         {
           "layer": 0,
-          "face": 999,
+          "face": 1000,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -2901,13 +1525,13 @@
     },
     {
       "dx": -3,
-      "dy": -5,
+      "dy": -8,
       "state": "Visible",
       "darkness": 0,
       "heads": [
         {
           "layer": 0,
-          "face": 999,
+          "face": 1000,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -2923,13 +1547,19 @@
     },
     {
       "dx": -2,
-      "dy": -5,
+      "dy": -8,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 64,
       "heads": [
         {
           "layer": 0,
-          "face": 999,
+          "face": 1333,
+          "sizeX": 1,
+          "sizeY": 1
+        },
+        {
+          "layer": 1,
+          "face": 517,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -2938,20 +1568,20 @@
       "smooth": [
         {
           "layer": 0,
-          "value": 30
+          "value": 40
         }
       ],
       "labels": []
     },
     {
       "dx": -1,
-      "dy": -5,
+      "dy": -8,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 64,
       "heads": [
         {
           "layer": 0,
-          "face": 999,
+          "face": 1333,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -2960,20 +1590,20 @@
       "smooth": [
         {
           "layer": 0,
-          "value": 30
+          "value": 40
         }
       ],
       "labels": []
     },
     {
       "dx": 0,
-      "dy": -5,
+      "dy": -8,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 128,
       "heads": [
         {
           "layer": 0,
-          "face": 999,
+          "face": 1546,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -2982,86 +1612,49 @@
       "smooth": [
         {
           "layer": 0,
-          "value": 30
+          "value": 40
         }
       ],
       "labels": []
     },
     {
       "dx": 1,
-      "dy": -5,
+      "dy": -8,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 192,
       "heads": [
         {
           "layer": 0,
-          "face": 999,
+          "face": 1333,
           "sizeX": 1,
           "sizeY": 1
         }
       ],
-      "tails": [],
-      "smooth": [
+      "tails": [
         {
-          "layer": 0,
-          "value": 30
-        }
-      ],
-      "labels": []
-    },
-    {
-      "dx": 2,
-      "dy": -5,
-      "state": "Visible",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 999,
-          "sizeX": 1,
+          "layer": 1,
+          "face": 608,
+          "sizeX": 0,
           "sizeY": 1
         }
       ],
-      "tails": [],
       "smooth": [
         {
           "layer": 0,
-          "value": 30
-        }
-      ],
-      "labels": []
-    },
-    {
-      "dx": 3,
-      "dy": -5,
-      "state": "Visible",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 999,
-          "sizeX": 1,
-          "sizeY": 1
-        }
-      ],
-      "tails": [],
-      "smooth": [
-        {
-          "layer": 0,
-          "value": 30
+          "value": 40
         }
       ],
       "labels": []
     },
     {
       "dx": 4,
-      "dy": -5,
+      "dy": -8,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 128,
       "heads": [
         {
           "layer": 0,
-          "face": 999,
+          "face": 1000,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -3077,13 +1670,13 @@
     },
     {
       "dx": 5,
-      "dy": -5,
+      "dy": -8,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 128,
       "heads": [
         {
           "layer": 0,
-          "face": 999,
+          "face": 1000,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -3099,13 +1692,13 @@
     },
     {
       "dx": 6,
-      "dy": -5,
+      "dy": -8,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 128,
       "heads": [
         {
           "layer": 0,
-          "face": 999,
+          "face": 1000,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -3121,13 +1714,13 @@
     },
     {
       "dx": 7,
-      "dy": -5,
+      "dy": -8,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 128,
       "heads": [
         {
           "layer": 0,
-          "face": 999,
+          "face": 1000,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -3143,54 +1736,24 @@
     },
     {
       "dx": 8,
-      "dy": -5,
+      "dy": -8,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 128,
       "heads": [
         {
           "layer": 0,
-          "face": 999,
+          "face": 1333,
+          "sizeX": 1,
+          "sizeY": 1
+        },
+        {
+          "layer": 1,
+          "face": 528,
           "sizeX": 1,
           "sizeY": 1
         }
       ],
-      "tails": [
-        {
-          "layer": 1,
-          "face": 644,
-          "sizeX": 4,
-          "sizeY": 1
-        }
-      ],
-      "smooth": [
-        {
-          "layer": 0,
-          "value": 30
-        }
-      ],
-      "labels": []
-    },
-    {
-      "dx": 9,
-      "dy": -5,
-      "state": "Visible",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 1332,
-          "sizeX": 1,
-          "sizeY": 1
-        }
-      ],
-      "tails": [
-        {
-          "layer": 1,
-          "face": 644,
-          "sizeX": 3,
-          "sizeY": 1
-        }
-      ],
+      "tails": [],
       "smooth": [
         {
           "layer": 0,
@@ -3200,71 +1763,20 @@
       "labels": []
     },
     {
-      "dx": 10,
-      "dy": -5,
-      "state": "Empty",
-      "darkness": 0,
-      "heads": [],
-      "tails": [
-        {
-          "layer": 1,
-          "face": 644,
-          "sizeX": 2,
-          "sizeY": 1
-        }
-      ],
-      "smooth": [],
-      "labels": []
-    },
-    {
-      "dx": 11,
-      "dy": -5,
-      "state": "Empty",
-      "darkness": 0,
-      "heads": [],
-      "tails": [
-        {
-          "layer": 1,
-          "face": 644,
-          "sizeX": 1,
-          "sizeY": 1
-        }
-      ],
-      "smooth": [],
-      "labels": []
-    },
-    {
-      "dx": 12,
-      "dy": -5,
-      "state": "Empty",
-      "darkness": 0,
-      "heads": [],
-      "tails": [
-        {
-          "layer": 1,
-          "face": 644,
-          "sizeX": 0,
-          "sizeY": 1
-        }
-      ],
-      "smooth": [],
-      "labels": []
-    },
-    {
-      "dx": -6,
-      "dy": -4,
+      "dx": 9,
+      "dy": -8,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 192,
       "heads": [
         {
           "layer": 0,
-          "face": 1332,
+          "face": 1333,
           "sizeX": 1,
           "sizeY": 1
         },
         {
           "layer": 1,
-          "face": 5583,
+          "face": 6264,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -3280,13 +1792,440 @@
     },
     {
       "dx": -5,
-      "dy": -4,
+      "dy": -7,
+      "state": "Visible",
+      "darkness": 192,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1546,
+          "sizeX": 1,
+          "sizeY": 1
+        },
+        {
+          "layer": 1,
+          "face": 4115,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 40
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": -4,
+      "dy": -7,
+      "state": "Visible",
+      "darkness": 128,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1000,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 30
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": -3,
+      "dy": -7,
+      "state": "Visible",
+      "darkness": 64,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1000,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 30
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": -2,
+      "dy": -7,
       "state": "Visible",
       "darkness": 0,
       "heads": [
         {
           "layer": 0,
-          "face": 1545,
+          "face": 1333,
+          "sizeX": 1,
+          "sizeY": 1
+        },
+        {
+          "layer": 1,
+          "animation": 262,
+          "animationSpeed": 2
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 40
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": -1,
+      "dy": -7,
+      "state": "Visible",
+      "darkness": 64,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1546,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 40
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 0,
+      "dy": -7,
+      "state": "Visible",
+      "darkness": 128,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1333,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 40
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 1,
+      "dy": -7,
+      "state": "Visible",
+      "darkness": 192,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1000,
+          "sizeX": 1,
+          "sizeY": 1
+        },
+        {
+          "layer": 1,
+          "face": 608,
+          "sizeX": 1,
+          "sizeY": 2
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 30
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 3,
+      "dy": -7,
+      "state": "Visible",
+      "darkness": 192,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1333,
+          "sizeX": 1,
+          "sizeY": 1
+        },
+        {
+          "layer": 1,
+          "face": 552,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 40
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 4,
+      "dy": -7,
+      "state": "Visible",
+      "darkness": 128,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1000,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 30
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 5,
+      "dy": -7,
+      "state": "Visible",
+      "darkness": 64,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1333,
+          "sizeX": 1,
+          "sizeY": 1
+        },
+        {
+          "layer": 1,
+          "face": 6265,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 40
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 6,
+      "dy": -7,
+      "state": "Visible",
+      "darkness": 64,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1333,
+          "sizeX": 1,
+          "sizeY": 1
+        },
+        {
+          "layer": 1,
+          "face": 6270,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 40
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 7,
+      "dy": -7,
+      "state": "Visible",
+      "darkness": 64,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1333,
+          "sizeX": 1,
+          "sizeY": 1
+        },
+        {
+          "layer": 1,
+          "face": 6270,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 40
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 8,
+      "dy": -7,
+      "state": "Visible",
+      "darkness": 128,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1333,
+          "sizeX": 1,
+          "sizeY": 1
+        },
+        {
+          "layer": 1,
+          "face": 6270,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 40
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 9,
+      "dy": -7,
+      "state": "Visible",
+      "darkness": 192,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1333,
+          "sizeX": 1,
+          "sizeY": 1
+        },
+        {
+          "layer": 1,
+          "face": 6271,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 40
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": -5,
+      "dy": -6,
+      "state": "Visible",
+      "darkness": 192,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1000,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 30
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": -4,
+      "dy": -6,
+      "state": "Visible",
+      "darkness": 128,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1000,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 30
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": -3,
+      "dy": -6,
+      "state": "Visible",
+      "darkness": 64,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1000,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 30
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": -2,
+      "dy": -6,
+      "state": "Visible",
+      "darkness": 64,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1546,
           "sizeX": 1,
           "sizeY": 1
         },
@@ -3307,14 +2246,702 @@
       "labels": []
     },
     {
-      "dx": -4,
-      "dy": -4,
+      "dx": -1,
+      "dy": -6,
+      "state": "Visible",
+      "darkness": 64,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1546,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [
+        {
+          "layer": 1,
+          "face": 531,
+          "sizeX": 1,
+          "sizeY": 0
+        }
+      ],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 40
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 0,
+      "dy": -6,
+      "state": "Visible",
+      "darkness": 128,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1333,
+          "sizeX": 1,
+          "sizeY": 1
+        },
+        {
+          "layer": 1,
+          "face": 531,
+          "sizeX": 2,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 40
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 1,
+      "dy": -6,
+      "state": "Visible",
+      "darkness": 192,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1000,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 30
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 3,
+      "dy": -6,
+      "state": "Visible",
+      "darkness": 192,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1333,
+          "sizeX": 1,
+          "sizeY": 1
+        },
+        {
+          "layer": 1,
+          "face": 542,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 40
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 4,
+      "dy": -6,
+      "state": "Visible",
+      "darkness": 128,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1000,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 30
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 5,
+      "dy": -6,
+      "state": "Visible",
+      "darkness": 64,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1333,
+          "sizeX": 1,
+          "sizeY": 1
+        },
+        {
+          "layer": 1,
+          "face": 6257,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 40
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 6,
+      "dy": -6,
       "state": "Visible",
       "darkness": 0,
       "heads": [
         {
           "layer": 0,
-          "face": 999,
+          "face": 1546,
+          "sizeX": 1,
+          "sizeY": 1
+        },
+        {
+          "layer": 1,
+          "animation": 262,
+          "animationSpeed": 2
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 40
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 7,
+      "dy": -6,
+      "state": "Visible",
+      "darkness": 64,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1334,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 40
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 8,
+      "dy": -6,
+      "state": "Visible",
+      "darkness": 128,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1546,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [
+        {
+          "layer": 1,
+          "face": 645,
+          "sizeX": 4,
+          "sizeY": 2
+        }
+      ],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 40
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 9,
+      "dy": -6,
+      "state": "Visible",
+      "darkness": 192,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1333,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [
+        {
+          "layer": 1,
+          "face": 645,
+          "sizeX": 3,
+          "sizeY": 2
+        }
+      ],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 40
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 10,
+      "dy": -6,
+      "state": "Empty",
+      "darkness": 0,
+      "heads": [],
+      "tails": [
+        {
+          "layer": 1,
+          "face": 645,
+          "sizeX": 2,
+          "sizeY": 2
+        }
+      ],
+      "smooth": [],
+      "labels": []
+    },
+    {
+      "dx": 11,
+      "dy": -6,
+      "state": "Empty",
+      "darkness": 0,
+      "heads": [],
+      "tails": [
+        {
+          "layer": 1,
+          "face": 645,
+          "sizeX": 1,
+          "sizeY": 2
+        }
+      ],
+      "smooth": [],
+      "labels": []
+    },
+    {
+      "dx": 12,
+      "dy": -6,
+      "state": "Empty",
+      "darkness": 0,
+      "heads": [],
+      "tails": [
+        {
+          "layer": 1,
+          "face": 645,
+          "sizeX": 0,
+          "sizeY": 2
+        }
+      ],
+      "smooth": [],
+      "labels": []
+    },
+    {
+      "dx": -5,
+      "dy": -5,
+      "state": "Visible",
+      "darkness": 192,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1000,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 30
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": -4,
+      "dy": -5,
+      "state": "Visible",
+      "darkness": 128,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1000,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 30
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": -3,
+      "dy": -5,
+      "state": "Visible",
+      "darkness": 128,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1000,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 30
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": -2,
+      "dy": -5,
+      "state": "Visible",
+      "darkness": 128,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1000,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 30
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": -1,
+      "dy": -5,
+      "state": "Visible",
+      "darkness": 128,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1000,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 30
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 0,
+      "dy": -5,
+      "state": "Visible",
+      "darkness": 128,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1000,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 30
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 1,
+      "dy": -5,
+      "state": "Visible",
+      "darkness": 192,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1000,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 30
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 3,
+      "dy": -5,
+      "state": "Visible",
+      "darkness": 192,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1000,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 30
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 4,
+      "dy": -5,
+      "state": "Visible",
+      "darkness": 128,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1000,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 30
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 5,
+      "dy": -5,
+      "state": "Visible",
+      "darkness": 64,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1000,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 30
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 6,
+      "dy": -5,
+      "state": "Visible",
+      "darkness": 64,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1000,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 30
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 7,
+      "dy": -5,
+      "state": "Visible",
+      "darkness": 64,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1000,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 30
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 8,
+      "dy": -5,
+      "state": "Visible",
+      "darkness": 128,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1000,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [
+        {
+          "layer": 1,
+          "face": 645,
+          "sizeX": 4,
+          "sizeY": 1
+        }
+      ],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 30
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 9,
+      "dy": -5,
+      "state": "Visible",
+      "darkness": 192,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1333,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [
+        {
+          "layer": 1,
+          "face": 645,
+          "sizeX": 3,
+          "sizeY": 1
+        }
+      ],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 40
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 10,
+      "dy": -5,
+      "state": "Empty",
+      "darkness": 0,
+      "heads": [],
+      "tails": [
+        {
+          "layer": 1,
+          "face": 645,
+          "sizeX": 2,
+          "sizeY": 1
+        }
+      ],
+      "smooth": [],
+      "labels": []
+    },
+    {
+      "dx": 11,
+      "dy": -5,
+      "state": "Empty",
+      "darkness": 0,
+      "heads": [],
+      "tails": [
+        {
+          "layer": 1,
+          "face": 645,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "smooth": [],
+      "labels": []
+    },
+    {
+      "dx": 12,
+      "dy": -5,
+      "state": "Empty",
+      "darkness": 0,
+      "heads": [],
+      "tails": [
+        {
+          "layer": 1,
+          "face": 645,
+          "sizeX": 0,
+          "sizeY": 1
+        }
+      ],
+      "smooth": [],
+      "labels": []
+    },
+    {
+      "dx": -4,
+      "dy": -4,
+      "state": "Visible",
+      "darkness": 128,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1000,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -3332,11 +2959,11 @@
       "dx": -3,
       "dy": -4,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 128,
       "heads": [
         {
           "layer": 0,
-          "face": 999,
+          "face": 1000,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -3354,11 +2981,11 @@
       "dx": -2,
       "dy": -4,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 128,
       "heads": [
         {
           "layer": 0,
-          "face": 999,
+          "face": 1000,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -3376,11 +3003,11 @@
       "dx": -1,
       "dy": -4,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 128,
       "heads": [
         {
           "layer": 0,
-          "face": 999,
+          "face": 1000,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -3398,55 +3025,11 @@
       "dx": 0,
       "dy": -4,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 128,
       "heads": [
         {
           "layer": 0,
-          "face": 999,
-          "sizeX": 1,
-          "sizeY": 1
-        }
-      ],
-      "tails": [],
-      "smooth": [
-        {
-          "layer": 0,
-          "value": 30
-        }
-      ],
-      "labels": []
-    },
-    {
-      "dx": 1,
-      "dy": -4,
-      "state": "Visible",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 999,
-          "sizeX": 1,
-          "sizeY": 1
-        }
-      ],
-      "tails": [],
-      "smooth": [
-        {
-          "layer": 0,
-          "value": 30
-        }
-      ],
-      "labels": []
-    },
-    {
-      "dx": 2,
-      "dy": -4,
-      "state": "Visible",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 999,
+          "face": 1000,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -3464,11 +3047,11 @@
       "dx": 3,
       "dy": -4,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 192,
       "heads": [
         {
           "layer": 0,
-          "face": 999,
+          "face": 1000,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -3486,11 +3069,11 @@
       "dx": 4,
       "dy": -4,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 128,
       "heads": [
         {
           "layer": 0,
-          "face": 999,
+          "face": 1000,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -3508,11 +3091,11 @@
       "dx": 5,
       "dy": -4,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 128,
       "heads": [
         {
           "layer": 0,
-          "face": 999,
+          "face": 1000,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -3530,11 +3113,11 @@
       "dx": 6,
       "dy": -4,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 128,
       "heads": [
         {
           "layer": 0,
-          "face": 999,
+          "face": 1000,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -3552,11 +3135,11 @@
       "dx": 7,
       "dy": -4,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 128,
       "heads": [
         {
           "layer": 0,
-          "face": 999,
+          "face": 1000,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -3574,11 +3157,11 @@
       "dx": 8,
       "dy": -4,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 128,
       "heads": [
         {
           "layer": 0,
-          "face": 999,
+          "face": 1000,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -3586,7 +3169,7 @@
       "tails": [
         {
           "layer": 1,
-          "face": 644,
+          "face": 645,
           "sizeX": 4,
           "sizeY": 0
         }
@@ -3608,7 +3191,7 @@
       "tails": [
         {
           "layer": 1,
-          "face": 644,
+          "face": 645,
           "sizeX": 3,
           "sizeY": 0
         }
@@ -3625,7 +3208,7 @@
       "tails": [
         {
           "layer": 1,
-          "face": 644,
+          "face": 645,
           "sizeX": 2,
           "sizeY": 0
         }
@@ -3642,7 +3225,7 @@
       "tails": [
         {
           "layer": 1,
-          "face": 644,
+          "face": 645,
           "sizeX": 1,
           "sizeY": 0
         }
@@ -3653,12 +3236,12 @@
     {
       "dx": 12,
       "dy": -4,
-      "state": "Visible",
+      "state": "Empty",
       "darkness": 0,
       "heads": [
         {
           "layer": 1,
-          "face": 644,
+          "face": 645,
           "sizeX": 5,
           "sizeY": 3
         }
@@ -3671,17 +3254,17 @@
       "dx": -6,
       "dy": -3,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 192,
       "heads": [
         {
           "layer": 0,
-          "face": 1332,
+          "face": 1333,
           "sizeX": 1,
           "sizeY": 1
         },
         {
           "layer": 1,
-          "face": 5575,
+          "face": 5577,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -3699,17 +3282,17 @@
       "dx": -5,
       "dy": -3,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 192,
       "heads": [
         {
           "layer": 0,
-          "face": 1332,
+          "face": 1333,
           "sizeX": 1,
           "sizeY": 1
         },
         {
           "layer": 1,
-          "animation": 169,
+          "animation": 170,
           "animationSpeed": 2
         }
       ],
@@ -3726,11 +3309,11 @@
       "dx": -4,
       "dy": -3,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 128,
       "heads": [
         {
           "layer": 0,
-          "face": 999,
+          "face": 1000,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -3748,11 +3331,11 @@
       "dx": -3,
       "dy": -3,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 128,
       "heads": [
         {
           "layer": 0,
-          "face": 999,
+          "face": 1000,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -3770,11 +3353,11 @@
       "dx": -2,
       "dy": -3,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 128,
       "heads": [
         {
           "layer": 0,
-          "face": 1332,
+          "face": 1333,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -3782,7 +3365,7 @@
       "tails": [
         {
           "layer": 1,
-          "face": 642,
+          "face": 643,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -3799,11 +3382,11 @@
       "dx": -1,
       "dy": -3,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 128,
       "heads": [
         {
           "layer": 0,
-          "face": 1332,
+          "face": 1333,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -3811,7 +3394,7 @@
       "tails": [
         {
           "layer": 1,
-          "face": 642,
+          "face": 643,
           "sizeX": 0,
           "sizeY": 1
         }
@@ -3828,159 +3411,7 @@
       "dx": 0,
       "dy": -3,
       "state": "Visible",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 1332,
-          "sizeX": 1,
-          "sizeY": 1
-        }
-      ],
-      "tails": [],
-      "smooth": [
-        {
-          "layer": 0,
-          "value": 40
-        }
-      ],
-      "labels": []
-    },
-    {
-      "dx": 1,
-      "dy": -3,
-      "state": "Visible",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 1332,
-          "sizeX": 1,
-          "sizeY": 1
-        }
-      ],
-      "tails": [],
-      "smooth": [
-        {
-          "layer": 0,
-          "value": 40
-        }
-      ],
-      "labels": []
-    },
-    {
-      "dx": 2,
-      "dy": -3,
-      "state": "Visible",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 1332,
-          "sizeX": 1,
-          "sizeY": 1
-        }
-      ],
-      "tails": [],
-      "smooth": [
-        {
-          "layer": 0,
-          "value": 40
-        }
-      ],
-      "labels": []
-    },
-    {
-      "dx": 3,
-      "dy": -3,
-      "state": "Visible",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 1332,
-          "sizeX": 1,
-          "sizeY": 1
-        }
-      ],
-      "tails": [
-        {
-          "layer": 1,
-          "face": 686,
-          "sizeX": 1,
-          "sizeY": 1
-        }
-      ],
-      "smooth": [
-        {
-          "layer": 0,
-          "value": 40
-        }
-      ],
-      "labels": []
-    },
-    {
-      "dx": 4,
-      "dy": -3,
-      "state": "Visible",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 1332,
-          "sizeX": 1,
-          "sizeY": 1
-        }
-      ],
-      "tails": [
-        {
-          "layer": 1,
-          "face": 686,
-          "sizeX": 0,
-          "sizeY": 1
-        }
-      ],
-      "smooth": [
-        {
-          "layer": 0,
-          "value": 40
-        }
-      ],
-      "labels": []
-    },
-    {
-      "dx": 5,
-      "dy": -3,
-      "state": "Visible",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 1332,
-          "sizeX": 1,
-          "sizeY": 1
-        },
-        {
-          "layer": 1,
-          "face": 6260,
-          "sizeX": 1,
-          "sizeY": 1
-        }
-      ],
-      "tails": [],
-      "smooth": [
-        {
-          "layer": 0,
-          "value": 40
-        }
-      ],
-      "labels": []
-    },
-    {
-      "dx": 6,
-      "dy": -3,
-      "state": "Visible",
-      "darkness": 0,
+      "darkness": 128,
       "heads": [
         {
           "layer": 0,
@@ -3999,14 +3430,132 @@
       "labels": []
     },
     {
-      "dx": 7,
+      "dx": 1,
       "dy": -3,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 192,
       "heads": [
         {
           "layer": 0,
-          "face": 1562,
+          "face": 1333,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 40
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 3,
+      "dy": -3,
+      "state": "Empty",
+      "darkness": 0,
+      "heads": [],
+      "tails": [
+        {
+          "layer": 1,
+          "face": 687,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "smooth": [],
+      "labels": []
+    },
+    {
+      "dx": 4,
+      "dy": -3,
+      "state": "Visible",
+      "darkness": 192,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1333,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [
+        {
+          "layer": 1,
+          "face": 687,
+          "sizeX": 0,
+          "sizeY": 1
+        }
+      ],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 40
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 5,
+      "dy": -3,
+      "state": "Visible",
+      "darkness": 192,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1333,
+          "sizeX": 1,
+          "sizeY": 1
+        },
+        {
+          "layer": 1,
+          "face": 6262,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 40
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 6,
+      "dy": -3,
+      "state": "Visible",
+      "darkness": 192,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1334,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 40
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 7,
+      "dy": -3,
+      "state": "Visible",
+      "darkness": 192,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1563,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -4024,17 +3573,17 @@
       "dx": -7,
       "dy": -2,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 128,
       "heads": [
         {
           "layer": 0,
-          "face": 1332,
+          "face": 1333,
           "sizeX": 1,
           "sizeY": 1
         },
         {
           "layer": 1,
-          "face": 5580,
+          "face": 5582,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -4052,17 +3601,17 @@
       "dx": -6,
       "dy": -2,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 192,
       "heads": [
         {
           "layer": 0,
-          "face": 1332,
+          "face": 1333,
           "sizeX": 1,
           "sizeY": 1
         },
         {
           "layer": 1,
-          "face": 5579,
+          "face": 5581,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -4080,11 +3629,11 @@
       "dx": -5,
       "dy": -2,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 192,
       "heads": [
         {
           "layer": 0,
-          "face": 1332,
+          "face": 1333,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -4102,11 +3651,11 @@
       "dx": -4,
       "dy": -2,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 128,
       "heads": [
         {
           "layer": 0,
-          "face": 999,
+          "face": 1000,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -4124,11 +3673,11 @@
       "dx": -3,
       "dy": -2,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 64,
       "heads": [
         {
           "layer": 0,
-          "face": 999,
+          "face": 1000,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -4146,11 +3695,11 @@
       "dx": -2,
       "dy": -2,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 64,
       "heads": [
         {
           "layer": 0,
-          "face": 1332,
+          "face": 1333,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -4158,7 +3707,7 @@
       "tails": [
         {
           "layer": 1,
-          "face": 642,
+          "face": 643,
           "sizeX": 1,
           "sizeY": 0
         }
@@ -4175,17 +3724,17 @@
       "dx": -1,
       "dy": -2,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 64,
       "heads": [
         {
           "layer": 0,
-          "face": 1332,
+          "face": 1333,
           "sizeX": 1,
           "sizeY": 1
         },
         {
           "layer": 1,
-          "face": 642,
+          "face": 643,
           "sizeX": 2,
           "sizeY": 2
         }
@@ -4203,17 +3752,17 @@
       "dx": 0,
       "dy": -2,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 64,
       "heads": [
         {
           "layer": 0,
-          "face": 1332,
+          "face": 1333,
           "sizeX": 1,
           "sizeY": 1
         },
         {
           "layer": 1,
-          "face": 832,
+          "face": 833,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -4231,11 +3780,11 @@
       "dx": 1,
       "dy": -2,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 128,
       "heads": [
         {
           "layer": 0,
-          "face": 1332,
+          "face": 1333,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -4253,11 +3802,11 @@
       "dx": 2,
       "dy": -2,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 192,
       "heads": [
         {
           "layer": 0,
-          "face": 1332,
+          "face": 1333,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -4275,11 +3824,11 @@
       "dx": 3,
       "dy": -2,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 192,
       "heads": [
         {
           "layer": 0,
-          "face": 1332,
+          "face": 1333,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -4287,7 +3836,7 @@
       "tails": [
         {
           "layer": 1,
-          "face": 686,
+          "face": 687,
           "sizeX": 1,
           "sizeY": 0
         }
@@ -4304,81 +3853,19 @@
       "dx": 4,
       "dy": -2,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 192,
       "heads": [
         {
           "layer": 0,
-          "face": 1332,
+          "face": 1333,
           "sizeX": 1,
           "sizeY": 1
         },
         {
           "layer": 1,
-          "face": 686,
+          "face": 687,
           "sizeX": 2,
           "sizeY": 2
-        }
-      ],
-      "tails": [],
-      "smooth": [
-        {
-          "layer": 0,
-          "value": 40
-        }
-      ],
-      "labels": []
-    },
-    {
-      "dx": 5,
-      "dy": -2,
-      "state": "Visible",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 1332,
-          "sizeX": 1,
-          "sizeY": 1
-        },
-        {
-          "layer": 1,
-          "face": 6255,
-          "sizeX": 1,
-          "sizeY": 1
-        },
-        {
-          "layer": 2,
-          "face": 5576,
-          "sizeX": 1,
-          "sizeY": 1
-        }
-      ],
-      "tails": [],
-      "smooth": [
-        {
-          "layer": 0,
-          "value": 40
-        }
-      ],
-      "labels": []
-    },
-    {
-      "dx": 6,
-      "dy": -2,
-      "state": "Visible",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 1332,
-          "sizeX": 1,
-          "sizeY": 1
-        },
-        {
-          "layer": 1,
-          "face": 5580,
-          "sizeX": 1,
-          "sizeY": 1
         }
       ],
       "tails": [],
@@ -4394,17 +3881,17 @@
       "dx": -11,
       "dy": -1,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 128,
       "heads": [
         {
           "layer": 0,
-          "face": 1332,
+          "face": 1333,
           "sizeX": 1,
           "sizeY": 1
         },
         {
           "layer": 1,
-          "face": 5575,
+          "face": 5577,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -4422,11 +3909,11 @@
       "dx": -10,
       "dy": -1,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 64,
       "heads": [
         {
           "layer": 0,
-          "face": 1332,
+          "face": 1333,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -4448,13 +3935,13 @@
       "heads": [
         {
           "layer": 0,
-          "face": 1332,
+          "face": 1333,
           "sizeX": 1,
           "sizeY": 1
         },
         {
           "layer": 1,
-          "animation": 261,
+          "animation": 262,
           "animationSpeed": 2
         }
       ],
@@ -4471,17 +3958,17 @@
       "dx": -8,
       "dy": -1,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 64,
       "heads": [
         {
           "layer": 0,
-          "face": 1332,
+          "face": 1333,
           "sizeX": 1,
           "sizeY": 1
         },
         {
           "layer": 1,
-          "face": 541,
+          "face": 542,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -4499,17 +3986,17 @@
       "dx": -7,
       "dy": -1,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 128,
       "heads": [
         {
           "layer": 0,
-          "face": 1332,
+          "face": 1333,
           "sizeX": 1,
           "sizeY": 1
         },
         {
           "layer": 1,
-          "face": 550,
+          "face": 551,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -4527,17 +4014,17 @@
       "dx": -6,
       "dy": -1,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 192,
       "heads": [
         {
           "layer": 0,
-          "face": 1332,
+          "face": 1333,
           "sizeX": 1,
           "sizeY": 1
         },
         {
           "layer": 1,
-          "face": 4114,
+          "face": 4115,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -4555,11 +4042,11 @@
       "dx": -5,
       "dy": -1,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 192,
       "heads": [
         {
           "layer": 0,
-          "face": 999,
+          "face": 1000,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -4577,11 +4064,11 @@
       "dx": -4,
       "dy": -1,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 128,
       "heads": [
         {
           "layer": 0,
-          "face": 999,
+          "face": 1000,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -4599,11 +4086,11 @@
       "dx": -3,
       "dy": -1,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 64,
       "heads": [
         {
           "layer": 0,
-          "face": 999,
+          "face": 1000,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -4625,13 +4112,13 @@
       "heads": [
         {
           "layer": 0,
-          "face": 1332,
+          "face": 1333,
           "sizeX": 1,
           "sizeY": 1
         },
         {
           "layer": 1,
-          "animation": 261,
+          "animation": 262,
           "animationSpeed": 2
         }
       ],
@@ -4652,7 +4139,7 @@
       "heads": [
         {
           "layer": 0,
-          "face": 1333,
+          "face": 1334,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -4674,7 +4161,7 @@
       "heads": [
         {
           "layer": 0,
-          "face": 1564,
+          "face": 1565,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -4696,7 +4183,7 @@
       "heads": [
         {
           "layer": 0,
-          "face": 1332,
+          "face": 1333,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -4714,11 +4201,11 @@
       "dx": 2,
       "dy": -1,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 128,
       "heads": [
         {
           "layer": 0,
-          "face": 1332,
+          "face": 1333,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -4736,11 +4223,11 @@
       "dx": 3,
       "dy": -1,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 128,
       "heads": [
         {
           "layer": 0,
-          "face": 1332,
+          "face": 1333,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -4758,17 +4245,17 @@
       "dx": 4,
       "dy": -1,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 128,
       "heads": [
         {
           "layer": 0,
-          "face": 1334,
+          "face": 1335,
           "sizeX": 1,
           "sizeY": 1
         },
         {
           "layer": 1,
-          "face": 1566,
+          "face": 1567,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -4786,17 +4273,17 @@
       "dx": 5,
       "dy": -1,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 192,
       "heads": [
         {
           "layer": 0,
-          "face": 1332,
+          "face": 1333,
           "sizeX": 1,
           "sizeY": 1
         },
         {
           "layer": 1,
-          "face": 5575,
+          "face": 5577,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -4814,17 +4301,17 @@
       "dx": -11,
       "dy": 0,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 64,
       "heads": [
         {
           "layer": 0,
-          "face": 1332,
+          "face": 1333,
           "sizeX": 1,
           "sizeY": 1
         },
         {
           "layer": 1,
-          "face": 5575,
+          "face": 5577,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -4846,7 +4333,7 @@
       "heads": [
         {
           "layer": 0,
-          "face": 999,
+          "face": 1000,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -4864,11 +4351,11 @@
       "dx": -9,
       "dy": 0,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 64,
       "heads": [
         {
           "layer": 0,
-          "face": 999,
+          "face": 1000,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -4886,11 +4373,11 @@
       "dx": -8,
       "dy": 0,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 64,
       "heads": [
         {
           "layer": 0,
-          "face": 999,
+          "face": 1000,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -4908,11 +4395,11 @@
       "dx": -7,
       "dy": 0,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 128,
       "heads": [
         {
           "layer": 0,
-          "face": 999,
+          "face": 1000,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -4930,11 +4417,11 @@
       "dx": -6,
       "dy": 0,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 192,
       "heads": [
         {
           "layer": 0,
-          "face": 999,
+          "face": 1000,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -4952,11 +4439,11 @@
       "dx": -5,
       "dy": 0,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 192,
       "heads": [
         {
           "layer": 0,
-          "face": 999,
+          "face": 1000,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -4974,17 +4461,17 @@
       "dx": -4,
       "dy": 0,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 128,
       "heads": [
         {
           "layer": 0,
-          "face": 999,
+          "face": 1000,
           "sizeX": 1,
           "sizeY": 1
         },
         {
           "layer": 1,
-          "face": 4101,
+          "face": 4102,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -5002,11 +4489,11 @@
       "dx": -3,
       "dy": 0,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 64,
       "heads": [
         {
           "layer": 0,
-          "face": 999,
+          "face": 1000,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -5024,11 +4511,11 @@
       "dx": -2,
       "dy": 0,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 64,
       "heads": [
         {
           "layer": 0,
-          "face": 999,
+          "face": 1000,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -5050,7 +4537,7 @@
       "heads": [
         {
           "layer": 0,
-          "face": 999,
+          "face": 1000,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -5072,7 +4559,7 @@
       "heads": [
         {
           "layer": 0,
-          "face": 999,
+          "face": 1000,
           "sizeX": 1,
           "sizeY": 1
         },
@@ -5105,7 +4592,7 @@
       "heads": [
         {
           "layer": 0,
-          "face": 999,
+          "face": 1000,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -5123,11 +4610,11 @@
       "dx": 2,
       "dy": 0,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 64,
       "heads": [
         {
           "layer": 0,
-          "face": 999,
+          "face": 1000,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -5145,11 +4632,11 @@
       "dx": 3,
       "dy": 0,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 64,
       "heads": [
         {
           "layer": 0,
-          "face": 1332,
+          "face": 1333,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -5157,7 +4644,7 @@
       "tails": [
         {
           "layer": 1,
-          "face": 4314,
+          "face": 4315,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -5174,11 +4661,11 @@
       "dx": 4,
       "dy": 0,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 128,
       "heads": [
         {
           "layer": 0,
-          "face": 1332,
+          "face": 1333,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -5186,7 +4673,7 @@
       "tails": [
         {
           "layer": 1,
-          "face": 4314,
+          "face": 4315,
           "sizeX": 0,
           "sizeY": 1
         }
@@ -5203,17 +4690,17 @@
       "dx": 5,
       "dy": 0,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 192,
       "heads": [
         {
           "layer": 0,
-          "face": 1332,
+          "face": 1333,
           "sizeX": 1,
           "sizeY": 1
         },
         {
           "layer": 1,
-          "face": 5575,
+          "face": 5577,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -5235,13 +4722,13 @@
       "heads": [
         {
           "layer": 0,
-          "face": 1332,
+          "face": 1333,
           "sizeX": 1,
           "sizeY": 1
         },
         {
           "layer": 1,
-          "face": 5577,
+          "face": 5579,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -5263,13 +4750,13 @@
       "heads": [
         {
           "layer": 0,
-          "face": 999,
+          "face": 1000,
           "sizeX": 1,
           "sizeY": 1
         },
         {
           "layer": 1,
-          "face": 5621,
+          "face": 5623,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -5291,7 +4778,414 @@
       "heads": [
         {
           "layer": 0,
-          "face": 1332,
+          "face": 1333,
+          "sizeX": 1,
+          "sizeY": 1
+        },
+        {
+          "layer": 1,
+          "face": 5584,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 40
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": -8,
+      "dy": 1,
+      "state": "Visible",
+      "darkness": 64,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1333,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 40
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": -7,
+      "dy": 1,
+      "state": "Visible",
+      "darkness": 64,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1333,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 40
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": -6,
+      "dy": 1,
+      "state": "Visible",
+      "darkness": 128,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1333,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 40
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": -5,
+      "dy": 1,
+      "state": "Visible",
+      "darkness": 128,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1000,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 30
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": -4,
+      "dy": 1,
+      "state": "Visible",
+      "darkness": 128,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1000,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 30
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": -3,
+      "dy": 1,
+      "state": "Visible",
+      "darkness": 128,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1000,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 30
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": -2,
+      "dy": 1,
+      "state": "Visible",
+      "darkness": 128,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1333,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 40
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": -1,
+      "dy": 1,
+      "state": "Visible",
+      "darkness": 0,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1333,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [
+        {
+          "layer": 1,
+          "face": 546,
+          "sizeX": 1,
+          "sizeY": 0
+        }
+      ],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 40
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 0,
+      "dy": 1,
+      "state": "Visible",
+      "darkness": 0,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1333,
+          "sizeX": 1,
+          "sizeY": 1
+        },
+        {
+          "layer": 1,
+          "face": 546,
+          "sizeX": 2,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 40
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 1,
+      "dy": 1,
+      "state": "Visible",
+      "darkness": 0,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1333,
+          "sizeX": 1,
+          "sizeY": 1
+        },
+        {
+          "layer": 1,
+          "face": 679,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 40
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 2,
+      "dy": 1,
+      "state": "Visible",
+      "darkness": 0,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1333,
+          "sizeX": 1,
+          "sizeY": 1
+        },
+        {
+          "layer": 1,
+          "animation": 262,
+          "animationSpeed": 2
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 40
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 3,
+      "dy": 1,
+      "state": "Visible",
+      "darkness": 64,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1000,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [
+        {
+          "layer": 1,
+          "face": 4315,
+          "sizeX": 1,
+          "sizeY": 0
+        }
+      ],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 30
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 4,
+      "dy": 1,
+      "state": "Visible",
+      "darkness": 128,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1000,
+          "sizeX": 1,
+          "sizeY": 1
+        },
+        {
+          "layer": 1,
+          "face": 4315,
+          "sizeX": 2,
+          "sizeY": 2
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 30
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 5,
+      "dy": 1,
+      "state": "Visible",
+      "darkness": 192,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1333,
+          "sizeX": 1,
+          "sizeY": 1
+        },
+        {
+          "layer": 1,
+          "face": 5577,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 40
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": -9,
+      "dy": 2,
+      "state": "Fog",
+      "darkness": 0,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1333,
+          "sizeX": 1,
+          "sizeY": 1
+        },
+        {
+          "layer": 1,
+          "face": 5583,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 40
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": -8,
+      "dy": 2,
+      "state": "Fog",
+      "darkness": 64,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1333,
           "sizeX": 1,
           "sizeY": 1
         },
@@ -5312,36 +5206,20 @@
       "labels": []
     },
     {
-      "dx": -8,
-      "dy": 1,
-      "state": "Visible",
-      "darkness": 0,
+      "dx": -7,
+      "dy": 2,
+      "state": "Fog",
+      "darkness": 64,
       "heads": [
         {
           "layer": 0,
-          "face": 1332,
+          "face": 1333,
           "sizeX": 1,
           "sizeY": 1
-        }
-      ],
-      "tails": [],
-      "smooth": [
+        },
         {
-          "layer": 0,
-          "value": 40
-        }
-      ],
-      "labels": []
-    },
-    {
-      "dx": -7,
-      "dy": 1,
-      "state": "Visible",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 1332,
+          "layer": 1,
+          "face": 5582,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -5357,13 +5235,19 @@
     },
     {
       "dx": -6,
-      "dy": 1,
-      "state": "Visible",
-      "darkness": 0,
+      "dy": 2,
+      "state": "Fog",
+      "darkness": 128,
       "heads": [
         {
           "layer": 0,
-          "face": 1332,
+          "face": 1333,
+          "sizeX": 1,
+          "sizeY": 1
+        },
+        {
+          "layer": 1,
+          "face": 5582,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -5379,13 +5263,19 @@
     },
     {
       "dx": -5,
-      "dy": 1,
-      "state": "Visible",
-      "darkness": 0,
+      "dy": 2,
+      "state": "Fog",
+      "darkness": 128,
       "heads": [
         {
           "layer": 0,
-          "face": 999,
+          "face": 1000,
+          "sizeX": 1,
+          "sizeY": 1
+        },
+        {
+          "layer": 1,
+          "face": 5586,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -5401,13 +5291,19 @@
     },
     {
       "dx": -4,
-      "dy": 1,
-      "state": "Visible",
-      "darkness": 0,
+      "dy": 2,
+      "state": "Fog",
+      "darkness": 128,
       "heads": [
         {
           "layer": 0,
-          "face": 999,
+          "face": 1000,
+          "sizeX": 1,
+          "sizeY": 1
+        },
+        {
+          "layer": 1,
+          "face": 5623,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -5423,13 +5319,19 @@
     },
     {
       "dx": -3,
-      "dy": 1,
-      "state": "Visible",
-      "darkness": 0,
+      "dy": 2,
+      "state": "Fog",
+      "darkness": 192,
       "heads": [
         {
           "layer": 0,
-          "face": 999,
+          "face": 1000,
+          "sizeX": 1,
+          "sizeY": 1
+        },
+        {
+          "layer": 1,
+          "face": 5586,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -5445,13 +5347,19 @@
     },
     {
       "dx": -2,
-      "dy": 1,
-      "state": "Visible",
-      "darkness": 0,
+      "dy": 2,
+      "state": "Fog",
+      "darkness": 128,
       "heads": [
         {
           "layer": 0,
-          "face": 1332,
+          "face": 1333,
+          "sizeX": 1,
+          "sizeY": 1
+        },
+        {
+          "layer": 1,
+          "face": 5582,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -5467,25 +5375,24 @@
     },
     {
       "dx": -1,
-      "dy": 1,
-      "state": "Visible",
-      "darkness": 0,
+      "dy": 2,
+      "state": "Fog",
+      "darkness": 64,
       "heads": [
         {
           "layer": 0,
-          "face": 1332,
+          "face": 1333,
+          "sizeX": 1,
+          "sizeY": 1
+        },
+        {
+          "layer": 1,
+          "face": 5582,
           "sizeX": 1,
           "sizeY": 1
         }
       ],
-      "tails": [
-        {
-          "layer": 1,
-          "face": 545,
-          "sizeX": 1,
-          "sizeY": 0
-        }
-      ],
+      "tails": [],
       "smooth": [
         {
           "layer": 0,
@@ -5496,20 +5403,20 @@
     },
     {
       "dx": 0,
-      "dy": 1,
+      "dy": 2,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 64,
       "heads": [
         {
           "layer": 0,
-          "face": 1332,
+          "face": 1333,
           "sizeX": 1,
           "sizeY": 1
         },
         {
           "layer": 1,
-          "face": 545,
-          "sizeX": 2,
+          "face": 5582,
+          "sizeX": 1,
           "sizeY": 1
         }
       ],
@@ -5524,19 +5431,19 @@
     },
     {
       "dx": 1,
-      "dy": 1,
+      "dy": 2,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 64,
       "heads": [
         {
           "layer": 0,
-          "face": 1332,
+          "face": 1333,
           "sizeX": 1,
           "sizeY": 1
         },
         {
           "layer": 1,
-          "face": 678,
+          "face": 5582,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -5552,20 +5459,21 @@
     },
     {
       "dx": 2,
-      "dy": 1,
+      "dy": 2,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 64,
       "heads": [
         {
           "layer": 0,
-          "face": 1332,
+          "face": 1333,
           "sizeX": 1,
           "sizeY": 1
         },
         {
           "layer": 1,
-          "animation": 261,
-          "animationSpeed": 2
+          "face": 5582,
+          "sizeX": 1,
+          "sizeY": 1
         }
       ],
       "tails": [],
@@ -5579,76 +5487,19 @@
     },
     {
       "dx": 3,
-      "dy": 1,
+      "dy": 2,
       "state": "Visible",
-      "darkness": 0,
+      "darkness": 64,
       "heads": [
         {
           "layer": 0,
-          "face": 999,
-          "sizeX": 1,
-          "sizeY": 1
-        }
-      ],
-      "tails": [
-        {
-          "layer": 1,
-          "face": 4314,
-          "sizeX": 1,
-          "sizeY": 0
-        }
-      ],
-      "smooth": [
-        {
-          "layer": 0,
-          "value": 30
-        }
-      ],
-      "labels": []
-    },
-    {
-      "dx": 4,
-      "dy": 1,
-      "state": "Visible",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 999,
+          "face": 1333,
           "sizeX": 1,
           "sizeY": 1
         },
         {
           "layer": 1,
-          "face": 4314,
-          "sizeX": 2,
-          "sizeY": 2
-        }
-      ],
-      "tails": [],
-      "smooth": [
-        {
-          "layer": 0,
-          "value": 30
-        }
-      ],
-      "labels": []
-    },
-    {
-      "dx": 5,
-      "dy": 1,
-      "state": "Visible",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 1332,
-          "sizeX": 1,
-          "sizeY": 1
-        },
-        {
-          "layer": 1,
-          "face": 5575,
+          "face": 5582,
           "sizeX": 1,
           "sizeY": 1
         }
@@ -5663,412 +5514,48 @@
       "labels": []
     },
     {
-      "dx": -9,
+      "dx": 4,
       "dy": 2,
-      "state": "Fog",
-      "darkness": 0,
+      "state": "Visible",
+      "darkness": 128,
       "heads": [
         {
           "layer": 0,
-          "face": 1332,
+          "face": 1333,
+          "sizeX": 1,
+          "sizeY": 1
+        },
+        {
+          "layer": 1,
+          "face": 5582,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 40
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 5,
+      "dy": 2,
+      "state": "Visible",
+      "darkness": 192,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1333,
           "sizeX": 1,
           "sizeY": 1
         },
         {
           "layer": 1,
           "face": 5581,
-          "sizeX": 1,
-          "sizeY": 1
-        }
-      ],
-      "tails": [],
-      "smooth": [
-        {
-          "layer": 0,
-          "value": 40
-        }
-      ],
-      "labels": []
-    },
-    {
-      "dx": -8,
-      "dy": 2,
-      "state": "Fog",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 1332,
-          "sizeX": 1,
-          "sizeY": 1
-        },
-        {
-          "layer": 1,
-          "face": 5580,
-          "sizeX": 1,
-          "sizeY": 1
-        }
-      ],
-      "tails": [],
-      "smooth": [
-        {
-          "layer": 0,
-          "value": 40
-        }
-      ],
-      "labels": []
-    },
-    {
-      "dx": -7,
-      "dy": 2,
-      "state": "Fog",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 1332,
-          "sizeX": 1,
-          "sizeY": 1
-        },
-        {
-          "layer": 1,
-          "face": 5580,
-          "sizeX": 1,
-          "sizeY": 1
-        }
-      ],
-      "tails": [],
-      "smooth": [
-        {
-          "layer": 0,
-          "value": 40
-        }
-      ],
-      "labels": []
-    },
-    {
-      "dx": -6,
-      "dy": 2,
-      "state": "Fog",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 1332,
-          "sizeX": 1,
-          "sizeY": 1
-        },
-        {
-          "layer": 1,
-          "face": 5580,
-          "sizeX": 1,
-          "sizeY": 1
-        }
-      ],
-      "tails": [],
-      "smooth": [
-        {
-          "layer": 0,
-          "value": 40
-        }
-      ],
-      "labels": []
-    },
-    {
-      "dx": -5,
-      "dy": 2,
-      "state": "Fog",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 999,
-          "sizeX": 1,
-          "sizeY": 1
-        },
-        {
-          "layer": 1,
-          "face": 5584,
-          "sizeX": 1,
-          "sizeY": 1
-        }
-      ],
-      "tails": [],
-      "smooth": [
-        {
-          "layer": 0,
-          "value": 30
-        }
-      ],
-      "labels": []
-    },
-    {
-      "dx": -4,
-      "dy": 2,
-      "state": "Fog",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 999,
-          "sizeX": 1,
-          "sizeY": 1
-        },
-        {
-          "layer": 1,
-          "face": 5621,
-          "sizeX": 1,
-          "sizeY": 1
-        }
-      ],
-      "tails": [],
-      "smooth": [
-        {
-          "layer": 0,
-          "value": 30
-        }
-      ],
-      "labels": []
-    },
-    {
-      "dx": -3,
-      "dy": 2,
-      "state": "Fog",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 999,
-          "sizeX": 1,
-          "sizeY": 1
-        },
-        {
-          "layer": 1,
-          "face": 5584,
-          "sizeX": 1,
-          "sizeY": 1
-        }
-      ],
-      "tails": [],
-      "smooth": [
-        {
-          "layer": 0,
-          "value": 30
-        }
-      ],
-      "labels": []
-    },
-    {
-      "dx": -2,
-      "dy": 2,
-      "state": "Fog",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 1332,
-          "sizeX": 1,
-          "sizeY": 1
-        },
-        {
-          "layer": 1,
-          "face": 5580,
-          "sizeX": 1,
-          "sizeY": 1
-        }
-      ],
-      "tails": [],
-      "smooth": [
-        {
-          "layer": 0,
-          "value": 40
-        }
-      ],
-      "labels": []
-    },
-    {
-      "dx": -1,
-      "dy": 2,
-      "state": "Fog",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 1332,
-          "sizeX": 1,
-          "sizeY": 1
-        },
-        {
-          "layer": 1,
-          "face": 5580,
-          "sizeX": 1,
-          "sizeY": 1
-        }
-      ],
-      "tails": [],
-      "smooth": [
-        {
-          "layer": 0,
-          "value": 40
-        }
-      ],
-      "labels": []
-    },
-    {
-      "dx": 0,
-      "dy": 2,
-      "state": "Visible",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 1332,
-          "sizeX": 1,
-          "sizeY": 1
-        },
-        {
-          "layer": 1,
-          "face": 5580,
-          "sizeX": 1,
-          "sizeY": 1
-        }
-      ],
-      "tails": [],
-      "smooth": [
-        {
-          "layer": 0,
-          "value": 40
-        }
-      ],
-      "labels": []
-    },
-    {
-      "dx": 1,
-      "dy": 2,
-      "state": "Visible",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 1332,
-          "sizeX": 1,
-          "sizeY": 1
-        },
-        {
-          "layer": 1,
-          "face": 5580,
-          "sizeX": 1,
-          "sizeY": 1
-        }
-      ],
-      "tails": [],
-      "smooth": [
-        {
-          "layer": 0,
-          "value": 40
-        }
-      ],
-      "labels": []
-    },
-    {
-      "dx": 2,
-      "dy": 2,
-      "state": "Visible",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 1332,
-          "sizeX": 1,
-          "sizeY": 1
-        },
-        {
-          "layer": 1,
-          "face": 5580,
-          "sizeX": 1,
-          "sizeY": 1
-        }
-      ],
-      "tails": [],
-      "smooth": [
-        {
-          "layer": 0,
-          "value": 40
-        }
-      ],
-      "labels": []
-    },
-    {
-      "dx": 3,
-      "dy": 2,
-      "state": "Visible",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 1332,
-          "sizeX": 1,
-          "sizeY": 1
-        },
-        {
-          "layer": 1,
-          "face": 5580,
-          "sizeX": 1,
-          "sizeY": 1
-        }
-      ],
-      "tails": [],
-      "smooth": [
-        {
-          "layer": 0,
-          "value": 40
-        }
-      ],
-      "labels": []
-    },
-    {
-      "dx": 4,
-      "dy": 2,
-      "state": "Visible",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 1332,
-          "sizeX": 1,
-          "sizeY": 1
-        },
-        {
-          "layer": 1,
-          "face": 5580,
-          "sizeX": 1,
-          "sizeY": 1
-        }
-      ],
-      "tails": [],
-      "smooth": [
-        {
-          "layer": 0,
-          "value": 40
-        }
-      ],
-      "labels": []
-    },
-    {
-      "dx": 5,
-      "dy": 2,
-      "state": "Visible",
-      "darkness": 0,
-      "heads": [
-        {
-          "layer": 0,
-          "face": 1332,
-          "sizeX": 1,
-          "sizeY": 1
-        },
-        {
-          "layer": 1,
-          "face": 5579,
           "sizeX": 1,
           "sizeY": 1
         }

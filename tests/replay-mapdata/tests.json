@@ -1,20 +1,45 @@
 [
   {
-    "name": "entered-scorn compact",
-    "log": "tests/replay-mapdata/logs/big-face-in-scorn.log",
-    "mark": "entered scorn",
-    "state": "tests/replay-mapdata/states/entered-scorn.state.json"
-  },
-  {
     "name": "entered-scorn converted",
-    "log": "tests/replay-mapdata/logs/big-face-in-scorn.converted.log",
+    "log": "tests/replay-mapdata/logs/scorn.converted.log",
     "mark": "entered scorn",
     "state": "tests/replay-mapdata/states/entered-scorn.state.json"
   },
   {
-    "name": "partial big face",
+    "name": "head no longer visible",
     "log": "tests/replay-mapdata/logs/big-face-in-scorn.log",
-    "mark": "with invalid head",
-    "state": "tests/replay-mapdata/states/big-face-in-scorn.state.json"
+    "mark": "big face head cleared",
+    "state": "tests/replay-mapdata/states/big-face-head-cleared.state.json"
+  },
+  {
+    "name": "tail becoming visible",
+    "log": "tests/replay-mapdata/logs/big-face-in-scorn.log",
+    "mark": "after update",
+    "state": "tests/replay-mapdata/states/after-update.state-565.json"
+  },
+  {
+    "name": "head becoming visible",
+    "log": "tests/replay-mapdata/logs/big-face-in-scorn.log",
+    "mark": "from tail to head",
+    "state": "tests/replay-mapdata/states/from-tail-to-head.state-574.json"
+  },
+  {
+    "name": "player leaving visible big face head",
+    "log": "tests/replay-mapdata/logs/big-face-in-scorn-during-daytime.converted.log",
+    "mark": "left bigface",
+    "state": "tests/replay-mapdata/states/big-face-in-scorn-during-daytime.converted.log-left-bigface-734.state.json"
+  },
+  {
+    "name": "big face head moving to fog",
+    "log": "tests/replay-mapdata/logs/zoo.log",
+    "mark": "after cyclops move",
+    "state": "tests/replay-mapdata/states/zoo-after-cyclops-move-1789.state.json"
+  },
+  {
+    "name": "big face head moving to visible",
+    "log": "tests/replay-mapdata/logs/zoo.log",
+    "mark": "After knight move",
+    "state": "tests/replay-mapdata/states/after-knight-moves.state.json"
   }
 ]
+

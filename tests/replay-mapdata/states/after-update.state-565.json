@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "replayFileName": "big-face-in-scorn.log",
+    "markLabel": "after update",
+    "entryIndex": 566
+  },
+  "capturedAtIso": "2026-05-28T10:30:50.057Z",
+  "mapSize": {
+    "width": 512,
+    "height": 512
+  },
+  "viewSize": {
+    "width": 25,
+    "height": 24
+  },
+  "playerAbsolute": {
+    "x": 293,
+    "y": 274
+  },
+  "cells": [
+    {
+      "dx": 1,
+      "dy": 0,
+      "state": "Visible",
+      "darkness": 192,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1333,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [
+        {
+          "layer": 1,
+          "face": 645,
+          "sizeX": 1,
+          "sizeY": 0
+        }
+      ],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 40
+        }
+      ],
+      "labels": []
+    }
+  ]
+}
