@@ -67,6 +67,33 @@ There is also a separate unlinked replay page at:
 It accepts both the compact downloaded ws-recording logs and the converted text
 format from `npm run recording:convert`.
 
+The replay page also has an **Export mapdata state** button. Replay to the mark
+you want, then export a human-readable JSON snapshot where each cell is stored
+with position relative to the player.
+
+## Mapdata replay tests
+
+Run the mapdata replay tests with:
+
+```bash
+npm run test:mapdata
+```
+
+Test cases are listed in:
+
+```
+tests/replay-mapdata/tests.json
+```
+
+Each case has:
+
+- `name`: test name
+- `log`: replay log path (compact or converted format)
+- `mark`: MARK label to replay up to
+- `state`: expected mapdata state JSON path
+
+Only cells listed in the state file are compared.
+
 ## Protocol changes
 
 Web pages can't use raw TCP sockets so WebSockets has to be used.

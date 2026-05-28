@@ -24,6 +24,9 @@ jobs:
       - name: Run checks
         run: npm run check
 
+      - name: Run mapdata replay tests
+        run: npm run test:mapdata
+
       - name: Run formatting checks
         run: npm run format:check
 
