@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "replayFileName": "zoo.log",
+    "markLabel": "after cyclops move",
+    "entryIndex": 1788
+  },
+  "capturedAtIso": "2026-05-28T18:07:05.435Z",
+  "mapSize": {
+    "width": 512,
+    "height": 512
+  },
+  "viewSize": {
+    "width": 25,
+    "height": 25
+  },
+  "playerAbsolute": {
+    "x": 360,
+    "y": 290
+  },
+  "cells": [
+        {
+      "dx": 5,
+      "dy": -10,
+      "state": "Fog",
+      "darkness": 0,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1005,
+          "sizeX": 1,
+          "sizeY": 1
+        },
+        {
+          "layer": 6,
+          "face": 2766,
+          "sizeX": 2,
+          "sizeY": 3
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 16
+        }
+      ],
+      "labels": []
+    }
+  ]
+}

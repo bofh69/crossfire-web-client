@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "replayFileName": "big-face-in-scorn-during-daytime.converted.log",
+    "markLabel": "left bigface",
+    "entryIndex": 734
+  },
+  "capturedAtIso": "2026-05-28T13:12:54.247Z",
+  "mapSize": {
+    "width": 512,
+    "height": 512
+  },
+  "viewSize": {
+    "width": 25,
+    "height": 25
+  },
+  "playerAbsolute": {
+    "x": 284,
+    "y": 280
+  },
+  "cells": [
+        {
+      "dx": 0,
+      "dy": 1,
+      "state": "Visible",
+      "darkness": 0,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1333,
+          "sizeX": 1,
+          "sizeY": 1
+        },
+        {
+          "layer": 1,
+          "face": 546,
+          "sizeX": 2,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 40
+        }
+      ],
+      "labels": []
+    }
+  ]
+}

@@ -1,0 +1,109 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "replayFileName": "zoo.log",
+    "markLabel": "After knight moves",
+    "entryIndex": 1664
+  },
+  "capturedAtIso": "2026-05-28T18:51:17.313Z",
+  "mapSize": {
+    "width": 512,
+    "height": 512
+  },
+  "viewSize": {
+    "width": 25,
+    "height": 25
+  },
+  "playerAbsolute": {
+    "x": 361,
+    "y": 283
+  },
+  "cells": [
+    {
+      "dx": 2,
+      "dy": 10,
+      "state": "Visible",
+      "darkness": 0,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1005,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [
+        {
+          "layer": 6,
+          "face": 2749,
+          "sizeX": 0,
+          "sizeY": 2
+        }
+      ],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 16
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 2,
+      "dy": 11,
+      "state": "Visible",
+      "darkness": 0,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1005,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [
+        {
+          "layer": 6,
+          "face": 2749,
+          "sizeX": 0,
+          "sizeY": 1
+        }
+      ],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 16
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 2,
+      "dy": 12,
+      "state": "Visible",
+      "darkness": 0,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1005,
+          "sizeX": 1,
+          "sizeY": 1
+        },
+        {
+          "layer": 6,
+          "face": 2749,
+          "sizeX": 2,
+          "sizeY": 3
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 16
+        }
+      ],
+      "labels": []
+    }
+  ]
+}
