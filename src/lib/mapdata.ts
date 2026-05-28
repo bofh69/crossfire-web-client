@@ -142,6 +142,13 @@ let tailSizeY = new Uint8Array(0);
 // ── Smooth values [idx * L + layer] ──────────────────────────────────────────
 let smooth = new Uint8Array(0);
 
+// ── Per-layer "updated after clear" flag [idx * L + layer] ───────────────────
+// Non-zero when the server explicitly re-sent face data for this layer while
+// the cell was in Fog state (after receiving a clear_space for that cell).
+// Used by begin() to preserve big-face head layers that the server confirmed
+// are still valid even though they were preceded by a clear_space.
+let layerUpdatedAfterClear = new Uint8Array(0);
+
 /** Sparse label storage: keyed by flat cell index. */
 let cellLabels = new Map<number, MapLabel[]>();
 
@@ -303,6 +310,7 @@ function clearCells(x: number, y: number, lenY: number): void {
   tailSizeX.fill(0, startLi, endLi);
   tailSizeY.fill(0, startLi, endLi);
   smooth.fill(0, startLi, endLi);
+  layerUpdatedAfterClear.fill(0, startLi, endLi);
 }
 
 function markResmooth(x: number, y: number, layer: number): void {
@@ -591,6 +599,8 @@ function mapdataAlloc(w: number, h: number): void {
 
   smooth = new Uint8Array(NL);
 
+  layerUpdatedAfterClear = new Uint8Array(NL);
+
   // headSizeX/Y default to 1 (single tile) so that callers can read them
   // before any face has been placed.
   headSizeX.fill(1);
@@ -666,6 +676,9 @@ function mapdataClear(x: number, y: number): void {
         expandNeedUpdateFromLayer(px, py, l);
       }
     }
+    // Reset "updated after clear" bits: the cell is entering a new Fog period
+    // and has not yet received any server updates after a clear_space.
+    layerUpdatedAfterClear.fill(0, idx * L, idx * L + L);
   }
 
   cellState[idx] = MapCellState.Fog;
@@ -742,6 +755,7 @@ function recenterVirtualMapView(diffX: number, diffY: number): void {
     tailSizeX.fill(0);
     tailSizeY.fill(0);
     smooth.fill(0);
+    layerUpdatedAfterClear.fill(0);
     cellLabels.clear();
     pl_pos.x = Math.floor(mapWidth / 2 - viewWidth / 2);
     pl_pos.y = Math.floor(mapHeight / 2 - viewHeight / 2);
@@ -813,6 +827,11 @@ function recenterVirtualMapView(diffX: number, diffY: number): void {
     tailSizeX.copyWithin(dstLiBase, srcLiBase, srcLiBase + copyLenL);
     tailSizeY.copyWithin(dstLiBase, srcLiBase, srcLiBase + copyLenL);
     smooth.copyWithin(dstLiBase, srcLiBase, srcLiBase + copyLenL);
+    layerUpdatedAfterClear.copyWithin(
+      dstLiBase,
+      srcLiBase,
+      srcLiBase + copyLenL,
+    );
   }
 
   // Shift labels: rebuild the sparse map with updated indices.
@@ -966,6 +985,7 @@ export function mapdata_free(): void {
   tailSizeX = new Uint8Array(0);
   tailSizeY = new Uint8Array(0);
   smooth = new Uint8Array(0);
+  layerUpdatedAfterClear = new Uint8Array(0);
   cellLabels = new Map();
   mapWidth = 0;
   mapHeight = 0;
@@ -1146,164 +1166,585 @@ export function mapdata_bigface_head(
   return { face: 0, ww: 1, hh: 1 };
 }
 
-/** Clear a map space (called from Map2Cmd). View-relative coordinates. */
-export function mapdata_clear_space(x: number, y: number): void {
-  if (x < viewWidth && y < viewHeight) {
-    notifyWatchedCell(
-      pl_pos.x + x,
-      pl_pos.y + y,
-      "space cleared (transitioning to fog)",
-    );
-    mapdataClear(x, y);
-  } else {
-    for (let i = 0; i < MAXLAYERS; i++) {
-      expandSetBigface(x, y, i, 0, true);
+/**
+ * Staged per-cell update API: map mutations are applied to a copied cell and
+ * written back atomically when {@link commit} is called.
+ */
+export interface MapdataCellUpdate {
+  /** Apply a clear-space operation to the staged cell copy. */
+  clear_space(): void;
+  /** Apply a post-update blank-space check to the staged cell copy. */
+  set_check_space(): void;
+  /** Apply a darkness update to the staged cell copy. */
+  set_darkness(darkness: number): void;
+  /** Apply a smooth-value update on a layer in the staged cell copy. */
+  set_smooth(smoothVal: number, layer: number): void;
+  /** Apply label clearing for the staged cell copy. */
+  clear_label_view(): void;
+  /** Apply a label addition for the staged cell copy. */
+  add_label(subtype: number, label: string): void;
+  /** Apply a static face assignment for a layer in the staged cell copy. */
+  set_face_layer(face: number, layer: number): void;
+  /** Apply an animation assignment for a layer in the staged cell copy. */
+  set_anim_layer(anim: number, animSpeed: number, layer: number): void;
+  /** Copy staged cell data into mapdata and end the staged update. */
+  commit(): void;
+}
+
+class ReusableMapdataCellUpdate implements MapdataCellUpdate {
+  private x = 0;
+  private y = 0;
+  private active = false;
+  private workingCell: MapCell | null = null;
+  private readonly dirtyLayers: boolean[] = new Array<boolean>(L).fill(false);
+  private clearSpaceCalled = false;
+  private originalCell: MapCell | null = null;
+  /**
+   * The cell state before `begin()` ran.  Used by the big-face-head guard in
+   * `commit()` to revert the state when the server sends only a multi-tile
+   * face head (no floor/darkness/labels) to a cell that was not already
+   * visible — this happens when a tail becomes visible but the head itself
+   * is still outside the player's line of sight.
+   */
+  private originalState: MapCellState = MapCellState.Empty;
+  /** True once a multi-tile (big) face head has been set on any layer. */
+  private hasBigFaceHead = false;
+  private readonly bigFaceHeadLayers: boolean[] = new Array<boolean>(L).fill(
+    false,
+  );
+  /**
+   * Starts true.  Flipped to false as soon as any non-big-face content is
+   * recorded (1×1 face, animation layer, or label).  Together with
+   * `hasBigFaceHead` this detects the "big-face-head only" update.
+   */
+  private onlyBigFaceHeads = true;
+  /** True when this update explicitly cleared one or more layers. */
+  private hadLayerClears = false;
+
+  begin(x: number, y: number): void {
+    if (this.active) {
+      throw new Error(
+        "mapdata_begin_cell_update called before previous cell update commit",
+      );
+    }
+    this.x = x;
+    this.y = y;
+    this.active = true;
+    this.dirtyLayers.fill(false);
+    this.clearSpaceCalled = false;
+    this.bigFaceHeadLayers.fill(false);
+    this.hadLayerClears = false;
+
+    const px = pl_pos.x + x;
+    const py = pl_pos.y + y;
+    this.workingCell = mapdata_contains(px, py)
+      ? this.cloneCell(mapdata_cell(px, py))
+      : this.createEmptyCell();
+    this.originalCell = this.cloneCell(this.workingCell);
+
+    // Save the state before any modification so commit() can restore it for
+    // big-face-head-only updates.
+    this.originalState = this.workingCell.state;
+    this.hasBigFaceHead = false;
+    this.onlyBigFaceHeads = true;
+
+    if (x < viewWidth && y < viewHeight) {
+      if (this.workingCell.state === MapCellState.Fog) {
+        const idxL = mapdata_contains(px, py) ? ci(px, py) * L : -1;
+        let anyPreserved = false;
+        for (let l = 0; l < L; l++) {
+          if (idxL >= 0 && layerUpdatedAfterClear[idxL + l]) {
+            // A big-face head survived the last clear_space via the guard.
+            // Preserve it so it remains visible when the cell transitions back.
+            anyPreserved = true;
+            continue;
+          }
+          this.clearHeadLayer(this.workingCell.heads[l]!);
+          // NOTE: clearTailLayer is intentionally NOT called here.
+          // Tails represent coverage by big-face heads at neighbouring cells
+          // and are managed exclusively by those cells' updates via
+          // expandClearFaceFromLayer / expandSetFace.  Any layer the server
+          // explicitly updates in this cycle is handled by set_face_layer /
+          // set_anim_layer, which clear only that layer's tail before writing
+          // new data.  Clearing all tails here would wipe valid coverage that
+          // the server did not re-send.
+        }
+        if (!anyPreserved) {
+          this.workingCell.darkness = 0;
+        }
+      }
+      this.workingCell.state = MapCellState.Visible;
+    }
+    notifyWatchedCell(px, py, "begin space update");
+  }
+
+  private createEmptyCell(): MapCell {
+    return {
+      heads: Array.from({ length: L }, () => ({
+        face: 0,
+        sizeX: 1,
+        sizeY: 1,
+        animation: 0,
+        animationSpeed: 0,
+        animationLeft: 0,
+        animationPhase: 0,
+      })),
+      tails: Array.from({ length: L }, () => ({ face: 0, sizeX: 0, sizeY: 0 })),
+      labels: [],
+      smooth: Array.from({ length: L }, () => 0),
+      darkness: 0,
+      needUpdate: false,
+      needResmooth: false,
+      state: MapCellState.Empty,
+    };
+  }
+
+  private cloneCell(cell: MapCell): MapCell {
+    return {
+      heads: cell.heads.map((head) => ({ ...head })),
+      tails: cell.tails.map((tail) => ({ ...tail })),
+      labels: cell.labels.map((label) => ({ ...label })),
+      smooth: [...cell.smooth],
+      darkness: cell.darkness,
+      needUpdate: cell.needUpdate,
+      needResmooth: cell.needResmooth,
+      state: cell.state,
+    };
+  }
+
+  private requireWorkingCell(): MapCell {
+    if (!this.active || !this.workingCell) {
+      throw new Error("MapdataCellUpdate used without active update");
+    }
+    return this.workingCell;
+  }
+
+  private clearHeadLayer(head: MapCellLayer): void {
+    head.face = 0;
+    head.sizeX = 1;
+    head.sizeY = 1;
+    head.animation = 0;
+    head.animationSpeed = 0;
+    head.animationLeft = 0;
+    head.animationPhase = 0;
+  }
+
+  private clearTailLayer(tail: MapCellTailLayer): void {
+    tail.face = 0;
+    tail.sizeX = 0;
+    tail.sizeY = 0;
+  }
+
+  private absoluteCoords(): { px: number; py: number } {
+    return { px: pl_pos.x + this.x, py: pl_pos.y + this.y };
+  }
+
+  clear_space(): void {
+    const cell = this.requireWorkingCell();
+    const { px, py } = this.absoluteCoords();
+    notifyWatchedCell(px, py, "space cleared (transitioning to fog)");
+    if (
+      this.x < viewWidth &&
+      this.y < viewHeight &&
+      cell.state === MapCellState.Visible
+    ) {
+      cell.needUpdate = true;
+    }
+    cell.state = MapCellState.Fog;
+    this.clearSpaceCalled = true;
+  }
+
+  set_check_space(): void {
+    const cell = this.requireWorkingCell();
+    const { px, py } = this.absoluteCoords();
+    notifyWatchedCell(px, py, "space update done");
+    let isBlank = true;
+    for (let l = 0; l < L; l++) {
+      if (cell.heads[l]!.face !== 0 || cell.tails[l]!.face !== 0) {
+        isBlank = false;
+        break;
+      }
+    }
+    if (cell.darkness !== 0) {
+      isBlank = false;
+    }
+    if (isBlank && this.x < viewWidth && this.y < viewHeight) {
+      cell.state = MapCellState.Fog;
     }
   }
+
+  set_darkness(darkness: number): void {
+    const { px, py } = this.absoluteCoords();
+    if (darkness === -1 || !(this.x < viewWidth && this.y < viewHeight)) {
+      return;
+    }
+    const cell = this.requireWorkingCell();
+    const nextDarkness = 255 - darkness;
+    notifyWatchedCell(px, py, `darkness=${nextDarkness}`);
+    if (cell.darkness !== nextDarkness) {
+      cell.darkness = nextDarkness;
+      cell.needUpdate = true;
+    }
+  }
+
+  set_smooth(smoothVal: number, layer: number): void {
+    const cell = this.requireWorkingCell();
+    const { px, py } = this.absoluteCoords();
+    notifyWatchedCell(
+      px,
+      py,
+      "space smooth set to " + smoothVal + " on layer " + layer,
+    );
+    if (cell.smooth[layer] !== smoothVal) {
+      cell.smooth[layer] = smoothVal;
+      cell.needResmooth = true;
+    }
+  }
+
+  clear_label_view(): void {
+    const { px, py } = this.absoluteCoords();
+    notifyWatchedCell(px, py, "labels cleared");
+    this.requireWorkingCell().labels = [];
+  }
+
+  add_label(subtype: number, label: string): void {
+    const cell = this.requireWorkingCell();
+    const { px, py } = this.absoluteCoords();
+    if (subtype === 0) {
+      notifyWatchedCell(px, py, "labels cleared");
+      cell.labels = [];
+      return;
+    }
+    notifyWatchedCell(px, py, `label added: subtype=${subtype} "${label}"`);
+    cell.labels.push({ subtype, label });
+    cell.needUpdate = true;
+    // Labels are real visible content — the cell is not a big-face-head-only update.
+    this.onlyBigFaceHeads = false;
+  }
+
+  set_face_layer(face: number, layer: number): void {
+    const cell = this.requireWorkingCell();
+    const { px, py } = this.absoluteCoords();
+    const head = cell.heads[layer]!;
+    const tail = cell.tails[layer]!;
+    // Clear the tail for this layer only.  Layers not updated in this cycle
+    // retain their tail from the previous state (see begin() for rationale).
+    this.clearTailLayer(tail);
+    this.dirtyLayers[layer] = true;
+
+    if (face > 0) {
+      const { w, h } = getImageSize(face);
+      head.face = face;
+      head.sizeX = w;
+      head.sizeY = h;
+      head.animation = 0;
+      head.animationSpeed = 0;
+      head.animationLeft = 0;
+      head.animationPhase = 0;
+      notifyWatchedCell(px, py, `layer ${layer} face=${face} size=${w}x${h}`);
+      cell.needUpdate = true;
+      cell.needResmooth = true;
+      // Track whether this update is "big-face-head only" for the guard in
+      // commit(): a multi-tile face (w>1 || h>1) is a potential big-face head;
+      // a 1×1 face is regular content that marks the cell as truly visible.
+      if (w > 1 || h > 1) {
+        this.hasBigFaceHead = true;
+        this.bigFaceHeadLayers[layer] = true;
+      } else {
+        this.onlyBigFaceHeads = false;
+      }
+      return;
+    }
+
+    this.clearHeadLayer(head);
+    notifyWatchedCell(px, py, `layer ${layer} face cleared`);
+    cell.needUpdate = true;
+    cell.needResmooth = true;
+    this.hadLayerClears = true;
+  }
+
+  set_anim_layer(anim: number, animSpeed: number, layer: number): void {
+    const cell = this.requireWorkingCell();
+    const { px, py } = this.absoluteCoords();
+    const head = cell.heads[layer]!;
+    const tail = cell.tails[layer]!;
+    this.clearTailLayer(tail);
+    this.dirtyLayers[layer] = true;
+
+    const animation = anim & ANIM_MASK;
+    let face = 0;
+    let phase = 0;
+    let speedLeft = 0;
+
+    if ((anim & ANIM_FLAGS_MASK) === ANIM_RANDOM) {
+      const numAnim = animations[animation]?.numAnimations ?? 0;
+      if (numAnim === 0) {
+        LOG(
+          LogLevel.Warning,
+          "mapdata",
+          "mapdata_set_anim_layer: animating object with zero animations",
+        );
+        return;
+      }
+      phase = Math.floor(Math.random() * numAnim);
+      face = animations[animation]!.faces[phase]!;
+      speedLeft = Math.floor(Math.random() * animSpeed);
+    } else if ((anim & ANIM_FLAGS_MASK) === ANIM_SYNC) {
+      if (animations[animation]) {
+        animations[animation]!.speed = animSpeed;
+        phase = animations[animation]!.phase;
+        speedLeft = animations[animation]!.speedLeft;
+        face = animations[animation]!.faces[phase]!;
+      }
+    }
+
+    if (face > 0) {
+      const { w, h } = getImageSize(face);
+      head.face = face;
+      head.sizeX = w;
+      head.sizeY = h;
+      head.animation = animation;
+      head.animationPhase = phase;
+      head.animationSpeed = animSpeed;
+      head.animationLeft = speedLeft;
+      notifyWatchedCell(
+        px,
+        py,
+        `layer ${layer} animation=${animation} animSpeed=${animSpeed} phase=${phase} face=${face}`,
+      );
+      cell.needUpdate = true;
+      cell.needResmooth = true;
+      // Animated layers count as non-big-face content (the cell is truly visible).
+      this.onlyBigFaceHeads = false;
+      return;
+    }
+
+    this.clearHeadLayer(head);
+    notifyWatchedCell(px, py, `layer ${layer} animation face cleared`);
+    cell.needUpdate = true;
+    cell.needResmooth = true;
+    this.hadLayerClears = true;
+  }
+
+  commit(): void {
+    if (!this.active || !this.workingCell) {
+      throw new Error("MapdataCellUpdate.commit called without active update");
+    }
+
+    const inView = this.x < viewWidth && this.y < viewHeight;
+
+    if (inView) {
+      mapdata_clear_old(this.x, this.y);
+    }
+
+    const px = pl_pos.x + this.x;
+    const py = pl_pos.y + this.y;
+
+    if (inView) {
+      if (mapdata_contains(px, py)) {
+        const idx = ci(px, py);
+        const idxL = idx * L;
+        const original = this.originalCell;
+        const originalHasBigFaceHead =
+          original?.heads.some(
+            (head) =>
+              head.face !== 0 && (head.sizeX > 1 || head.sizeY > 1),
+          ) ?? false;
+
+        // Big-face-head guard:
+        // 1) If the update only carries big-face bookkeeping (clear + big-face
+        //    layer hints), keep non-big-face content from the previous cell and
+        //    force Fog state.
+        // 2) If the update carries only big-face head data and the cell was not
+        //    visible before, keep the original non-visible state.
+        //
+        // Note: the guard must NOT apply when regular 1×1 non-big-face content
+        // still remains in the cell after the update.  For example, a player
+        // walking off a big-face head cell causes a layer-clear-only update for
+        // the player layer while the floor (layer 0) is still present.  Applying
+        // the guard in that case would force Fog and leave the player face
+        // un-cleared via restoration from the original cell.
+        const hasRegularContentAfterUpdate = this.workingCell.heads.some(
+          (head) => head.face !== 0 && head.sizeX === 1 && head.sizeY === 1,
+        );
+        if (
+          this.onlyBigFaceHeads &&
+          (this.clearSpaceCalled || this.hadLayerClears) &&
+          (this.hasBigFaceHead || originalHasBigFaceHead) &&
+          !hasRegularContentAfterUpdate
+        ) {
+          if (original) {
+            for (let l = 0; l < L; l++) {
+              if (this.bigFaceHeadLayers[l]) {
+                continue;
+              }
+              this.workingCell.heads[l] = { ...original.heads[l]! };
+              this.workingCell.tails[l] = { ...original.tails[l]! };
+              this.workingCell.smooth[l] = original.smooth[l]!;
+            }
+            this.workingCell.darkness = original.darkness;
+            this.workingCell.labels = original.labels.map((label) => ({
+              ...label,
+            }));
+          }
+          this.workingCell.state = MapCellState.Fog;
+
+          // Track which layers still have a big-face head after restoration.
+          // When the cell later becomes Visible again, begin() uses these bits
+          // to preserve big-face heads that survived the clear_space + guard.
+          const idxL2 = idxL; // same index, alias for clarity
+          layerUpdatedAfterClear.fill(0, idxL2, idxL2 + L);
+          for (let l2 = 0; l2 < L; l2++) {
+            const h = this.workingCell.heads[l2]!;
+            if (h.face !== 0 && (h.sizeX > 1 || h.sizeY > 1)) {
+              layerUpdatedAfterClear[idxL2 + l2] = 1;
+            }
+          }
+        } else if (
+          this.hasBigFaceHead &&
+          this.onlyBigFaceHeads &&
+          !this.clearSpaceCalled &&
+          this.originalState !== MapCellState.Visible
+        ) {
+          // Restore non-big-face layers from the original cell.  begin() cleared
+          // the fog cell's layers in preparation for a visible update, but this
+          // update turned out to contain only a big-face head (no floor/labels).
+          // Without restoration the original fog content (e.g. a floor face on
+          // layer 0) would be silently lost.
+          if (original) {
+            for (let l = 0; l < L; l++) {
+              if (this.bigFaceHeadLayers[l]) {
+                continue;
+              }
+              this.workingCell.heads[l] = { ...original.heads[l]! };
+              this.workingCell.tails[l] = { ...original.tails[l]! };
+              this.workingCell.smooth[l] = original.smooth[l]!;
+            }
+            this.workingCell.darkness = original.darkness;
+            this.workingCell.labels = original.labels.map((label) => ({
+              ...label,
+            }));
+          }
+          this.workingCell.state = this.originalState;
+        }
+
+        for (let l = 0; l < L; l++) {
+          const lOff = idxL + l;
+          const head = this.workingCell.heads[l]!;
+          const tail = this.workingCell.tails[l]!;
+
+          // Clear tails of the previous big face from neighboring cells.
+          // For Fog cells mapdata_clear_old already did this; for Visible cells
+          // we must do it here so stale neighbor tails don't linger.
+          expandClearFaceFromLayer(px, py, l);
+
+          headFace[lOff] = head.face;
+          headSizeX[lOff] = head.sizeX;
+          headSizeY[lOff] = head.sizeY;
+          headAnim[lOff] = head.animation;
+          headAnimSpeed[lOff] = head.animationSpeed;
+          headAnimLeft[lOff] = head.animationLeft;
+          headAnimPhase[lOff] = head.animationPhase;
+          tailFace[lOff] = tail.face;
+          tailSizeX[lOff] = tail.sizeX;
+          tailSizeY[lOff] = tail.sizeY;
+          smooth[lOff] = this.workingCell.smooth[l]!;
+
+          // Spread tail data to neighboring cells for big (multi-tile) faces.
+          if (head.face !== 0 && (head.sizeX > 1 || head.sizeY > 1)) {
+            for (let dx = 0; dx < head.sizeX; dx++) {
+              for (let dy = dx === 0 ? 1 : 0; dy < head.sizeY; dy++) {
+                const tIdx = ci(px - dx, py - dy);
+                const tLIdx = tIdx * L + l;
+                tailFace[tLIdx] = head.face;
+                tailSizeX[tLIdx] = dx;
+                tailSizeY[tLIdx] = dy;
+                cellFlags[tIdx] = cellFlags[tIdx]! | FLAG_NEED_UPDATE;
+                markResmooth(px - dx, py - dy, l);
+              }
+            }
+          }
+        }
+
+        cellDarkness[idx] = this.workingCell.darkness;
+        if (this.workingCell.labels.length > 0) {
+          cellLabels.set(
+            idx,
+            this.workingCell.labels.map((label) => ({ ...label })),
+          );
+        } else {
+          cellLabels.delete(idx);
+        }
+
+        cellState[idx] = this.workingCell.state;
+        let flags = cellFlags[idx]!;
+        if (this.workingCell.needUpdate) {
+          flags |= FLAG_NEED_UPDATE;
+        }
+        if (this.workingCell.needResmooth) {
+          flags |= FLAG_NEED_RESMOOTH;
+        }
+        cellFlags[idx] = flags;
+      }
+    } else {
+      // Out-of-view cell: update bigface tracking (never write head/tail face
+      // data to flat typed arrays) and write smooth values as the old
+      // mapdata_set_smooth did for all cells.
+      if (this.clearSpaceCalled) {
+        for (let l = 0; l < L; l++) {
+          expandSetBigface(this.x, this.y, l, 0, true);
+        }
+      } else {
+        for (let l = 0; l < L; l++) {
+          if (this.dirtyLayers[l]) {
+            expandSetBigface(
+              this.x,
+              this.y,
+              l,
+              this.workingCell.heads[l]!.face,
+              true,
+            );
+          }
+        }
+      }
+
+      if (mapdata_contains(px, py)) {
+        const idxL = ci(px, py) * L;
+        for (let l = 0; l < L; l++) {
+          smooth[idxL + l] = this.workingCell.smooth[l]!;
+        }
+      }
+    }
+
+    this.workingCell = null;
+    this.originalCell = null;
+    this.active = false;
+  }
 }
+
+const reusableCellUpdate = new ReusableMapdataCellUpdate();
 
 /**
- * After Map2Cmd has processed all data for a space, check whether it ended
- * up blank and mark it accordingly.
+ * Begin a staged update for a single view-relative map cell.
+ * Throws if the previous staged update has not yet been committed.
+ *
+ * @param x View-relative cell X coordinate.
+ * @param y View-relative cell Y coordinate.
+ * @returns Reusable staged updater for the selected cell.
  */
-export function mapdata_set_check_space(x: number, y: number): void {
-  const px = pl_pos.x + x;
-  const py = pl_pos.y + y;
-
-  if (px < 0 || py < 0 || px >= mapWidth || py >= mapHeight) {
-    return;
-  }
-
-  const idx = ci(px, py);
-  const lBase = idx * L;
-  let isBlank = true;
-  for (let l = 0; l < L; l++) {
-    if (headFace[lBase + l]! !== 0 || tailFace[lBase + l]! !== 0) {
-      isBlank = false;
-      break;
-    }
-  }
-  if (cellDarkness[idx]! !== 0) {
-    isBlank = false;
-  }
-
-  notifyWatchedCell(pl_pos.x + x, pl_pos.y + y, "space update done");
-
-  if (!isBlank) {
-    return;
-  }
-
-  if (x < viewWidth && y < viewHeight) {
-    mapdataClear(x, y);
-  }
-}
-
-/** Set darkness for a tile.  View-relative coordinates. */
-export function mapdata_set_darkness(
+export function mapdata_begin_cell_update(
   x: number,
   y: number,
-  darkness: number,
-): void {
-  const px = pl_pos.x + x;
-  const py = pl_pos.y + y;
-
-  if (darkness !== -1 && x < viewWidth && y < viewHeight) {
-    notifyWatchedCell(px, py, `darkness=${255 - darkness}`);
-    setDarkness(px, py, 255 - darkness);
-  }
-}
-
-function setDarkness(x: number, y: number, darkness: number): void {
-  const idx = ci(x, y);
-  if (cellDarkness[idx]! === darkness) {
-    return;
-  }
-  cellDarkness[idx] = darkness;
-  cellFlags[idx] = cellFlags[idx]! | FLAG_NEED_UPDATE;
-}
-
-/** Set smooth value for a layer.  View-relative coordinates. */
-export function mapdata_set_smooth(
-  x: number,
-  y: number,
-  smoothVal: number,
-  layer: number,
-): void {
-  const DX = [0, 1, 1, 1, 0, -1, -1, -1];
-  const DY = [-1, -1, 0, 1, 1, 1, 0, -1];
-
-  const px = pl_pos.x + x;
-  const py = pl_pos.y + y;
-  const lIdx = ci(px, py) * L + layer;
-
-  if (smooth[lIdx]! !== smoothVal) {
-    for (let i = 0; i < 8; i++) {
-      const rx = px + DX[i]!;
-      const ry = py + DY[i]!;
-      if (rx < 0 || ry < 0 || mapWidth <= rx || mapHeight <= ry) {
-        continue;
-      }
-      cellFlags[ci(rx, ry)] = cellFlags[ci(rx, ry)]! | FLAG_NEED_RESMOOTH;
-    }
-    cellFlags[ci(px, py)] = cellFlags[ci(px, py)]! | FLAG_NEED_RESMOOTH;
-    smooth[lIdx] = smoothVal;
-  }
-  notifyWatchedCell(
-    px,
-    py,
-    "space smooth set to " + smoothVal + " on layer " + layer,
-  );
-}
-
-/** Clear all labels at absolute map coordinates. */
-export function mapdata_clear_label(px: number, py: number): void {
-  cellLabels.delete(ci(px, py));
-}
-
-/** Clear all labels at view-relative coordinates. */
-export function mapdata_clear_label_view(x: number, y: number): void {
-  if (!(x < viewWidth && y < viewHeight)) {
-    return;
-  }
-  mapdata_clear_label(pl_pos.x + x, pl_pos.y + y);
-}
-
-/** Add a label at view-relative coordinates. */
-export function mapdata_add_label(
-  x: number,
-  y: number,
-  subtype: number,
-  label: string,
-): void {
-  if (!(x < viewWidth && y < viewHeight)) {
-    return;
-  }
-
-  const px = pl_pos.x + x;
-  const py = pl_pos.y + y;
-  const idx = ci(px, py);
-
-  if (subtype === 0) {
-    notifyWatchedCell(px, py, "labels cleared");
-    cellLabels.delete(idx);
-    return;
-  }
-
-  let arr = cellLabels.get(idx);
-  if (!arr) {
-    arr = [];
-    cellLabels.set(idx, arr);
-  }
-  arr.push({ subtype, label });
-  cellFlags[idx] = cellFlags[idx]! | FLAG_NEED_UPDATE;
-  notifyWatchedCell(px, py, `label added: subtype=${subtype} "${label}"`);
+): MapdataCellUpdate {
+  reusableCellUpdate.begin(x, y);
+  return reusableCellUpdate;
 }
 
 /**
  * Prepare a cell that may contain fog-of-war data for new visible data.
  * Called when Map2 is about to provide an update for this tile.
  */
-export function mapdata_clear_old(x: number, y: number): void {
+function mapdata_clear_old(x: number, y: number): void {
   if (!(x < viewWidth && y < viewHeight)) {
     return;
   }
@@ -1326,89 +1767,6 @@ export function mapdata_clear_old(x: number, y: number): void {
     py,
     "server update start (cell entering visible state)",
   );
-}
-
-/** Set a face on a specific layer.  View-relative coordinates. */
-export function mapdata_set_face_layer(
-  x: number,
-  y: number,
-  face: number,
-  layer: number,
-): void {
-  const px = pl_pos.x + x;
-  const py = pl_pos.y + y;
-
-  if (x < viewWidth && y < viewHeight) {
-    cellFlags[ci(px, py)] = cellFlags[ci(px, py)]! | FLAG_NEED_UPDATE;
-    if (face > 0) {
-      expandSetFace(px, py, layer, face, true);
-    } else {
-      notifyWatchedCell(px, py, `layer ${layer} face cleared`);
-      expandClearFaceFromLayer(px, py, layer);
-    }
-  } else {
-    expandSetBigface(x, y, layer, face, true);
-  }
-}
-
-/** Set an animation on a specific layer.  View-relative coordinates. */
-export function mapdata_set_anim_layer(
-  x: number,
-  y: number,
-  anim: number,
-  animSpeed: number,
-  layer: number,
-): void {
-  const px = pl_pos.x + x;
-  const py = pl_pos.y + y;
-
-  const animation = anim & ANIM_MASK;
-  let face = 0;
-  let phase = 0;
-  let speedLeft = 0;
-
-  if ((anim & ANIM_FLAGS_MASK) === ANIM_RANDOM) {
-    const numAnim = animations[animation]?.numAnimations ?? 0;
-    if (numAnim === 0) {
-      LOG(
-        LogLevel.Warning,
-        "mapdata",
-        "mapdata_set_anim_layer: animating object with zero animations",
-      );
-      return;
-    }
-    phase = Math.floor(Math.random() * numAnim);
-    face = animations[animation]!.faces[phase]!;
-    speedLeft = Math.floor(Math.random() * animSpeed);
-  } else if ((anim & ANIM_FLAGS_MASK) === ANIM_SYNC) {
-    if (animations[animation]) {
-      animations[animation]!.speed = animSpeed;
-      phase = animations[animation]!.phase;
-      speedLeft = animations[animation]!.speedLeft;
-      face = animations[animation]!.faces[phase]!;
-    }
-  }
-
-  if (x < viewWidth && y < viewHeight) {
-    if (face > 0) {
-      expandSetFace(px, py, layer, face, true);
-      const lIdx = ci(px, py) * L + layer;
-      headAnim[lIdx] = animation;
-      headAnimPhase[lIdx] = phase;
-      headAnimSpeed[lIdx] = animSpeed;
-      headAnimLeft[lIdx] = speedLeft;
-      notifyWatchedCell(
-        px,
-        py,
-        `layer ${layer} animation=${animation} animSpeed=${animSpeed} phase=${phase} face=${face}`,
-      );
-    } else {
-      notifyWatchedCell(px, py, `layer ${layer} animation face cleared`);
-      expandClearFaceFromLayer(px, py, layer);
-    }
-  } else {
-    expandSetBigface(x, y, layer, face, true);
-  }
 }
 
 /** Scroll the map view.  Call when a map_scroll command is received. */
