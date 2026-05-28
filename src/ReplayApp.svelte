@@ -24,6 +24,7 @@
     type ReplayEntry,
     type ReplayMark,
   } from "./lib/replay";
+  import { captureReplayMapdataSnapshot } from "./lib/replay_mapdata_state";
 
   interface ReplayLogMessage {
     id: number;
@@ -218,6 +219,46 @@
     replayLog = [];
   }
 
+  function sanitizeNamePart(value: string): string {
+    const trimmed = value.trim();
+    if (trimmed.length === 0) {
+      return "snapshot";
+    }
+    const sanitized = trimmed
+      .replace(/[^a-z0-9._-]+/gi, "-")
+      .replace(/^-+|-+$/g, "");
+    return sanitized.length > 0 ? sanitized : "snapshot";
+  }
+
+  function exportMapdataSnapshot(): void {
+    if (typeof document === "undefined" || typeof URL === "undefined") {
+      addLog("error", "Snapshot export is only available in a browser.");
+      return;
+    }
+    const sourceMark = currentMarkLabel();
+    const snapshot = captureReplayMapdataSnapshot({
+      source: {
+        replayFileName: fileName || undefined,
+        markLabel: sourceMark,
+        entryIndex: currentEntryIndex,
+      },
+    });
+    const json = JSON.stringify(snapshot, null, 2);
+    const blob = new Blob([json], { type: "application/json" });
+    const objectUrl = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    const entryLabel =
+      currentEntryIndex >= 0 ? `entry-${currentEntryIndex + 1}` : "entry-0";
+    anchor.href = objectUrl;
+    anchor.download = `${sanitizeNamePart(fileName || "replay")}-${sanitizeNamePart(sourceMark)}-${entryLabel}.state.json`;
+    anchor.click();
+    URL.revokeObjectURL(objectUrl);
+    addLog(
+      "info",
+      `Exported state with ${snapshot.cells.length} cells at ${sourceMark}.`,
+    );
+  }
+
   function formatPosition(): string {
     if (entries.length === 0) {
       return "No replay loaded";
@@ -302,6 +343,11 @@
       </button>
       <button onclick={stepForward} disabled={entries.length === 0}>
         Step server command
+      </button>
+    </div>
+    <div class="button-row">
+      <button onclick={exportMapdataSnapshot} disabled={entries.length === 0}>
+        Export mapdata state
       </button>
     </div>
     <label class="tick-toggle">

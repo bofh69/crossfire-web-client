@@ -1,0 +1,20 @@
+[
+  {
+    "name": "entered-scorn compact",
+    "log": "tests/replay-mapdata/logs/big-face-in-scorn.log",
+    "mark": "entered scorn",
+    "state": "tests/replay-mapdata/states/entered-scorn.state.json"
+  },
+  {
+    "name": "entered-scorn converted",
+    "log": "tests/replay-mapdata/logs/big-face-in-scorn.converted.log",
+    "mark": "entered scorn",
+    "state": "tests/replay-mapdata/states/entered-scorn.state.json"
+  },
+  {
+    "name": "partial big face",
+    "log": "tests/replay-mapdata/logs/big-face-in-scorn.log",
+    "mark": "with invalid head",
+    "state": "tests/replay-mapdata/states/big-face-in-scorn.state.json"
+  }
+]

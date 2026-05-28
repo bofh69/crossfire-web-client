@@ -11,7 +11,8 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "preview": "vite preview",
-    "recording:convert": "node scripts/convert-ws-recording-log.mjs"
+    "recording:convert": "node scripts/convert-ws-recording-log.mjs",
+    "test:mapdata": "vitest run tests/replay-mapdata/replay-mapdata.spec.ts"
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^7.0.0",
@@ -23,7 +24,8 @@
     "svelte-check": "^4.4.5",
     "typescript": "~5.9.3",
     "vite": "^8.0.1",
-    "vite-plugin-singlefile": "^2.3.3"
+    "vite-plugin-singlefile": "^2.3.3",
+    "vitest": "^4.1.7"
   },
   "dependencies": {
     "@fontsource/caveat": "^5.2.8",
