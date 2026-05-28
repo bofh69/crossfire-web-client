@@ -21,16 +21,8 @@ import { BinaryReader } from "./binary_reader.js";
 import {
   mapdata_newmap,
   mapdata_scroll,
-  mapdata_set_face_layer,
-  mapdata_set_anim_layer,
-  mapdata_set_darkness,
-  mapdata_set_smooth,
-  mapdata_clear_space,
-  mapdata_set_check_space,
-  mapdata_clear_old,
+  mapdata_begin_cell_update,
   mapdata_set_size,
-  mapdata_clear_label_view,
-  mapdata_add_label,
   mapdata_save_fog,
   mapdata_restore_fog,
   mapdata_apply_magicmap,
@@ -338,7 +330,7 @@ export function Map2Cmd(data: DataView, len: number): void {
     const cx = Math.max(0, Math.min(x, MAX_VIEW - 1));
     const cy = Math.max(0, Math.min(y, MAX_VIEW - 1));
 
-    mapdata_clear_old(cx, cy);
+    const cellUpdate = mapdata_begin_cell_update(cx, cy);
     tileCount++;
 
     // Inner loop: read per-tile type bytes until the 255 end-of-space marker.
@@ -347,7 +339,7 @@ export function Map2Cmd(data: DataView, len: number): void {
       const typeByte = reader.readUint8();
 
       if (typeByte === 255) {
-        mapdata_set_check_space(cx, cy);
+        cellUpdate.set_check_space();
         break;
       }
 
@@ -357,10 +349,10 @@ export function Map2Cmd(data: DataView, len: number): void {
       const type = typeByte & 0x1f;
 
       if (type === MAP2_TYPE_CLEAR) {
-        mapdata_clear_space(cx, cy);
+        cellUpdate.clear_space();
       } else if (type === MAP2_TYPE_DARKNESS) {
         const value = reader.readUint8();
-        mapdata_set_darkness(cx, cy, value);
+        cellUpdate.set_darkness(value);
       } else if (type === MAP2_TYPE_LABEL) {
         // spaceLen === 7 signals variable-length data: next byte is total length.
         reader.skip(1); // labelTotalLen (unused)
@@ -368,10 +360,10 @@ export function Map2Cmd(data: DataView, len: number): void {
         const strLen = reader.readUint8();
         const label = reader.readString(strLen);
         if (!labelsCleared) {
-          mapdata_clear_label_view(cx, cy);
+          cellUpdate.clear_label_view();
           labelsCleared = true;
         }
-        mapdata_add_label(cx, cy, subtype, label);
+        cellUpdate.add_label(subtype, label);
       } else if (
         type >= MAP2_LAYER_START &&
         type < MAP2_LAYER_START + MAXLAYERS
@@ -379,22 +371,22 @@ export function Map2Cmd(data: DataView, len: number): void {
         const layer = type & 0xf;
         const faceOrAnim = reader.readUint16();
         if (!(faceOrAnim & FACE_IS_ANIM)) {
-          mapdata_set_face_layer(cx, cy, faceOrAnim, layer);
+          cellUpdate.set_face_layer(faceOrAnim, layer);
         }
         if (spaceLen > 2) {
           const opt = reader.readUint8();
           if (faceOrAnim & FACE_IS_ANIM) {
             // opt is the animation speed.
-            mapdata_set_anim_layer(cx, cy, faceOrAnim, opt, layer);
+            cellUpdate.set_anim_layer(faceOrAnim, opt, layer);
           } else {
             // opt is a smooth value.
-            mapdata_set_smooth(cx, cy, opt, layer);
+            cellUpdate.set_smooth(opt, layer);
           }
         }
         // A fourth byte (when present) is always a smooth value.
         if (spaceLen > 3) {
           const opt = reader.readUint8();
-          mapdata_set_smooth(cx, cy, opt, layer);
+          cellUpdate.set_smooth(opt, layer);
         }
       } else {
         // Unknown type: skip the declared number of data bytes.
@@ -406,6 +398,7 @@ export function Map2Cmd(data: DataView, len: number): void {
         }
       }
     }
+    cellUpdate.commit();
   }
   const elapsed = performance.now() - t0;
   if (perfLogging && (elapsed > 1 || tileCount > 10)) {
