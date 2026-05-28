@@ -159,6 +159,24 @@
     addLog("info", "Reached the end of the replay.");
   }
 
+  function stepToNextMark(): void {
+    parseError = "";
+    if (entries.length === 0) {
+      addLog("error", "Load a replay log before stepping to the next mark.");
+      return;
+    }
+    while (nextEntryIndex < entries.length) {
+      const entry = entries[nextEntryIndex]!;
+      nextEntryIndex += 1;
+      currentEntryIndex = nextEntryIndex - 1;
+      applyEntry(entry);
+      if (entry.type === "MARK") {
+        return;
+      }
+    }
+    addLog("info", "Reached the end of the replay.");
+  }
+
   function replayToMark(mark: ReplayMark): void {
     parseError = "";
     if (entries.length === 0) {
@@ -259,6 +277,47 @@
     );
   }
 
+  function exportSelectedCellMapdataSnapshot(): void {
+    if (selectedTile === null) {
+      addLog("error", "Select a tile before exporting its state.");
+      return;
+    }
+    if (typeof document === "undefined" || typeof URL === "undefined") {
+      addLog("error", "Snapshot export is only available in a browser.");
+      return;
+    }
+    const sourceMark = currentMarkLabel();
+    const snapshot = captureReplayMapdataSnapshot({
+      includeEmptyCells: true,
+      source: {
+        replayFileName: fileName || undefined,
+        markLabel: sourceMark,
+        entryIndex: currentEntryIndex,
+      },
+    });
+    const selectedDx = selectedTile.ax - snapshot.playerAbsolute.x;
+    const selectedDy = selectedTile.ay - snapshot.playerAbsolute.y;
+    snapshot.cells = snapshot.cells.filter(
+      (cell) => cell.dx === selectedDx && cell.dy === selectedDy,
+    );
+    const json = JSON.stringify(snapshot, null, 2);
+    const blob = new Blob([json], { type: "application/json" });
+    const objectUrl = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    const entryLabel =
+      currentEntryIndex >= 0 ? `entry-${currentEntryIndex + 1}` : "entry-0";
+    anchor.href = objectUrl;
+    anchor.download =
+      `${sanitizeNamePart(fileName || "replay")}-${sanitizeNamePart(sourceMark)}-${entryLabel}` +
+      `-selected-${selectedTile.ax}-${selectedTile.ay}.state.json`;
+    anchor.click();
+    URL.revokeObjectURL(objectUrl);
+    addLog(
+      "info",
+      `Exported selected-cell state with ${snapshot.cells.length} cells at ${sourceMark}.`,
+    );
+  }
+
   function formatPosition(): string {
     if (entries.length === 0) {
       return "No replay loaded";
@@ -278,6 +337,18 @@
     }
     return "Before first MARK";
   }
+
+  function latestReachedMarkEntryIndex(): number | null {
+    for (let index = marks.length - 1; index >= 0; index--) {
+      const mark = marks[index]!;
+      if (mark.entryIndex <= currentEntryIndex) {
+        return mark.entryIndex;
+      }
+    }
+    return null;
+  }
+
+  const latestReachedMarkEntry = $derived(latestReachedMarkEntryIndex());
 
   $effect(() => {
     void replayLog.length;
@@ -342,12 +413,21 @@
         Start over
       </button>
       <button onclick={stepForward} disabled={entries.length === 0}>
-        Step server command
+        Step cmd
+      </button>
+      <button onclick={stepToNextMark} disabled={entries.length === 0}>
+        Next mark
       </button>
     </div>
     <div class="button-row">
       <button onclick={exportMapdataSnapshot} disabled={entries.length === 0}>
         Export mapdata state
+      </button>
+      <button
+        onclick={exportSelectedCellMapdataSnapshot}
+        disabled={entries.length === 0 || selectedTile === null}
+      >
+        Export selected cell state
       </button>
     </div>
     <label class="tick-toggle">
@@ -366,6 +446,7 @@
           {#each marks as mark}
             <button
               class:active={currentEntryIndex === mark.entryIndex}
+              class:latest-reached={latestReachedMarkEntry === mark.entryIndex}
               onclick={() => replayToMark(mark)}
             >
               <span>{mark.label}</span>
@@ -566,6 +647,11 @@
 
   .mark-list button.active {
     outline: 2px solid var(--accent);
+  }
+
+  .mark-list button.latest-reached {
+    border-color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 22%, var(--bg-warm));
   }
 
   .panel-header {
