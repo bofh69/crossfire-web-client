@@ -1349,6 +1349,10 @@ class ReusableMapdataCellUpdate implements MapdataCellUpdate {
     const cell = this.requireWorkingCell();
     const { px, py } = this.absoluteCoords();
     notifyWatchedCell(px, py, "space cleared (transitioning to fog)");
+    if (mapdata_contains(px, py)) {
+      const idxL = ci(px, py) * L;
+      layerUpdatedAfterClear.fill(0, idxL, idxL + L);
+    }
     if (this.originalState === MapCellState.Empty) {
       for (let l = 0; l < L; l++) {
         this.clearHeadLayer(cell.heads[l]!);
@@ -1650,6 +1654,13 @@ class ReusableMapdataCellUpdate implements MapdataCellUpdate {
           layerUpdatedAfterClear.fill(0, idxL2, idxL2 + L);
           for (let l2 = 0; l2 < L; l2++) {
             if (this.clearSpaceCalled && !this.dirtyLayers[l2]) {
+              continue;
+            }
+            if (
+              !this.clearSpaceCalled &&
+              this.originalState === MapCellState.Fog &&
+              !this.dirtyLayers[l2]
+            ) {
               continue;
             }
             const h = this.workingCell.heads[l2]!;
