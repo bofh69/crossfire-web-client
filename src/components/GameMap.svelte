@@ -58,6 +58,12 @@
    */
   const MIN_TILES = 15;
 
+  interface Props {
+    showServerViewOutline?: boolean;
+  }
+
+  let { showServerViewOutline = false }: Props = $props();
+
   /**
    * Return the largest integer scale factor such that at least MIN_TILES tiles
    * still fit in both container dimensions.  Scale is always ≥ 1, so tiles are
@@ -833,7 +839,7 @@
     // Draw a dotted outline around the tiles that are part of the server view.
     // This stays visible even when the canvas renders extra fog-of-war tiles
     // around it due to zoom or viewport-size constraints.
-    if (vw > 0 && vh > 0) {
+    if (showServerViewOutline && vw > 0 && vh > 0) {
       ctx.save();
       ctx.strokeStyle = "rgba(160, 160, 160, 0.9)";
       ctx.lineWidth = selectionLineWidth;

@@ -495,7 +495,7 @@
       <span>Click on cell to select and watch it.</span>
     </div>
     <div class="map-panel">
-      <GameMap />
+      <GameMap showServerViewOutline={true} />
     </div>
   </main>
 
