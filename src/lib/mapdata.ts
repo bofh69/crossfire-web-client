@@ -1343,6 +1343,14 @@ class ReusableMapdataCellUpdate implements MapdataCellUpdate {
     const cell = this.requireWorkingCell();
     const { px, py } = this.absoluteCoords();
     notifyWatchedCell(px, py, "space cleared (transitioning to fog)");
+    if (this.originalState === MapCellState.Empty) {
+      for (let l = 0; l < L; l++) {
+        this.clearHeadLayer(cell.heads[l]!);
+        this.clearTailLayer(cell.tails[l]!);
+      }
+      cell.needUpdate = true;
+      cell.needResmooth = true;
+    }
     if (
       this.x < viewWidth &&
       this.y < viewHeight &&
