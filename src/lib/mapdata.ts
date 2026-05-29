@@ -669,6 +669,11 @@ function mapdataClear(x: number, y: number): void {
     return;
   }
 
+  // A clear_space starts a new fog period for this cell even if it was already
+  // in Fog state, so any preserved post-clear layer updates from older cycles
+  // must be dropped.
+  layerUpdatedAfterClear.fill(0, idx * L, idx * L + L);
+
   if (cellState[idx]! === MapCellState.Visible) {
     cellFlags[idx] = cellFlags[idx]! | FLAG_NEED_UPDATE;
     for (let l = 0; l < L; l++) {
@@ -676,9 +681,6 @@ function mapdataClear(x: number, y: number): void {
         expandNeedUpdateFromLayer(px, py, l);
       }
     }
-    // Reset "updated after clear" bits: the cell is entering a new Fog period
-    // and has not yet received any server updates after a clear_space.
-    layerUpdatedAfterClear.fill(0, idx * L, idx * L + L);
   }
 
   cellState[idx] = MapCellState.Fog;
