@@ -1362,7 +1362,10 @@ class ReusableMapdataCellUpdate implements MapdataCellUpdate {
       if (original) {
         for (let l = 0; l < L; l++) {
           const prevHead = original.heads[l]!;
-          if (prevHead.face === 0 || (prevHead.sizeX <= 1 && prevHead.sizeY <= 1)) {
+          if (
+            prevHead.face === 0 ||
+            (prevHead.sizeX <= 1 && prevHead.sizeY <= 1)
+          ) {
             continue;
           }
           cell.heads[l] = { ...prevHead };
@@ -1583,6 +1586,22 @@ class ReusableMapdataCellUpdate implements MapdataCellUpdate {
             (head) => head.face !== 0 && (head.sizeX > 1 || head.sizeY > 1),
           ) ?? false;
 
+        // Fog->Visible transition with regular content: the server update acts
+        // as a fresh visible snapshot after prior clear_space. Any untouched
+        // non-preserved layers from fog memory must be dropped.
+        if (
+          this.originalState === MapCellState.Fog &&
+          this.workingCell.state === MapCellState.Visible &&
+          !this.onlyBigFaceHeads
+        ) {
+          for (let l = 0; l < L; l++) {
+            if (this.dirtyLayers[l] || layerUpdatedAfterClear[idxL + l]) {
+              continue;
+            }
+            this.clearHeadLayer(this.workingCell.heads[l]!);
+          }
+        }
+
         // Big-face-head guard:
         // 1) If the update only carries big-face bookkeeping (clear + big-face
         //    layer hints), keep non-big-face content from the previous cell and
@@ -1736,6 +1755,10 @@ class ReusableMapdataCellUpdate implements MapdataCellUpdate {
           flags |= FLAG_NEED_RESMOOTH;
         }
         cellFlags[idx] = flags;
+
+        if (this.workingCell.state !== MapCellState.Fog) {
+          layerUpdatedAfterClear.fill(0, idxL, idxL + L);
+        }
       }
     } else {
       // Out-of-view cell: update bigface tracking (never write head/tail face
