@@ -58,6 +58,12 @@
    */
   const MIN_TILES = 15;
 
+  /**
+   * Component options for context-specific map overlays.
+   *
+   * @property showServerViewOutline - When true, draw the dotted outline that
+   * marks the server-provided viewport area within the rendered board.
+   */
   interface Props {
     showServerViewOutline?: boolean;
   }
@@ -814,6 +820,8 @@
       }
     }
 
+    // Shared stroke width for tile-selection indicators and the replay-only
+    // server-view outline so these overlays stay visually consistent.
     const selectionLineWidth = Math.max(1, Math.round(scale));
 
     // Pass 5: draw a thin yellow border on the move-to target tile so the
@@ -843,7 +851,8 @@
       ctx.save();
       ctx.strokeStyle = "rgba(160, 160, 160, 0.9)";
       ctx.lineWidth = selectionLineWidth;
-      ctx.setLineDash([selectionLineWidth, selectionLineWidth]);
+      const outlineDashPattern = [selectionLineWidth, selectionLineWidth];
+      ctx.setLineDash(outlineDashPattern);
       ctx.strokeRect(
         startOffsetX * tileSize + selectionLineWidth / 2,
         startOffsetY * tileSize + selectionLineWidth / 2,
