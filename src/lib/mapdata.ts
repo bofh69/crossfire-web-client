@@ -1350,6 +1350,15 @@ class ReusableMapdataCellUpdate implements MapdataCellUpdate {
       }
       cell.needUpdate = true;
       cell.needResmooth = true;
+    } else {
+      for (let l = 0; l < L; l++) {
+        const head = cell.heads[l]!;
+        if (head.face !== 0 && (head.sizeX > 1 || head.sizeY > 1)) {
+          this.clearHeadLayer(head);
+        }
+      }
+      cell.needUpdate = true;
+      cell.needResmooth = true;
     }
     if (
       this.x < viewWidth &&
@@ -1643,6 +1652,24 @@ class ReusableMapdataCellUpdate implements MapdataCellUpdate {
           const lOff = idxL + l;
           const head = this.workingCell.heads[l]!;
           const tail = this.workingCell.tails[l]!;
+          const originalTail = original?.tails[l];
+
+          // If this cell was previously a tail on this layer and is now updated
+          // as a big-face head, clear the previous head position first.
+          if (
+            this.dirtyLayers[l] &&
+            head.face !== 0 &&
+            (head.sizeX > 1 || head.sizeY > 1) &&
+            originalTail &&
+            originalTail.face !== 0 &&
+            (originalTail.sizeX > 0 || originalTail.sizeY > 0)
+          ) {
+            const prevHeadX = px + originalTail.sizeX;
+            const prevHeadY = py + originalTail.sizeY;
+            if (mapdata_contains(prevHeadX, prevHeadY)) {
+              expandClearFaceFromLayer(prevHeadX, prevHeadY, l);
+            }
+          }
 
           // Clear tails of the previous big face from neighboring cells.
           // For Fog cells mapdata_clear_old already did this; for Visible cells
