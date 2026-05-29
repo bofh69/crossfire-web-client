@@ -1253,13 +1253,17 @@ class ReusableMapdataCellUpdate implements MapdataCellUpdate {
         const idxL = mapdata_contains(px, py) ? ci(px, py) * L : -1;
         let anyPreserved = false;
         for (let l = 0; l < L; l++) {
+          const head = this.workingCell.heads[l]!;
           if (idxL >= 0 && layerUpdatedAfterClear[idxL + l]) {
             // A big-face head survived the last clear_space via the guard.
             // Preserve it so it remains visible when the cell transitions back.
             anyPreserved = true;
             continue;
           }
-          this.clearHeadLayer(this.workingCell.heads[l]!);
+          if (head.face === 0 || (head.sizeX <= 1 && head.sizeY <= 1)) {
+            continue;
+          }
+          this.clearHeadLayer(head);
           // NOTE: clearTailLayer is intentionally NOT called here.
           // Tails represent coverage by big-face heads at neighbouring cells
           // and are managed exclusively by those cells' updates via
