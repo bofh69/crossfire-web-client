@@ -430,7 +430,10 @@
     anchor.download = fileName || `replay-${Date.now()}.log`;
     anchor.click();
     URL.revokeObjectURL(objectUrl);
-    addLog("info", `Downloaded ${entries.length} entries as ${anchor.download}.`);
+    addLog(
+      "info",
+      `Downloaded ${entries.length} entries as ${anchor.download}.`,
+    );
   }
 
   function handleKeyDown(event: KeyboardEvent): void {
@@ -801,7 +804,7 @@
     border: 1px solid var(--border-light);
     border-radius: 0.3rem;
     cursor: pointer;
-    font: inherit;
+    font: 0.8rem;
     padding: 0.45rem 0.75rem;
   }
 
@@ -965,7 +968,7 @@
     display: flex;
     gap: 0.5rem;
     flex-wrap: wrap;
-    font-size: 0.75rem;
+    font-size: 0.5rem;
     color: var(--text-dim);
     margin-bottom: 0.35rem;
   }
@@ -979,7 +982,7 @@
     white-space: pre-wrap;
     word-break: break-word;
     font-family: var(--mono);
-    font-size: 0.8rem;
+    font-size: 0.75rem;
   }
 
   .map2-dialog-backdrop {
