@@ -1,0 +1,1913 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "replayFileName": "crossfire-ws-recording-2026-05-29_17-06-10-289.log",
+    "markLabel": "all gone",
+    "entryIndex": 863
+  },
+  "capturedAtIso": "2026-05-29T17:11:55.523Z",
+  "mapSize": {
+    "width": 512,
+    "height": 512
+  },
+  "viewSize": {
+    "width": 25,
+    "height": 25
+  },
+  "playerAbsolute": {
+    "x": 270,
+    "y": 269
+  },
+  "cells": [
+    {
+      "dx": -2,
+      "dy": -2,
+      "state": "Visible",
+      "darkness": 192,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1281,
+          "sizeX": 1,
+          "sizeY": 1
+        },
+        {
+          "layer": 1,
+          "face": 5425,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 18
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": -1,
+      "dy": -2,
+      "state": "Visible",
+      "darkness": 192,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1281,
+          "sizeX": 1,
+          "sizeY": 1
+        },
+        {
+          "layer": 1,
+          "face": 5421,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 18
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 0,
+      "dy": -2,
+      "state": "Visible",
+      "darkness": 192,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1281,
+          "sizeX": 1,
+          "sizeY": 1
+        },
+        {
+          "layer": 1,
+          "face": 5421,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 18
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 1,
+      "dy": -2,
+      "state": "Visible",
+      "darkness": 192,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1281,
+          "sizeX": 1,
+          "sizeY": 1
+        },
+        {
+          "layer": 1,
+          "face": 5421,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 18
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 2,
+      "dy": -2,
+      "state": "Visible",
+      "darkness": 192,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1281,
+          "sizeX": 1,
+          "sizeY": 1
+        },
+        {
+          "layer": 1,
+          "face": 5421,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 18
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 3,
+      "dy": -2,
+      "state": "Fog",
+      "darkness": 192,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1281,
+          "sizeX": 1,
+          "sizeY": 1
+        },
+        {
+          "layer": 1,
+          "face": 5421,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 18
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": -2,
+      "dy": -1,
+      "state": "Visible",
+      "darkness": 192,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1281,
+          "sizeX": 1,
+          "sizeY": 1
+        },
+        {
+          "layer": 1,
+          "face": 5416,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 18
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": -1,
+      "dy": -1,
+      "state": "Visible",
+      "darkness": 64,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1281,
+          "sizeX": 1,
+          "sizeY": 1
+        },
+        {
+          "layer": 1,
+          "face": 411,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 18
+        },
+        {
+          "layer": 8,
+          "value": 200
+        },
+        {
+          "layer": 9,
+          "value": 200
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 0,
+      "dy": -1,
+      "state": "Visible",
+      "darkness": 128,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1281,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 18
+        },
+        {
+          "layer": 8,
+          "value": 200
+        },
+        {
+          "layer": 9,
+          "value": 200
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 1,
+      "dy": -1,
+      "state": "Visible",
+      "darkness": 128,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1281,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 18
+        },
+        {
+          "layer": 8,
+          "value": 200
+        },
+        {
+          "layer": 9,
+          "value": 200
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 2,
+      "dy": -1,
+      "state": "Visible",
+      "darkness": 192,
+      "heads": [
+        {
+          "layer": 0,
+          "animation": 231,
+          "animationSpeed": 5
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 20
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 3,
+      "dy": -1,
+      "state": "Fog",
+      "darkness": 192,
+      "heads": [
+        {
+          "layer": 0,
+          "animation": 231,
+          "animationSpeed": 5
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 20
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 4,
+      "dy": -1,
+      "state": "Fog",
+      "darkness": 192,
+      "heads": [
+        {
+          "layer": 0,
+          "animation": 231,
+          "animationSpeed": 5
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 20
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 5,
+      "dy": -1,
+      "state": "Fog",
+      "darkness": 192,
+      "heads": [
+        {
+          "layer": 0,
+          "animation": 231,
+          "animationSpeed": 5
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 20
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": -2,
+      "dy": 0,
+      "state": "Visible",
+      "darkness": 192,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1281,
+          "sizeX": 1,
+          "sizeY": 1
+        },
+        {
+          "layer": 1,
+          "face": 5416,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 18
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": -1,
+      "dy": 0,
+      "state": "Visible",
+      "darkness": 128,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1281,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 18
+        },
+        {
+          "layer": 8,
+          "value": 200
+        },
+        {
+          "layer": 9,
+          "value": 200
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 0,
+      "dy": 0,
+      "state": "Visible",
+      "darkness": 64,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1281,
+          "sizeX": 1,
+          "sizeY": 1
+        },
+        {
+          "layer": 6,
+          "face": 3015,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 18
+        },
+        {
+          "layer": 8,
+          "value": 200
+        },
+        {
+          "layer": 9,
+          "value": 200
+        }
+      ],
+      "labels": [
+        {
+          "subtype": 1,
+          "label": "Pathor"
+        }
+      ]
+    },
+    {
+      "dx": 1,
+      "dy": 0,
+      "state": "Visible",
+      "darkness": 128,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1281,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 18
+        },
+        {
+          "layer": 8,
+          "value": 200
+        },
+        {
+          "layer": 9,
+          "value": 200
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 2,
+      "dy": 0,
+      "state": "Visible",
+      "darkness": 192,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1281,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 18
+        },
+        {
+          "layer": 8,
+          "value": 200
+        },
+        {
+          "layer": 9,
+          "value": 200
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 3,
+      "dy": 0,
+      "state": "Fog",
+      "darkness": 192,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1281,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 18
+        },
+        {
+          "layer": 8,
+          "value": 200
+        },
+        {
+          "layer": 9,
+          "value": 200
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 4,
+      "dy": 0,
+      "state": "Fog",
+      "darkness": 192,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1281,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 18
+        },
+        {
+          "layer": 8,
+          "value": 200
+        },
+        {
+          "layer": 9,
+          "value": 200
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 5,
+      "dy": 0,
+      "state": "Fog",
+      "darkness": 192,
+      "heads": [
+        {
+          "layer": 0,
+          "animation": 231,
+          "animationSpeed": 5
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 20
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 6,
+      "dy": 0,
+      "state": "Fog",
+      "darkness": 192,
+      "heads": [
+        {
+          "layer": 0,
+          "animation": 231,
+          "animationSpeed": 5
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 20
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 7,
+      "dy": 0,
+      "state": "Fog",
+      "darkness": 192,
+      "heads": [
+        {
+          "layer": 0,
+          "animation": 231,
+          "animationSpeed": 5
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 20
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 8,
+      "dy": 0,
+      "state": "Fog",
+      "darkness": 192,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1000,
+          "sizeX": 1,
+          "sizeY": 1
+        },
+        {
+          "layer": 1,
+          "face": 5416,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 30
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": -2,
+      "dy": 1,
+      "state": "Visible",
+      "darkness": 192,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1281,
+          "sizeX": 1,
+          "sizeY": 1
+        },
+        {
+          "layer": 1,
+          "face": 5416,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 18
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": -1,
+      "dy": 1,
+      "state": "Visible",
+      "darkness": 128,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1281,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 18
+        },
+        {
+          "layer": 8,
+          "value": 200
+        },
+        {
+          "layer": 9,
+          "value": 200
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 0,
+      "dy": 1,
+      "state": "Visible",
+      "darkness": 128,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1281,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 18
+        },
+        {
+          "layer": 8,
+          "value": 200
+        },
+        {
+          "layer": 9,
+          "value": 200
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 1,
+      "dy": 1,
+      "state": "Visible",
+      "darkness": 128,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1281,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 18
+        },
+        {
+          "layer": 8,
+          "value": 200
+        },
+        {
+          "layer": 9,
+          "value": 200
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 2,
+      "dy": 1,
+      "state": "Visible",
+      "darkness": 192,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1281,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 18
+        },
+        {
+          "layer": 8,
+          "value": 200
+        },
+        {
+          "layer": 9,
+          "value": 200
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 3,
+      "dy": 1,
+      "state": "Fog",
+      "darkness": 192,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1281,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 18
+        },
+        {
+          "layer": 8,
+          "value": 200
+        },
+        {
+          "layer": 9,
+          "value": 200
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 4,
+      "dy": 1,
+      "state": "Fog",
+      "darkness": 192,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1281,
+          "sizeX": 1,
+          "sizeY": 1
+        },
+        {
+          "layer": 1,
+          "face": 4688,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 18
+        },
+        {
+          "layer": 8,
+          "value": 200
+        },
+        {
+          "layer": 9,
+          "value": 200
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 5,
+      "dy": 1,
+      "state": "Fog",
+      "darkness": 192,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1281,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 18
+        },
+        {
+          "layer": 8,
+          "value": 200
+        },
+        {
+          "layer": 9,
+          "value": 200
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 6,
+      "dy": 1,
+      "state": "Fog",
+      "darkness": 192,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1281,
+          "sizeX": 1,
+          "sizeY": 1
+        },
+        {
+          "layer": 1,
+          "face": 4689,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 18
+        },
+        {
+          "layer": 8,
+          "value": 200
+        },
+        {
+          "layer": 9,
+          "value": 200
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 7,
+      "dy": 1,
+      "state": "Fog",
+      "darkness": 192,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1281,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 18
+        },
+        {
+          "layer": 8,
+          "value": 200
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 8,
+      "dy": 1,
+      "state": "Fog",
+      "darkness": 192,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1000,
+          "sizeX": 1,
+          "sizeY": 1
+        },
+        {
+          "layer": 1,
+          "face": 5412,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 30
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 9,
+      "dy": 1,
+      "state": "Fog",
+      "darkness": 192,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1000,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 30
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": -2,
+      "dy": 2,
+      "state": "Visible",
+      "darkness": 192,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1281,
+          "sizeX": 1,
+          "sizeY": 1
+        },
+        {
+          "layer": 1,
+          "face": 5416,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 18
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": -1,
+      "dy": 2,
+      "state": "Visible",
+      "darkness": 192,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1281,
+          "sizeX": 1,
+          "sizeY": 1
+        },
+        {
+          "layer": 1,
+          "face": 4152,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 18
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 0,
+      "dy": 2,
+      "state": "Visible",
+      "darkness": 192,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1281,
+          "sizeX": 1,
+          "sizeY": 1
+        },
+        {
+          "layer": 1,
+          "face": 4152,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 18
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 1,
+      "dy": 2,
+      "state": "Visible",
+      "darkness": 192,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1281,
+          "sizeX": 1,
+          "sizeY": 1
+        },
+        {
+          "layer": 1,
+          "face": 4154,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 18
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 2,
+      "dy": 2,
+      "state": "Visible",
+      "darkness": 192,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1281,
+          "sizeX": 1,
+          "sizeY": 1
+        },
+        {
+          "layer": 1,
+          "face": 4157,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 18
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 3,
+      "dy": 2,
+      "state": "Fog",
+      "darkness": 192,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1281,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 18
+        },
+        {
+          "layer": 8,
+          "value": 200
+        },
+        {
+          "layer": 9,
+          "value": 200
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 4,
+      "dy": 2,
+      "state": "Fog",
+      "darkness": 192,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1281,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 18
+        },
+        {
+          "layer": 8,
+          "value": 200
+        },
+        {
+          "layer": 9,
+          "value": 200
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 5,
+      "dy": 2,
+      "state": "Fog",
+      "darkness": 192,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1281,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 18
+        },
+        {
+          "layer": 8,
+          "value": 200
+        },
+        {
+          "layer": 9,
+          "value": 200
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 6,
+      "dy": 2,
+      "state": "Fog",
+      "darkness": 192,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1281,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 18
+        },
+        {
+          "layer": 8,
+          "value": 200
+        },
+        {
+          "layer": 9,
+          "value": 200
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 7,
+      "dy": 2,
+      "state": "Fog",
+      "darkness": 192,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1281,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 18
+        },
+        {
+          "layer": 8,
+          "value": 200
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 8,
+      "dy": 2,
+      "state": "Fog",
+      "darkness": 192,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1000,
+          "sizeX": 1,
+          "sizeY": 1
+        },
+        {
+          "layer": 1,
+          "face": 753,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 30
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 9,
+      "dy": 2,
+      "state": "Fog",
+      "darkness": 192,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1000,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 30
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": -1,
+      "dy": 3,
+      "state": "Fog",
+      "darkness": 192,
+      "heads": [
+        {
+          "layer": 0,
+          "animation": 231,
+          "animationSpeed": 5
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 20
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 0,
+      "dy": 3,
+      "state": "Fog",
+      "darkness": 192,
+      "heads": [
+        {
+          "layer": 0,
+          "animation": 231,
+          "animationSpeed": 5
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 20
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 1,
+      "dy": 3,
+      "state": "Fog",
+      "darkness": 192,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1281,
+          "sizeX": 1,
+          "sizeY": 1
+        },
+        {
+          "layer": 1,
+          "face": 4156,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 18
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 2,
+      "dy": 3,
+      "state": "Fog",
+      "darkness": 192,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1281,
+          "sizeX": 1,
+          "sizeY": 1
+        },
+        {
+          "layer": 1,
+          "face": 4153,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 18
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 3,
+      "dy": 3,
+      "state": "Fog",
+      "darkness": 192,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1281,
+          "sizeX": 1,
+          "sizeY": 1
+        },
+        {
+          "layer": 1,
+          "face": 4152,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 18
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 4,
+      "dy": 3,
+      "state": "Fog",
+      "darkness": 192,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1281,
+          "sizeX": 1,
+          "sizeY": 1
+        },
+        {
+          "layer": 1,
+          "face": 4152,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 18
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 5,
+      "dy": 3,
+      "state": "Fog",
+      "darkness": 192,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1281,
+          "sizeX": 1,
+          "sizeY": 1
+        },
+        {
+          "layer": 1,
+          "face": 4152,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 18
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 6,
+      "dy": 3,
+      "state": "Fog",
+      "darkness": 192,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1281,
+          "sizeX": 1,
+          "sizeY": 1
+        },
+        {
+          "layer": 1,
+          "face": 4152,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 18
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 7,
+      "dy": 3,
+      "state": "Fog",
+      "darkness": 192,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1281,
+          "sizeX": 1,
+          "sizeY": 1
+        },
+        {
+          "layer": 1,
+          "face": 411,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 18
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 8,
+      "dy": 3,
+      "state": "Fog",
+      "darkness": 192,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1000,
+          "sizeX": 1,
+          "sizeY": 1
+        },
+        {
+          "layer": 1,
+          "face": 5415,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 30
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 9,
+      "dy": 3,
+      "state": "Fog",
+      "darkness": 192,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1000,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 30
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 1,
+      "dy": 4,
+      "state": "Fog",
+      "darkness": 192,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1000,
+          "sizeX": 1,
+          "sizeY": 1
+        },
+        {
+          "layer": 1,
+          "face": 5421,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 30
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 2,
+      "dy": 4,
+      "state": "Fog",
+      "darkness": 192,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1000,
+          "sizeX": 1,
+          "sizeY": 1
+        },
+        {
+          "layer": 1,
+          "face": 5421,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 30
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 3,
+      "dy": 4,
+      "state": "Fog",
+      "darkness": 192,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1000,
+          "sizeX": 1,
+          "sizeY": 1
+        },
+        {
+          "layer": 1,
+          "face": 5421,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 30
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 4,
+      "dy": 4,
+      "state": "Fog",
+      "darkness": 192,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1000,
+          "sizeX": 1,
+          "sizeY": 1
+        },
+        {
+          "layer": 1,
+          "face": 5421,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 30
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 5,
+      "dy": 4,
+      "state": "Fog",
+      "darkness": 192,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1000,
+          "sizeX": 1,
+          "sizeY": 1
+        },
+        {
+          "layer": 1,
+          "face": 5421,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 30
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 6,
+      "dy": 4,
+      "state": "Fog",
+      "darkness": 192,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1000,
+          "sizeX": 1,
+          "sizeY": 1
+        },
+        {
+          "layer": 1,
+          "face": 5421,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 30
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 7,
+      "dy": 4,
+      "state": "Fog",
+      "darkness": 192,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1000,
+          "sizeX": 1,
+          "sizeY": 1
+        },
+        {
+          "layer": 1,
+          "face": 5421,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 30
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 8,
+      "dy": 4,
+      "state": "Fog",
+      "darkness": 192,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1000,
+          "sizeX": 1,
+          "sizeY": 1
+        },
+        {
+          "layer": 1,
+          "face": 5422,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 30
+        }
+      ],
+      "labels": []
+    }
+  ]
+}
