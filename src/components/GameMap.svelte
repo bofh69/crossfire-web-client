@@ -828,17 +828,35 @@
       }
     }
 
+    // Draw a dotted outline around the tiles that are part of the server view.
+    // This stays visible even when the canvas renders extra fog-of-war tiles
+    // around it due to zoom or viewport-size constraints.
+    if (vw > 0 && vh > 0) {
+      ctx.save();
+      const lineWidth = Math.max(1, Math.round(scale));
+      ctx.strokeStyle = "rgba(160, 160, 160, 0.9)";
+      ctx.lineWidth = lineWidth;
+      ctx.setLineDash([lineWidth, lineWidth]);
+      ctx.strokeRect(
+        startOffsetX * tileSize + lineWidth / 2,
+        startOffsetY * tileSize + lineWidth / 2,
+        vw * tileSize - lineWidth,
+        vh * tileSize - lineWidth,
+      );
+      ctx.restore();
+    }
+
     const watched = getWatchedCell();
     if (watched !== null) {
-      const wvx = watched.ax - plPos.x;
-      const wvy = watched.ay - plPos.y;
-      if (wvx >= 0 && wvx < displayW && wvy >= 0 && wvy < displayH) {
+      const wx = watched.ax - plPos.x + startOffsetX;
+      const wy = watched.ay - plPos.y + startOffsetY;
+      if (wx >= 0 && wx < displayW && wy >= 0 && wy < displayH) {
         ctx.save();
         ctx.strokeStyle = "rgba(95, 218, 255, 0.95)";
         ctx.lineWidth = Math.max(1, Math.round(scale));
         ctx.strokeRect(
-          (wvx + startOffsetX) * tileSize + ctx.lineWidth / 2,
-          (wvy + startOffsetY) * tileSize + ctx.lineWidth / 2,
+          wx * tileSize + ctx.lineWidth / 2,
+          wy * tileSize + ctx.lineWidth / 2,
           tileSize - ctx.lineWidth,
           tileSize - ctx.lineWidth,
         );
