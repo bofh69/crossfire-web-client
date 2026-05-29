@@ -434,11 +434,6 @@
         onchange={handleFileChange}
       />
     </label>
-    <div class="status-card">
-      <div><strong>File:</strong> {fileName || "None loaded"}</div>
-      <div><strong>Progress:</strong> {formatPosition()}</div>
-      <div><strong>Current MARK:</strong> {currentMarkLabel()}</div>
-    </div>
     <div class="button-row">
       <button onclick={() => resetReplay()} disabled={entries.length === 0}>
         Start over
@@ -452,7 +447,7 @@
     </div>
     <div class="button-row">
       <button onclick={exportMapdataSnapshot} disabled={entries.length === 0}>
-        Export mapdata state
+        Export cell state
       </button>
       <button
         onclick={exportSelectedCellMapdataSnapshot}
@@ -487,6 +482,11 @@
         </div>
       {/if}
     </section>
+    <div class="status-card">
+      <div><strong>File:</strong> {fileName || "None loaded"}</div>
+      <div><strong>Progress:</strong> {formatPosition()}</div>
+      <div><strong>Current MARK:</strong> {currentMarkLabel()}</div>
+    </div>
   </aside>
 
   <main class="map-shell">

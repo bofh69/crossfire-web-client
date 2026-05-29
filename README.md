@@ -58,7 +58,7 @@ If `output.txt` is omitted, converted output is written to stdout.
 
 ## Replay ws-recording logs
 
-There is also a separate unlinked replay page at:
+There is also a separate replay page at:
 
 ```
 /replay.html
@@ -67,9 +67,10 @@ There is also a separate unlinked replay page at:
 It accepts both the compact downloaded ws-recording logs and the converted text
 format from `npm run recording:convert`.
 
-The replay page also has an **Export mapdata state** button. Replay to the mark
-you want, then export a human-readable JSON snapshot where each cell is stored
-with position relative to the player.
+The replay page can export state snapshot files in the same format as
+used by the mapdata replay tests.
+
+More marks can be added by editing the logfile.
 
 ## Mapdata replay tests
 
@@ -88,9 +89,9 @@ tests/replay-mapdata/tests.json
 Each case has:
 
 - `name`: test name
-- `log`: replay log path (compact or converted format)
-- `mark`: MARK label to replay up to
-- `state`: expected mapdata state JSON path
+- `log`: replay log file path (in compact or converted format)
+- `mark`: MARK label to replay the log up to
+- `state`: path to expected mapdata state file
 
 Only cells listed in the state file are compared.
 
