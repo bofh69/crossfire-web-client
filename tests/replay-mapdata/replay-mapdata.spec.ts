@@ -25,7 +25,10 @@ let initCommands: () => void;
 let setGetMapImageSize: (
   fn: (face: number) => { w: number; h: number },
 ) => void;
-let mapdata_cell: (mx: number, my: number) => {
+let mapdata_cell: (
+  mx: number,
+  my: number,
+) => {
   heads: Array<{ face: number }>;
   state: number;
 };
@@ -95,16 +98,6 @@ function replayToMark(logText: string, markLabel: string): void {
     return;
   }
 
-  function parseRawRxLine(line: string): Uint8Array | null {
-    const parts = line.trim().split(/\s+/);
-    if (parts[1] !== "RX") {
-      return null;
-    }
-    const b64 = parts[3] ?? "";
-    const buf = Buffer.from(b64, "base64");
-    return new Uint8Array(buf.buffer, buf.byteOffset, buf.byteLength);
-  }
-
   for (let index = 0; index <= targetMark.entryIndex; index++) {
     const entry = parsed.entries[index]!;
     if (entry.type !== "RX" || entry.payload === null) {
@@ -112,6 +105,16 @@ function replayToMark(logText: string, markLabel: string): void {
     }
     dispatchPacket(toPacketBuffer(entry.payload));
   }
+}
+
+function parseRawRxLine(line: string): Uint8Array | null {
+  const parts = line.trim().split(/\s+/);
+  if (parts[1] !== "RX") {
+    return null;
+  }
+  const b64 = parts[3] ?? "";
+  const buf = Buffer.from(b64, "base64");
+  return new Uint8Array(buf.buffer, buf.byteOffset, buf.byteLength);
 }
 
 beforeAll(() => {
