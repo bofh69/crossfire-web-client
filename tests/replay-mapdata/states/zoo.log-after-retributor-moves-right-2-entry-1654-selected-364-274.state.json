@@ -104,6 +104,28 @@
         }
       ],
       "labels": []
+    },
+    {
+      "dx": 4,
+      "dy": -7,
+      "state": "Fog",
+      "darkness": 0,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1005,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 16
+        }
+      ],
+      "labels": []
     }
   ]
 }
