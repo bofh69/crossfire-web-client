@@ -17,6 +17,7 @@
   } from "./lib/mapdata";
   import { initCommands } from "./lib/p_cmd";
   import {
+    decodeReplayMap2Payload,
     parseReplayLogFile,
     describeReplayEntry,
     resetReplaySandboxState,
@@ -32,6 +33,8 @@
     text: string;
     lineNumber: number | null;
     timestamp: number | null;
+    commandName: string | null;
+    payload: Uint8Array | null;
   }
 
   interface SelectedTile {
@@ -59,6 +62,8 @@
   ]);
   let replayLogContainer = $state<HTMLDivElement | null>(null);
   let replayTickEnabled = $state(false);
+  let map2DialogText = $state<string | null>(null);
+  let map2DialogTitle = $state("");
   let logId = 0;
 
   function addLog(
@@ -74,6 +79,8 @@
         text,
         lineNumber: entry?.lineNumber ?? null,
         timestamp: entry?.timestamp ?? null,
+        commandName: entry?.commandName ?? null,
+        payload: entry?.payload ?? null,
       },
     ];
     if (replayLog.length > MAX_LOG_MESSAGES) {
@@ -235,6 +242,30 @@
 
   function clearReplayLog(): void {
     replayLog = [];
+  }
+
+  function closeMap2Dialog(): void {
+    map2DialogText = null;
+    map2DialogTitle = "";
+  }
+
+  function openMap2Dialog(message: ReplayLogMessage): void {
+    if (
+      message.kind !== "rx" ||
+      message.commandName !== "map2" ||
+      message.payload === null
+    ) {
+      return;
+    }
+    const decoded = decodeReplayMap2Payload(message.payload);
+    if (!decoded) {
+      return;
+    }
+    map2DialogTitle =
+      message.lineNumber === null
+        ? "Decoded map2 command"
+        : `Decoded map2 command (line ${message.lineNumber})`;
+    map2DialogText = decoded;
   }
 
   function sanitizeNamePart(value: string): string {
@@ -494,6 +525,16 @@
         <div class="log-list" bind:this={replayLogContainer}>
           {#each replayLog as message}
             <div class={`log-entry ${message.kind}`}>
+              <button
+                class="log-entry-hitbox"
+                type="button"
+                ondblclick={() => openMap2Dialog(message)}
+                title={
+                  message.kind === "rx" && message.commandName === "map2"
+                    ? "Double-click to decode map2 details"
+                    : undefined
+                }
+              >
               <div class="log-meta">
                 <span class="kind">{message.kind.toUpperCase()}</span>
                 {#if message.timestamp !== null}
@@ -504,6 +545,7 @@
                 {/if}
               </div>
               <pre>{message.text}</pre>
+              </button>
             </div>
           {/each}
         </div>
@@ -511,6 +553,27 @@
     </section>
   </aside>
 </div>
+
+{#if map2DialogText !== null}
+  <div class="map2-dialog-backdrop" role="dialog" aria-modal="true">
+    <div class="map2-dialog">
+      <div class="map2-dialog-header">
+        <h3>{map2DialogTitle}</h3>
+        <button
+          class="map2-dialog-close"
+          type="button"
+          onclick={closeMap2Dialog}
+          aria-label="Close map2 details"
+        >
+          ×
+        </button>
+      </div>
+      <div class="map2-dialog-body">
+        <pre>{map2DialogText}</pre>
+      </div>
+    </div>
+  </div>
+{/if}
 
 <style>
   .replay-page {
@@ -711,8 +774,22 @@
   .log-entry {
     border: 1px solid var(--border);
     border-radius: 0.3rem;
-    padding: 0.5rem;
     background: var(--bg-panel);
+  }
+
+  .log-entry-hitbox {
+    background: transparent;
+    border: 0;
+    color: inherit;
+    cursor: inherit;
+    display: block;
+    padding: 0.5rem;
+    text-align: left;
+    width: 100%;
+  }
+
+  .log-entry-hitbox:hover {
+    background: transparent;
   }
 
   .clear-log {
@@ -760,6 +837,56 @@
     word-break: break-word;
     font-family: var(--mono);
     font-size: 0.8rem;
+  }
+
+  .map2-dialog-backdrop {
+    align-items: center;
+    background: color-mix(in srgb, #000 70%, transparent);
+    display: flex;
+    inset: 0;
+    justify-content: center;
+    padding: 1rem;
+    position: fixed;
+    z-index: 20;
+  }
+
+  .map2-dialog {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-light);
+    border-radius: 0.35rem;
+    display: flex;
+    flex-direction: column;
+    max-height: min(80vh, 900px);
+    max-width: min(95vw, 900px);
+    width: min(95vw, 900px);
+  }
+
+  .map2-dialog-header {
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    gap: 0.75rem;
+    justify-content: space-between;
+    padding: 0.75rem;
+  }
+
+  .map2-dialog-header h3 {
+    font-size: 1rem;
+    margin: 0;
+  }
+
+  .map2-dialog-close {
+    font-size: 1rem;
+    line-height: 1;
+    min-height: 1.5rem;
+    min-width: 1.5rem;
+    padding: 0.15rem 0.35rem;
+  }
+
+  .map2-dialog-body {
+    min-height: 0;
+    overflow: auto;
+    padding: 0.75rem;
   }
 
   @media (max-width: 1200px) {
