@@ -1,0 +1,138 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "replayFileName": "zoo.log",
+    "markLabel": "Before Shadow Dragon is visible",
+    "entryIndex": 2584
+  },
+  "capturedAtIso": "2026-05-29T18:48:49.626Z",
+  "mapSize": {
+    "width": 512,
+    "height": 512
+  },
+  "viewSize": {
+    "width": 25,
+    "height": 25
+  },
+  "playerAbsolute": {
+    "x": 351,
+    "y": 280
+  },
+  "cells": [
+    {
+      "dx": 2,
+      "dy": 1,
+      "state": "Visible",
+      "darkness": 0,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1005,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [
+        {
+          "layer": 6,
+          "face": 2593,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 16
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 2,
+      "dy": 2,
+      "state": "Visible",
+      "darkness": 0,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1005,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [
+        {
+          "layer": 6,
+          "face": 2593,
+          "sizeX": 1,
+          "sizeY": 0
+        }
+      ],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 16
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 3,
+      "dy": 1,
+      "state": "Visible",
+      "darkness": 0,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1005,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [
+        {
+          "layer": 6,
+          "face": 2593,
+          "sizeX": 0,
+          "sizeY": 1
+        }
+      ],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 16
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 3,
+      "dy": 2,
+      "state": "Visible",
+      "darkness": 0,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1005,
+          "sizeX": 1,
+          "sizeY": 1
+        },
+        {
+          "layer": 6,
+          "face": 2593,
+          "sizeX": 2,
+          "sizeY": 2
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 16
+        }
+      ],
+      "labels": []
+    }
+  ]
+}

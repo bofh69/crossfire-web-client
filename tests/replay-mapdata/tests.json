@@ -58,5 +58,11 @@
     "log": "tests/replay-mapdata/logs/mice-hole.converted.log",
     "mark": "all gone",
     "state": "tests/replay-mapdata/states/dead-mice.state.json"
+  },
+  {
+    "name": "big face reappear from fog",
+    "log": "tests/replay-mapdata/logs/zoo.log",
+    "mark": "Before Shadow Dragon is visible",
+    "state": "tests/replay-mapdata/states/shadow-dragon.state.json"
   }
 ]
