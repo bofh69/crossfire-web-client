@@ -40,5 +40,11 @@
     "log": "tests/replay-mapdata/logs/zoo.log",
     "mark": "After knight moves",
     "state": "tests/replay-mapdata/states/after-knight-moves.state.json"
+  },
+  {
+    "name": "big face head moving to fog",
+    "log": "tests/replay-mapdata/logs/zoo.log",
+    "mark": "after retributor moves right #2",
+    "state": "tests/replay-mapdata/states//zoo.log-after-retributor-moves-right-2-entry-1654-selected-364-274.state.json"
   }
 ]

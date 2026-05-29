@@ -1,0 +1,109 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "replayFileName": "zoo.log",
+    "markLabel": "after retributor moves right #2",
+    "entryIndex": 1653
+  },
+  "capturedAtIso": "2026-05-29T04:17:04.554Z",
+  "mapSize": {
+    "width": 512,
+    "height": 512
+  },
+  "viewSize": {
+    "width": 25,
+    "height": 25
+  },
+  "playerAbsolute": {
+    "x": 361,
+    "y": 283
+  },
+  "cells": [
+    {
+      "dx": 3,
+      "dy": -9,
+      "state": "Visible",
+      "darkness": 0,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1005,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [
+        {
+          "layer": 8,
+          "face": 2229,
+          "sizeX": 0,
+          "sizeY": 2
+        }
+      ],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 16
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 3,
+      "dy": -8,
+      "state": "Visible",
+      "darkness": 0,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1005,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [
+        {
+          "layer": 8,
+          "face": 2229,
+          "sizeX": 0,
+          "sizeY": 1
+        }
+      ],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 16
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 3,
+      "dy": -7,
+      "state": "Visible",
+      "darkness": 0,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1005,
+          "sizeX": 1,
+          "sizeY": 1
+        },
+        {
+          "layer": 8,
+          "face": 2229,
+          "sizeX": 2,
+          "sizeY": 3
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 16
+        }
+      ],
+      "labels": []
+    }
+  ]
+}
