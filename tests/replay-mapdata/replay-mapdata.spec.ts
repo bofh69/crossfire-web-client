@@ -25,6 +25,11 @@ let initCommands: () => void;
 let setGetMapImageSize: (
   fn: (face: number) => { w: number; h: number },
 ) => void;
+let mapdata_cell: (mx: number, my: number) => {
+  heads: Array<{ face: number }>;
+  state: number;
+};
+let pl_mpos: () => { px: number; py: number };
 let getFaceTileSize: (face: number) => { w: number; h: number };
 let parseReplayLogFile: (text: string) => {
   entries: Array<{ type: "MARK" | "RX" | "TX"; payload: Uint8Array | null }>;
@@ -90,6 +95,16 @@ function replayToMark(logText: string, markLabel: string): void {
     return;
   }
 
+  function parseRawRxLine(line: string): Uint8Array | null {
+    const parts = line.trim().split(/\s+/);
+    if (parts[1] !== "RX") {
+      return null;
+    }
+    const b64 = parts[3] ?? "";
+    const buf = Buffer.from(b64, "base64");
+    return new Uint8Array(buf.buffer, buf.byteOffset, buf.byteLength);
+  }
+
   for (let index = 0; index <= targetMark.entryIndex; index++) {
     const entry = parsed.entries[index]!;
     if (entry.type !== "RX" || entry.payload === null) {
@@ -118,7 +133,8 @@ beforeAll(async () => {
   ({ dispatchPacket } = await import("../../src/lib/commands"));
   ({ clientInit } = await import("../../src/lib/init"));
   ({ getFaceTileSize } = await import("../../src/lib/image"));
-  ({ setGetMapImageSize } = await import("../../src/lib/mapdata"));
+  ({ setGetMapImageSize, mapdata_cell, pl_mpos } =
+    await import("../../src/lib/mapdata"));
   ({ initCommands } = await import("../../src/lib/p_cmd"));
   ({ parseReplayLogFile, resetReplaySandboxState, toPacketBuffer } =
     await import("../../src/lib/replay"));
@@ -147,5 +163,45 @@ describe("replay mapdata states", () => {
         ? comparison.mismatches.join("\n\n")
         : "State comparison failed without mismatch details",
     ).toBe(true);
+  });
+
+  test("clear_space in fog resets stale preserved layers", () => {
+    const lines = readFileSync(
+      path.join(rootDir, "tests/replay-mapdata/logs/zoo.log"),
+      "utf8",
+    ).split(/\r?\n/);
+
+    resetReplaySandboxState();
+
+    let absoluteX = 0;
+    let absoluteY = 0;
+    for (let i = 0; i < 1829; i++) {
+      const rx = parseRawRxLine(lines[i] ?? "");
+      if (rx) {
+        dispatchPacket(toPacketBuffer(rx));
+      }
+      if (i === 1828) {
+        const player = pl_mpos();
+        absoluteX = player.px - 4;
+        absoluteY = player.py - 2;
+      }
+    }
+
+    for (let i = 1829; i < 1878; i++) {
+      const rx = parseRawRxLine(lines[i] ?? "");
+      if (rx) {
+        dispatchPacket(toPacketBuffer(rx));
+      }
+    }
+
+    const player = pl_mpos();
+    const cell = mapdata_cell(absoluteX, absoluteY);
+    expect({ dx: absoluteX - player.px, dy: absoluteY - player.py }).toEqual({
+      dx: -2,
+      dy: -3,
+    });
+    expect(cell.state).toBe(1);
+    expect(cell.heads[0]!.face).toBe(1005);
+    expect(cell.heads[6]!.face).toBe(0);
   });
 });
