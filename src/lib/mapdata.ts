@@ -1369,7 +1369,10 @@ class ReusableMapdataCellUpdate implements MapdataCellUpdate {
       isBlank = false;
     }
     if (isBlank && this.x < viewWidth && this.y < viewHeight) {
-      cell.state = MapCellState.Fog;
+      cell.state =
+        this.originalState === MapCellState.Empty
+          ? MapCellState.Empty
+          : MapCellState.Fog;
     }
   }
 
@@ -1570,6 +1573,7 @@ class ReusableMapdataCellUpdate implements MapdataCellUpdate {
         if (
           this.onlyBigFaceHeads &&
           (this.clearSpaceCalled || this.hadLayerClears) &&
+          this.originalState !== MapCellState.Empty &&
           (this.hasBigFaceHead || originalHasBigFaceHead) &&
           !hasRegularContentAfterUpdate
         ) {
