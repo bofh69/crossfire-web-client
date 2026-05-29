@@ -1,0 +1,50 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "replayFileName": "zoo.log",
+    "markLabel": "after out-of-sight clear"
+  },
+  "capturedAtIso": "2026-05-29T09:00:00.000Z",
+  "mapSize": {
+    "width": 512,
+    "height": 512
+  },
+  "viewSize": {
+    "width": 25,
+    "height": 25
+  },
+  "playerAbsolute": {
+    "x": 348,
+    "y": 289
+  },
+  "cells": [
+    {
+      "dx": -4,
+      "dy": -2,
+      "state": "Fog",
+      "darkness": 0,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1005,
+          "sizeX": 1,
+          "sizeY": 1
+        },
+        {
+          "layer": 6,
+          "face": 2374,
+          "sizeX": 3,
+          "sizeY": 3
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 16
+        }
+      ],
+      "labels": []
+    }
+  ]
+}

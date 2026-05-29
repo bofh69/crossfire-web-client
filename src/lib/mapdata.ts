@@ -1355,10 +1355,19 @@ class ReusableMapdataCellUpdate implements MapdataCellUpdate {
       cell.needUpdate = true;
       cell.needResmooth = true;
     } else {
-      for (let l = 0; l < L; l++) {
-        const head = cell.heads[l]!;
-        if (head.face !== 0 && (head.sizeX > 1 || head.sizeY > 1)) {
-          this.clearHeadLayer(head);
+      // Preserve remembered content when transitioning from Visible→Fog.
+      // In particular, keep big-face heads so objects remain visible in fog
+      // until a later explicit layer update replaces or clears them.
+      const original = this.originalCell;
+      if (original) {
+        for (let l = 0; l < L; l++) {
+          const prevHead = original.heads[l]!;
+          if (prevHead.face === 0 || (prevHead.sizeX <= 1 && prevHead.sizeY <= 1)) {
+            continue;
+          }
+          cell.heads[l] = { ...prevHead };
+          cell.tails[l] = { ...original.tails[l]! };
+          cell.smooth[l] = original.smooth[l]!;
         }
       }
       cell.needUpdate = true;
