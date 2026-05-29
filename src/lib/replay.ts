@@ -8,6 +8,16 @@ import { clientReset, wantConfig } from "./init";
 import { resetItemState } from "./item";
 import { mapdata_free, mapdata_newmap, mapdata_set_size } from "./mapdata";
 import { resetPlayerCommandState } from "./player";
+import { BinaryReader } from "./binary_reader";
+import {
+  FACE_IS_ANIM,
+  MAP2_COORD_OFFSET,
+  MAP2_LAYER_START,
+  MAP2_TYPE_CLEAR,
+  MAP2_TYPE_DARKNESS,
+  MAP2_TYPE_LABEL,
+  MAXLAYERS,
+} from "./protocol";
 
 const textDecoder = new TextDecoder();
 
@@ -341,4 +351,124 @@ export function describeReplayEntry(entry: ReplayEntry): string {
     return entry.markerText ?? "";
   }
   return entry.preview;
+}
+
+function describeMap2LabelSubtype(subtype: number): string {
+  switch (subtype) {
+    case 1:
+      return "player";
+    case 2:
+      return "player-party";
+    case 3:
+      return "dm";
+    case 4:
+      return "npc";
+    case 5:
+      return "sign";
+    case 6:
+      return "say";
+    case 7:
+      return "chat";
+    default:
+      return "unknown";
+  }
+}
+
+/**
+ * Decode an RX map2 packet payload into plain-text lines for replay inspection.
+ */
+export function decodeReplayMap2Payload(payload: Uint8Array): string | null {
+  if (extractCommandName(payload) !== "map2") {
+    return null;
+  }
+  const dataStart = payload.indexOf(0x20);
+  if (dataStart < 0 || dataStart >= payload.length - 1) {
+    return "map2 packet has no binary payload.";
+  }
+
+  const data = payload.subarray(dataStart + 1);
+  const reader = new BinaryReader(
+    new DataView(data.buffer, data.byteOffset, data.byteLength),
+    data.byteLength,
+  );
+  const lines: string[] = [`map2 payload bytes: ${data.byteLength}`];
+  let tileNumber = 0;
+
+  try {
+    while (reader.remaining > 0) {
+      const mask = reader.readInt16();
+      const x = ((mask >> 10) & 0x3f) - MAP2_COORD_OFFSET;
+      const y = ((mask >> 4) & 0x3f) - MAP2_COORD_OFFSET;
+      if (mask & 0x1) {
+        lines.push(`scroll to (${x}, ${y})`);
+        continue;
+      }
+
+      tileNumber += 1;
+      lines.push(`tile ${tileNumber} at (${x}, ${y})`);
+      while (reader.remaining > 0) {
+        const typeByte = reader.readUint8();
+        if (typeByte === 255) {
+          lines.push("  end");
+          break;
+        }
+        const spaceLen = typeByte >> 5;
+        const type = typeByte & 0x1f;
+
+        if (type === MAP2_TYPE_CLEAR) {
+          lines.push("  clear");
+        } else if (type === MAP2_TYPE_DARKNESS) {
+          const value = reader.readUint8();
+          lines.push(`  darkness ${value}`);
+        } else if (type === MAP2_TYPE_LABEL) {
+          const totalLen = reader.readUint8();
+          const subtype = reader.readUint8();
+          const strLen = reader.readUint8();
+          const label = reader.readString(strLen);
+          lines.push(
+            `  label ${describeMap2LabelSubtype(subtype)} (${subtype}): ${JSON.stringify(label)} (len ${totalLen})`,
+          );
+        } else if (
+          type >= MAP2_LAYER_START &&
+          type < MAP2_LAYER_START + MAXLAYERS
+        ) {
+          const layer = type & 0xf;
+          const faceOrAnim = reader.readInt16();
+          if (faceOrAnim & FACE_IS_ANIM) {
+            lines.push(`  layer ${layer} animation ${faceOrAnim & ~FACE_IS_ANIM}`);
+          } else {
+            lines.push(`  layer ${layer} face ${faceOrAnim}`);
+          }
+          if (spaceLen > 2) {
+            const opt = reader.readUint8();
+            if (faceOrAnim & FACE_IS_ANIM) {
+              lines.push(`    speed ${opt}`);
+            } else {
+              lines.push(`    smooth ${opt}`);
+            }
+          }
+          if (spaceLen > 3) {
+            const smooth = reader.readUint8();
+            lines.push(`    smooth ${smooth}`);
+          }
+          if (spaceLen > 4) {
+            reader.skip(spaceLen - 4);
+            lines.push(`    extra bytes ${spaceLen - 4}`);
+          }
+        } else if (spaceLen !== 7) {
+          reader.skip(spaceLen);
+          lines.push(`  unknown type ${type} (${spaceLen} byte(s))`);
+        } else {
+          const extraLen = reader.readUint8();
+          reader.skip(extraLen);
+          lines.push(`  unknown type ${type} (extended ${extraLen} byte(s))`);
+        }
+      }
+    }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    lines.push(`parse error: ${message}`);
+  }
+
+  return lines.join("\n");
 }
