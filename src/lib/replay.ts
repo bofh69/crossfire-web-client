@@ -396,7 +396,7 @@ export function decodeReplayMap2Payload(payload: Uint8Array): string | null {
 
   try {
     while (reader.remaining > 0) {
-      const mask = reader.readInt16();
+      const mask = reader.readUint16();
       const x = ((mask >> 10) & 0x3f) - MAP2_COORD_OFFSET;
       const y = ((mask >> 4) & 0x3f) - MAP2_COORD_OFFSET;
       if (mask & 0x1) {
@@ -433,7 +433,7 @@ export function decodeReplayMap2Payload(payload: Uint8Array): string | null {
           type < MAP2_LAYER_START + MAXLAYERS
         ) {
           const layer = type & 0xf;
-          const faceOrAnim = reader.readInt16();
+          const faceOrAnim = reader.readUint16();
           if (faceOrAnim & FACE_IS_ANIM) {
             lines.push(`  layer ${layer} animation ${faceOrAnim & ~FACE_IS_ANIM}`);
           } else {
