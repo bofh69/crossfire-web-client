@@ -435,7 +435,9 @@ export function decodeReplayMap2Payload(payload: Uint8Array): string | null {
           const layer = type & 0xf;
           const faceOrAnim = reader.readUint16();
           if (faceOrAnim & FACE_IS_ANIM) {
-            lines.push(`  layer ${layer} animation ${faceOrAnim & ~FACE_IS_ANIM}`);
+            lines.push(
+              `  layer ${layer} animation ${faceOrAnim & ~FACE_IS_ANIM}`,
+            );
           } else {
             lines.push(`  layer ${layer} face ${faceOrAnim}`);
           }
