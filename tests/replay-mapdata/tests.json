@@ -46,5 +46,11 @@
     "log": "tests/replay-mapdata/logs/zoo.log",
     "mark": "after retributor moves right #2",
     "state": "tests/replay-mapdata/states//zoo.log-after-retributor-moves-right-2-entry-1654-selected-364-274.state.json"
+  },
+  {
+    "name": "big face head remains in fog after out-of-sight clear",
+    "log": "tests/replay-mapdata/logs/zoo.log",
+    "mark": "after out-of-sight clear",
+    "state": "tests/replay-mapdata/states/zoo-after-out-of-sight-clear.state.json"
   }
 ]
