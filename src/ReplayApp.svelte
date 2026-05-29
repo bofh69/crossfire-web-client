@@ -349,6 +349,121 @@
     );
   }
 
+  function addMarkAtCurrentPosition(): void {
+    if (entries.length === 0) {
+      addLog("error", "Load a replay log before adding a MARK.");
+      return;
+    }
+    const defaultLabel = `mark-${marks.length + 1}`;
+    const label = window.prompt("MARK label:", defaultLabel);
+    if (label === null) {
+      return;
+    }
+    const markerText = label.trim() || defaultLabel;
+    const timestamp =
+      currentEntryIndex >= 0 ? entries[currentEntryIndex]!.timestamp : 0;
+    const newEntry: ReplayEntry = {
+      timestamp,
+      type: "MARK",
+      lineNumber: 0,
+      commandName: null,
+      markerText,
+      payload: null,
+      preview: markerText,
+    };
+    const insertIndex = nextEntryIndex;
+    const newEntries = [
+      ...entries.slice(0, insertIndex),
+      newEntry,
+      ...entries.slice(insertIndex),
+    ];
+    const newMarks: ReplayMark[] = [];
+    for (let i = 0; i < newEntries.length; i++) {
+      const e = newEntries[i]!;
+      if (e.type === "MARK" && e.markerText !== null) {
+        newMarks.push({
+          entryIndex: i,
+          label: e.markerText,
+          lineNumber: e.lineNumber,
+          timestamp: e.timestamp,
+        });
+      }
+    }
+    entries = newEntries;
+    marks = newMarks;
+    addLog("mark", `Added MARK "${markerText}" at position ${insertIndex}.`);
+  }
+
+  function uint8ArrayToBase64(bytes: Uint8Array): string {
+    let binary = "";
+    for (let i = 0; i < bytes.length; i++) {
+      binary += String.fromCharCode(bytes[i]!);
+    }
+    return btoa(binary);
+  }
+
+  function downloadLogFile(): void {
+    if (entries.length === 0) {
+      addLog("error", "No replay loaded to download.");
+      return;
+    }
+    const lines: string[] = [];
+    for (const entry of entries) {
+      if (entry.type === "MARK") {
+        lines.push(
+          `${entry.timestamp}\tMARK\t${JSON.stringify(entry.markerText ?? "")}`,
+        );
+      } else {
+        const payload = entry.payload!;
+        const b64 = uint8ArrayToBase64(payload);
+        lines.push(
+          `${entry.timestamp}\t${entry.type}\t${payload.length}\t${b64}`,
+        );
+      }
+    }
+    const content = lines.join("\n");
+    const blob = new Blob([content], { type: "text/plain" });
+    const objectUrl = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = objectUrl;
+    anchor.download = fileName || "replay.log";
+    anchor.click();
+    URL.revokeObjectURL(objectUrl);
+    addLog("info", `Downloaded ${entries.length} entries as ${anchor.download}.`);
+  }
+
+  function handleKeyDown(event: KeyboardEvent): void {
+    if (
+      event.target instanceof HTMLInputElement ||
+      event.target instanceof HTMLTextAreaElement
+    ) {
+      return;
+    }
+    if (event.altKey || event.ctrlKey || event.metaKey) {
+      return;
+    }
+    switch (event.key.toLowerCase()) {
+      case "r":
+        if (entries.length > 0) {
+          resetReplay();
+        }
+        break;
+      case "s":
+        if (entries.length > 0) {
+          stepForward();
+        }
+        break;
+      case "n":
+        if (entries.length > 0) {
+          stepToNextMark();
+        }
+        break;
+      case "m":
+        addMarkAtCurrentPosition();
+        break;
+    }
+  }
+
   function formatPosition(): string {
     if (entries.length === 0) {
       return "No replay loaded";
@@ -416,9 +531,11 @@
       handlePick(ax, ay);
     });
     armTileInspection();
+    document.addEventListener("keydown", handleKeyDown);
     return () => {
       clearWatchedCell();
       unsubscribe();
+      document.removeEventListener("keydown", handleKeyDown);
     };
   });
 </script>
@@ -435,14 +552,33 @@
       />
     </label>
     <div class="button-row">
-      <button onclick={() => resetReplay()} disabled={entries.length === 0}>
+      <button
+        onclick={() => resetReplay()}
+        disabled={entries.length === 0}
+        title="Start over (R)"
+      >
         Start over
       </button>
-      <button onclick={stepForward} disabled={entries.length === 0}>
+      <button
+        onclick={stepForward}
+        disabled={entries.length === 0}
+        title="Step to next command (S)"
+      >
         Step cmd
       </button>
-      <button onclick={stepToNextMark} disabled={entries.length === 0}>
+      <button
+        onclick={stepToNextMark}
+        disabled={entries.length === 0}
+        title="Step to next MARK (N)"
+      >
         Next mark
+      </button>
+      <button
+        onclick={addMarkAtCurrentPosition}
+        disabled={entries.length === 0}
+        title="Add MARK at current position (M)"
+      >
+        Mark
       </button>
     </div>
     <div class="button-row">
@@ -454,6 +590,13 @@
         disabled={entries.length === 0 || selectedTile === null}
       >
         Export selected cell state
+      </button>
+      <button
+        onclick={downloadLogFile}
+        disabled={entries.length === 0}
+        title="Download log file"
+      >
+        Download log
       </button>
     </div>
     <label class="tick-toggle">
