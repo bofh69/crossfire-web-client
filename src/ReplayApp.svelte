@@ -529,22 +529,20 @@
                 class="log-entry-hitbox"
                 type="button"
                 ondblclick={() => openMap2Dialog(message)}
-                title={
-                  message.kind === "rx" && message.commandName === "map2"
-                    ? "Double-click to decode map2 details"
-                    : undefined
-                }
+                title={message.kind === "rx" && message.commandName === "map2"
+                  ? "Double-click to decode map2 details"
+                  : undefined}
               >
-              <div class="log-meta">
-                <span class="kind">{message.kind.toUpperCase()}</span>
-                {#if message.timestamp !== null}
-                  <span>{message.timestamp} ms</span>
-                {/if}
-                {#if message.lineNumber !== null}
-                  <span>line {message.lineNumber}</span>
-                {/if}
-              </div>
-              <pre>{message.text}</pre>
+                <div class="log-meta">
+                  <span class="kind">{message.kind.toUpperCase()}</span>
+                  {#if message.timestamp !== null}
+                    <span>{message.timestamp} ms</span>
+                  {/if}
+                  {#if message.lineNumber !== null}
+                    <span>line {message.lineNumber}</span>
+                  {/if}
+                </div>
+                <pre>{message.text}</pre>
               </button>
             </div>
           {/each}
