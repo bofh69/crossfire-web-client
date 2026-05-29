@@ -1558,8 +1558,7 @@ class ReusableMapdataCellUpdate implements MapdataCellUpdate {
         const original = this.originalCell;
         const originalHasBigFaceHead =
           original?.heads.some(
-            (head) =>
-              head.face !== 0 && (head.sizeX > 1 || head.sizeY > 1),
+            (head) => head.face !== 0 && (head.sizeX > 1 || head.sizeY > 1),
           ) ?? false;
 
         // Big-face-head guard:
