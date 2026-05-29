@@ -808,6 +808,8 @@
       }
     }
 
+    const selectionLineWidth = Math.max(1, Math.round(scale));
+
     // Pass 5: draw a thin yellow border on the move-to target tile so the
     // player can see where they right-clicked.  Cleared automatically when
     // the player arrives or when move-to is cancelled by manual input.
@@ -817,7 +819,7 @@
       if (tvx >= 0 && tvx < vw && tvy >= 0 && tvy < vh) {
         ctx.save();
         ctx.strokeStyle = "rgba(255, 255, 0, 0.85)";
-        ctx.lineWidth = Math.max(1, Math.round(scale));
+        ctx.lineWidth = selectionLineWidth;
         ctx.strokeRect(
           (tvx + startOffsetX) * tileSize + ctx.lineWidth / 2,
           (tvy + startOffsetY) * tileSize + ctx.lineWidth / 2,
@@ -833,15 +835,14 @@
     // around it due to zoom or viewport-size constraints.
     if (vw > 0 && vh > 0) {
       ctx.save();
-      const lineWidth = Math.max(1, Math.round(scale));
       ctx.strokeStyle = "rgba(160, 160, 160, 0.9)";
-      ctx.lineWidth = lineWidth;
-      ctx.setLineDash([lineWidth, lineWidth]);
+      ctx.lineWidth = selectionLineWidth;
+      ctx.setLineDash([selectionLineWidth, selectionLineWidth]);
       ctx.strokeRect(
-        startOffsetX * tileSize + lineWidth / 2,
-        startOffsetY * tileSize + lineWidth / 2,
-        vw * tileSize - lineWidth,
-        vh * tileSize - lineWidth,
+        startOffsetX * tileSize + selectionLineWidth / 2,
+        startOffsetY * tileSize + selectionLineWidth / 2,
+        vw * tileSize - selectionLineWidth,
+        vh * tileSize - selectionLineWidth,
       );
       ctx.restore();
     }
@@ -853,7 +854,7 @@
       if (wx >= 0 && wx < displayW && wy >= 0 && wy < displayH) {
         ctx.save();
         ctx.strokeStyle = "rgba(95, 218, 255, 0.95)";
-        ctx.lineWidth = Math.max(1, Math.round(scale));
+        ctx.lineWidth = selectionLineWidth;
         ctx.strokeRect(
           wx * tileSize + ctx.lineWidth / 2,
           wy * tileSize + ctx.lineWidth / 2,
