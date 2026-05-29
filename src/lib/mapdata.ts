@@ -1647,6 +1647,9 @@ class ReusableMapdataCellUpdate implements MapdataCellUpdate {
           const idxL2 = idxL; // same index, alias for clarity
           layerUpdatedAfterClear.fill(0, idxL2, idxL2 + L);
           for (let l2 = 0; l2 < L; l2++) {
+            if (this.clearSpaceCalled && !this.dirtyLayers[l2]) {
+              continue;
+            }
             const h = this.workingCell.heads[l2]!;
             if (h.face !== 0 && (h.sizeX > 1 || h.sizeY > 1)) {
               layerUpdatedAfterClear[idxL2 + l2] = 1;
@@ -1678,6 +1681,20 @@ class ReusableMapdataCellUpdate implements MapdataCellUpdate {
             }));
           }
           this.workingCell.state = this.originalState;
+
+          // This cell stayed non-visible after a post-clear layer update that
+          // carried only big-face head data. Keep track of the updated layers
+          // so a later Fog->Visible transition preserves those layers.
+          const idxL2 = idxL;
+          for (let l2 = 0; l2 < L; l2++) {
+            if (!this.dirtyLayers[l2]) {
+              continue;
+            }
+            const h = this.workingCell.heads[l2]!;
+            if (h.face !== 0 && (h.sizeX > 1 || h.sizeY > 1)) {
+              layerUpdatedAfterClear[idxL2 + l2] = 1;
+            }
+          }
         }
 
         for (let l = 0; l < L; l++) {

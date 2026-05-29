@@ -54,6 +54,12 @@
     "state": "tests/replay-mapdata/states/zoo-after-out-of-sight-clear.state.json"
   },
   {
+    "name": "big face layer cleared when fog cell becomes visible",
+    "log": "tests/replay-mapdata/logs/zoo.log",
+    "mark": "after out-of-sight visible update",
+    "state": "tests/replay-mapdata/states/zoo-after-out-of-sight-visible-update.state.json"
+  },
+  {
     "name": "layers cleared in fog",
     "log": "tests/replay-mapdata/logs/mice-hole.converted.log",
     "mark": "all gone",
