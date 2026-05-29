@@ -324,7 +324,7 @@ export function Map2Cmd(data: DataView, len: number): void {
   let tileCount = 0;
   const reader = new BinaryReader(data, len);
   while (reader.remaining > 0) {
-    const mask = reader.readInt16();
+    const mask = reader.readUint16();
     const x = ((mask >> 10) & 0x3f) - MAP2_COORD_OFFSET;
     const y = ((mask >> 4) & 0x3f) - MAP2_COORD_OFFSET;
 
@@ -377,7 +377,7 @@ export function Map2Cmd(data: DataView, len: number): void {
         type < MAP2_LAYER_START + MAXLAYERS
       ) {
         const layer = type & 0xf;
-        const faceOrAnim = reader.readInt16();
+        const faceOrAnim = reader.readUint16();
         if (!(faceOrAnim & FACE_IS_ANIM)) {
           mapdata_set_face_layer(cx, cy, faceOrAnim, layer);
         }
@@ -512,11 +512,11 @@ export function MagicMapCmd(data: DataView, len: number): void {
 
 export function AnimCmd(data: DataView, len: number): void {
   const reader = new BinaryReader(data, len);
-  const animId = reader.readInt16();
-  const animFlags = reader.readInt16();
+  const animId = reader.readUint16();
+  const animFlags = reader.readUint16();
   const faces: number[] = [];
   while (reader.remaining > 0) {
-    faces.push(reader.readInt16());
+    faces.push(reader.readUint16());
   }
   const anim: Animation = {
     flags: animFlags,
@@ -531,7 +531,7 @@ export function AnimCmd(data: DataView, len: number): void {
 
 export function SmoothCmd(data: DataView, len: number): void {
   const reader = new BinaryReader(data, len);
-  const face = reader.readInt16();
-  const smooth = reader.readInt16();
+  const face = reader.readUint16();
+  const smooth = reader.readUint16();
   addSmooth(face, smooth);
 }
