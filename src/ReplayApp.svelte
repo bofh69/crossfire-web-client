@@ -395,9 +395,10 @@
   }
 
   function uint8ArrayToBase64(bytes: Uint8Array): string {
+    const CHUNK = 8192;
     let binary = "";
-    for (let i = 0; i < bytes.length; i++) {
-      binary += String.fromCharCode(bytes[i]!);
+    for (let offset = 0; offset < bytes.length; offset += CHUNK) {
+      binary += String.fromCharCode(...bytes.subarray(offset, offset + CHUNK));
     }
     return btoa(binary);
   }
@@ -426,7 +427,7 @@
     const objectUrl = URL.createObjectURL(blob);
     const anchor = document.createElement("a");
     anchor.href = objectUrl;
-    anchor.download = fileName || "replay.log";
+    anchor.download = fileName || `replay-${Date.now()}.log`;
     anchor.click();
     URL.revokeObjectURL(objectUrl);
     addLog("info", `Downloaded ${entries.length} entries as ${anchor.download}.`);
@@ -442,7 +443,8 @@
     if (event.altKey || event.ctrlKey || event.metaKey) {
       return;
     }
-    switch (event.key.toLowerCase()) {
+    const key = event.key.toLowerCase();
+    switch (key) {
       case "r":
         if (entries.length > 0) {
           resetReplay();
