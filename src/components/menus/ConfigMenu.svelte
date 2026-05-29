@@ -464,16 +464,17 @@
           restoreConfig();
         }}>Restore Config…</button
       >
-      <input
-        type="file"
-        accept="application/json,.json"
-        bind:this={restoreFileInput}
-        onchange={handleRestoreFileSelected}
-        style="display: none"
-      />
     </div>
   {/if}
 </div>
+
+<input
+  type="file"
+  accept="application/json,.json"
+  bind:this={restoreFileInput}
+  onchange={handleRestoreFileSelected}
+  style="display: none"
+/>
 
 {#if showColorsDialog}
   <div class="dialog-overlay">
