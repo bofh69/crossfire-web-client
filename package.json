@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "build": "vite build",
-    "build:singlefile": "vite build --config vite.singlefile.config.ts",
+    "build:singlefile": "vite build --config vite.singlefile.config.ts --mode singlefile-main && vite build --config vite.singlefile.config.ts --mode singlefile-replay",
     "check": "svelte-check --tsconfig ./tsconfig.app.json && tsc -p tsconfig.node.json",
     "dev": "vite",
     "format": "prettier --write .",
