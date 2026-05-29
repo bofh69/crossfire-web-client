@@ -1200,6 +1200,7 @@
   .message {
     padding: 1px 0;
     word-wrap: break-word;
+    white-space: pre-wrap;
   }
 
   .message:hover {
