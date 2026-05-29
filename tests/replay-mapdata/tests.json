@@ -38,8 +38,7 @@
   {
     "name": "big face head moving to visible",
     "log": "tests/replay-mapdata/logs/zoo.log",
-    "mark": "After knight move",
+    "mark": "After knight moves",
     "state": "tests/replay-mapdata/states/after-knight-moves.state.json"
   }
 ]
-
