@@ -12,6 +12,7 @@
     "format:check": "prettier --check .",
     "preview": "vite preview",
     "replay:playwright": "node scripts/replay-with-playwright.mjs",
+    "screenshot:game-ui": "rm -f screenshots/replay-playwright/*Shadow-Dragon-is-in-fog.png && npm run replay:playwright -- --log tests/replay-mapdata/logs/zoo.log --instructions scripts/replay-playwright.instructions.example.json --mark-regex \"^Shadow Dragon is in fog$\" --output-dir screenshots/replay-playwright && cp \"$(find screenshots/replay-playwright -maxdepth 1 -type f -name '*Shadow-Dragon-is-in-fog.png' | head -n 1)\" screenshots/game_ui.png",
     "recording:convert": "node scripts/convert-ws-recording-log.mjs",
     "test:mapdata": "vitest run tests/replay-mapdata/replay-mapdata.spec.ts"
   },
