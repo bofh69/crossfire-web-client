@@ -477,7 +477,11 @@ async function runAction(page, action, context, match) {
     const text = String(rawValue);
     return text.replace(/\$(\d+)/g, (_, groupIndexText) => {
       const groupIndex = Number.parseInt(groupIndexText, 10);
-      if (!match || groupIndex >= match.length || match[groupIndex] === undefined) {
+      if (
+        !match ||
+        groupIndex >= match.length ||
+        match[groupIndex] === undefined
+      ) {
         throw new Error(
           `Missing regex group $${groupIndex} for "${fieldName}" in ${context}`,
         );
@@ -548,7 +552,9 @@ async function runAction(page, action, context, match) {
     case "clickSelector": {
       const selector = String(action.selector ?? "").trim();
       if (!selector) {
-        throw new Error(`clickSelector action missing "selector" in ${context}`);
+        throw new Error(
+          `clickSelector action missing "selector" in ${context}`,
+        );
       }
       const options = {
         timeout: action.timeoutMs ?? 5000,
@@ -563,9 +569,12 @@ async function runAction(page, action, context, match) {
         throw new Error(`fillSelector action missing "selector" in ${context}`);
       }
       const value = resolveTemplateText(action.value, "value");
-      await page.locator(selector).first().fill(value, {
-        timeout: action.timeoutMs ?? 5000,
-      });
+      await page
+        .locator(selector)
+        .first()
+        .fill(value, {
+          timeout: action.timeoutMs ?? 5000,
+        });
       return;
     }
     case "waitForTimeout": {
