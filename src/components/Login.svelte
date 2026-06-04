@@ -1203,11 +1203,12 @@
     gap: 2rem;
     align-items: flex-start;
     width: 100%;
-    max-width: 70%;
+    max-width: 72rem;
   }
 
   .server-info {
-    flex: 1;
+    flex: 1 1 24rem;
+    min-width: 18rem;
     max-height: 70vh;
     overflow-y: auto;
     display: flex;
@@ -1252,14 +1253,16 @@
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
-    min-width: 280px;
+    flex: 0 1 24rem;
+    min-width: 18rem;
   }
 
   .login-form {
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
-    width: 320px;
+    width: 100%;
+    max-width: 22.5rem;
   }
 
   label {
@@ -1437,7 +1440,7 @@
   /* ── Character-creation styles ─────────────────────────────────────────── */
 
   .create-char-form {
-    width: 360px;
+    max-width: 24rem;
     max-height: 80vh;
     overflow-y: auto;
   }
@@ -1550,5 +1553,39 @@
   .points-over {
     color: #e06060;
     font-weight: bold;
+  }
+
+  @media (max-width: 900px) {
+    .connected-layout {
+      gap: 1rem;
+    }
+
+    .server-info,
+    .query-panel {
+      min-width: 0;
+    }
+  }
+
+  @media (max-width: 720px) {
+    .connected-layout {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .query-panel {
+      order: 1;
+      width: 100%;
+    }
+
+    .server-info {
+      order: 2;
+      width: 100%;
+      max-height: 40vh;
+    }
+
+    .login-form,
+    .create-char-form {
+      max-width: none;
+    }
   }
 </style>
