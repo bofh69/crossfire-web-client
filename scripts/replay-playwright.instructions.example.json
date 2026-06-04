@@ -1,0 +1,184 @@
+{
+  "tx": [
+    {
+      "match": "^accountlogin$",
+      "actions": [
+        {
+          "type": "fillRole",
+          "role": "textbox",
+          "name": "Account Name",
+          "value": "my-account"
+        },
+        {
+          "type": "fillRole",
+          "role": "textbox",
+          "name": "Password",
+          "value": "my-password"
+        },
+        {
+          "type": "clickRole",
+          "role": "button",
+          "name": "Log In"
+        }
+      ]
+    },
+    {
+      "match": "^accountplay$",
+      "actions": [
+        {
+          "type": "clickText",
+          "text": "Pathor"
+        }
+      ]
+    },
+    {
+      "match": "^ncom\\.southwest$",
+      "actions": [
+        {
+          "type": "press",
+          "key": "Numpad1"
+        }
+      ]
+    },
+    {
+      "match": "^ncom\\.south$",
+      "actions": [
+        {
+          "type": "press",
+          "key": "Numpad2"
+        }
+      ]
+    },
+    {
+      "match": "^ncom\\.southeast$",
+      "actions": [
+        {
+          "type": "press",
+          "key": "Numpad3"
+        }
+      ]
+    },
+    {
+      "match": "^ncom\\.west$",
+      "actions": [
+        {
+          "type": "press",
+          "key": "Numpad4"
+        }
+      ]
+    },
+    {
+      "match": "^ncom\\.east$",
+      "actions": [
+        {
+          "type": "press",
+          "key": "Numpad6"
+        }
+      ]
+    },
+    {
+      "match": "^ncom\\.northwest$",
+      "actions": [
+        {
+          "type": "press",
+          "key": "Numpad7"
+        }
+      ]
+    },
+    {
+      "match": "^ncom\\.northeast$",
+      "actions": [
+        {
+          "type": "press",
+          "key": "Numpad9"
+        }
+      ]
+    },
+    {
+      "match": "^ncom\\.north$",
+      "actions": [
+        {
+          "type": "press",
+          "key": "Numpad8"
+        }
+      ]
+    },
+    {
+      "match": "^ncom\\.apply$",
+      "actions": [
+        {
+          "type": "press",
+          "key": "a"
+        }
+      ]
+    },
+    {
+      "match": "^lookat$",
+      "actions": [
+        {
+          "type": "clickSelector",
+          "selector": ".game-map canvas",
+          "button": "left"
+        }
+      ]
+    },
+    {
+      "match": "^ncom\\.run ([12346789])$",
+      "actions": [
+        {
+          "type": "keyDown",
+          "key": "Alt"
+        },
+        {
+          "type": "press",
+          "key": "Numpad$1"
+        }
+      ]
+    },
+    {
+      "match": "^ncom\\.run_stop$",
+      "actions": [
+        {
+          "type": "keyUp",
+          "key": "Alt"
+        }
+      ]
+    },
+    {
+      "match": "^ncom\\.fire ([12346789])$",
+      "actions": [
+        {
+          "type": "keyDown",
+          "key": "Shift"
+        },
+        {
+          "type": "press",
+          "key": "Numpad$1"
+        }
+      ]
+    },
+    {
+      "match": "^ncom\\.fire_stop$",
+      "actions": [
+        {
+          "type": "keyUp",
+          "key": "Shift"
+        }
+      ]
+    },
+    {
+      "match": "^ncom\\.cast\\s+(.+)$",
+      "actions": [
+        {
+          "type": "fillSelector",
+          "selector": ".input-row input[type='text']",
+          "value": "cast $1"
+        },
+        {
+          "type": "press",
+          "key": "Enter"
+        }
+      ]
+    }
+  ]
+}
