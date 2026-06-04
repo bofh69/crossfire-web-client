@@ -20,3 +20,6 @@ old/build/
 
 # Vite files
 .vite
+
+# Screenshots from replay
+screenshots/replay-playwright/*.png

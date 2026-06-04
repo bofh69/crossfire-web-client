@@ -11,6 +11,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "preview": "vite preview",
+    "replay:playwright": "node scripts/replay-with-playwright.mjs",
     "recording:convert": "node scripts/convert-ws-recording-log.mjs",
     "test:mapdata": "vitest run tests/replay-mapdata/replay-mapdata.spec.ts"
   },
@@ -18,6 +19,7 @@
     "@sveltejs/vite-plugin-svelte": "^7.0.0",
     "@tsconfig/svelte": "^5.0.8",
     "@types/node": "^24.12.0",
+    "playwright": "^1.55.0",
     "prettier": "^3.8.3",
     "prettier-plugin-svelte": "^3.5.1",
     "svelte": "^5.53.12",
@@ -25,7 +27,8 @@
     "typescript": "~5.9.3",
     "vite": "^8.0.1",
     "vite-plugin-singlefile": "^2.3.3",
-    "vitest": "^4.1.7"
+    "vitest": "^4.1.7",
+    "ws": "^8.18.3"
   },
   "dependencies": {
     "@fontsource/caveat": "^5.2.8",

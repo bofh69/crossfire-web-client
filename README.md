@@ -72,6 +72,52 @@ used by the mapdata replay tests.
 
 More marks can be added by editing the logfile.
 
+## One-command Playwright replay automation
+
+Run an end-to-end replay with:
+
+```bash
+npm run replay:playwright -- --log tests/replay-mapdata/logs/scorn.converted.log --mark-regex ".*"
+```
+
+This command starts:
+
+- a local Vite dev server
+- a replay WebSocket server that replays the logfile to the client
+- a Playwright Chromium browser connected to that replay server
+
+Behavior:
+
+- For each `TX` line in the logfile, replay waits for the client to send a matching command (or timeout).
+- Matching is command-only, except for `ncom` where the embedded command text is also matched (`ncom.north`, `ncom.apply`, etc.).
+- The next replayed `RX comc` packet is sequence-patched to the sequence sent by the client for that matched `ncom`.
+- Every `MARK` line whose label matches `--mark-regex` saves a screenshot in `screenshots/replay-playwright/`.
+
+### Optional JSON instructions
+
+Use `--instructions` to apply Playwright actions synchronized to `TX` lines:
+
+```bash
+npm run replay:playwright -- \
+  --log tests/replay-mapdata/logs/scorn.converted.log \
+  --instructions scripts/replay-playwright.instructions.example.json \
+  --mark-regex ".*"
+```
+
+Instruction format (`JSON`):
+
+- top-level `tx` array
+- each entry has:
+  - `match`: regex string tested against replay command key
+    - normal commands: `accountlogin`, `accountplay`
+    - `ncom` commands: `ncom.<embedded command>`, e.g. `ncom.north`
+  - `actions`: list of actions (`clickRole`, `clickText`, `fillRole`, `clickSelector`, `fillSelector`, `press`, `keyDown`, `keyUp`, `waitForTimeout`, `screenshot`)
+    - Action string values support regex captures from `match` via `$1`, `$2`, etc.
+
+Built-in actions already exist for `accountlogin` (click **Log In**) and
+`accountplay` (click matching character button), and can be extended with
+instruction rules.
+
 ## Mapdata replay tests
 
 Run the mapdata replay tests with:
