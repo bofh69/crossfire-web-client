@@ -70,6 +70,8 @@
     isHotbarGamepadMode,
   } from "./lib/hotbar";
   import { loadConfig, saveConfig } from "./lib/storage";
+  import { exportConfigBackup } from "./lib/storage";
+  import { recordConfigSnapshot } from "./lib/websocket-recording";
   import {
     exitUiNavMode,
     firstVisibleInGroup,
@@ -982,6 +984,7 @@
     resetHpTracking();
     wireCallbacks();
     initSound();
+    recordConfigSnapshot(exportConfigBackup());
   }
 
   /** Unsubscribe functions for game event subscriptions. */

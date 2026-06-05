@@ -38,6 +38,7 @@
     SELF_TICK_INTERVAL_MS,
   } from "../lib/constants";
   import { loadConfig, saveConfig } from "../lib/storage";
+  import { recordUiInteraction } from "../lib/websocket-recording";
   import { getWatchedCell, perfLogging } from "../lib/debug";
 
   const BASE_FONT_SIZE = 10;
@@ -982,6 +983,14 @@
       return;
     }
 
+    const relX = rect.width > 0 ? (e.clientX - rect.left) / rect.width : 0.5;
+    const relY = rect.height > 0 ? (e.clientY - rect.top) / rect.height : 0.5;
+    recordUiInteraction("lookAtClick", {
+      x: Math.min(Math.max(relX, 0), 1),
+      y: Math.min(Math.max(relY, 0), 1),
+      dx,
+      dy,
+    });
     lookAt(dx, dy);
   }
 
@@ -1011,6 +1020,10 @@
     if (!e.ctrlKey) return;
     e.preventDefault();
     if (e.deltaY === 0) return;
+    recordUiInteraction("zoomCommand", {
+      direction: e.deltaY < 0 ? "in" : "out",
+      source: "wheel",
+    });
     const current =
       storedScale ?? computeScale(containerW, containerH, baseTileSize);
     updateStoredScale(e.deltaY < 0 ? current + 1 : current - 1);

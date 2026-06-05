@@ -150,6 +150,53 @@ function parseCompactReplayLine(line, lineNumber) {
       lineNumber,
       markerText: marker,
       payload: null,
+      keyData: null,
+      uiData: null,
+    };
+  }
+  if (type === "KEY") {
+    const keyData = parseJsonObject(
+      parts.slice(2).join("\t"),
+      lineNumber,
+      "KEY",
+    );
+    if (typeof keyData.key !== "string" || !keyData.key) {
+      throw new Error(
+        `Line ${lineNumber}: KEY payload must have a non-empty "key" string field`,
+      );
+    }
+    const validEvents = ["down", "press", "up"];
+    const event = keyData.event ?? "press";
+    if (!validEvents.includes(event)) {
+      throw new Error(
+        `Line ${lineNumber}: KEY "event" must be one of: ${validEvents.join(", ")}`,
+      );
+    }
+    return {
+      type: "KEY",
+      timestamp,
+      lineNumber,
+      markerText: null,
+      payload: null,
+      keyData: { ...keyData, event },
+      uiData: null,
+    };
+  }
+  if (type === "UI") {
+    const uiData = parseJsonObject(parts.slice(2).join("\t"), lineNumber, "UI");
+    if (typeof uiData.action !== "string" || !uiData.action.trim()) {
+      throw new Error(
+        `Line ${lineNumber}: UI payload must have a non-empty "action" string field`,
+      );
+    }
+    return {
+      type: "UI",
+      timestamp,
+      lineNumber,
+      markerText: null,
+      payload: null,
+      keyData: null,
+      uiData,
     };
   }
   if (type !== "TX" && type !== "RX") {
@@ -168,11 +215,13 @@ function parseCompactReplayLine(line, lineNumber) {
     lineNumber,
     markerText: null,
     payload: Uint8Array.from(payload),
+    keyData: null,
+    uiData: null,
   };
 }
 
 function parseConvertedReplayLine(line, lineNumber) {
-  const match = /^(\d+)\s+(TX|RX|MARK)(?:\s(.*))?$/.exec(line);
+  const match = /^(\d+)\s+(TX|RX|MARK|KEY|UI)(?:\s(.*))?$/.exec(line);
   if (!match) {
     throw new Error(`Line ${lineNumber}: unsupported replay line`);
   }
@@ -189,6 +238,57 @@ function parseConvertedReplayLine(line, lineNumber) {
       lineNumber,
       markerText: new TextDecoder().decode(parseCString(rest, lineNumber)),
       payload: null,
+      keyData: null,
+      uiData: null,
+    };
+  }
+  if (type === "KEY") {
+    const keyData = parseJsonObject(
+      new TextDecoder().decode(parseCString(rest, lineNumber)),
+      lineNumber,
+      "KEY",
+    );
+    if (typeof keyData.key !== "string" || !keyData.key) {
+      throw new Error(
+        `Line ${lineNumber}: KEY payload must have a non-empty "key" string field`,
+      );
+    }
+    const validEvents = ["down", "press", "up"];
+    const event = keyData.event ?? "press";
+    if (!validEvents.includes(event)) {
+      throw new Error(
+        `Line ${lineNumber}: KEY "event" must be one of: ${validEvents.join(", ")}`,
+      );
+    }
+    return {
+      type: "KEY",
+      timestamp,
+      lineNumber,
+      markerText: null,
+      payload: null,
+      keyData: { ...keyData, event },
+      uiData: null,
+    };
+  }
+  if (type === "UI") {
+    const uiData = parseJsonObject(
+      new TextDecoder().decode(parseCString(rest, lineNumber)),
+      lineNumber,
+      "UI",
+    );
+    if (typeof uiData.action !== "string" || !uiData.action.trim()) {
+      throw new Error(
+        `Line ${lineNumber}: UI payload must have a non-empty "action" string field`,
+      );
+    }
+    return {
+      type: "UI",
+      timestamp,
+      lineNumber,
+      markerText: null,
+      payload: null,
+      keyData: null,
+      uiData,
     };
   }
   return {
@@ -197,7 +297,24 @@ function parseConvertedReplayLine(line, lineNumber) {
     lineNumber,
     markerText: null,
     payload: parseCString(rest, lineNumber),
+    keyData: null,
+    uiData: null,
   };
+}
+
+function parseJsonObject(text, lineNumber, type) {
+  let data;
+  try {
+    data = JSON.parse(text);
+  } catch {
+    throw new Error(`Line ${lineNumber}: invalid ${type} JSON payload`);
+  }
+  if (!data || typeof data !== "object") {
+    throw new Error(
+      `Line ${lineNumber}: ${type} payload must be a JSON object`,
+    );
+  }
+  return data;
 }
 
 function parseIntStrict(value, errorMessage) {
@@ -617,6 +734,113 @@ async function applyBuiltInAutomation(page, expectedInfo) {
   return false;
 }
 
+async function replayUiAction(page, uiData, lineNumber) {
+  const action = String(uiData.action ?? "").trim();
+  if (!action) return;
+  if (action === "configSnapshot") {
+    // Already applied via addInitScript before the browser launched.
+    console.log(
+      `[replay] UI line ${lineNumber}: configSnapshot already applied`,
+    );
+    return;
+  }
+  if (action === "menuSelect") {
+    const menuId = String(uiData.menuId ?? "").trim();
+    const entryId = String(uiData.entryId ?? "").trim();
+    const menuLabel = String(uiData.menuLabel ?? "").trim();
+    const entryLabel = String(uiData.entryLabel ?? "").trim();
+    const isConnectionMenu =
+      menuId === "ui-menu-connection" ||
+      /^connection$/i.test(menuLabel) ||
+      entryId.startsWith("ui-menu-connection-");
+    if (isConnectionMenu) {
+      console.log(
+        `[replay] UI line ${lineNumber}: ignoring Connection menu action`,
+      );
+      return;
+    }
+    if (menuId) {
+      await page.locator(`[data-ui-nav-id="${menuId}"]`).first().click();
+    } else if (menuLabel) {
+      await page
+        .getByRole("button", {
+          name: new RegExp(`^\\s*${escapeRegex(menuLabel)}\\s*$`, "i"),
+        })
+        .first()
+        .click();
+    } else {
+      console.warn(
+        `[replay] UI line ${lineNumber}: menuSelect missing menu target`,
+      );
+      return;
+    }
+    if (entryId) {
+      await page.locator(`[data-ui-nav-id="${entryId}"]`).first().click();
+      return;
+    }
+    if (entryLabel) {
+      await page
+        .getByRole("button", {
+          name: new RegExp(`^\\s*${escapeRegex(entryLabel)}\\s*$`, "i"),
+        })
+        .first()
+        .click();
+      return;
+    }
+    console.warn(
+      `[replay] UI line ${lineNumber}: menuSelect missing entry target`,
+    );
+    return;
+  }
+  if (action === "filterClick") {
+    const selector = String(uiData.selector ?? "").trim();
+    if (!selector) {
+      console.warn(
+        `[replay] UI line ${lineNumber}: filterClick missing selector`,
+      );
+      return;
+    }
+    await page.locator(selector).first().click();
+    return;
+  }
+  if (action === "lookAtClick") {
+    const x = Math.min(Math.max(Number(uiData.x), 0), 1);
+    const y = Math.min(Math.max(Number(uiData.y), 0), 1);
+    if (!Number.isFinite(x) || !Number.isFinite(y)) {
+      console.warn(`[replay] UI line ${lineNumber}: lookAtClick missing x/y`);
+      return;
+    }
+    const canvas = page.locator(".game-map canvas").first();
+    const box = await canvas.boundingBox();
+    if (!box) {
+      throw new Error(`UI line ${lineNumber}: game map canvas not visible`);
+    }
+    await page.mouse.click(box.x + box.width * x, box.y + box.height * y, {
+      button: "left",
+    });
+    return;
+  }
+  if (action === "zoomCommand") {
+    const direction = uiData.direction === "in" ? -120 : 120;
+    await page.evaluate((deltaY) => {
+      const canvas = document.querySelector(".game-map canvas");
+      if (!canvas) return;
+      canvas.dispatchEvent(
+        new WheelEvent("wheel", {
+          deltaY,
+          ctrlKey: true,
+          bubbles: true,
+          cancelable: true,
+        }),
+      );
+    }, direction);
+    return;
+  }
+  console.warn(
+    `[replay] UI line ${lineNumber}: unsupported action "${action}"`,
+  );
+}
+
 async function main() {
   const opts = parseArgs(process.argv.slice(2));
 
@@ -627,6 +851,13 @@ async function main() {
   const replayPath = path.resolve(opts.log);
   const replayText = await fs.readFile(replayPath, "utf8");
   const entries = parseReplayLogFile(replayText);
+  const configBackup =
+    entries.find(
+      (e) =>
+        e.type === "UI" &&
+        e.uiData !== null &&
+        e.uiData.action === "configSnapshot",
+    )?.uiData?.backup ?? null;
   const hasRxTickEntries = entries.some(
     (entry) =>
       entry.type === "RX" &&
@@ -705,13 +936,36 @@ async function main() {
     console.log("[replay] Launching browser...");
     browser = await chromium.launch({ headless: opts.headless });
     const context = await browser.newContext();
-    await context.addInitScript(() => {
-      try {
-        localStorage.setItem("config_server_ticks", "1");
-      } catch {
-        // ignore storage errors in non-standard contexts
-      }
-    });
+    await context.addInitScript(
+      (configValues) => {
+        try {
+          if (configValues !== null) {
+            // Remove any existing crossfire config before applying the snapshot.
+            const keysToRemove = [];
+            for (let i = 0; i < localStorage.length; i++) {
+              const key = localStorage.key(i);
+              if (key !== null && key.startsWith("crossfire_")) {
+                keysToRemove.push(key);
+              }
+            }
+            for (const key of keysToRemove) {
+              localStorage.removeItem(key);
+            }
+            for (const [key, value] of Object.entries(configValues)) {
+              localStorage.setItem("crossfire_" + key, JSON.stringify(value));
+            }
+          }
+          localStorage.setItem("config_server_ticks", "1");
+        } catch {
+          // ignore storage errors in non-standard contexts
+        }
+      },
+      configBackup !== null &&
+        typeof configBackup === "object" &&
+        configBackup.values != null
+        ? configBackup.values
+        : null,
+    );
     page = await context.newPage();
 
     page.on("console", (msg) => {
@@ -758,6 +1012,30 @@ async function main() {
             );
           }
         }
+        continue;
+      }
+
+      if (entry.type === "KEY") {
+        const { key, event } = entry.keyData;
+        console.log(
+          `[replay] KEY line ${entry.lineNumber}: ${event} "${key}"` +
+            (entry.keyData.command ? ` (${entry.keyData.command})` : ""),
+        );
+        if (event === "down") {
+          await page.keyboard.down(key);
+        } else if (event === "up") {
+          await page.keyboard.up(key);
+        } else {
+          await page.keyboard.press(key);
+        }
+        continue;
+      }
+
+      if (entry.type === "UI") {
+        console.log(
+          `[replay] UI line ${entry.lineNumber}: ${entry.uiData.action}`,
+        );
+        await replayUiAction(page, entry.uiData, entry.lineNumber);
         continue;
       }
 
