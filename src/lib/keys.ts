@@ -32,6 +32,7 @@ import { clear_move_to } from "./mapdata";
 import { LOG } from "./misc";
 import { LogLevel } from "./protocol";
 import { directionFromCommand } from "./directions";
+import { recordKeyInput } from "./websocket-recording";
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Flag definitions (matching the C KEYF_* constants)
@@ -445,6 +446,7 @@ export function parseKey(e: KeyboardEvent): void {
   // ── Modifier keys: just set state, don't look up a binding ──────
   if (e.key === "Shift" || e.key === "ShiftLeft" || e.key === "ShiftRight") {
     cpl.fireOn = true;
+    recordKeyInput("Shift", "down", "");
     return;
   }
   if (
@@ -453,14 +455,17 @@ export function parseKey(e: KeyboardEvent): void {
     e.key === "ControlRight"
   ) {
     cpl.altOn = true;
+    recordKeyInput("Control", "down", "");
     return;
   }
   if (e.key === "Alt" || e.key === "AltLeft" || e.key === "AltRight") {
     cpl.runOn = true;
+    recordKeyInput("Alt", "down", "");
     return;
   }
   if (e.key === "Meta" || e.key === "MetaLeft" || e.key === "MetaRight") {
     cpl.metaOn = true;
+    recordKeyInput("Meta", "down", "");
     return;
   }
 
@@ -487,10 +492,12 @@ export function parseKey(e: KeyboardEvent): void {
       // Any manual directional input cancels an active click-to-move.
       clear_move_to();
       if (cpl.fireOn) {
+        recordKeyInput(keysym, "press", kb.command);
         fireDir(kb.direction);
         return;
       }
       if (cpl.runOn) {
+        recordKeyInput(keysym, "press", kb.command);
         runDir(kb.direction);
         return;
       }
@@ -501,6 +508,7 @@ export function parseKey(e: KeyboardEvent): void {
     if (e.repeat && !checkRepeatThrottle(kb.command)) {
       return;
     }
+    recordKeyInput(keysym, "press", kb.command);
     extendedCommand(kb.command);
     if (e.repeat) {
       recordRepeatSend();
@@ -538,6 +546,7 @@ export function parseKeyRelease(e: KeyboardEvent): void {
 
   if (e.key === "Shift" || e.key === "ShiftLeft" || e.key === "ShiftRight") {
     cpl.fireOn = false;
+    recordKeyInput("Shift", "up", "");
     clearFire();
     return;
   }
@@ -547,15 +556,18 @@ export function parseKeyRelease(e: KeyboardEvent): void {
     e.key === "ControlRight"
   ) {
     cpl.altOn = false;
+    recordKeyInput("Control", "up", "");
     return;
   }
   if (e.key === "Alt" || e.key === "AltLeft" || e.key === "AltRight") {
     cpl.runOn = false;
+    recordKeyInput("Alt", "up", "");
     clearRun();
     return;
   }
   if (e.key === "Meta" || e.key === "MetaLeft" || e.key === "MetaRight") {
     cpl.metaOn = false;
+    recordKeyInput("Meta", "up", "");
     return;
   }
 

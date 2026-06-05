@@ -42,6 +42,7 @@
   import { gameEvents } from "../lib/events";
   import { MSG_BUFFER_MAX, MSG_BUFFER_TRIM } from "../lib/constants";
   import { sendCommand } from "../lib/player";
+  import { recordUiInteraction } from "../lib/websocket-recording";
   import ContextMenu from "./ContextMenu.svelte";
 
   let { inputDisabled = false }: { inputDisabled?: boolean } = $props();
@@ -273,11 +274,33 @@
   }
 
   function toggleAll(view: PanelViewId) {
+    recordUiInteraction("filterClick", {
+      selector:
+        view === "left"
+          ? `[data-ui-nav-id="ui-info-left-filter-all"]`
+          : view === "right"
+            ? `[data-ui-nav-id="ui-info-right-filter-all"]`
+            : `[data-ui-nav-id="ui-info-filter-all"]`,
+      group: "info",
+      view,
+      id: "all",
+    });
     setViewFilters(view, !viewShowAll(view), new Set(viewEnabled(view)));
     scrollViewToBottom(view);
   }
 
   function toggleCategory(view: PanelViewId, id: string) {
+    recordUiInteraction("filterClick", {
+      selector:
+        view === "left"
+          ? `[data-ui-nav-id="ui-info-left-filter-${id}"]`
+          : view === "right"
+            ? `[data-ui-nav-id="ui-info-right-filter-${id}"]`
+            : `[data-ui-nav-id="ui-info-filter-${id}"]`,
+      group: "info",
+      view,
+      id,
+    });
     let nextShowAll = viewShowAll(view);
     let nextEnabled = new Set(viewEnabled(view));
     if (nextShowAll) {

@@ -40,12 +40,13 @@ When recording is enabled (`?record`), downloaded logs are in the compact format
 ```
 <timestamp>\t<TX|RX>\t<byte_length>\t<base64_payload>
 <timestamp>\t<MARK>\t<json_marker_text>
+<timestamp>\t<KEY|UI>\t<json_payload>
 ```
 
 Use this converter to transform them into:
 
 ```
-timestamp TX/RX/MARK text
+timestamp TX/RX/MARK/KEY/UI text
 ```
 
 where `text` is C-string escaped (`\n` for newline, `\xXX` for non-printables).
@@ -91,6 +92,7 @@ Behavior:
 - For each `TX` line in the logfile, replay waits for the client to send a matching command (or timeout).
 - Matching is command-only, except for `ncom` where the embedded command text is also matched (`ncom.north`, `ncom.apply`, etc.).
 - The next replayed `RX comc` packet is sequence-patched to the sequence sent by the client for that matched `ncom`.
+- `KEY` and `UI` lines replay recorded keyboard and UI interactions.
 - Every `MARK` line whose label matches `--mark-regex` saves a screenshot in `screenshots/replay-playwright/`.
 
 ### Optional JSON instructions

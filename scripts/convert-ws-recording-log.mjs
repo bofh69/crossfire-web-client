@@ -12,7 +12,7 @@ function usage() {
   );
   console.error(
     `Usage: node scripts/${script} <input.log> [output.txt]\n` +
-      "Converts websocket recording logs to: timestamp TX/RX/MARK text",
+      "Converts websocket recording logs to: timestamp TX/RX/MARK/KEY/UI text",
   );
 }
 
@@ -71,17 +71,27 @@ function parseLine(line, lineNumber) {
   const direction = line.slice(firstTab + 1, secondTab);
   const rest = line.slice(secondTab + 1);
 
-  if (direction === "MARK") {
-    let markerText;
+  if (direction === "MARK" || direction === "KEY" || direction === "UI") {
+    let payloadData;
     try {
-      markerText = JSON.parse(rest);
+      payloadData = JSON.parse(rest);
     } catch {
-      throw new Error(`Line ${lineNumber}: invalid MARK JSON payload`);
+      throw new Error(`Line ${lineNumber}: invalid ${direction} JSON payload`);
     }
-    if (typeof markerText !== "string") {
+    if (direction === "MARK" && typeof payloadData !== "string") {
       throw new Error(`Line ${lineNumber}: MARK payload must be a JSON string`);
     }
-    return `${timestamp} MARK ${toCString(new TextEncoder().encode(markerText))}`;
+    if (
+      (direction === "KEY" || direction === "UI") &&
+      (!payloadData || typeof payloadData !== "object")
+    ) {
+      throw new Error(
+        `Line ${lineNumber}: ${direction} payload must be a JSON object`,
+      );
+    }
+    const text =
+      direction === "MARK" ? payloadData : JSON.stringify(payloadData ?? {});
+    return `${timestamp} ${direction} ${toCString(new TextEncoder().encode(text))}`;
   }
 
   if (direction !== "RX" && direction !== "TX") {
