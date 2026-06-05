@@ -86,7 +86,7 @@ export function importConfigBackup(rawData: unknown): void {
   }
 }
 
-function isConfigBackupV1(data: unknown): data is ConfigBackupV1 {
+export function isConfigBackupV1(data: unknown): data is ConfigBackupV1 {
   if (!data || typeof data !== "object") return false;
   const obj = data as Record<string, unknown>;
   if (obj.magic !== CONFIG_BACKUP_MAGIC) return false;

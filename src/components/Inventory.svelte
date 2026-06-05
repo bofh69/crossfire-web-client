@@ -17,6 +17,7 @@
   import { loadConfig, saveConfig } from "../lib/storage";
   import { capitalizeFirstLetter } from "../lib/misc";
   import { isUiNavEnabled } from "../lib/ui_nav";
+  import { recordUiInteraction } from "../lib/websocket-recording";
 
   interface FlatItem {
     tag: number;
@@ -192,6 +193,11 @@
     } else {
       next.add(id);
     }
+    recordUiInteraction("filterClick", {
+      selector: `[data-ui-nav-id="ui-inventory-filter-${id}"]`,
+      group: "inventory",
+      id,
+    });
     invFilters = next;
     const charName = getCpl()?.ob?.dName ?? "";
     if (charName) saveFilters(charName);
