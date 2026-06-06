@@ -468,9 +468,14 @@ function expandClearBigface(
           y - dy < viewHeight
         ) {
           if (setNeedUpdate) {
-            cellFlags[ci(pl_pos.x + x - dx, pl_pos.y + y - dy)] =
-              cellFlags[ci(pl_pos.x + x - dx, pl_pos.y + y - dy)]! |
-              FLAG_NEED_UPDATE;
+            // Clear the flat-array tail data that was mirrored by
+            // expandSetBigface, and mark the cell as needing a redraw.
+            const absIdx = ci(pl_pos.x + x - dx, pl_pos.y + y - dy);
+            const absLIdx = absIdx * L + layer;
+            tailFace[absLIdx] = 0;
+            tailSizeX[absLIdx] = 0;
+            tailSizeY[absLIdx] = 0;
+            cellFlags[absIdx] = cellFlags[absIdx]! | FLAG_NEED_UPDATE;
           }
         }
       }
@@ -544,9 +549,16 @@ function expandSetBigface(
         y - dy >= 0 &&
         y - dy < viewHeight
       ) {
-        cellFlags[ci(pl_pos.x + x - dx, pl_pos.y + y - dy)] =
-          cellFlags[ci(pl_pos.x + x - dx, pl_pos.y + y - dy)]! |
-          FLAG_NEED_UPDATE;
+        // Mirror tail data into the flat typed arrays so that when these
+        // in-view cells later transition to fog (via mapdata_scroll), the
+        // tail information is preserved in the virtual map even after
+        // bigfaces[] is cleared.
+        const absIdx = ci(pl_pos.x + x - dx, pl_pos.y + y - dy);
+        const absLIdx = absIdx * L + layer;
+        tailFace[absLIdx] = face;
+        tailSizeX[absLIdx] = dx;
+        tailSizeY[absLIdx] = dy;
+        cellFlags[absIdx] = cellFlags[absIdx]! | FLAG_NEED_UPDATE;
       }
     }
   }
