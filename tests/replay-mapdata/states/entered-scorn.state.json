@@ -2159,7 +2159,14 @@
           "sizeY": 1
         }
       ],
-      "tails": [],
+      "tails": [
+        {
+          "layer": 1,
+          "face": 644,
+          "sizeX": 4,
+          "sizeY": 2
+        }
+      ],
       "smooth": [
         {
           "layer": 0,
