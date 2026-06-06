@@ -1361,18 +1361,39 @@ class ReusableMapdataCellUpdate implements MapdataCellUpdate {
     const cell = this.requireWorkingCell();
     const { px, py } = this.absoluteCoords();
     const original = this.originalCell;
+    const originalHasData =
+      (original?.darkness ?? 0) !== 0 ||
+      (original?.labels.length ?? 0) > 0 ||
+      (original?.heads.some((head) => head.face !== 0) ?? false) ||
+      (original?.tails.some((tail) => tail.face !== 0) ?? false) ||
+      (original?.smooth.some((value) => value !== 0) ?? false);
     notifyWatchedCell(px, py, "space cleared (transitioning to fog)");
     if (mapdata_contains(px, py)) {
       const idxL = ci(px, py) * L;
       layerUpdatedAfterClear.fill(0, idxL, idxL + L);
     }
-    // Empty-state cells should be hard-cleared by server clear_space updates.
-    // Keeping any stale legacy head/tail data here can re-spread old big-face
-    // coverage into visible neighboring cells.
     if (this.originalState === MapCellState.Empty) {
+      // Empty-state cells can still contain legacy remembered data. Start from
+      // a clean slate, then keep only "true" large heads (both axes >1) that
+      // should survive fog bookkeeping updates.
       for (let l = 0; l < L; l++) {
         this.clearHeadLayer(cell.heads[l]!);
         this.clearTailLayer(cell.tails[l]!);
+      }
+      if (originalHasData && original) {
+        for (let l = 0; l < L; l++) {
+          const prevHead = original.heads[l]!;
+          if (
+            prevHead.face === 0 ||
+            prevHead.sizeX <= 1 ||
+            prevHead.sizeY <= 1
+          ) {
+            continue;
+          }
+          cell.heads[l] = { ...prevHead };
+          cell.tails[l] = { ...original.tails[l]! };
+          cell.smooth[l] = original.smooth[l]!;
+        }
       }
       cell.needUpdate = true;
       cell.needResmooth = true;
@@ -1651,14 +1672,16 @@ class ReusableMapdataCellUpdate implements MapdataCellUpdate {
               const staleHeadY = py + staleTail.sizeY;
               let danglingTail = !mapdata_contains(staleHeadX, staleHeadY);
               if (!danglingTail) {
-                const staleHeadIdxL = ci(staleHeadX, staleHeadY) * L + l;
+                const staleHeadIdx = ci(staleHeadX, staleHeadY);
+                const staleHeadIdxL = staleHeadIdx * L + l;
                 const staleHeadFace = headFace[staleHeadIdxL]!;
                 const staleHeadW = headSizeX[staleHeadIdxL]!;
                 const staleHeadH = headSizeY[staleHeadIdxL]!;
                 danglingTail =
                   staleHeadFace === 0 ||
                   staleHeadFace !== staleTail.face ||
-                  (staleHeadW <= 1 && staleHeadH <= 1);
+                  (staleHeadW <= 1 && staleHeadH <= 1) ||
+                  cellState[staleHeadIdx] === MapCellState.Empty;
               }
               if (danglingTail && mapdata_contains(staleHeadX, staleHeadY)) {
                 // Clear stale fog-era big-face coverage that points to a missing
