@@ -82,5 +82,11 @@
     "log": "tests/replay-mapdata/logs/around-scorn-with-ui-log.log",
     "mark": "after arena disapears #1",
     "state": "tests/replay-mapdata/states/arena-becomes-fog.state.json"
+  },
+  {
+    "name": "regression, moved big faces stay",
+    "log": "tests/replay-mapdata/logs/to-trolls.log",
+    "mark": "fake giant moved, but remain",
+    "state": "tests/replay-mapdata/states/to-trolls-fake-giant-moved.state.json"
   }
 ]
