@@ -1360,12 +1360,21 @@ class ReusableMapdataCellUpdate implements MapdataCellUpdate {
   clear_space(): void {
     const cell = this.requireWorkingCell();
     const { px, py } = this.absoluteCoords();
+    const original = this.originalCell;
+    const originalHasData =
+      (original?.darkness ?? 0) !== 0 ||
+      (original?.labels.length ?? 0) > 0 ||
+      (original?.heads.some((head) => head.face !== 0) ?? false) ||
+      (original?.tails.some((tail) => tail.face !== 0) ?? false) ||
+      (original?.smooth.some((value) => value !== 0) ?? false);
     notifyWatchedCell(px, py, "space cleared (transitioning to fog)");
     if (mapdata_contains(px, py)) {
       const idxL = ci(px, py) * L;
       layerUpdatedAfterClear.fill(0, idxL, idxL + L);
     }
-    if (this.originalState === MapCellState.Empty) {
+    // Some clear_space updates arrive with state=Empty while legacy tail/head
+    // data is still populated; only hard-clear when the cell is truly blank.
+    if (this.originalState === MapCellState.Empty && !originalHasData) {
       for (let l = 0; l < L; l++) {
         this.clearHeadLayer(cell.heads[l]!);
         this.clearTailLayer(cell.tails[l]!);
@@ -1376,7 +1385,6 @@ class ReusableMapdataCellUpdate implements MapdataCellUpdate {
       // Preserve remembered content when transitioning from Visible→Fog.
       // In particular, keep big-face heads so objects remain visible in fog
       // until a later explicit layer update replaces or clears them.
-      const original = this.originalCell;
       if (original) {
         for (let l = 0; l < L; l++) {
           const prevHead = original.heads[l]!;
@@ -1401,7 +1409,10 @@ class ReusableMapdataCellUpdate implements MapdataCellUpdate {
     ) {
       cell.needUpdate = true;
     }
-    cell.state = MapCellState.Fog;
+    cell.state =
+      this.originalState === MapCellState.Empty
+        ? MapCellState.Empty
+        : MapCellState.Fog;
     this.clearSpaceCalled = true;
   }
 
@@ -1599,6 +1610,25 @@ class ReusableMapdataCellUpdate implements MapdataCellUpdate {
         const idx = ci(px, py);
         const idxL = idx * L;
         const original = this.originalCell;
+        if (
+          this.clearSpaceCalled &&
+          original &&
+          this.originalState !== MapCellState.Empty
+        ) {
+          // A clear_space can arrive without per-layer updates; keep remembered
+          // tail coverage on untouched layers so fog transitions don't drop it.
+          for (let l = 0; l < L; l++) {
+            if (this.dirtyLayers[l]) {
+              continue;
+            }
+            if (
+              this.workingCell.tails[l]!.face === 0 &&
+              original.tails[l]!.face !== 0
+            ) {
+              this.workingCell.tails[l] = { ...original.tails[l]! };
+            }
+          }
+        }
         const originalHasBigFaceHead =
           original?.heads.some(
             (head) => head.face !== 0 && (head.sizeX > 1 || head.sizeY > 1),
@@ -1615,6 +1645,34 @@ class ReusableMapdataCellUpdate implements MapdataCellUpdate {
           for (let l = 0; l < L; l++) {
             if (this.dirtyLayers[l] || layerUpdatedAfterClear[idxL + l]) {
               continue;
+            }
+            const staleTail = original?.tails[l];
+            if (
+              staleTail &&
+              staleTail.face !== 0 &&
+              (staleTail.sizeX > 0 || staleTail.sizeY > 0)
+            ) {
+              const staleHeadX = px + staleTail.sizeX;
+              const staleHeadY = py + staleTail.sizeY;
+              let danglingTail = !mapdata_contains(staleHeadX, staleHeadY);
+              if (!danglingTail) {
+                const staleHeadIdxL = ci(staleHeadX, staleHeadY) * L + l;
+                const staleHeadFace = headFace[staleHeadIdxL]!;
+                const staleHeadW = headSizeX[staleHeadIdxL]!;
+                const staleHeadH = headSizeY[staleHeadIdxL]!;
+                danglingTail =
+                  staleHeadFace === 0 ||
+                  staleHeadFace !== staleTail.face ||
+                  (staleHeadW <= 1 && staleHeadH <= 1);
+              }
+              if (danglingTail && mapdata_contains(staleHeadX, staleHeadY)) {
+                // Clear stale fog-era big-face coverage that points to a missing
+                // or mismatched head so it no longer lingers in fog cells.
+                expandClearFaceFromLayer(staleHeadX, staleHeadY, l);
+              }
+              if (danglingTail) {
+                this.clearTailLayer(this.workingCell.tails[l]!);
+              }
             }
             this.clearHeadLayer(this.workingCell.heads[l]!);
           }
@@ -1745,10 +1803,12 @@ class ReusableMapdataCellUpdate implements MapdataCellUpdate {
             }
           }
 
-          // Clear tails of the previous big face from neighboring cells.
-          // For Fog cells mapdata_clear_old already did this; for Visible cells
-          // we must do it here so stale neighbor tails don't linger.
-          expandClearFaceFromLayer(px, py, l);
+          // Clear tails of the previous big face from neighboring cells only
+          // when this update leaves the cell visible. For Visible->Fog
+          // transitions, keep remembered tail coverage in fog.
+          if (this.workingCell.state !== MapCellState.Fog) {
+            expandClearFaceFromLayer(px, py, l);
+          }
 
           headFace[lOff] = head.face;
           headSizeX[lOff] = head.sizeX;
