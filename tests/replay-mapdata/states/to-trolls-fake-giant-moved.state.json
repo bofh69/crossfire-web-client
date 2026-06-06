@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "replayFileName": "to-trolls.log",
+    "markLabel": "fake giant entered correctly",
+    "entryIndex": 5332
+  },
+  "capturedAtIso": "2026-06-06T19:30:01.823Z",
+  "mapSize": {
+    "width": 512,
+    "height": 512
+  },
+  "viewSize": {
+    "width": 25,
+    "height": 25
+  },
+  "playerAbsolute": {
+    "x": 272,
+    "y": 241
+  },
+  "cells": [
+    {
+      "dx": 7,
+      "dy": 10,
+      "state": "Visible",
+      "darkness": 0,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1492,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 15
+        }
+      ],
+      "labels": []
+    },
+    {
+      "dx": 7,
+      "dy": 11,
+      "state": "Empty",
+      "darkness": 0,
+      "heads": [],
+      "tails": [],
+      "smooth": [],
+      "labels": []
+    }
+  ]
+}
