@@ -1361,20 +1361,15 @@ class ReusableMapdataCellUpdate implements MapdataCellUpdate {
     const cell = this.requireWorkingCell();
     const { px, py } = this.absoluteCoords();
     const original = this.originalCell;
-    const originalHasData =
-      (original?.darkness ?? 0) !== 0 ||
-      (original?.labels.length ?? 0) > 0 ||
-      (original?.heads.some((head) => head.face !== 0) ?? false) ||
-      (original?.tails.some((tail) => tail.face !== 0) ?? false) ||
-      (original?.smooth.some((value) => value !== 0) ?? false);
     notifyWatchedCell(px, py, "space cleared (transitioning to fog)");
     if (mapdata_contains(px, py)) {
       const idxL = ci(px, py) * L;
       layerUpdatedAfterClear.fill(0, idxL, idxL + L);
     }
-    // Some clear_space updates arrive with state=Empty while legacy tail/head
-    // data is still populated; only hard-clear when the cell is truly blank.
-    if (this.originalState === MapCellState.Empty && !originalHasData) {
+    // Empty-state cells should be hard-cleared by server clear_space updates.
+    // Keeping any stale legacy head/tail data here can re-spread old big-face
+    // coverage into visible neighboring cells.
+    if (this.originalState === MapCellState.Empty) {
       for (let l = 0; l < L; l++) {
         this.clearHeadLayer(cell.heads[l]!);
         this.clearTailLayer(cell.tails[l]!);
