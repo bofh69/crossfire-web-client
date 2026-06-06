@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "source": {
+    "replayFileName": "around-scorn-with-ui-log.log",
+    "markLabel": "after arena disapears",
+    "entryIndex": 1123
+  },
+  "capturedAtIso": "2026-06-06T11:19:30.059Z",
+  "mapSize": {
+    "width": 512,
+    "height": 512
+  },
+  "viewSize": {
+    "width": 25,
+    "height": 25
+  },
+  "playerAbsolute": {
+    "x": 277,
+    "y": 281
+  },
+  "cells": [
+    {
+      "dx": 10,
+      "dy": 0,
+      "state": "Fog",
+      "darkness": 128,
+      "heads": [
+        {
+          "layer": 0,
+          "face": 1546,
+          "sizeX": 1,
+          "sizeY": 1
+        }
+      ],
+      "tails": [
+        {
+          "layer": 1,
+          "face": 645,
+          "sizeX": 4,
+          "sizeY": 2
+        }
+      ],
+      "smooth": [
+        {
+          "layer": 0,
+          "value": 40
+        }
+      ],
+      "labels": []
+    }
+  ]
+}
