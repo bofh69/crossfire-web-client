@@ -516,9 +516,9 @@
       {#each filteredPlayerItems as item (item.tag)}
         <div
           class="item-row"
-          class:applied={item.applied}
-          class:cursed={item.cursed}
+          class:cursed={item.cursed || item.damned}
           class:magical={item.magical}
+          class:applied={item.applied}
           data-ui-nav-down-target={item === filteredPlayerItems.at(-1) &&
           groundItems.length > 0
             ? `ui-ground-item-${groundItems[0]!.tag}`
@@ -569,7 +569,7 @@
       {#each groundItems as item (item.tag)}
         <div
           class="item-row"
-          class:cursed={item.cursed}
+          class:cursed={item.cursed || item.damned}
           class:magical={item.magical}
           data-ui-nav-id={`ui-ground-item-${item.tag}`}
           data-ui-nav-group="ground-items"
