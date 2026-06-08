@@ -160,6 +160,17 @@ export function recordConfigSnapshot(
 }
 
 /**
+ * Record the current browser viewport size.
+ * Called once at startup and again whenever the window is resized.
+ */
+export function recordBrowserSize(width: number, height: number): void {
+  if (!recordingActive) return;
+  recordedLines.push(
+    `${elapsedMs()}\tUI\t${JSON.stringify({ action: "browserSize", width, height })}`,
+  );
+}
+
+/**
  * Record one UI interaction event used by replay automation.
  */
 export function recordUiInteraction(

@@ -737,6 +737,18 @@ async function applyBuiltInAutomation(page, expectedInfo) {
 async function replayUiAction(page, uiData, lineNumber) {
   const action = String(uiData.action ?? "").trim();
   if (!action) return;
+  if (action === "browserSize") {
+    const width = Math.round(Number(uiData.width));
+    const height = Math.round(Number(uiData.height));
+    if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) {
+      console.warn(
+        `[replay] UI line ${lineNumber}: browserSize missing valid width/height`,
+      );
+      return;
+    }
+    await page.setViewportSize({ width, height });
+    return;
+  }
   if (action === "configSnapshot") {
     // Already applied via addInitScript before the browser launched.
     console.log(
