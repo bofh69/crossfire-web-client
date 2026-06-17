@@ -25,6 +25,7 @@
     type ReplayEntry,
     type ReplayMark,
   } from "./lib/replay";
+  import { importConfigBackup, type ConfigBackupV1 } from "./lib/storage";
   import { captureReplayMapdataSnapshot } from "./lib/replay_mapdata_state";
 
   interface ReplayLogMessage {
@@ -50,6 +51,7 @@
 
   let entries = $state<ReplayEntry[]>([]);
   let marks = $state<ReplayMark[]>([]);
+  let configSnapshot = $state<ConfigBackupV1 | null>(null);
   let fileName = $state("");
   let parseError = $state("");
   let replayLog = $state<ReplayLogMessage[]>([]);
@@ -184,6 +186,24 @@
     addLog("info", "Reached the end of the replay.");
   }
 
+  function stepToNextMap2(): void {
+    parseError = "";
+    if (entries.length === 0) {
+      addLog("error", "Load a replay log before stepping to the next map2.");
+      return;
+    }
+    while (nextEntryIndex < entries.length) {
+      const entry = entries[nextEntryIndex]!;
+      nextEntryIndex += 1;
+      currentEntryIndex = nextEntryIndex - 1;
+      applyEntry(entry);
+      if (entry.type === "RX" && entry.commandName === "map2") {
+        return;
+      }
+    }
+    addLog("info", "Reached the end of the replay.");
+  }
+
   function replayToMark(mark: ReplayMark): void {
     parseError = "";
     if (entries.length === 0) {
@@ -213,6 +233,7 @@
       const parsed = parseReplayLogFile(await file.text());
       entries = parsed.entries;
       marks = parsed.marks;
+      configSnapshot = parsed.configSnapshot;
       fileName = file.name;
       parseError = "";
       resetReplay(false);
@@ -223,6 +244,7 @@
     } catch (error) {
       entries = [];
       marks = [];
+      configSnapshot = null;
       fileName = "";
       parseError = error instanceof Error ? error.message : String(error);
       replayLog = [];
@@ -238,6 +260,12 @@
     selectedTile = { ax, ay };
     reapplySelectedTileWatch();
     armTileInspection();
+  }
+
+  function restoreConfigFromLog(): void {
+    if (configSnapshot === null) return;
+    importConfigBackup(configSnapshot);
+    window.location.reload();
   }
 
   function clearReplayLog(): void {
@@ -463,6 +491,11 @@
           stepToNextMark();
         }
         break;
+      case "2":
+        if (entries.length > 0) {
+          stepToNextMap2();
+        }
+        break;
       case "m":
         addMarkAtCurrentPosition();
         break;
@@ -579,6 +612,13 @@
         Next mark
       </button>
       <button
+        onclick={stepToNextMap2}
+        disabled={entries.length === 0}
+        title="Step to next map2 from server (2)"
+      >
+        Next map2
+      </button>
+      <button
         onclick={addMarkAtCurrentPosition}
         disabled={entries.length === 0}
         title="Add MARK at current position (M)"
@@ -602,6 +642,13 @@
         title="Download log file"
       >
         Download log
+      </button>
+      <button
+        onclick={restoreConfigFromLog}
+        disabled={configSnapshot === null}
+        title="Restore the client and character configuration captured in the log"
+      >
+        Restore config from log
       </button>
     </div>
     <label class="tick-toggle">

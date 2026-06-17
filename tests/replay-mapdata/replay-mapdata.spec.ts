@@ -29,9 +29,11 @@ let mapdata_cell: (
   mx: number,
   my: number,
 ) => {
-  heads: Array<{ face: number }>;
+  heads: Array<{ face: number; sizeX: number; sizeY: number }>;
+  tails: Array<{ face: number; sizeX: number; sizeY: number }>;
   state: number;
 };
+let mapdata_contains: (x: number, y: number) => boolean;
 let pl_mpos: () => { px: number; py: number };
 let getFaceTileSize: (face: number) => { w: number; h: number };
 let parseReplayLogFile: (text: string) => {
@@ -117,6 +119,32 @@ function parseRawRxLine(line: string): Uint8Array | null {
   return new Uint8Array(buf.buffer, buf.byteOffset, buf.byteLength);
 }
 
+function assertNoDanglingTailsInView(): void {
+  const player = pl_mpos();
+  for (let dx = -12; dx <= 12; dx++) {
+    for (let dy = -12; dy <= 12; dy++) {
+      const ax = player.px + dx;
+      const ay = player.py + dy;
+      if (!mapdata_contains(ax, ay)) {
+        continue;
+      }
+      const cell = mapdata_cell(ax, ay);
+      for (let layer = 0; layer < cell.tails.length; layer++) {
+        const tail = cell.tails[layer]!;
+        if (tail.face === 0) {
+          continue;
+        }
+        const headX = ax + tail.sizeX;
+        const headY = ay + tail.sizeY;
+        expect(mapdata_contains(headX, headY)).toBe(true);
+        const head = mapdata_cell(headX, headY).heads[layer]!;
+        expect(head.face).toBe(tail.face);
+        expect(head.sizeX > 1 || head.sizeY > 1).toBe(true);
+      }
+    }
+  }
+}
+
 beforeAll(() => {
   installNodeTestGlobals();
   // Avoid browser-only globals failing during module evaluation.
@@ -136,7 +164,7 @@ beforeAll(async () => {
   ({ dispatchPacket } = await import("../../src/lib/commands"));
   ({ clientInit } = await import("../../src/lib/init"));
   ({ getFaceTileSize } = await import("../../src/lib/image"));
-  ({ setGetMapImageSize, mapdata_cell, pl_mpos } =
+  ({ setGetMapImageSize, mapdata_cell, mapdata_contains, pl_mpos } =
     await import("../../src/lib/mapdata"));
   ({ initCommands } = await import("../../src/lib/p_cmd"));
   ({ parseReplayLogFile, resetReplaySandboxState, toPacketBuffer } =
@@ -206,5 +234,44 @@ describe("replay mapdata states", () => {
     expect(cell.state).toBe(1);
     expect(cell.heads[0]!.face).toBe(1005);
     expect(cell.heads[6]!.face).toBe(0);
+  });
+
+  test("big-face head cell stays empty when only fog bookkeeping changes", () => {
+    const logText = readFileSync(
+      path.join(
+        rootDir,
+        "tests/replay-mapdata/logs/around-scorn-with-ui-log.log",
+      ),
+      "utf8",
+    );
+
+    resetReplaySandboxState();
+    replayToMark(logText, "before arena disapears #1");
+
+    const headX = 280;
+    const headY = 272;
+    let cell = mapdata_cell(headX, headY);
+    expect(cell.state).toBe(0);
+    expect(cell.heads[0]!.face).toBe(0);
+    expect(cell.heads[1]!.face).toBe(645);
+
+    resetReplaySandboxState();
+    replayToMark(logText, "after arena disapears #1");
+
+    cell = mapdata_cell(headX, headY);
+    expect(cell.state).toBe(0);
+    expect(cell.heads[0]!.face).toBe(0);
+    expect(cell.heads[1]!.face).toBe(645);
+  });
+
+  test("zoo replay has no dangling in-view tail-to-head links", () => {
+    const logText = readFileSync(
+      path.join(rootDir, "tests/replay-mapdata/logs/zoo.log"),
+      "utf8",
+    );
+
+    resetReplaySandboxState();
+    replayToMark(logText, "after retributor moves right #2");
+    assertNoDanglingTailsInView();
   });
 });

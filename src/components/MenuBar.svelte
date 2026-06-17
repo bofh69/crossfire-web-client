@@ -8,6 +8,7 @@
   import GamepadMenu from "./menus/GamepadMenu.svelte";
   import { gameEvents } from "../lib/events";
   import { getLatestPickupMode } from "../lib/commands";
+  import { recordUiInteraction } from "../lib/websocket-recording";
 
   let activeMenu = $state<string | null>(null);
   let pickupMenu: PickupMenu | undefined = $state();
@@ -79,6 +80,27 @@
     menuFading = false;
   }
 
+  function handleMenuBarClick(e: MouseEvent) {
+    e.stopPropagation();
+    const target = e.target as Element | null;
+    const button = target?.closest<HTMLButtonElement>("button");
+    if (!button) return;
+    if (!button.closest(".dropdown")) return;
+    const menuItem = button.closest(".menu-item");
+    const menuButton =
+      menuItem?.querySelector<HTMLButtonElement>(":scope > .menu-button") ??
+      null;
+    const menuLabel = menuButton?.textContent?.trim() ?? "";
+    const entryLabel = button.textContent?.trim() ?? "";
+    if (!menuLabel || !entryLabel) return;
+    recordUiInteraction("menuSelect", {
+      menuLabel,
+      menuId: menuButton?.dataset.uiNavId ?? "",
+      entryLabel,
+      entryId: button.dataset.uiNavId ?? "",
+    });
+  }
+
   $effect(() => {
     if (activeMenu === null) return;
     const rafId = requestAnimationFrame(() => {
@@ -130,7 +152,7 @@
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
   class="menu-bar"
-  onclick={(e: MouseEvent) => e.stopPropagation()}
+  onclick={handleMenuBarClick}
   onmouseenter={handleMenuBarMouseEnter}
   onmouseleave={handleMenuBarMouseLeave}
 >

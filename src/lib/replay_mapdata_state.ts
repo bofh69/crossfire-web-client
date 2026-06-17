@@ -4,6 +4,7 @@ import {
   getViewSize,
   mapdata_cell,
   mapdata_contains,
+  mapdata_face_info,
   mapdata_size,
   pl_mpos,
 } from "./mapdata";
@@ -123,6 +124,8 @@ function normalizeCellAtAbsolute(
     const head = cell.heads[layer]!;
     const tail = cell.tails[layer]!;
     const smoothValue = cell.smooth[layer]!;
+    const faceInfo = mapdata_face_info(absoluteX, absoluteY, layer);
+    let hasRecordedLayer = false;
 
     if (
       head.face !== 0 ||
@@ -147,6 +150,7 @@ function normalizeCellAtAbsolute(
           sizeY: head.sizeY,
         });
       }
+      hasRecordedLayer = true;
     }
 
     if (tail.face !== 0 || tail.sizeX !== 0 || tail.sizeY !== 0) {
@@ -156,6 +160,23 @@ function normalizeCellAtAbsolute(
         sizeX: tail.sizeX,
         sizeY: tail.sizeY,
       });
+      hasRecordedLayer = true;
+    }
+
+    if (!hasRecordedLayer && faceInfo.face !== 0) {
+      if (faceInfo.dx === 0 && faceInfo.dy === 0) {
+        heads.push({
+          layer,
+          face: faceInfo.face,
+        });
+      } else {
+        tails.push({
+          layer,
+          face: faceInfo.face,
+          sizeX: faceInfo.dx,
+          sizeY: faceInfo.dy,
+        });
+      }
     }
 
     if (smoothValue !== 0) {

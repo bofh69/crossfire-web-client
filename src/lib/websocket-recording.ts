@@ -6,6 +6,7 @@
  *
  *   <elapsed_ms>\t<TX|RX>\t<byte_length>\t<base64_payload>
  *   <elapsed_ms>\t<MARK>\t<json_marker_text>
+ *   <elapsed_ms>\t<KEY|UI>\t<json_payload>
  */
 
 const recordingRequested =
@@ -124,6 +125,61 @@ export function downloadWebSocketRecordingLog(): boolean {
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
   return true;
+}
+
+/**
+ * Record a user key input event.
+ *
+ * key:     KeyboardEvent.key value (or normalised keysym, e.g. "ArrowUp", "Shift", "a")
+ * event:   "press" for regular key presses, "down" for modifier-key holds,
+ *          "up" for modifier-key releases
+ * command: the command binding the key resulted in (empty string if none)
+ */
+export function recordKeyInput(
+  key: string,
+  event: "down" | "press" | "up",
+  command: string,
+): void {
+  if (!recordingActive) return;
+  const data: Record<string, string> = { key, event };
+  if (command) data.command = command;
+  recordedLines.push(`${elapsedMs()}\tKEY\t${JSON.stringify(data)}`);
+}
+
+/**
+ * Record the current client/character configuration as a snapshot in the log.
+ * When replaying, this snapshot can be restored to reproduce the same config.
+ */
+export function recordConfigSnapshot(
+  backup: import("./storage").ConfigBackupV1,
+): void {
+  if (!recordingActive) return;
+  recordedLines.push(
+    `${elapsedMs()}\tUI\t${JSON.stringify({ action: "configSnapshot", backup })}`,
+  );
+}
+
+/**
+ * Record the current browser viewport size.
+ * Called once at startup and again whenever the window is resized.
+ */
+export function recordBrowserSize(width: number, height: number): void {
+  if (!recordingActive) return;
+  recordedLines.push(
+    `${elapsedMs()}\tUI\t${JSON.stringify({ action: "browserSize", width, height })}`,
+  );
+}
+
+/**
+ * Record one UI interaction event used by replay automation.
+ */
+export function recordUiInteraction(
+  action: string,
+  data: Record<string, unknown> = {},
+): void {
+  if (!recordingActive) return;
+  const payload = { action, ...data };
+  recordedLines.push(`${elapsedMs()}\tUI\t${JSON.stringify(payload)}`);
 }
 
 /**
