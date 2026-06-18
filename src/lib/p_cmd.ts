@@ -702,13 +702,17 @@ export function handleLocalCommand(cp: string, cpnext: string): boolean {
  * it is executed directly; otherwise it is sent to the server.
  *
  * Multiple commands may be separated by ";" — each sub-command is executed
- * in order.  Example: `cast fireball;say Incoming!`
+ * in order.  Spaces around ";" are ignored.
+ * Example: `cast fireball ; say Incoming!`
+ *
+ * Note: there is no escaping mechanism; a literal ";" cannot appear in a
+ * command argument.
  */
 export function extendedCommand(command: string): void {
   // Support semicolon-separated multi-command strings.
   if (command.includes(";")) {
     for (const part of command.split(";")) {
-      extendedCommand(part);
+      extendedCommand(part.trim());
     }
     return;
   }
