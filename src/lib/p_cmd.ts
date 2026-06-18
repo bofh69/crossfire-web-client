@@ -443,9 +443,14 @@ const builtinCommands: ConsoleCommand[] = [
       "server) and opens the keyboard key-bind dialog so you can assign\n" +
       "it to a key.\n" +
       "\n" +
-      "Example:\n" +
+      "Multiple commands may be separated by ';' to run them all on a single\n" +
+      "keypress.\n" +
+      "\n" +
+      "Examples:\n" +
       "  bind cast fireball\n" +
-      "    Opens the bind dialog with 'cast fireball' ready to be assigned.",
+      "    Opens the bind dialog with 'cast fireball' ready to be assigned.\n" +
+      "  bind cast fireball;say Incoming!\n" +
+      "    Binds two commands to one key: cast fireball then say a message.",
     handler: commandBind,
   },
   {
@@ -695,8 +700,19 @@ export function handleLocalCommand(cp: string, cpnext: string): boolean {
  * An optional leading "/" is stripped before matching — extended command
  * names do not include the slash.  If the command matches a local handler
  * it is executed directly; otherwise it is sent to the server.
+ *
+ * Multiple commands may be separated by ";" — each sub-command is executed
+ * in order.  Example: `cast fireball;say Incoming!`
  */
 export function extendedCommand(command: string): void {
+  // Support semicolon-separated multi-command strings.
+  if (command.includes(";")) {
+    for (const part of command.split(";")) {
+      extendedCommand(part);
+    }
+    return;
+  }
+
   let trimmed = command.trim();
   if (trimmed.length === 0) {
     return;
