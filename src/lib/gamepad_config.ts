@@ -22,11 +22,7 @@ export type AxisConfigTarget = "walk" | "fire";
  *   5. "testing"    — user sees live direction feedback, Accept/Abort
  */
 export type AxisConfigStep =
-  | "move-north"
-  | "move-east"
-  | "move-south"
-  | "move-west"
-  | "testing";
+  "move-north" | "move-east" | "move-south" | "move-west" | "testing";
 
 // ── Constants ───────────────────────────────────────────────────────────────
 
