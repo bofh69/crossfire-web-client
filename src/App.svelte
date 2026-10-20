@@ -70,6 +70,9 @@
     isHotbarGamepadMode,
   } from "./lib/hotbar";
   import { loadConfig, saveConfig } from "./lib/storage";
+  import { exportConfigBackup } from "./lib/storage";
+  import { recordConfigSnapshot } from "./lib/websocket-recording";
+  import { recordBrowserSize } from "./lib/websocket-recording";
   import {
     exitUiNavMode,
     firstVisibleInGroup,
@@ -591,6 +594,12 @@
     gamepadInit();
     loadHotbar();
 
+    recordBrowserSize(window.innerWidth, window.innerHeight);
+    const handleResize = () => {
+      recordBrowserSize(window.innerWidth, window.innerHeight);
+    };
+    window.addEventListener("resize", handleResize);
+
     // Wire key-system callbacks so keys.ts can interact with the UI.
     setKeyCallbacks({
       drawInfo: (message: string) => {
@@ -831,6 +840,7 @@
       window.removeEventListener("keydown", handleGlobalKeyDown);
       window.removeEventListener("keyup", handleGlobalKeyUp);
       window.removeEventListener("blur", handleWindowBlur);
+      window.removeEventListener("resize", handleResize);
       gamepadShutdown();
       exitUiNavMode(false);
     };
@@ -982,6 +992,7 @@
     resetHpTracking();
     wireCallbacks();
     initSound();
+    recordConfigSnapshot(exportConfigBackup());
   }
 
   /** Unsubscribe functions for game event subscriptions. */

@@ -18,6 +18,7 @@ import {
   MAP2_TYPE_LABEL,
   MAXLAYERS,
 } from "./protocol";
+import { type ConfigBackupV1, isConfigBackupV1 } from "./storage";
 
 const textDecoder = new TextDecoder();
 
@@ -50,6 +51,8 @@ export interface ReplayMark {
 export interface ReplayParseResult {
   entries: ReplayEntry[];
   marks: ReplayMark[];
+  /** First config snapshot found in the log, or null if none was recorded. */
+  configSnapshot: ConfigBackupV1 | null;
 }
 
 function parseCompactReplayLine(
@@ -100,13 +103,18 @@ function parseConvertedReplayLine(
   if (!line.trim()) {
     return null;
   }
-  const match = /^(\d+)\s+(TX|RX|MARK)(?:\s(.*))?$/.exec(line);
+  const match = /^(\d+)\s+(TX|RX|MARK|KEY|UI)(?:\s(.*))?$/.exec(line);
   if (!match) {
     throw new Error(`Line ${lineNumber}: unsupported replay format`);
   }
   const timestampText = match[1]!;
-  const type = match[2]! as "MARK" | "RX" | "TX";
+  const type = match[2]! as "MARK" | "RX" | "TX" | "KEY" | "UI";
   const rest = match[3] ?? "";
+  if (type === "KEY" || type === "UI") {
+    // Replay UI page currently ignores interactive client-side actions.
+    parseCString(rest, lineNumber);
+    return null;
+  }
   const timestamp = parseTimestamp(timestampText, lineNumber);
   if (type === "MARK") {
     const markerBytes = parseCString(rest, lineNumber);
@@ -269,12 +277,47 @@ function encodeCString(bytes: Uint8Array): string {
 }
 
 /**
+ * Attempt to extract a configSnapshot backup from a single log line that was
+ * not parsed as a regular replay entry (i.e. a UI-type line).
+ *
+ * Handles both the compact tab-separated format and the converted CString format.
+ */
+function tryExtractConfigSnapshot(
+  line: string,
+  lineNumber: number,
+): ConfigBackupV1 | null {
+  try {
+    let jsonText: string;
+    if (line.includes("\t")) {
+      // Compact format: timestamp\tUI\t{json}
+      const parts = line.split("\t");
+      if (parts[1] !== "UI") return null;
+      jsonText = parts.slice(2).join("\t");
+    } else {
+      // Converted format: timestamp UI {cstring-encoded-json}
+      const match = /^\d+\s+UI\s+(.*)$/.exec(line);
+      if (!match) return null;
+      const bytes = parseCString(match[1]!, lineNumber);
+      jsonText = textDecoder.decode(bytes);
+    }
+    const data = JSON.parse(jsonText) as Record<string, unknown>;
+    if (data.action === "configSnapshot" && isConfigBackupV1(data.backup)) {
+      return data.backup;
+    }
+  } catch {
+    // Ignore parse errors for unrecognised UI lines
+  }
+  return null;
+}
+
+/**
  * Parse a websocket recording log in either the compact downloaded format or
  * the converted `recording:convert` text format.
  */
 export function parseReplayLogFile(text: string): ReplayParseResult {
   const entries: ReplayEntry[] = [];
   const marks: ReplayMark[] = [];
+  let configSnapshot: ConfigBackupV1 | null = null;
   const lines = text.split(/\r?\n/);
 
   for (let index = 0; index < lines.length; index++) {
@@ -287,6 +330,9 @@ export function parseReplayLogFile(text: string): ReplayParseResult {
       entry = parseConvertedReplayLine(line, index + 1);
     }
     if (entry === null) {
+      if (configSnapshot === null) {
+        configSnapshot = tryExtractConfigSnapshot(line, index + 1);
+      }
       continue;
     }
     entries.push(entry);
@@ -300,7 +346,7 @@ export function parseReplayLogFile(text: string): ReplayParseResult {
     }
   }
 
-  return { entries, marks };
+  return { entries, marks, configSnapshot };
 }
 
 /**

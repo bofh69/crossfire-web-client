@@ -70,5 +70,23 @@
     "log": "tests/replay-mapdata/logs/zoo.log",
     "mark": "Before Shadow Dragon is visible",
     "state": "tests/replay-mapdata/states/shadow-dragon.state.json"
+  },
+  {
+    "name": "big face tail enters fog",
+    "log": "tests/replay-mapdata/logs/around-scorn-with-ui-log.log",
+    "mark": "after arena disapears",
+    "state": "tests/replay-mapdata/states/tail-in-fog.state.json"
+  },
+  {
+    "name": "big face tail enters fog #2",
+    "log": "tests/replay-mapdata/logs/around-scorn-with-ui-log.log",
+    "mark": "after arena disapears #1",
+    "state": "tests/replay-mapdata/states/arena-becomes-fog.state.json"
+  },
+  {
+    "name": "regression, moved big faces stay",
+    "log": "tests/replay-mapdata/logs/to-trolls.log",
+    "mark": "fake giant moved, but remain",
+    "state": "tests/replay-mapdata/states/to-trolls-fake-giant-moved.state.json"
   }
 ]
