@@ -740,7 +740,12 @@ async function replayUiAction(page, uiData, lineNumber) {
   if (action === "browserSize") {
     const width = Math.round(Number(uiData.width));
     const height = Math.round(Number(uiData.height));
-    if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) {
+    if (
+      !Number.isFinite(width) ||
+      !Number.isFinite(height) ||
+      width <= 0 ||
+      height <= 0
+    ) {
       console.warn(
         `[replay] UI line ${lineNumber}: browserSize missing valid width/height`,
       );
