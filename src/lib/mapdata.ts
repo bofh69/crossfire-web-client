@@ -133,6 +133,12 @@ let headAnim = new Uint16Array(0);
 let headAnimSpeed = new Uint8Array(0);
 let headAnimLeft = new Uint8Array(0);
 let headAnimPhase = new Uint16Array(0);
+/**
+ * 1 when the head on this layer was sent by the server and has not been
+ * cleared since, i.e. the server knows it is showing it. 0 for remembered
+ * (fog) heads.
+ */
+let headCurrent = new Uint8Array(0);
 
 // ── Tail layer fields [idx * L + layer] ──────────────────────────────────────
 let tailFace = new Uint32Array(0);
@@ -300,6 +306,7 @@ function clearCells(x: number, y: number, lenY: number): void {
   const startLi = startIdx * L;
   const endLi = endIdx * L;
   headFace.fill(0, startLi, endLi);
+  headCurrent.fill(0, startLi, endLi);
   headSizeX.fill(1, startLi, endLi);
   headSizeY.fill(1, startLi, endLi);
   headAnim.fill(0, startLi, endLi);
@@ -382,6 +389,7 @@ function expandClearFace(
   }
 
   headFace[hLIdx] = 0;
+  headCurrent[hLIdx] = 0;
   headAnim[hLIdx] = 0;
   headAnimSpeed[hLIdx] = 0;
   headAnimLeft[hLIdx] = 0;
@@ -396,6 +404,89 @@ function expandClearFaceFromLayer(x: number, y: number, layer: number): void {
   const lIdx = ci(x, y) * L + layer;
   if (headFace[lIdx]! !== 0 && headSizeX[lIdx]! > 0 && headSizeY[lIdx]! > 0) {
     expandClearFace(x, y, headSizeX[lIdx]!, headSizeY[lIdx]!, layer);
+  }
+}
+
+/** First map2 layer holding creatures (LIVING1); layers above are LIVING2/FLY. */
+const FIRST_CREATURE_LAYER = 6;
+
+/**
+ * Whether the head at absolute (x, y) is only remembered, i.e. the server
+ * is not currently showing that cell (outside the view, or in fog).
+ */
+function isRememberedHead(x: number, y: number): boolean {
+  const vx = x - pl_pos.x;
+  const vy = y - pl_pos.y;
+  return (
+    vx < 0 ||
+    vy < 0 ||
+    vx >= viewWidth ||
+    vy >= viewHeight ||
+    cellState[ci(x, y)] === MapCellState.Fog
+  );
+}
+
+/**
+ * A creature big face is about to be shown with its head at absolute (x, y).
+ * Creatures cannot overlap, so any remembered (not currently visible) big
+ * creature face on the same layer whose footprint overlaps the new one is
+ * stale, typically the same monster seen before it moved. Remove it so its
+ * old image does not linger beside the new one.
+ *
+ * Must be called before the new face's tails are written, since the old
+ * face is found through the tails it left in the new footprint.
+ */
+function clearOverlappedRememberedBigFaces(
+  x: number,
+  y: number,
+  layer: number,
+  w: number,
+  h: number,
+): void {
+  if (layer < FIRST_CREATURE_LAYER) {
+    return;
+  }
+  const staleHeads = new Set<number>();
+  const considerHead = (hx: number, hy: number, face: number): void => {
+    if ((hx === x && hy === y) || !mapdata_contains(hx, hy)) {
+      return;
+    }
+    const hLIdx = ci(hx, hy) * L + layer;
+    if (
+      headFace[hLIdx] === face &&
+      (headSizeX[hLIdx]! > 1 || headSizeY[hLIdx]! > 1) &&
+      isRememberedHead(hx, hy)
+    ) {
+      staleHeads.add(ci(hx, hy));
+    }
+  };
+
+  for (let dx = 0; dx < w; dx++) {
+    for (let dy = 0; dy < h; dy++) {
+      const cx = x - dx;
+      const cy = y - dy;
+      if (!mapdata_contains(cx, cy)) {
+        continue;
+      }
+      const lIdx = ci(cx, cy) * L + layer;
+      if (headFace[lIdx] !== 0) {
+        considerHead(cx, cy, headFace[lIdx]!);
+      }
+      if (tailFace[lIdx] !== 0) {
+        considerHead(
+          cx + tailSizeX[lIdx]!,
+          cy + tailSizeY[lIdx]!,
+          tailFace[lIdx]!,
+        );
+      }
+    }
+  }
+
+  for (const idx of staleHeads) {
+    const hx = Math.floor(idx / mapHeight);
+    const hy = idx % mapHeight;
+    notifyWatchedCell(hx, hy, `layer ${layer} stale big face overlapped`);
+    expandClearFaceFromLayer(hx, hy, layer);
   }
 }
 
@@ -470,11 +561,19 @@ function expandClearBigface(
           if (setNeedUpdate) {
             // Clear the flat-array tail data that was mirrored by
             // expandSetBigface, and mark the cell as needing a redraw.
+            // Only clear it if it still belongs to this bigface; an in-view
+            // face may have taken over the cell's tail since.
             const absIdx = ci(pl_pos.x + x - dx, pl_pos.y + y - dy);
             const absLIdx = absIdx * L + layer;
-            tailFace[absLIdx] = 0;
-            tailSizeX[absLIdx] = 0;
-            tailSizeY[absLIdx] = 0;
+            if (
+              tailFace[absLIdx] === head.face &&
+              tailSizeX[absLIdx] === dx &&
+              tailSizeY[absLIdx] === dy
+            ) {
+              tailFace[absLIdx] = 0;
+              tailSizeX[absLIdx] = 0;
+              tailSizeY[absLIdx] = 0;
+            }
             cellFlags[absIdx] = cellFlags[absIdx]! | FLAG_NEED_UPDATE;
           }
         }
@@ -520,6 +619,9 @@ function expandSetBigface(
   }
 
   const { w, h } = getImageSize(face);
+  if (face !== 0 && (w > 1 || h > 1)) {
+    clearOverlappedRememberedBigFaces(pl_pos.x + x, pl_pos.y + y, layer, w, h);
+  }
   head.face = face;
   head.sizeX = w;
   head.sizeY = h;
@@ -598,6 +700,7 @@ function mapdataAlloc(w: number, h: number): void {
   cellFlags = new Uint8Array(N);
 
   headFace = new Uint32Array(NL);
+  headCurrent = new Uint8Array(NL);
   headSizeX = new Uint8Array(NL);
   headSizeY = new Uint8Array(NL);
   headAnim = new Uint16Array(NL);
@@ -676,6 +779,9 @@ function mapdataClear(x: number, y: number): void {
   const px = pl_pos.x + x;
   const py = pl_pos.y + y;
   const idx = ci(px, py);
+
+  // The server forgets what it sent for cells that scroll in or out of view.
+  headCurrent.fill(0, idx * L, idx * L + L);
 
   if (cellState[idx]! === MapCellState.Empty) {
     return;
@@ -759,6 +865,7 @@ function recenterVirtualMapView(diffX: number, diffY: number): void {
     cellDarkness.fill(0);
     cellFlags.fill(0);
     headFace.fill(0);
+    headCurrent.fill(0);
     headSizeX.fill(1);
     headSizeY.fill(1);
     headAnim.fill(0);
@@ -831,6 +938,7 @@ function recenterVirtualMapView(diffX: number, diffY: number): void {
     const copyLenL = lenY * L;
 
     headFace.copyWithin(dstLiBase, srcLiBase, srcLiBase + copyLenL);
+    headCurrent.copyWithin(dstLiBase, srcLiBase, srcLiBase + copyLenL);
     headSizeX.copyWithin(dstLiBase, srcLiBase, srcLiBase + copyLenL);
     headSizeY.copyWithin(dstLiBase, srcLiBase, srcLiBase + copyLenL);
     headAnim.copyWithin(dstLiBase, srcLiBase, srcLiBase + copyLenL);
@@ -989,6 +1097,7 @@ export function mapdata_free(): void {
   cellDarkness = new Uint8Array(0);
   cellFlags = new Uint8Array(0);
   headFace = new Uint32Array(0);
+  headCurrent = new Uint8Array(0);
   headSizeX = new Uint8Array(0);
   headSizeY = new Uint8Array(0);
   headAnim = new Uint16Array(0);
@@ -1234,6 +1343,8 @@ class ReusableMapdataCellUpdate implements MapdataCellUpdate {
   private onlyBigFaceHeads = true;
   /** True when this update explicitly cleared one or more layers. */
   private hadLayerClears = false;
+  /** headCurrent for each layer of this cell before the update. */
+  private readonly originalHeadCurrent = new Uint8Array(L);
 
   begin(x: number, y: number): void {
     if (this.active) {
@@ -1255,6 +1366,12 @@ class ReusableMapdataCellUpdate implements MapdataCellUpdate {
       ? this.cloneCell(mapdata_cell(px, py))
       : this.createEmptyCell();
     this.originalCell = this.cloneCell(this.workingCell);
+    if (mapdata_contains(px, py)) {
+      const idxL = ci(px, py) * L;
+      this.originalHeadCurrent.set(headCurrent.subarray(idxL, idxL + L));
+    } else {
+      this.originalHeadCurrent.fill(0);
+    }
 
     // Save the state before any modification so commit() can restore it for
     // big-face-head-only updates.
@@ -1351,6 +1468,36 @@ class ReusableMapdataCellUpdate implements MapdataCellUpdate {
     tail.face = 0;
     tail.sizeX = 0;
     tail.sizeY = 0;
+  }
+
+  /**
+   * Whether a remembered tail on `layer` of this cell no longer has a
+   * matching big-face head, either in the virtual map or (for heads just
+   * outside the view) in bigfaces[].
+   */
+  private isDanglingTail(tail: MapCellTailLayer, layer: number): boolean {
+    const isBig = (w: number, h: number): boolean => w > 1 || h > 1;
+
+    const headViewX = this.x + tail.sizeX;
+    const headViewY = this.y + tail.sizeY;
+    if (headViewX < MAX_VIEW && headViewY < MAX_VIEW) {
+      const bigHead = bigfaceAt(headViewX, headViewY, layer).head;
+      if (bigHead.face === tail.face && isBig(bigHead.sizeX, bigHead.sizeY)) {
+        return false;
+      }
+    }
+
+    const { px, py } = this.absoluteCoords();
+    const headX = px + tail.sizeX;
+    const headY = py + tail.sizeY;
+    if (!mapdata_contains(headX, headY)) {
+      return true;
+    }
+    const headIdxL = ci(headX, headY) * L + layer;
+    return (
+      headFace[headIdxL] !== tail.face ||
+      !isBig(headSizeX[headIdxL]!, headSizeY[headIdxL]!)
+    );
   }
 
   private absoluteCoords(): { px: number; py: number } {
@@ -1668,27 +1815,10 @@ class ReusableMapdataCellUpdate implements MapdataCellUpdate {
               staleTail.face !== 0 &&
               (staleTail.sizeX > 0 || staleTail.sizeY > 0)
             ) {
-              const staleHeadX = px + staleTail.sizeX;
-              const staleHeadY = py + staleTail.sizeY;
-              let danglingTail = !mapdata_contains(staleHeadX, staleHeadY);
-              if (!danglingTail) {
-                const staleHeadIdx = ci(staleHeadX, staleHeadY);
-                const staleHeadIdxL = staleHeadIdx * L + l;
-                const staleHeadFace = headFace[staleHeadIdxL]!;
-                const staleHeadW = headSizeX[staleHeadIdxL]!;
-                const staleHeadH = headSizeY[staleHeadIdxL]!;
-                danglingTail =
-                  staleHeadFace === 0 ||
-                  staleHeadFace !== staleTail.face ||
-                  (staleHeadW <= 1 && staleHeadH <= 1) ||
-                  cellState[staleHeadIdx] === MapCellState.Empty;
-              }
-              if (danglingTail && mapdata_contains(staleHeadX, staleHeadY)) {
-                // Clear stale fog-era big-face coverage that points to a missing
-                // or mismatched head so it no longer lingers in fog cells.
-                expandClearFaceFromLayer(staleHeadX, staleHeadY, l);
-              }
-              if (danglingTail) {
+              // Drop fog-era big-face coverage whose head is gone or has been
+              // replaced. Only this cell's tail is cleared: whatever head is
+              // now at the target position is left alone.
+              if (this.isDanglingTail(staleTail, l)) {
                 this.clearTailLayer(this.workingCell.tails[l]!);
               }
             }
@@ -1828,6 +1958,33 @@ class ReusableMapdataCellUpdate implements MapdataCellUpdate {
             expandClearFaceFromLayer(px, py, l);
           }
 
+          if (
+            this.dirtyLayers[l] &&
+            this.workingCell.state === MapCellState.Visible &&
+            head.face !== 0 &&
+            (head.sizeX > 1 || head.sizeY > 1)
+          ) {
+            clearOverlappedRememberedBigFaces(
+              px,
+              py,
+              l,
+              head.sizeX,
+              head.sizeY,
+            );
+          }
+
+          // Clearing old faces above may have reset the flag, so derive it
+          // from the state before this update.
+          if (this.dirtyLayers[l]) {
+            headCurrent[lOff] = head.face !== 0 ? 1 : 0;
+          } else if (
+            this.clearSpaceCalled ||
+            head.face !== this.originalCell!.heads[l]!.face
+          ) {
+            headCurrent[lOff] = 0;
+          } else {
+            headCurrent[lOff] = this.originalHeadCurrent[l]!;
+          }
           headFace[lOff] = head.face;
           headSizeX[lOff] = head.sizeX;
           headSizeY[lOff] = head.sizeY;
@@ -1964,6 +2121,99 @@ function mapdata_clear_old(x: number, y: number): void {
 }
 
 /** Scroll the map view.  Call when a map_scroll command is received. */
+/**
+ * Whether the big face `face` with its head at absolute (hx, hy) is one the
+ * server is currently showing, either in the virtual map or in bigfaces[].
+ */
+function isCurrentBigFaceHead(
+  hx: number,
+  hy: number,
+  layer: number,
+  face: number,
+): boolean {
+  const vx = hx - pl_pos.x;
+  const vy = hy - pl_pos.y;
+  if (vx >= 0 && vy >= 0 && vx < viewWidth && vy < viewHeight) {
+    const hLIdx = ci(hx, hy) * L + layer;
+    return headFace[hLIdx] === face && headCurrent[hLIdx] === 1;
+  }
+  if (vx >= 0 && vy >= 0 && vx < MAX_VIEW && vy < MAX_VIEW) {
+    return bigfaceAt(vx, vy, layer).head.face === face;
+  }
+  return false;
+}
+
+/**
+ * Remove the big face `face` with its head at absolute (hx, hy) on `layer`:
+ * the head, if still present, and every tail that points to it.
+ */
+function removeBigFace(
+  hx: number,
+  hy: number,
+  layer: number,
+  face: number,
+): void {
+  notifyWatchedCell(hx, hy, `layer ${layer} big face ${face} not refreshed`);
+  const { w, h } = getImageSize(face);
+  for (let dx = 0; dx < w; dx++) {
+    for (let dy = dx === 0 ? 1 : 0; dy < h; dy++) {
+      const tx = hx - dx;
+      const ty = hy - dy;
+      if (!mapdata_contains(tx, ty)) {
+        continue;
+      }
+      const tIdx = ci(tx, ty);
+      const tLIdx = tIdx * L + layer;
+      if (
+        tailFace[tLIdx] === face &&
+        tailSizeX[tLIdx] === dx &&
+        tailSizeY[tLIdx] === dy
+      ) {
+        tailFace[tLIdx] = 0;
+        tailSizeX[tLIdx] = 0;
+        tailSizeY[tLIdx] = 0;
+        cellFlags[tIdx] = cellFlags[tIdx]! | FLAG_NEED_UPDATE;
+        markResmooth(tx, ty, layer);
+      }
+    }
+  }
+  if (mapdata_contains(hx, hy) && headFace[ci(hx, hy) * L + layer] === face) {
+    expandClearFaceFromLayer(hx, hy, layer);
+  }
+}
+
+/**
+ * Call after a whole map2 packet has been applied.
+ *
+ * When any part of a big face is visible, the server sends that face. So a
+ * visible cell covered by a big face the server is not currently showing
+ * means the object is gone: remove all of it, including the parts in fog.
+ */
+export function mapdata_drop_unrefreshed_big_faces(): void {
+  for (let x = 0; x < viewWidth; x++) {
+    for (let y = 0; y < viewHeight; y++) {
+      const px = pl_pos.x + x;
+      const py = pl_pos.y + y;
+      const idx = ci(px, py);
+      if (cellState[idx] !== MapCellState.Visible) {
+        continue;
+      }
+      for (let l = 0; l < L; l++) {
+        const lIdx = idx * L + l;
+        const face = tailFace[lIdx]!;
+        if (face === 0) {
+          continue;
+        }
+        const hx = px + tailSizeX[lIdx]!;
+        const hy = py + tailSizeY[lIdx]!;
+        if (!isCurrentBigFaceHead(hx, hy, l, face)) {
+          removeBigFace(hx, hy, l, face);
+        }
+      }
+    }
+  }
+}
+
 export function mapdata_scroll(dx: number, dy: number): void {
   script_pos.x += dx;
   script_pos.y += dy;
@@ -2051,6 +2301,7 @@ export function mapdata_newmap(): void {
   cellDarkness.fill(0);
   cellFlags.fill(FLAG_NEED_UPDATE);
   headFace.fill(0);
+  headCurrent.fill(0);
   headSizeX.fill(1);
   headSizeY.fill(1);
   headAnim.fill(0);
