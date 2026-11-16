@@ -22,6 +22,7 @@ import {
   mapdata_newmap,
   mapdata_scroll,
   mapdata_begin_cell_update,
+  mapdata_drop_unrefreshed_big_faces,
   mapdata_set_size,
   mapdata_save_fog,
   mapdata_restore_fog,
@@ -400,6 +401,7 @@ export function Map2Cmd(data: DataView, len: number): void {
     }
     cellUpdate.commit();
   }
+  mapdata_drop_unrefreshed_big_faces();
   const elapsed = performance.now() - t0;
   if (perfLogging && (elapsed > 1 || tileCount > 10)) {
     LOG(

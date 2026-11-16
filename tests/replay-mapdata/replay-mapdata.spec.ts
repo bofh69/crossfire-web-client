@@ -264,6 +264,156 @@ describe("replay mapdata states", () => {
     expect(cell.heads[1]!.face).toBe(645);
   });
 
+  test("remembered big monster is removed when it reappears overlapping", () => {
+    const lines = readFileSync(
+      path.join(rootDir, "tests/replay-mapdata/logs/broken-devil.log"),
+      "utf8",
+    ).split(/\r?\n/);
+
+    resetReplaySandboxState();
+
+    // The devil (4x4, layer 6) is remembered outside the view with its head
+    // at (325, 268). After the player steps west it is seen again with its
+    // head at (327, 268), overlapping the remembered image.
+    const devilFace = 2427;
+    const oldHeadX = 325;
+    const oldHeadY = 268;
+    for (let i = 0; i < 2440; i++) {
+      const rx = parseRawRxLine(lines[i] ?? "");
+      if (rx) {
+        dispatchPacket(toPacketBuffer(rx));
+      }
+      if (i === 2413) {
+        expect(mapdata_cell(oldHeadX, oldHeadY).heads[6]!.face).toBe(devilFace);
+      }
+    }
+
+    expect(mapdata_cell(oldHeadX, oldHeadY).heads[6]!.face).not.toBe(devilFace);
+    for (let x = oldHeadX - 3; x <= oldHeadX; x++) {
+      for (let y = oldHeadY - 3; y <= oldHeadY; y++) {
+        const tail = mapdata_cell(x, y).tails[6]!;
+        const pointsToOldHead =
+          tail.face === devilFace &&
+          x + tail.sizeX === oldHeadX &&
+          y + tail.sizeY === oldHeadY;
+        expect(pointsToOldHead, `tail at (${x}, ${y})`).toBe(false);
+      }
+    }
+  });
+
+  test("big monster head in unseen cell is removed when it moves", () => {
+    const lines = readFileSync(
+      path.join(rootDir, "tests/replay-mapdata/logs/broken-wizard.log"),
+      "utf8",
+    ).split(/\r?\n/);
+
+    resetReplaySandboxState();
+
+    // The wizard (3x3, layer 6) has its head in a never-seen cell at
+    // (270, 258). Line 542 clears that cell and puts the head at (271, 258).
+    const oldHeadX = 270;
+    const oldHeadY = 258;
+    for (let i = 0; i < 542; i++) {
+      const rx = parseRawRxLine(lines[i] ?? "");
+      if (rx) {
+        dispatchPacket(toPacketBuffer(rx));
+      }
+      if (i === 540) {
+        const head = mapdata_cell(oldHeadX, oldHeadY).heads[6]!;
+        expect(head.face).not.toBe(0);
+        expect({ sizeX: head.sizeX, sizeY: head.sizeY }).toEqual({
+          sizeX: 3,
+          sizeY: 3,
+        });
+      }
+    }
+
+    expect(mapdata_cell(oldHeadX, oldHeadY).heads[6]!.face).toBe(0);
+    expect(mapdata_cell(oldHeadX + 1, oldHeadY).heads[6]!.sizeX).toBe(3);
+    // The old leftmost column must no longer be covered.
+    for (let y = oldHeadY - 2; y <= oldHeadY; y++) {
+      expect(mapdata_cell(oldHeadX - 2, y).tails[6]!.face, `y=${y}`).toBe(0);
+    }
+  });
+
+  test("remembered big monster is removed when it reappears below the view", () => {
+    const lines = readFileSync(
+      path.join(rootDir, "tests/replay-mapdata/logs/zoo.log"),
+      "utf8",
+    ).split(/\r?\n/);
+
+    resetReplaySandboxState();
+
+    // A 2x3 monster on layer 6 is remembered in fog with its head at
+    // (352, 291). Line 2710 scrolls south and the server shows it again from
+    // just below the view with its head one cell to the right.
+    const oldHeadX = 352;
+    const oldHeadY = 291;
+    for (let i = 0; i < 2710; i++) {
+      const rx = parseRawRxLine(lines[i] ?? "");
+      if (rx) {
+        dispatchPacket(toPacketBuffer(rx));
+      }
+      if (i === 2708) {
+        const head = mapdata_cell(oldHeadX, oldHeadY).heads[6]!;
+        expect(head.face).not.toBe(0);
+        expect({ sizeX: head.sizeX, sizeY: head.sizeY }).toEqual({
+          sizeX: 2,
+          sizeY: 3,
+        });
+      }
+    }
+
+    expect(mapdata_cell(oldHeadX, oldHeadY).heads[6]!.face).toBe(0);
+    for (let x = oldHeadX - 1; x <= oldHeadX; x++) {
+      for (let y = oldHeadY - 2; y <= oldHeadY; y++) {
+        const tail = mapdata_cell(x, y).tails[6]!;
+        const pointsToOldHead =
+          tail.face !== 0 &&
+          x + tail.sizeX === oldHeadX &&
+          y + tail.sizeY === oldHeadY;
+        expect(pointsToOldHead, `tail at (${x}, ${y})`).toBe(false);
+      }
+    }
+  });
+
+  test("big face the server does not refresh is removed, also from fog", () => {
+    const lines = readFileSync(
+      path.join(rootDir, "tests/replay-mapdata/logs/zoo.log"),
+      "utf8",
+    ).split(/\r?\n/);
+
+    resetReplaySandboxState();
+
+    // A 3x3 monster on layer 6 has its head in a fog cell at (354, 286) with
+    // its top rows visible. Line 1614 clears that cell and shows the monster
+    // one row lower, so the old copy is no longer refreshed by the server.
+    const oldHeadX = 354;
+    const oldHeadY = 286;
+    for (let i = 0; i < 1614; i++) {
+      const rx = parseRawRxLine(lines[i] ?? "");
+      if (rx) {
+        dispatchPacket(toPacketBuffer(rx));
+      }
+      if (i === 1612) {
+        expect(mapdata_cell(oldHeadX, oldHeadY).heads[6]!.sizeX).toBe(3);
+      }
+    }
+
+    expect(mapdata_cell(oldHeadX, oldHeadY).heads[6]!.face).toBe(0);
+    for (let x = oldHeadX - 2; x <= oldHeadX; x++) {
+      for (let y = oldHeadY - 2; y <= oldHeadY; y++) {
+        const tail = mapdata_cell(x, y).tails[6]!;
+        const pointsToOldHead =
+          tail.face !== 0 &&
+          x + tail.sizeX === oldHeadX &&
+          y + tail.sizeY === oldHeadY;
+        expect(pointsToOldHead, `tail at (${x}, ${y})`).toBe(false);
+      }
+    }
+    expect(mapdata_cell(oldHeadX, oldHeadY + 1).heads[6]!.sizeX).toBe(3);
+  });
+
   test("zoo replay has no dangling in-view tail-to-head links", () => {
     const logText = readFileSync(
       path.join(rootDir, "tests/replay-mapdata/logs/zoo.log"),

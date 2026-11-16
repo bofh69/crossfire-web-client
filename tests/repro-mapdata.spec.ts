@@ -47,10 +47,9 @@ test("dump target cell full", async () => {
   setGetMapImageSize(getFaceTileSize);
   resetReplaySandboxState();
 
-  const lines = readFileSync(
-    "/tmp/workspace/bofh69/crossfire-web-client/tests/replay-mapdata/logs/zoo.log",
-    "utf8",
-  ).split(/\r?\n/);
+  const lines = readFileSync("tests/replay-mapdata/logs/zoo.log", "utf8").split(
+    /\r?\n/,
+  );
   let absX = 0,
     absY = 0;
   for (let i = 0; i < 1830; i++) {
