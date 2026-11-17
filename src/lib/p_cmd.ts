@@ -109,40 +109,11 @@ function getCategoryName(cat: CommCat): string {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Callbacks (wired by App.svelte after MenuBar mounts)
-// ---------------------------------------------------------------------------
-
-export interface PCmdCallbacks {
-  /** Display a message in the info panel. */
-  drawInfo: (message: string) => void;
-  /** Open the keyboard key-bind dialog (reads lastCommand internally). */
-  openKeyBind: () => void;
-  /** Open the gamepad button-bind dialog (reads lastCommand internally). */
-  openGamepadBind: () => void;
-  /** Show the magic map overlay (re-display last received data). */
-  showMagicMap?: () => void;
-}
-
-let pcmdCallbacks: PCmdCallbacks | null = null;
-
-/** Wire callbacks from the UI layer so local commands can open dialogs. */
-export function setPCmdCallbacks(cbs: PCmdCallbacks): void {
-  pcmdCallbacks = cbs;
-}
-
-/** Display a message in the info panel (falls back to console).
+/** Display a message in the info panel.
  *  Multi-line strings are split so each line is shown on its own row. */
 function drawInfo(message: string): void {
-  const lines = message.split("\n");
-  if (pcmdCallbacks) {
-    for (const line of lines) {
-      pcmdCallbacks.drawInfo(line);
-    }
-  } else {
-    for (const line of lines) {
-      LOG(LogLevel.Info, "p_cmd", line);
-    }
+  for (const line of message.split("\n")) {
+    gameEvents.emit("drawInfo", 0, line);
   }
 }
 
@@ -188,7 +159,7 @@ function commandBind(args: string): void {
     return;
   }
   setLastCommand(args.trim());
-  pcmdCallbacks?.openKeyBind();
+  gameEvents.emit("openKeyBind");
 }
 
 function commandGamepadBind(args: string): void {
@@ -200,7 +171,7 @@ function commandGamepadBind(args: string): void {
     return;
   }
   setLastCommand(args.trim());
-  pcmdCallbacks?.openGamepadBind();
+  gameEvents.emit("openGamepadBind");
 }
 
 function commandResetKeys(_args: string): void {
@@ -214,7 +185,7 @@ function commandMagicmap(_args: string): void {
     return;
   }
   cpl.showmagic = 1;
-  pcmdCallbacks?.showMagicMap?.();
+  gameEvents.emit("showMagicMap");
 }
 
 function commandTake(args: string): void {

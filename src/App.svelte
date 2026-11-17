@@ -7,7 +7,7 @@
   import "@fontsource/uncial-antiqua";
   import { onMount, tick } from "svelte";
   import { clientInit, getCpl } from "./lib/init";
-  import { initCommands, setPCmdCallbacks } from "./lib/p_cmd";
+  import { initCommands } from "./lib/p_cmd";
   import { playerStats } from "./lib/commands";
   import { gameEvents } from "./lib/events";
   import type { AccountPlayer } from "./lib/events";
@@ -22,7 +22,6 @@
   import { getFaceTileSize } from "./lib/image";
   import {
     keybindingsInit,
-    setKeyCallbacks,
     parseKey,
     parseKeyRelease,
     configureKeys,
@@ -32,7 +31,6 @@
   import {
     gamepadInit,
     gamepadShutdown,
-    setGamepadCallbacks,
     notifyHpUpdate,
     resetHpTracking,
     setCurrentCharacter as setGamepadCurrentCharacter,
@@ -547,36 +545,6 @@
     };
     window.addEventListener("resize", handleResize);
 
-    // Wire key-system callbacks so keys.ts can interact with the UI.
-    setKeyCallbacks({
-      drawInfo: (message: string) => {
-        gameEvents.emit("drawInfo", 0, message);
-      },
-      focusCommandInput: (prefill?: string) => {
-        gameEvents.emit("focusCommandInput", prefill);
-      },
-      getCpl: () => getCpl(),
-    });
-
-    // Wire gamepad callbacks.
-    setGamepadCallbacks({
-      drawInfo: (message: string) => {
-        gameEvents.emit("drawInfo", 0, message);
-      },
-    });
-
-    // Wire p_cmd callbacks so bind/gamepad_bind commands can open dialogs.
-    setPCmdCallbacks({
-      drawInfo: (message: string) => {
-        gameEvents.emit("drawInfo", 0, message);
-      },
-      openKeyBind: () => gameEvents.emit("openKeyBind"),
-      openGamepadBind: () => gameEvents.emit("openGamepadBind"),
-      showMagicMap: () => {
-        showMagicMap = true;
-      },
-    });
-
     setUiNavCallbacks({
       resolveTargetId: async (target: string) => {
         switch (target) {
@@ -993,6 +961,10 @@
       }),
 
       gameQuery.listen(),
+
+      gameEvents.on("showMagicMap", () => {
+        showMagicMap = true;
+      }),
 
       gameEvents.on("newMap", () => {
         // Switching to a new map hides the magic map overlay.

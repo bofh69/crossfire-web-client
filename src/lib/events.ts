@@ -127,6 +127,8 @@ export interface GameEventMap {
   openKeyBind: [];
   /** Ask the MenuBar to start a "bind last command to gamepad button" flow. */
   openGamepadBind: [];
+  /** Ask the app to show the magic map overlay. */
+  showMagicMap: [];
   /** InfoPanel named colors or background changed. */
   infoPanelColorsChanged: [];
   /** Hotbar slot data or gamepad-select state changed. */
