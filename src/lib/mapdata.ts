@@ -35,7 +35,7 @@ import type {
 } from "./protocol";
 
 import { animations } from "./item";
-import { useConfig, wantConfig } from "./init";
+import { useConfig } from "./init";
 import {
   setMoveToCallbacks,
   run_move_to as runMoveToInternal,
@@ -196,12 +196,6 @@ let getMapImageSizeFn: (face: number) => { w: number; h: number } = () => ({
   h: 1,
 });
 
-/**
- * Try a hardware-accelerated map scroll.  Returns true on success.  The
- * default always returns false (fall back to full redraw).
- */
-let displayMapscrollFn: (dx: number, dy: number) => boolean = () => false;
-
 /** Called when `run_move_to` wants to stop movement. */
 let stopRunFn: () => void = () => {};
 
@@ -215,11 +209,6 @@ export function setGetMapImageSize(
   fn: (face: number) => { w: number; h: number },
 ): void {
   getMapImageSizeFn = fn;
-}
-export function setDisplayMapscroll(
-  fn: (dx: number, dy: number) => boolean,
-): void {
-  displayMapscrollFn = fn;
 }
 export function setStopRun(fn: () => void): void {
   stopRunFn = fn;
@@ -2219,30 +2208,11 @@ export function mapdata_scroll(dx: number, dy: number): void {
 
   recenterVirtualMapView(dx, dy);
 
-  if (wantConfig.mapscroll && displayMapscrollFn(dx, dy)) {
-    // Mark tiles overlapped by big faces from outside the view area.
-    for (const bc of activeBigfaces) {
-      for (let bx = 0; bx < bc.head.sizeX; bx++) {
-        for (let by = bx === 0 ? 1 : 0; by < bc.head.sizeY; by++) {
-          if (
-            bc.x - bx >= 0 &&
-            bc.x - bx < viewWidth &&
-            bc.y - by >= 0 &&
-            bc.y - by < viewHeight
-          ) {
-            cellFlags[ci(pl_pos.x + bc.x - bx, pl_pos.y + bc.y - by)] =
-              cellFlags[ci(pl_pos.x + bc.x - bx, pl_pos.y + bc.y - by)]! |
-              FLAG_NEED_UPDATE;
-          }
-        }
-      }
-    }
-  } else {
-    for (let x = 0; x < viewWidth; x++) {
-      for (let y = 0; y < viewHeight; y++) {
-        cellFlags[ci(pl_pos.x + x, pl_pos.y + y)] =
-          cellFlags[ci(pl_pos.x + x, pl_pos.y + y)]! | FLAG_NEED_UPDATE;
-      }
+  // The whole view must be redrawn after a scroll.
+  for (let x = 0; x < viewWidth; x++) {
+    for (let y = 0; y < viewHeight; y++) {
+      cellFlags[ci(pl_pos.x + x, pl_pos.y + y)] =
+        cellFlags[ci(pl_pos.x + x, pl_pos.y + y)]! | FLAG_NEED_UPDATE;
     }
   }
 
