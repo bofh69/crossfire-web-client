@@ -36,6 +36,9 @@ let mapdata_cell: (
 let mapdata_contains: (x: number, y: number) => boolean;
 let pl_mpos: () => { px: number; py: number };
 let getFaceTileSize: (face: number) => { w: number; h: number };
+let MAGIC_MAP_FACE_BASE: number;
+let MAGIC_MAP_WALL_FACE_BASE: number;
+let MapCellState: typeof import("../../src/lib/protocol").MapCellState;
 let parseReplayLogFile: (text: string) => {
   entries: Array<{ type: "MARK" | "RX" | "TX"; payload: Uint8Array | null }>;
   marks: Array<{ label: string; entryIndex: number }>;
@@ -93,6 +96,43 @@ function parseRawRxLine(line: string): Uint8Array | null {
   return new Uint8Array(buf.buffer, buf.byteOffset, buf.byteLength);
 }
 
+/**
+ * Count the magic-mapped cells near the player, and those of them that also
+ * have a wall face.  Every magic-mapped cell must be in fog.
+ */
+function countMagicMapCells(): { cells: number; walls: number } {
+  const isFace = (face: number, base: number, mask: number): boolean =>
+    (face & mask) >>> 0 === base;
+  const player = pl_mpos();
+  let cells = 0;
+  let walls = 0;
+  for (let ax = player.px - 30; ax <= player.px + 30; ax++) {
+    for (let ay = player.py - 30; ay <= player.py + 30; ay++) {
+      if (!mapdata_contains(ax, ay)) {
+        continue;
+      }
+      const cell = mapdata_cell(ax, ay);
+      if (
+        !isFace(cell.heads[0]!.face, MAGIC_MAP_FACE_BASE, MAGIC_MAP_FACE_BASE)
+      ) {
+        continue;
+      }
+      cells++;
+      expect(cell.state, `state at (${ax}, ${ay})`).toBe(MapCellState.Fog);
+      if (
+        isFace(
+          cell.heads[1]!.face,
+          MAGIC_MAP_WALL_FACE_BASE,
+          MAGIC_MAP_WALL_FACE_BASE,
+        )
+      ) {
+        walls++;
+      }
+    }
+  }
+  return { cells, walls };
+}
+
 function assertNoDanglingTailsInView(): void {
   const player = pl_mpos();
   for (let dx = -12; dx <= 12; dx++) {
@@ -142,7 +182,9 @@ beforeAll(async () => {
 
   ({ dispatchPacket } = await import("../../src/lib/commands"));
   ({ clientInit } = await import("../../src/lib/init"));
-  ({ getFaceTileSize } = await import("../../src/lib/image"));
+  ({ getFaceTileSize, MAGIC_MAP_FACE_BASE, MAGIC_MAP_WALL_FACE_BASE } =
+    await import("../../src/lib/image"));
+  ({ MapCellState } = await import("../../src/lib/protocol"));
   ({ setGetMapImageSize, mapdata_cell, mapdata_contains, pl_mpos } =
     await import("../../src/lib/mapdata"));
   ({ initCommands } = await import("../../src/lib/p_cmd"));
@@ -402,5 +444,20 @@ describe("replay mapdata states", () => {
     resetReplaySandboxState();
     replayToMark(logText, "after retributor moves right #2");
     assertNoDanglingTailsInView();
+  });
+
+  test("magic mapping fills unseen cells around the player", () => {
+    const logText = readFileSync(
+      path.join(rootDir, "tests/replay-mapdata/logs/magic-mapping.log"),
+      "utf8",
+    );
+
+    resetReplaySandboxState();
+    replayToMark(logText, "before magic mapping");
+    expect(countMagicMapCells()).toEqual({ cells: 0, walls: 0 });
+
+    resetReplaySandboxState();
+    replayToMark(logText, "after magic mapping");
+    expect(countMagicMapCells()).toEqual({ cells: 534, walls: 57 });
   });
 });

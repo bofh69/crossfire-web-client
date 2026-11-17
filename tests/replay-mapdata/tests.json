@@ -88,5 +88,11 @@
     "log": "tests/replay-mapdata/logs/to-trolls.log",
     "mark": "fake giant moved, but remain",
     "state": "tests/replay-mapdata/states/to-trolls-fake-giant-moved.state.json"
+  },
+  {
+    "name": "magic mapping",
+    "log": "tests/replay-mapdata/logs/magic-mapping.log",
+    "mark": "after magic mapping",
+    "state": "tests/replay-mapdata/states/magic-mapping.state.json"
   }
 ]
