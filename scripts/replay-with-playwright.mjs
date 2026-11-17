@@ -154,50 +154,13 @@ function parseCompactReplayLine(line, lineNumber) {
       uiData: null,
     };
   }
-  if (type === "KEY") {
-    const keyData = parseJsonObject(
+  if (type === "KEY" || type === "UI") {
+    return parseInteractionEntry(
+      type,
       parts.slice(2).join("\t"),
+      timestamp,
       lineNumber,
-      "KEY",
     );
-    if (typeof keyData.key !== "string" || !keyData.key) {
-      throw new Error(
-        `Line ${lineNumber}: KEY payload must have a non-empty "key" string field`,
-      );
-    }
-    const validEvents = ["down", "press", "up"];
-    const event = keyData.event ?? "press";
-    if (!validEvents.includes(event)) {
-      throw new Error(
-        `Line ${lineNumber}: KEY "event" must be one of: ${validEvents.join(", ")}`,
-      );
-    }
-    return {
-      type: "KEY",
-      timestamp,
-      lineNumber,
-      markerText: null,
-      payload: null,
-      keyData: { ...keyData, event },
-      uiData: null,
-    };
-  }
-  if (type === "UI") {
-    const uiData = parseJsonObject(parts.slice(2).join("\t"), lineNumber, "UI");
-    if (typeof uiData.action !== "string" || !uiData.action.trim()) {
-      throw new Error(
-        `Line ${lineNumber}: UI payload must have a non-empty "action" string field`,
-      );
-    }
-    return {
-      type: "UI",
-      timestamp,
-      lineNumber,
-      markerText: null,
-      payload: null,
-      keyData: null,
-      uiData,
-    };
   }
   if (type !== "TX" && type !== "RX") {
     throw new Error(`Line ${lineNumber}: unknown type "${type}"`);
@@ -242,19 +205,38 @@ function parseConvertedReplayLine(line, lineNumber) {
       uiData: null,
     };
   }
-  if (type === "KEY") {
-    const keyData = parseJsonObject(
+  if (type === "KEY" || type === "UI") {
+    return parseInteractionEntry(
+      type,
       new TextDecoder().decode(parseCString(rest, lineNumber)),
+      timestamp,
       lineNumber,
-      "KEY",
     );
-    if (typeof keyData.key !== "string" || !keyData.key) {
+  }
+  return {
+    type,
+    timestamp,
+    lineNumber,
+    markerText: null,
+    payload: parseCString(rest, lineNumber),
+    keyData: null,
+    uiData: null,
+  };
+}
+
+/**
+ * Parse and validate the JSON payload of a KEY or UI line into a replay entry.
+ */
+function parseInteractionEntry(type, jsonText, timestamp, lineNumber) {
+  const data = parseJsonObject(jsonText, lineNumber, type);
+  if (type === "KEY") {
+    if (typeof data.key !== "string" || !data.key) {
       throw new Error(
         `Line ${lineNumber}: KEY payload must have a non-empty "key" string field`,
       );
     }
     const validEvents = ["down", "press", "up"];
-    const event = keyData.event ?? "press";
+    const event = data.event ?? "press";
     if (!validEvents.includes(event)) {
       throw new Error(
         `Line ${lineNumber}: KEY "event" must be one of: ${validEvents.join(", ")}`,
@@ -266,39 +248,23 @@ function parseConvertedReplayLine(line, lineNumber) {
       lineNumber,
       markerText: null,
       payload: null,
-      keyData: { ...keyData, event },
+      keyData: { ...data, event },
       uiData: null,
     };
   }
-  if (type === "UI") {
-    const uiData = parseJsonObject(
-      new TextDecoder().decode(parseCString(rest, lineNumber)),
-      lineNumber,
-      "UI",
+  if (typeof data.action !== "string" || !data.action.trim()) {
+    throw new Error(
+      `Line ${lineNumber}: UI payload must have a non-empty "action" string field`,
     );
-    if (typeof uiData.action !== "string" || !uiData.action.trim()) {
-      throw new Error(
-        `Line ${lineNumber}: UI payload must have a non-empty "action" string field`,
-      );
-    }
-    return {
-      type: "UI",
-      timestamp,
-      lineNumber,
-      markerText: null,
-      payload: null,
-      keyData: null,
-      uiData,
-    };
   }
   return {
-    type,
+    type: "UI",
     timestamp,
     lineNumber,
     markerText: null,
-    payload: parseCString(rest, lineNumber),
+    payload: null,
     keyData: null,
-    uiData: null,
+    uiData: data,
   };
 }
 
