@@ -19,7 +19,12 @@ import {
   type StickAxes,
   type ButtonMapping,
 } from "./gamepad_defaults";
-import { loadConfig, saveConfig } from "./storage";
+import {
+  charConfigKey,
+  loadConfig,
+  sanitiseKeySegment,
+  saveConfig,
+} from "./storage";
 import { extendedCommand } from "./p_cmd";
 import { gameEvents } from "./events";
 import {
@@ -150,13 +155,8 @@ function stickToDirection(
 // Storage – per-controller keys
 // ──────────────────────────────────────────────────────────────────────────────
 
-const STORAGE_KEY_PREFIX = "cf_gamepad_bindings_";
-const CHAR_BUTTON_KEY_PREFIX = "cf_gamepad_char_buttons_";
-
-/** Sanitise a gamepad name for use as a localStorage key suffix. */
-function sanitiseName(name: string): string {
-  return name.replace(/[^a-zA-Z0-9_-]/g, "_").substring(0, 80);
-}
+const STORAGE_KEY_PREFIX = "gamepad_";
+const CHAR_BUTTON_KEY_PREFIX = "gamepad_char_";
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Module state
@@ -306,7 +306,7 @@ function loadSavedConfig(controllerKey: string): SavedGamepadConfig | null {
 }
 
 function charButtonStorageKey(controllerKey: string, charName: string): string {
-  return CHAR_BUTTON_KEY_PREFIX + controllerKey + "_" + sanitiseName(charName);
+  return charConfigKey(CHAR_BUTTON_KEY_PREFIX + controllerKey, charName);
 }
 
 function loadCharButtons(
@@ -338,7 +338,7 @@ function onGamepadConnected(e: GamepadEvent): void {
   }
 
   gamepadState.activeGamepadIndex = gp.index;
-  gamepadState.activeControllerKey = sanitiseName(gp.id);
+  gamepadState.activeControllerKey = sanitiseKeySegment(gp.id);
 
   // Try to load saved config for this controller, otherwise use a
   // matching built-in profile.
@@ -808,7 +808,7 @@ export function resetGamepadBindings(): void {
  * Called when a character logs in.  Loads character-specific button bindings
  * and rebuilds the merged profile.
  */
-export function setCurrentCharacter(charName: string): void {
+function setCurrentCharacter(charName: string): void {
   gamepadState.currentCharName = charName;
   if (gamepadState.activeControllerKey && charName) {
     gamepadState.charButtons = loadCharButtons(
@@ -821,6 +821,8 @@ export function setCurrentCharacter(charName: string): void {
     rebuildProfileButtons();
   }
 }
+
+gameEvents.on("characterLogin", setCurrentCharacter);
 
 /**
  * Change the global/character scope of one or more button bindings, then

@@ -57,13 +57,20 @@ class MemoryConfigStore implements ConfigStore {
 /** Replaces `localStorage` when set by {@link useInMemoryConfigStore}. */
 let memoryStore: MemoryConfigStore | null = null;
 
+/** The store that {@link migrateConfigKeys} last ran on. */
+let migratedStore: ConfigStore | null = null;
+
 function configStore(): ConfigStore {
-  return memoryStore ?? localStorage;
+  const store = memoryStore ?? localStorage;
+  if (store !== migratedStore) {
+    migratedStore = store;
+    migrateConfigKeys(store);
+  }
+  return store;
 }
 
-/** Return every prefixed key in the active config store. */
-function prefixedStorageKeys(): string[] {
-  const store = configStore();
+/** Return every prefixed key in `store`. */
+function prefixedStorageKeys(store: ConfigStore = configStore()): string[] {
   const keys: string[] = [];
   for (let i = 0; i < store.length; i++) {
     const key = store.key(i);
@@ -74,6 +81,63 @@ function prefixedStorageKeys(): string[] {
   return keys;
 }
 
+// ──────────────────────────────────────────────────────────────────────────────
+// Key migrations
+// ──────────────────────────────────────────────────────────────────────────────
+
+/** Config key holding the number of {@link KEY_MIGRATIONS} applied. */
+const STORAGE_VERSION_KEY = "storage_version";
+
+/**
+ * Renames of old config keys, one function per storage version, applied in
+ * order.  Each returns the new key (without the prefix) for an old key, or
+ * null to keep the key.
+ */
+const KEY_MIGRATIONS: ReadonlyArray<(key: string) => string | null> = [
+  // Version 1: per-character keys are "<feature>_char_<sanitised name>".
+  (key) => {
+    if (key === "cf_keybindings") return "keybindings";
+    const renames: ReadonlyArray<[string, string, boolean]> = [
+      // [old prefix, new prefix, whether the rest is an unsanitised name]
+      ["cf_gamepad_bindings_", "gamepad_", false],
+      ["cf_gamepad_char_buttons_", "gamepad_char_", false],
+      ["cf_keybindings_char_", "keybindings_char_", true],
+      ["hotbar_slots_char_", "hotbar_char_", false],
+      ["inv_filters_", "inv_filters_char_", true],
+    ];
+    for (const [oldPrefix, newPrefix, sanitise] of renames) {
+      if (key.startsWith(oldPrefix)) {
+        const rest = key.substring(oldPrefix.length);
+        return newPrefix + (sanitise ? sanitiseKeySegment(rest) : rest);
+      }
+    }
+    return null;
+  },
+];
+
+/**
+ * Rename the old keys in `store` to the current names, unless that has
+ * already been done.  A renamed value never replaces an existing one.
+ */
+function migrateConfigKeys(store: ConfigStore): void {
+  const versionKey = STORAGE_PREFIX + STORAGE_VERSION_KEY;
+  const version = Number(store.getItem(versionKey)) || 0;
+  if (version >= KEY_MIGRATIONS.length) return;
+  for (const migrate of KEY_MIGRATIONS.slice(version)) {
+    for (const fullKey of prefixedStorageKeys(store)) {
+      const newKey = migrate(fullKey.substring(STORAGE_PREFIX.length));
+      if (newKey === null) continue;
+      const value = store.getItem(fullKey);
+      store.removeItem(fullKey);
+      const newFullKey = STORAGE_PREFIX + newKey;
+      if (value !== null && store.getItem(newFullKey) === null) {
+        store.setItem(newFullKey, value);
+      }
+    }
+  }
+  store.setItem(versionKey, JSON.stringify(KEY_MIGRATIONS.length));
+}
+
 /**
  * Keep the configuration in a new, empty in-memory store instead of
  * `localStorage`. Used by the replay page so that it never changes the normal
@@ -81,6 +145,22 @@ function prefixedStorageKeys(): string[] {
  */
 export function useInMemoryConfigStore(): void {
   memoryStore = new MemoryConfigStore();
+}
+
+/**
+ * Make `name` safe to use as part of a config key, by replacing unusual
+ * characters with "_" and limiting the length.
+ */
+export function sanitiseKeySegment(name: string): string {
+  return name.replace(/[^a-zA-Z0-9_-]/g, "_").substring(0, 80);
+}
+
+/**
+ * The config key for a per-character setting: `prefix`, "_" and the
+ * sanitised `charName`.
+ */
+export function charConfigKey(prefix: string, charName: string): string {
+  return `${prefix}_${sanitiseKeySegment(charName)}`;
 }
 
 /**
@@ -140,6 +220,8 @@ export function importConfigBackup(rawData: unknown): void {
   for (const [key, value] of Object.entries(rawData.values)) {
     store.setItem(STORAGE_PREFIX + key, JSON.stringify(value));
   }
+  // Backups from older versions use the old key names.
+  migrateConfigKeys(store);
 }
 
 export function isConfigBackupV1(data: unknown): data is ConfigBackupV1 {

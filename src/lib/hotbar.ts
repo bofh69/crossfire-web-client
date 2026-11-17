@@ -9,7 +9,7 @@
  * the button activates the highlighted slot (or cancels if the stick is neutral).
  */
 
-import { loadConfig, saveConfig } from "./storage";
+import { charConfigKey, loadConfig, saveConfig } from "./storage";
 import { extendedCommand } from "./p_cmd";
 import { clientSendApply } from "./player";
 import { gameEvents } from "./events";
@@ -38,13 +38,8 @@ export interface HotbarSlot {
 
 // ── Module state ─────────────────────────────────────────────────────────────
 
-const HOTBAR_CHAR_STORAGE_KEY_PREFIX = "hotbar_slots_char_";
+const HOTBAR_CHAR_STORAGE_KEY_PREFIX = "hotbar_char";
 const HOTBAR_SLOT_COUNT = 12;
-
-/** Sanitise a character name for use as a localStorage key segment. */
-function sanitiseName(name: string): string {
-  return name.replace(/[^a-zA-Z0-9_-]/g, "_").substring(0, 80);
-}
 
 /** The 12 hotbar slots.  null = empty. */
 let slots: (HotbarSlot | null)[] = Array(HOTBAR_SLOT_COUNT).fill(null);
@@ -71,43 +66,30 @@ function stripSessionData(slot: HotbarSlot): Omit<HotbarSlot, "face" | "tag"> {
 
 /** Load hotbar slots for the given character name from localStorage. */
 function loadHotbarForChar(charName: string): void {
-  const key = HOTBAR_CHAR_STORAGE_KEY_PREFIX + sanitiseName(charName);
+  const key = charConfigKey(HOTBAR_CHAR_STORAGE_KEY_PREFIX, charName);
   const saved = loadConfig<(HotbarSlot | null)[]>(key, []);
   slots = Array(HOTBAR_SLOT_COUNT).fill(null);
-  let loaded = 0;
   for (let i = 0; i < Math.min(saved.length, HOTBAR_SLOT_COUNT); i++) {
     const slot = saved[i] ?? null;
     if (slot !== null) {
       // face and tag are session-specific and must not be loaded from
       // config; they are refreshed when addspell / item2 commands arrive.
       slots[i] = stripSessionData(slot);
-      loaded++;
     }
   }
 }
 
 /**
- * Initialise the hotbar module.  Slots start empty until a character logs in
- * and setCurrentCharacter() is called.
+ * Initialise the hotbar module.  Slots start empty until a character logs in.
  */
 export function loadHotbar(): void {
   slots = Array(HOTBAR_SLOT_COUNT).fill(null);
   currentCharName = "";
 }
 
-/**
- * Reset the current-character guard so that the next setCurrentCharacter()
- * call always reloads slots from storage even if the character name is the
- * same as last session.  Call this at the start of each new player login
- * (i.e. from PlayerCmd) before emitting playerUpdate.
- */
-export function resetHotbarSession(): void {
-  currentCharName = "";
-}
-
 function saveHotbar(): void {
   if (!currentCharName) return;
-  const key = HOTBAR_CHAR_STORAGE_KEY_PREFIX + sanitiseName(currentCharName);
+  const key = charConfigKey(HOTBAR_CHAR_STORAGE_KEY_PREFIX, currentCharName);
   // Strip face before saving — face numbers are session-specific and are
   // refreshed from addspell / item2 commands on each login.
   const toSave = slots.map((slot) =>
@@ -116,20 +98,13 @@ function saveHotbar(): void {
   saveConfig(key, toSave);
 }
 
-/**
- * Called when a character logs in.  Loads character-specific hotbar slots and
- * emits a hotbarUpdate event so the UI refreshes.
- * Skips the reload if the character name is unchanged (prevents repeated
- * playerUpdate events from Item2Cmd etc. from wiping in-memory face/tag values).
- */
-export function setCurrentCharacter(charName: string): void {
-  if (charName === currentCharName) {
-    return;
-  }
+// Load the character's slots when it logs in, before any addspell / item2
+// packets arrive, so that their faces and tags can be matched to the slots.
+gameEvents.on("characterLogin", (charName) => {
   currentCharName = charName;
   loadHotbarForChar(charName);
   gameEvents.emit("hotbarUpdate");
-}
+});
 
 // ── Slot accessors ────────────────────────────────────────────────────────────
 
