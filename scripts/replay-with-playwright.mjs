@@ -821,16 +821,36 @@ async function replayUiAction(page, uiData, lineNumber) {
     return;
   }
   if (action === "lookAtClick") {
+    const canvas = page.locator(".game-map canvas").first();
+    const box = await canvas.boundingBox();
+    if (!box) {
+      throw new Error(`UI line ${lineNumber}: game map canvas not visible`);
+    }
+    // Click the centre of the recorded tile (dx, dy relative to the player),
+    // so the same tile is looked at whatever the map's zoom and size are.
+    const dx = Number(uiData.dx);
+    const dy = Number(uiData.dy);
+    if (Number.isInteger(dx) && Number.isInteger(dy)) {
+      const layout = await canvas.evaluate((c) => ({
+        tileSize: Number(c.dataset.tileSize),
+        playerTileX: Number(c.dataset.playerTileX),
+        playerTileY: Number(c.dataset.playerTileY),
+      }));
+      if (Object.values(layout).every(Number.isFinite)) {
+        await page.mouse.click(
+          box.x + (layout.playerTileX + dx + 0.5) * layout.tileSize,
+          box.y + (layout.playerTileY + dy + 0.5) * layout.tileSize,
+          { button: "left" },
+        );
+        return;
+      }
+    }
+    // Older logs only have the click position as a fraction of the canvas.
     const x = Math.min(Math.max(Number(uiData.x), 0), 1);
     const y = Math.min(Math.max(Number(uiData.y), 0), 1);
     if (!Number.isFinite(x) || !Number.isFinite(y)) {
       console.warn(`[replay] UI line ${lineNumber}: lookAtClick missing x/y`);
       return;
-    }
-    const canvas = page.locator(".game-map canvas").first();
-    const box = await canvas.boundingBox();
-    if (!box) {
-      throw new Error(`UI line ${lineNumber}: game map canvas not visible`);
     }
     await page.mouse.click(box.x + box.width * x, box.y + box.height * y, {
       button: "left",
