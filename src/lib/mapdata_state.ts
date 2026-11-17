@@ -8,11 +8,22 @@
  * arrays through these live bindings, but only this module assigns them.
  */
 
-import { MAXLAYERS } from "./protocol";
-import type { MapLabel, PlayerPosition } from "./protocol";
+import { MAX_VIEW, MAXLAYERS } from "./protocol";
+import type {
+  MapCellLayer,
+  MapCellTailLayer,
+  MapLabel,
+  PlayerPosition,
+} from "./protocol";
 
 /** Short alias kept in sync with the protocol constant. */
 export const L = MAXLAYERS;
+
+/** Maximum size of a big face image in tiles. */
+export const MAX_FACE_SIZE = 16;
+
+/** True in development builds where extra bounds assertions should run. */
+const DEV_ASSERTIONS = import.meta.env.DEV;
 
 // cellFlags bit encoding
 /** cellFlags bit: the cell must be redrawn. */
@@ -25,6 +36,10 @@ export const pl_pos: PlayerPosition = { x: 0, y: 0 };
 
 /** Player position reported after newmap resets. */
 export const script_pos: PlayerPosition = { x: 0, y: 0 };
+
+/** View dimensions (tiles). */
+export let viewWidth = 0;
+export let viewHeight = 0;
 
 /** Virtual map dimensions. */
 export let mapWidth = 0;
@@ -128,4 +143,82 @@ export function mapdataAlloc(w: number, h: number): void {
 /** Replace all cell labels with `labels`. */
 export function setCellLabels(labels: Map<number, MapLabel[]>): void {
   cellLabels = labels;
+}
+
+/** Set the view dimensions, in tiles. */
+export function setViewSize(width: number, height: number): void {
+  viewWidth = width;
+  viewHeight = height;
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// BigCell – tracks multi-tile faces outside the view area
+// ──────────────────────────────────────────────────────────────────────────────
+
+/** A big face's head or tail on one layer of a view position. */
+export interface BigCell {
+  head: MapCellLayer;
+  tail: MapCellTailLayer;
+  x: number;
+  y: number;
+  layer: number;
+}
+
+/** Big-face tracking outside the view area (objects, small fixed size). */
+export let bigfaces: BigCell[][][] = [];
+/** The entries of {@link bigfaces} that hold a face. */
+export let activeBigfaces: Set<BigCell> = new Set();
+
+/** The {@link bigfaces} entry for view position (x, y) and `layer`. */
+export function bigfaceAt(x: number, y: number, layer: number): BigCell {
+  if (DEV_ASSERTIONS) {
+    if (
+      x < 0 ||
+      y < 0 ||
+      x >= MAX_VIEW ||
+      y >= MAX_VIEW ||
+      layer < 0 ||
+      layer >= MAXLAYERS
+    ) {
+      throw new RangeError(
+        `bigfaceAt: (${x},${y},${layer}) out of bounds (${MAX_VIEW}x${MAX_VIEW}, layers=${MAXLAYERS})`,
+      );
+    }
+  }
+  return bigfaces[x]![y]![layer]!;
+}
+
+/** Fill {@link bigfaces} with empty entries for every view position. */
+export function initBigfaces(): void {
+  bigfaces = [];
+  for (let x = 0; x < MAX_VIEW; x++) {
+    bigfaces[x] = [];
+    for (let y = 0; y < MAX_VIEW; y++) {
+      bigfaces[x]![y] = [];
+      for (let i = 0; i < MAXLAYERS; i++) {
+        bigfaces[x]![y]![i] = {
+          head: {
+            face: 0,
+            sizeX: 1,
+            sizeY: 1,
+            animation: 0,
+            animationSpeed: 0,
+            animationLeft: 0,
+            animationPhase: 0,
+          },
+          tail: { face: 0, sizeX: 0, sizeY: 0 },
+          x,
+          y,
+          layer: i,
+        };
+      }
+    }
+  }
+  activeBigfaces = new Set();
+}
+
+/** Remove all entries from {@link bigfaces}. */
+export function clearBigfaces(): void {
+  bigfaces = [];
+  activeBigfaces = new Set();
 }

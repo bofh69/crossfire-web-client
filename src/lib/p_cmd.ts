@@ -23,7 +23,7 @@ import {
   mapdata_debug_all_bigfaces,
   mapdata_debug_player_pos,
   mapdata_memory_stats,
-} from "./mapdata";
+} from "./mapdata_debug";
 import { fogCacheStats } from "./map_fog_cache";
 import { image_debug_face } from "./image";
 import {
