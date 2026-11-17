@@ -6,7 +6,7 @@
   import { setWatchedCell, clearWatchedCell } from "./lib/debug";
   import { gameEvents } from "./lib/events";
   import { getFaceTileSize } from "./lib/image";
-  import { clientInit } from "./lib/init";
+  import { clientInit, reloadSavedConfig } from "./lib/init";
   import { animateObjects } from "./lib/item";
   import {
     mapdata_animation,
@@ -25,7 +25,12 @@
     type ReplayEntry,
     type ReplayMark,
   } from "./lib/replay";
-  import { importConfigBackup, type ConfigBackupV1 } from "./lib/storage";
+  import { loadInfoPanelColorsFromStorage } from "./lib/markup";
+  import {
+    importConfigBackup,
+    type ConfigBackupV1,
+    useInMemoryConfigStore,
+  } from "./lib/storage";
   import { captureReplayMapdataSnapshot } from "./lib/replay_mapdata_state";
 
   interface ReplayLogMessage {
@@ -51,7 +56,6 @@
 
   let entries = $state<ReplayEntry[]>([]);
   let marks = $state<ReplayMark[]>([]);
-  let configSnapshot = $state<ConfigBackupV1 | null>(null);
   let fileName = $state("");
   let parseError = $state("");
   let replayLog = $state<ReplayLogMessage[]>([]);
@@ -233,7 +237,7 @@
       const parsed = parseReplayLogFile(await file.text());
       entries = parsed.entries;
       marks = parsed.marks;
-      configSnapshot = parsed.configSnapshot;
+      applyLogConfig(parsed.configSnapshot);
       fileName = file.name;
       parseError = "";
       resetReplay(false);
@@ -244,7 +248,6 @@
     } catch (error) {
       entries = [];
       marks = [];
-      configSnapshot = null;
       fileName = "";
       parseError = error instanceof Error ? error.message : String(error);
       replayLog = [];
@@ -262,10 +265,17 @@
     armTileInspection();
   }
 
-  function restoreConfigFromLog(): void {
-    if (configSnapshot === null) return;
-    importConfigBackup(configSnapshot);
-    window.location.reload();
+  /**
+   * Use the configuration captured in the log, or the defaults if it has
+   * none. Only the replay page's in-memory config store is changed.
+   */
+  function applyLogConfig(snapshot: ConfigBackupV1 | null): void {
+    useInMemoryConfigStore();
+    if (snapshot !== null) {
+      importConfigBackup(snapshot);
+    }
+    reloadSavedConfig();
+    loadInfoPanelColorsFromStorage();
   }
 
   function clearReplayLog(): void {
@@ -642,13 +652,6 @@
         title="Download log file"
       >
         Download log
-      </button>
-      <button
-        onclick={restoreConfigFromLog}
-        disabled={configSnapshot === null}
-        title="Restore the client and character configuration captured in the log"
-      >
-        Restore config from log
       </button>
     </div>
     <label class="tick-toggle">
