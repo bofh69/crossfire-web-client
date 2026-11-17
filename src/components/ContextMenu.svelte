@@ -41,17 +41,7 @@
         menuVisible = true;
         return;
       }
-      const rect = el.getBoundingClientRect();
-      const vw = window.innerWidth;
-      const vh = window.innerHeight;
-      let cx = nx;
-      let cy = ny;
-      // Shift left if menu overflows right edge.
-      if (rect.right > vw) cx = Math.max(0, cx - (rect.right - vw));
-      // Shift up if menu overflows bottom edge.
-      if (rect.bottom > vh) cy = Math.max(0, cy - (rect.bottom - vh));
-      adjustedX = cx;
-      adjustedY = cy;
+      clampToViewport(el, nx, ny);
       menuVisible = true;
     });
 
@@ -78,6 +68,26 @@
       }
     });
   });
+
+  // The menu can grow after it is shown (e.g. when a hotbar slot picker is
+  // added to it), so keep it inside the viewport whenever its size changes.
+  $effect(() => {
+    const el = menuEl;
+    if (!el) return;
+    const observer = new ResizeObserver(() => clampToViewport(el, x, y));
+    observer.observe(el);
+    return () => observer.disconnect();
+  });
+
+  /**
+   * Place the menu at (`nx`, `ny`), moved left and up as needed so that `el`
+   * fits inside the viewport.
+   */
+  function clampToViewport(el: HTMLElement, nx: number, ny: number): void {
+    const { width, height } = el.getBoundingClientRect();
+    adjustedX = Math.max(0, Math.min(nx, window.innerWidth - width));
+    adjustedY = Math.max(0, Math.min(ny, window.innerHeight - height));
+  }
 
   function clearFadeTimer() {
     if (fadeTimer !== null) {
