@@ -35,13 +35,8 @@
   } from "../lib/client";
   import { disconnectAndReload } from "../lib/disconnect";
   import { gameEvents } from "../lib/events";
-  import { sendReply } from "../lib/player";
-  import {
-    CS_QUERY_HIDEINPUT,
-    CS_QUERY_SINGLECHAR,
-    CS_QUERY_YESNO,
-    EPORT,
-  } from "../lib/protocol";
+  import { EPORT } from "../lib/protocol";
+  import QueryPrompt, { ServerQuery } from "./QueryPrompt.svelte";
   import { parseMarkupLines } from "../lib/markup";
   import { wantConfig } from "../lib/init";
   import type {
@@ -116,12 +111,7 @@
   let connected = $state(initChars !== null);
   let connecting = $state(false);
   let errorMessage = $state("");
-  let queryPrompt = $state("");
-  let lastQueryPrompt = "";
-  let queryHidden = $state(false);
-  let querySingleChar = $state(false);
-  let queryYesNo = $state(false);
-  let queryInput = $state("");
+  const query = new ServerQuery();
   let statusMessage = $state("");
 
   /** Sections received from replyinfo (motd, news, rules).
@@ -133,9 +123,6 @@
    *  server that sends addme_success quickly (before the user finishes
    *  answering login prompts) doesn't cause a premature state change. */
   let addMeSuccessReceived = $state(false);
-
-  /** Element reference for the query input, used for programmatic focus. */
-  let queryInputEl: HTMLInputElement | undefined = $state();
 
   // ── Account-based login state (loginmethod >= 1) ───────────────────────────
 
@@ -237,13 +224,6 @@
         availableRaces.length === 0),
   );
 
-  // Focus the query input whenever it (re-)appears in the DOM.
-  $effect(() => {
-    if (queryInputEl) {
-      queryInputEl.focus();
-    }
-  });
-
   function infoTypeLabel(type: string): string {
     switch (type) {
       case "motd":
@@ -258,7 +238,7 @@
   }
 
   function checkLoginComplete() {
-    if (addMeSuccessReceived && !queryPrompt) {
+    if (addMeSuccessReceived && !query.active) {
       statusMessage = "Login successful!";
       onLoggedIn();
     }
@@ -296,47 +276,10 @@
     disconnectAndReload();
   }
 
-  function clearQuery() {
-    queryInput = "";
-    queryPrompt = "";
-    querySingleChar = false;
-    queryYesNo = false;
-  }
-
-  function sendQueryReply(answer: string) {
-    sendReply(answer);
-    clearQuery();
-    checkLoginComplete();
-  }
-
-  function handleQuerySubmit() {
-    let trimmed = queryInput.trim();
-    if (trimmed.length > 0) {
-      sendQueryReply(trimmed);
-    }
-  }
-
-  function handleQueryKeydown(e: KeyboardEvent) {
-    if (
-      querySingleChar &&
-      e.key.length === 1 &&
-      !e.ctrlKey &&
-      !e.altKey &&
-      !e.metaKey
-    ) {
-      // For single-character queries, send the reply immediately on keypress
-      // without requiring Enter. The typed character becomes the reply.
-      sendQueryReply(e.key);
-      e.preventDefault();
-    }
-  }
-
   function handleYesNoKeydown(e: KeyboardEvent) {
-    if (!queryYesNo) return;
-    const key = e.key.toLowerCase();
-    if ((key === "y" || key === "n") && !e.ctrlKey && !e.altKey && !e.metaKey) {
-      sendQueryReply(key);
+    if (query.handleYesNoKey(e)) {
       e.preventDefault();
+      checkLoginComplete();
     }
   }
 
@@ -546,17 +489,7 @@
 
   $effect(() => {
     const cleanups = [
-      gameEvents.on("query", (flags: number, prompt: string) => {
-        // If the server sends an empty prompt, reuse the previous prompt text.
-        if (prompt) {
-          lastQueryPrompt = prompt;
-        }
-        queryPrompt = lastQueryPrompt;
-        queryHidden = (flags & CS_QUERY_HIDEINPUT) !== 0;
-        querySingleChar = (flags & CS_QUERY_SINGLECHAR) !== 0;
-        queryYesNo = (flags & CS_QUERY_YESNO) !== 0;
-        queryInput = "";
-      }),
+      query.listen(),
 
       gameEvents.on("replyInfo", (infoType: string, text: string) => {
         const lines = parseMarkupLines(text, "#cccccc");
@@ -693,7 +626,7 @@
 
       gameEvents.on("addMeSuccess", () => {
         addMeSuccessReceived = true;
-        if (queryPrompt) {
+        if (query.active) {
           // A query is still on screen – wait until the user answers it.
           statusMessage = "";
         } else {
@@ -1118,43 +1051,11 @@
             {/if}
             <button onclick={handleDisconnectBtn}>Disconnect</button>
           </form>
-        {:else if queryPrompt}
+        {:else if query.active}
           <!-- Legacy query-based login (loginmethod 0) -->
-          <form
-            class="login-form"
-            onsubmit={(e) => {
-              e.preventDefault();
-              handleQuerySubmit();
-            }}
-          >
-            <p class="query-text" aria-live="polite">{queryPrompt}</p>
-            {#if queryYesNo}
-              <div class="yesno-buttons">
-                <button
-                  type="button"
-                  aria-keyshortcuts="y"
-                  onclick={() => sendQueryReply("y")}>Yes</button
-                >
-                <button
-                  type="button"
-                  aria-keyshortcuts="n"
-                  onclick={() => sendQueryReply("n")}>No</button
-                >
-              </div>
-            {:else}
-              <label>
-                <input
-                  type={queryHidden ? "password" : "text"}
-                  bind:value={queryInput}
-                  bind:this={queryInputEl}
-                  onkeydown={handleQueryKeydown}
-                />
-              </label>
-              {#if !querySingleChar}
-                <button type="submit">Submit</button>
-              {/if}
-            {/if}
-          </form>
+          <div class="login-form">
+            <QueryPrompt {query} onReplied={checkLoginComplete} />
+          </div>
         {/if}
         {#if statusMessage}
           <p class="status">{statusMessage}</p>
@@ -1320,15 +1221,6 @@
     color: var(--text-warm-dim);
     font-size: 0.9rem;
     margin: 0;
-  }
-
-  .yesno-buttons {
-    display: flex;
-    gap: 0.5rem;
-  }
-
-  .yesno-buttons button {
-    flex: 1;
   }
 
   .github-ribbon {
