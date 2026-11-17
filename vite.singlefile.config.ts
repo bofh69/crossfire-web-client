@@ -14,8 +14,8 @@ export default defineConfig(({ mode }) => {
   const buildTime = `${yy}${mm}${dd}-${hh}:${min}`;
   const input =
     mode === "singlefile-replay"
-      ? path.resolve(__dirname, "replay.html")
-      : path.resolve(__dirname, "index.html");
+      ? path.resolve(import.meta.dirname, "replay.html")
+      : path.resolve(import.meta.dirname, "index.html");
 
   return {
     plugins: [svelte(), viteSingleFile({ removeViteModuleLoader: true })],

@@ -20,8 +20,8 @@ export default defineConfig(() => {
     build: {
       rollupOptions: {
         input: {
-          main: path.resolve(__dirname, "index.html"),
-          replay: path.resolve(__dirname, "replay.html"),
+          main: path.resolve(import.meta.dirname, "index.html"),
+          replay: path.resolve(import.meta.dirname, "replay.html"),
         },
       },
     },
