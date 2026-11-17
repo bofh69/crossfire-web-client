@@ -17,7 +17,7 @@
  */
 
 import { InputState } from "./protocol";
-import { loadConfig, saveConfig } from "./storage";
+import { charConfigKey, loadConfig, saveConfig } from "./storage";
 import { extendedCommand } from "./p_cmd";
 import { gameEvents } from "./events";
 import { getCpl } from "./init";
@@ -283,8 +283,8 @@ interface SavedBinding {
   command: string;
 }
 
-const STORAGE_KEY = "cf_keybindings";
-const CHAR_STORAGE_KEY_PREFIX = "cf_keybindings_char_";
+const STORAGE_KEY = "keybindings";
+const CHAR_STORAGE_KEY_PREFIX = "keybindings_char";
 
 function saveBindings(): void {
   const toSaved = (arr: KeyBind[]): SavedBinding[] =>
@@ -297,7 +297,7 @@ function saveBindings(): void {
   saveConfig(STORAGE_KEY, toSaved(globalBindings));
   if (currentCharName) {
     saveConfig(
-      CHAR_STORAGE_KEY_PREFIX + currentCharName,
+      charConfigKey(CHAR_STORAGE_KEY_PREFIX, currentCharName),
       toSaved(charBindings),
     );
   }
@@ -315,7 +315,7 @@ function loadGlobalBindings(): boolean {
 
 function loadCharBindingsForName(charName: string): void {
   const data = loadConfig<SavedBinding[] | null>(
-    CHAR_STORAGE_KEY_PREFIX + charName,
+    charConfigKey(CHAR_STORAGE_KEY_PREFIX, charName),
     null,
   );
   charBindings = [];
@@ -353,7 +353,7 @@ export function keybindingsInit(): void {
  * Called when a character logs in.  Loads character-specific bindings and
  * merges them with the global bindings already in memory.
  */
-export function setCurrentCharacter(charName: string): void {
+function setCurrentCharacter(charName: string): void {
   currentCharName = charName;
   loadCharBindingsForName(charName);
   LOG(
@@ -362,6 +362,8 @@ export function setCurrentCharacter(charName: string): void {
     `Loaded ${charBindings.length} char bindings for "${charName}".`,
   );
 }
+
+gameEvents.on("characterLogin", setCurrentCharacter);
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Core event handling

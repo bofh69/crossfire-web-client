@@ -26,14 +26,12 @@
     parseKeyRelease,
     configureKeys,
     handleFocusLost,
-    setCurrentCharacter as setKeyCurrentCharacter,
   } from "./lib/keys";
   import {
     gamepadInit,
     gamepadShutdown,
     notifyHpUpdate,
     resetHpTracking,
-    setCurrentCharacter as setGamepadCurrentCharacter,
   } from "./lib/gamepad";
   import type { Stats } from "./lib/protocol";
   import { InputState, SHOWMAGIC_FLASH_BIT } from "./lib/protocol";
@@ -58,7 +56,6 @@
   import {
     loadHotbar,
     activateHotbarSlot,
-    setCurrentCharacter as setHotbarCurrentCharacter,
     getHotbarSlots,
     isHotbarGamepadMode,
   } from "./lib/hotbar";
@@ -946,17 +943,6 @@
       gameEvents.on("statsUpdate", (stats: Partial<Stats>) => {
         if (stats.hp !== undefined) {
           notifyHpUpdate(playerStats.hp, playerStats.maxhp);
-        }
-      }),
-
-      gameEvents.on("playerUpdate", () => {
-        // When the player object is received, load character-specific bindings.
-        const cpl = getCpl();
-        const charName = cpl?.ob?.dName ?? "";
-        if (charName) {
-          setKeyCurrentCharacter(charName);
-          setGamepadCurrentCharacter(charName);
-          setHotbarCurrentCharacter(charName);
         }
       }),
 

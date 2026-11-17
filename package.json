@@ -6,7 +6,7 @@
   "scripts": {
     "build": "vite build",
     "build:singlefile": "vite build --config vite.singlefile.config.ts --mode singlefile-main && vite build --config vite.singlefile.config.ts --mode singlefile-replay",
-    "check": "svelte-check --tsconfig ./tsconfig.app.json && tsc -p tsconfig.node.json",
+    "check": "svelte-check --tsconfig ./tsconfig.app.json && tsc -p tsconfig.node.json && npm run test:storage",
     "dev": "vite",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
@@ -14,7 +14,8 @@
     "replay:playwright": "node scripts/replay-with-playwright.mjs",
     "screenshot:game-ui": "rm -f screenshots/replay-playwright/*Shadow-Dragon-is-in-fog.png && npm run replay:playwright -- --log tests/replay-mapdata/logs/zoo.log --instructions scripts/replay-playwright.instructions.example.json --mark-regex \"^Shadow Dragon is in fog$\" --output-dir screenshots/replay-playwright && cp \"$(find screenshots/replay-playwright -maxdepth 1 -type f -name '*Shadow-Dragon-is-in-fog.png' | head -n 1)\" screenshots/game_ui.png",
     "recording:convert": "node scripts/convert-ws-recording-log.mjs",
-    "test:mapdata": "vitest run tests/replay-mapdata/replay-mapdata.spec.ts"
+    "test:mapdata": "vitest run tests/replay-mapdata/replay-mapdata.spec.ts",
+    "test:storage": "vitest run tests/storage-migration.spec.ts"
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^7.3.1",

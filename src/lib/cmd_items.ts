@@ -33,8 +33,6 @@ import { gameEvents } from "./events.js";
 import {
   updateHotbarFacesFromSpell,
   updateHotbarSlotFromItem,
-  resetHotbarSession,
-  setCurrentCharacter as setHotbarCurrentCharacter,
 } from "./hotbar.js";
 
 /** Known spells */
@@ -65,12 +63,10 @@ export function PlayerCmd(data: DataView, len: number): void {
   newPlayer(tag, name, weight, face);
   registerPlayerTag(tag);
   LOG(LogLevel.Info, "PlayerCmd", `Player: ${name} tag=${tag}`);
-  // Reset the hotbar session guard then immediately load slots for this
-  // character.  This must happen before emitting playerUpdate (and before
-  // any addspell / item2 packets that follow) so that hotbar face/tag
-  // matching works regardless of loginmethod ordering.
-  resetHotbarSession();
-  setHotbarCurrentCharacter(name);
+  // Load the per-character settings.  This must happen before emitting
+  // playerUpdate (and before any addspell / item2 packets that follow) so
+  // that hotbar face/tag matching works regardless of loginmethod ordering.
+  gameEvents.emit("characterLogin", name);
   gameEvents.emit("playerUpdate");
 }
 

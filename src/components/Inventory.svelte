@@ -14,7 +14,7 @@
   import { setHotbarSlot } from "../lib/hotbar";
   import HotbarSlotPicker from "./HotbarSlotPicker.svelte";
   import ContextMenu from "./ContextMenu.svelte";
-  import { loadConfig, saveConfig } from "../lib/storage";
+  import { charConfigKey, loadConfig, saveConfig } from "../lib/storage";
   import { capitalizeFirstLetter } from "../lib/misc";
   import { isUiNavEnabled } from "../lib/ui_nav";
   import { recordUiInteraction } from "../lib/websocket-recording";
@@ -168,7 +168,7 @@
 
   /** Key used to persist filters for a given character name. */
   function filtersKey(charName: string): string {
-    return `inv_filters_${charName}`;
+    return charConfigKey("inv_filters_char", charName);
   }
 
   /** Load the saved filter set for `charName` from localStorage. */

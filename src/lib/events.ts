@@ -74,6 +74,8 @@ export interface GameEventMap {
   newMap: [];
   mapUpdate: [];
   playerUpdate: [];
+  /** A character has logged in, so per-character settings can be loaded. */
+  characterLogin: [name: string];
   spellUpdate: [];
   questUpdate: [];
   knowledgeUpdate: [];
