@@ -14,6 +14,7 @@
   import { setHotbarSlot } from "../lib/hotbar";
   import HotbarSlotPicker from "./HotbarSlotPicker.svelte";
   import ContextMenu from "./ContextMenu.svelte";
+  import { playerStats } from "../lib/commands";
   import { charConfigKey, loadConfig, saveConfig } from "../lib/storage";
   import { capitalizeFirstLetter } from "../lib/misc";
   import { recordUiInteraction } from "../lib/websocket-recording";
@@ -24,6 +25,7 @@
     name: string;
     dName: string;
     sName: string;
+    /** Weight in kg of the whole stack (or container with contents); < 0 if not pickable. */
     weight: number;
     nrof: number;
     face: number;
@@ -161,9 +163,14 @@
           FILTERS.some((f) => invFilters.has(f.id) && f.test(item)),
         ),
   );
+  // Only top-level rows: a container's weight already includes its contents.
   let totalInventoryWeight = $derived(
-    playerItems.reduce((sum, item) => sum + Math.max(0, item.weight), 0),
+    playerItems.reduce(
+      (sum, item) => (item.depth === 0 ? sum + Math.max(0, item.weight) : sum),
+      0,
+    ),
   );
+  let weightLimit = $state(0);
 
   /** Key used to persist filters for a given character name. */
   function filtersKey(charName: string): string {
@@ -265,6 +272,15 @@
     );
   }
 
+  /**
+   * Total weight of an item stack in kg. The server sends the weight of a
+   * single item (containers include their contents), so multiply by `nrof`.
+   */
+  function stackWeight(item: Item): number {
+    if (item.weight < 0) return item.weight;
+    return item.weight * Math.max(1, item.nrof);
+  }
+
   /** Flatten inventory tree nodes into a linear list for rendering. */
   function flattenItems(root: Item | null, depth = 0): FlatItem[] {
     const result: FlatItem[] = [];
@@ -276,7 +292,7 @@
         name: getItemDisplayName(item),
         dName: item.dName,
         sName: item.sName,
-        weight: item.weight,
+        weight: stackWeight(item),
         nrof: item.nrof,
         face: item.face,
         locked: item.locked,
@@ -315,6 +331,7 @@
     playerItems = flattenItems(playerRoot);
     groundItems = flattenItems(groundRoot);
     itemCount = getCpl()?.count ?? 0;
+    weightLimit = playerStats.weightLimit / 1000;
 
     // Restore scroll positions after Svelte flushes DOM changes, so that
     // inserting/removing items (e.g. moving out of a container) doesn't jump
@@ -489,8 +506,11 @@
           : ""})</span
       >
       <span class="inv-header-right">
-        <span class="inv-total-weight"
-          >{formatWeight(totalInventoryWeight)}</span
+        <span
+          class="inv-total-weight"
+          title={weightLimit > 0
+            ? `Carrying ${formatWeight(totalInventoryWeight)}, weight limit ${formatWeight(weightLimit)}`
+            : "Total carried weight"}>{formatWeight(totalInventoryWeight)}</span
         >
         {#if itemCount > 0}
           <span class="item-count">
