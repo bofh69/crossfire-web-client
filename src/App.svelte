@@ -39,7 +39,9 @@
   import { mapdata_animation, run_move_to } from "./lib/mapdata";
   import { initSound, stopAll as stopAllSound } from "./lib/sound";
   import { SELF_TICK_INTERVAL_MS } from "./lib/constants";
-  import { isReloadRequested } from "./lib/disconnect";
+  import { getReconnectLogin } from "./lib/client";
+  import type { ReconnectLogin } from "./lib/client";
+  import { disconnectAndReload, isReloadRequested } from "./lib/disconnect";
   import Login from "./components/Login.svelte";
   import GameMap from "./components/GameMap.svelte";
   import InfoPanel from "./components/InfoPanel.svelte";
@@ -277,6 +279,22 @@
 
   /** Set to true when the server disconnects while we're in playing state. */
   let serverDisconnected = $state(false);
+  /** Whether the lost session can be logged back in to automatically. */
+  let canReconnect = $state(false);
+  /** Login details handed to the login screen when reconnecting. */
+  let reconnectLogin = $state<ReconnectLogin | null>(null);
+  let disconnectButton: HTMLButtonElement | undefined = $state();
+
+  // Focus the overlay's button so Enter/Space acts on it right away.
+  $effect(() => {
+    if (serverDisconnected) disconnectButton?.focus();
+  });
+
+  /** Go back to the login screen, which reconnects and logs in again. */
+  function handleReconnect() {
+    reconnectLogin = getReconnectLogin();
+    handleDisconnect();
+  }
 
   /** Query prompt sent by the server while in the playing state (e.g. character
    *  name prompt that the server sends after addme_success on some servers). */
@@ -599,8 +617,9 @@
   }
 
   function handleGlobalKeyDown(e: KeyboardEvent) {
-    // Only handle game keys when in the playing state.
-    if (appState !== "playing") return;
+    // Only handle game keys when in the playing state. While the disconnect
+    // overlay is up, leave keys to the browser so they reach its buttons.
+    if (appState !== "playing" || serverDisconnected) return;
 
     const cpl = getCpl();
     if (!cpl) return;
@@ -709,7 +728,7 @@
   }
 
   function handleGlobalKeyUp(e: KeyboardEvent) {
-    if (appState !== "playing") return;
+    if (appState !== "playing" || serverDisconnected) return;
     if (isInputFocused()) return;
 
     parseKeyRelease(e);
@@ -739,6 +758,7 @@
   function handleLoggedIn() {
     appState = "playing";
     pendingCharacterList = null;
+    reconnectLogin = null;
     serverDisconnected = false;
     resetHpTracking();
     wireCallbacks();
@@ -821,6 +841,7 @@
 
       gameEvents.on("disconnect", () => {
         // Server closed the connection unexpectedly while we're in the game.
+        canReconnect = getReconnectLogin() !== null;
         serverDisconnected = true;
       }),
 
@@ -870,7 +891,11 @@
 />
 
 {#if appState === "login"}
-  <Login onLoggedIn={handleLoggedIn} initialCharacters={pendingCharacterList} />
+  <Login
+    onLoggedIn={handleLoggedIn}
+    initialCharacters={pendingCharacterList}
+    {reconnectLogin}
+  />
 {:else}
   <div
     class="game-layout"
@@ -1036,9 +1061,28 @@
 
   {#if serverDisconnected}
     <div class="disconnect-overlay">
-      <div class="disconnect-box">
-        <p>⚠ Disconnected from server</p>
-        <button onclick={handleDisconnect}>Back to Login</button>
+      <div
+        class="disconnect-box"
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="disconnect-title"
+        aria-describedby="disconnect-detail"
+      >
+        <p id="disconnect-title">⚠ Disconnected from server</p>
+        <p id="disconnect-detail" class="disconnect-detail">
+          {canReconnect
+            ? "The connection to the server was lost."
+            : "The connection to the server was lost. Log in again from the start page."}
+        </p>
+        {#if canReconnect}
+          <button bind:this={disconnectButton} onclick={handleReconnect}
+            >Reconnect</button
+          >
+        {:else}
+          <button bind:this={disconnectButton} onclick={disconnectAndReload}
+            >Back to start page</button
+          >
+        {/if}
       </div>
     </div>
   {/if}
@@ -1171,5 +1215,10 @@
 
   .disconnect-box button:hover {
     background: var(--bg-warm-hover);
+  }
+
+  .disconnect-box .disconnect-detail {
+    color: var(--text);
+    font-size: 0.9rem;
   }
 </style>
