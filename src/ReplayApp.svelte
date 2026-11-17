@@ -276,6 +276,7 @@
     }
     reloadSavedConfig();
     loadInfoPanelColorsFromStorage();
+    gameEvents.emit("configReloaded");
   }
 
   function clearReplayLog(): void {

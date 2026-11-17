@@ -1532,8 +1532,7 @@ class ReusableMapdataCellUpdate implements MapdataCellUpdate {
           const prevHead = original.heads[l]!;
           if (
             prevHead.face === 0 ||
-            prevHead.sizeX <= 1 ||
-            prevHead.sizeY <= 1
+            (prevHead.sizeX <= 1 && prevHead.sizeY <= 1)
           ) {
             continue;
           }
@@ -2120,7 +2119,6 @@ function mapdata_clear_old(x: number, y: number): void {
   );
 }
 
-/** Scroll the map view.  Call when a map_scroll command is received. */
 /**
  * Whether the big face `face` with its head at absolute (hx, hy) is one the
  * server is currently showing, either in the virtual map or in bigfaces[].
@@ -2214,6 +2212,7 @@ export function mapdata_drop_unrefreshed_big_faces(): void {
   }
 }
 
+/** Scroll the map view.  Call when a map_scroll command is received. */
 export function mapdata_scroll(dx: number, dy: number): void {
   script_pos.x += dx;
   script_pos.y += dy;

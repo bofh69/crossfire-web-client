@@ -945,6 +945,7 @@
             !e.altKey &&
             !e.metaKey
           ) {
+            recordKeyInput(e.key, "press", "");
             activateHotbarSlot(fNum - 1);
             e.preventDefault();
             break;

@@ -28,6 +28,8 @@ type ConfigStore = Pick<
 /** A {@link ConfigStore} kept in memory only; nothing is persisted. */
 class MemoryConfigStore implements ConfigStore {
   private readonly items = new Map<string, string>();
+  /** Snapshot of the keys for key(); rebuilt after the keys change. */
+  private keyList: string[] | null = null;
 
   get length(): number {
     return this.items.size;
@@ -38,14 +40,16 @@ class MemoryConfigStore implements ConfigStore {
   }
 
   key(index: number): string | null {
-    return [...this.items.keys()][index] ?? null;
+    this.keyList ??= [...this.items.keys()];
+    return this.keyList[index] ?? null;
   }
 
   removeItem(key: string): void {
-    this.items.delete(key);
+    if (this.items.delete(key)) this.keyList = null;
   }
 
   setItem(key: string, value: string): void {
+    if (!this.items.has(key)) this.keyList = null;
     this.items.set(key, value);
   }
 }

@@ -223,6 +223,9 @@ export function loadInfoPanelColorsFromStorage(): void {
       );
     }
     configuredNdiColors = nextColors;
+  } else {
+    configuredNdiColors = { ...DEFAULT_NDI_COLORS };
+    configuredInfoPanelBackgroundColor = INFO_PANEL_BACKGROUND_DEFAULT;
   }
   applyInfoPanelColorCssVariables();
 }

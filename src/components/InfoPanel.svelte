@@ -273,14 +273,16 @@
     }
   }
 
+  /** The data-ui-nav-id of the `id` filter button ("all" or a category). */
+  function filterNavId(view: PanelViewId, id: string): string {
+    return view === "single"
+      ? `ui-info-filter-${id}`
+      : `ui-info-${view}-filter-${id}`;
+  }
+
   function toggleAll(view: PanelViewId) {
     recordUiInteraction("filterClick", {
-      selector:
-        view === "left"
-          ? `[data-ui-nav-id="ui-info-left-filter-all"]`
-          : view === "right"
-            ? `[data-ui-nav-id="ui-info-right-filter-all"]`
-            : `[data-ui-nav-id="ui-info-filter-all"]`,
+      selector: `[data-ui-nav-id="${filterNavId(view, "all")}"]`,
       group: "info",
       view,
       id: "all",
@@ -291,12 +293,7 @@
 
   function toggleCategory(view: PanelViewId, id: string) {
     recordUiInteraction("filterClick", {
-      selector:
-        view === "left"
-          ? `[data-ui-nav-id="ui-info-left-filter-${id}"]`
-          : view === "right"
-            ? `[data-ui-nav-id="ui-info-right-filter-${id}"]`
-            : `[data-ui-nav-id="ui-info-filter-${id}"]`,
+      selector: `[data-ui-nav-id="${filterNavId(view, id)}"]`,
       group: "info",
       view,
       id,
