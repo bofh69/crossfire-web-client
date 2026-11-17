@@ -39,6 +39,7 @@
   import { mapdata_animation, run_move_to } from "./lib/mapdata";
   import { initSound, stopAll as stopAllSound } from "./lib/sound";
   import { SELF_TICK_INTERVAL_MS } from "./lib/constants";
+  import { isReloadRequested } from "./lib/disconnect";
   import Login from "./components/Login.svelte";
   import GameMap from "./components/GameMap.svelte";
   import InfoPanel from "./components/InfoPanel.svelte";
@@ -570,10 +571,12 @@
     window.addEventListener("keydown", handleGlobalKeyDown);
     window.addEventListener("keyup", handleGlobalKeyUp);
     window.addEventListener("blur", handleWindowBlur);
+    window.addEventListener("beforeunload", handleBeforeUnload);
 
     return () => {
       window.removeEventListener("keydown", handleGlobalKeyDown);
       window.removeEventListener("keyup", handleGlobalKeyUp);
+      window.removeEventListener("beforeunload", handleBeforeUnload);
       window.removeEventListener("blur", handleWindowBlur);
       window.removeEventListener("resize", handleResize);
       gamepadShutdown();
@@ -622,6 +625,13 @@
       if (gameQuery.handleYesNoKey(e)) {
         e.preventDefault();
       }
+      return;
+    }
+
+    // Escape closes an open menu-bar dialog or dropdown, unless a dialog
+    // already consumed it (e.g. capturing Escape as a key to bind).
+    if (e.key === "Escape" && !e.defaultPrevented && menuBar?.handleEscape()) {
+      e.preventDefault();
       return;
     }
 
@@ -714,6 +724,16 @@
     handleFocusLost();
     fireOn = false;
     runOn = false;
+  }
+
+  /** Ask before closing or reloading the tab while a game is in progress. */
+  function handleBeforeUnload(e: BeforeUnloadEvent) {
+    if (appState !== "playing" || serverDisconnected || isReloadRequested()) {
+      return;
+    }
+    e.preventDefault();
+    // Legacy browsers need returnValue set to show the prompt.
+    e.returnValue = "";
   }
 
   function handleLoggedIn() {

@@ -264,6 +264,30 @@
     dialogMode = "idle";
   }
 
+  /** Cancel handler for each dialog mode that Escape may close. */
+  const DIALOG_CANCELLERS: Partial<Record<DialogMode, () => void>> = {
+    "bind-cmd-hotbar-confirm": () => cancelBindCmdHotbarConfirm(),
+    "bind-cmd-hotbar-input": () => cancelBindCmdHotbar(),
+    "bind-cmd-key-confirm": () => cancelBindCmdKeyConfirm(),
+    "bind-cmd-key-input": () => cancelBindCmdKey(),
+    "bind-confirm": () => cancelBind(),
+    "show-bindings": () => closeBindings(),
+    "unbind-confirm": () => cancelUnbind(),
+  };
+
+  /**
+   * Closes the open dialog (Escape key). Key-capture modes are left alone so
+   * that Escape itself can be bound.
+   *
+   * @returns True if a dialog was closed.
+   */
+  export function cancelDialog(): boolean {
+    const cancel = DIALOG_CANCELLERS[dialogMode];
+    if (!cancel) return false;
+    cancel();
+    return true;
+  }
+
   // ── Window key handler ────────────────────────────────────────────
 
   function handleWindowKeydown(e: KeyboardEvent) {

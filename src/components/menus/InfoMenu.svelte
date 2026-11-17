@@ -67,6 +67,25 @@
       showAboutDialog || showHelpDialog || showHiscoreDialog || hiscorePending
     );
   }
+
+  /**
+   * Closes the open About, Help or hiscore dialog (Escape key).
+   *
+   * @returns True if a dialog was closed.
+   */
+  export function cancelDialog(): boolean {
+    if (showAboutDialog) {
+      closeAbout();
+    } else if (showHelpDialog) {
+      closeHelp();
+    } else if (showHiscoreDialog || hiscorePending) {
+      if (hiscorePending) cancelPendingMenuHiscore();
+      closeHiscore();
+    } else {
+      return false;
+    }
+    return true;
+  }
 </script>
 
 <div class="menu-item">

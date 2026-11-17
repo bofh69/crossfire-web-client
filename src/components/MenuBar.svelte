@@ -137,6 +137,26 @@
     );
   }
 
+  /**
+   * Handles Escape: closes an open dialog first, otherwise an open dropdown.
+   *
+   * @returns True if something was closed.
+   */
+  export function handleEscape(): boolean {
+    if (
+      keyboardMenu?.cancelDialog() ||
+      gamepadMenu?.cancelDialog() ||
+      infoMenu?.cancelDialog()
+    ) {
+      return true;
+    }
+    if (activeMenu !== null) {
+      closeMenu();
+      return true;
+    }
+    return false;
+  }
+
   export function hasOpenMenu(): boolean {
     return activeMenu !== null;
   }

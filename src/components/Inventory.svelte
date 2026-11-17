@@ -16,7 +16,6 @@
   import ContextMenu from "./ContextMenu.svelte";
   import { charConfigKey, loadConfig, saveConfig } from "../lib/storage";
   import { capitalizeFirstLetter } from "../lib/misc";
-  import { isUiNavEnabled } from "../lib/ui_nav";
   import { recordUiInteraction } from "../lib/websocket-recording";
 
   interface FlatItem {
@@ -438,6 +437,7 @@
       return;
     }
     handleApply(contextMenu.item.tag);
+    closeContextMenu();
   }
 
   function handleSlotSelected(index: number) {
@@ -610,15 +610,13 @@
       {@const realItem = locateItem(item.tag)}
       {@const inContainer =
         openContainer !== null && realItem?.env?.tag === openContainer.tag}
-      {#if isUiNavEnabled()}
-        <button
-          onclick={handleContextMenuActivate}
-          oncontextmenu={(e) => {
-            e.preventDefault();
-            handleContextMenuActivate();
-          }}>Activate</button
-        >
-      {/if}
+      <button
+        onclick={handleContextMenuActivate}
+        oncontextmenu={(e) => {
+          e.preventDefault();
+          handleContextMenuActivate();
+        }}>Apply</button
+      >
       {#if isGround}
         <button
           onclick={() => contextMenu && handleExamine(contextMenu.item)}

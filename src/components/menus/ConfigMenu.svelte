@@ -6,6 +6,7 @@
     setMusicVolume,
     setSfxVolume,
   } from "../../lib/sound";
+  import { reloadPage } from "../../lib/disconnect";
   import { gameEvents } from "../../lib/events";
   import { useConfig, wantConfig, saveCurrentConfig } from "../../lib/init";
   import { exportConfigBackup, importConfigBackup } from "../../lib/storage";
@@ -187,7 +188,7 @@
     }
     try {
       importConfigBackup(pendingRestoreData);
-      window.location.reload();
+      reloadPage();
     } catch (error) {
       showRestoreError(error);
       pendingRestoreData = null;

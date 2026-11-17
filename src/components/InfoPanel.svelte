@@ -148,6 +148,25 @@
   let singleMessagesDiv: HTMLDivElement | undefined = $state();
   let leftMessagesDiv: HTMLDivElement | undefined = $state();
   let rightMessagesDiv: HTMLDivElement | undefined = $state();
+
+  /** Per view: whether the reader has scrolled up away from the newest text. */
+  let scrolledUp = $state<Record<PanelViewId, boolean>>({
+    left: false,
+    right: false,
+    single: false,
+  });
+  /** Per view: whether new text arrived while the reader was scrolled up. */
+  let hasUnread = $state<Record<PanelViewId, boolean>>({
+    left: false,
+    right: false,
+    single: false,
+  });
+  /** Per view: bumped on each unseen message to replay the flare animation. */
+  let unreadFlare = $state<Record<PanelViewId, number>>({
+    left: 0,
+    right: 0,
+    single: 0,
+  });
   let inputEl: HTMLInputElement | undefined = $state();
 
   // Command history: oldest entry at index 0, newest at the end.
@@ -262,6 +281,35 @@
         container.scrollTop = container.scrollHeight;
       }
     });
+  }
+
+  /** Max distance in px from the bottom still counted as "at the bottom". */
+  const AUTO_SCROLL_SLACK_PX = 24;
+
+  /**
+   * Whether a view is scrolled to (or very near) its bottom, so new messages
+   * should keep it pinned there instead of interrupting the reader.
+   */
+  function isViewNearBottom(view: PanelViewId): boolean {
+    const container = viewContainerFor(view);
+    if (!container) return true;
+    return (
+      container.scrollHeight - container.scrollTop - container.clientHeight <=
+      AUTO_SCROLL_SLACK_PX
+    );
+  }
+
+  /** Tracks whether a view is scrolled up, clearing unread state at the bottom. */
+  function handleMessagesScroll(view: PanelViewId) {
+    const up = !isViewNearBottom(view);
+    scrolledUp[view] = up;
+    if (!up) hasUnread[view] = false;
+  }
+
+  /** Marks that a message arrived in a view the reader has scrolled up in. */
+  function markUnread(view: PanelViewId) {
+    hasUnread[view] = true;
+    unreadFlare[view]++;
   }
 
   function scrollAllViewsToBottom() {
@@ -522,6 +570,11 @@
     msgSubtype: number | null = null,
   ) {
     const baseColor = colorForNdi(color);
+    // Sample scroll positions before the DOM grows, so readers scrolled up
+    // in the history aren't yanked down by new messages.
+    const stickLeft = isSplit && isViewNearBottom("left");
+    const stickRight = isSplit && isViewNearBottom("right");
+    const stickSingle = !isSplit && isViewNearBottom("single");
     const lastMsg = messages[messages.length - 1];
     if (
       lastMsg &&
@@ -550,11 +603,16 @@
       }
     }
 
+    const updateView = (view: PanelViewId, stick: boolean) => {
+      if (!isMessageVisibleInView(view, msgType)) return;
+      if (stick) scrollViewToBottom(view);
+      else markUnread(view);
+    };
     if (isSplit) {
-      if (isMessageVisibleInView("left", msgType)) scrollViewToBottom("left");
-      if (isMessageVisibleInView("right", msgType)) scrollViewToBottom("right");
-    } else if (isMessageVisibleInView("single", msgType)) {
-      scrollViewToBottom("single");
+      updateView("left", stickLeft);
+      updateView("right", stickRight);
+    } else {
+      updateView("single", stickSingle);
     }
   }
 
@@ -749,8 +807,42 @@
     }
 
     runUserCommand(cmd, true);
+    // Jump back to the newest messages so the command's response is visible.
+    scrollAllViewsToBottom();
   }
 </script>
+
+{#snippet scrollToBottomButton(view: PanelViewId)}
+  {#if scrolledUp[view]}
+    <button
+      class="scroll-bottom-btn"
+      class:unread={hasUnread[view]}
+      data-ui-nav-skip="true"
+      title={hasUnread[view]
+        ? "New messages: jump to newest"
+        : "Jump to newest"}
+      aria-label={hasUnread[view]
+        ? "New messages, jump to newest"
+        : "Jump to newest messages"}
+      onclick={() => scrollViewToBottom(view)}
+    >
+      {#key unreadFlare[view]}
+        <span class="scroll-bottom-icon" class:flare={hasUnread[view]}>
+          <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+            <path
+              d="M3 3l5 5 5-5M3 8l5 5 5-5"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+          </svg>
+        </span>
+      {/key}
+    </button>
+  {/if}
+{/snippet}
 
 <div class="info-panel" style:--info-panel-bg={infoPanelBackgroundColor}>
   <div class="message-panels" class:split={isSplit}>
@@ -797,7 +889,11 @@
             {/each}
           </div>
           <div class="main-content">
-            <div class="messages" bind:this={leftMessagesDiv}>
+            <div
+              class="messages"
+              bind:this={leftMessagesDiv}
+              onscroll={() => handleMessagesScroll("left")}
+            >
               {#each leftDisplayMessages as msg}
                 <!-- svelte-ignore a11y_no_static_element_interactions -->
                 <div
@@ -832,6 +928,7 @@
                 </div>
               {/each}
             </div>
+            {@render scrollToBottomButton("left")}
           </div>
         </div>
       </div>
@@ -878,7 +975,11 @@
             {/each}
           </div>
           <div class="main-content">
-            <div class="messages" bind:this={rightMessagesDiv}>
+            <div
+              class="messages"
+              bind:this={rightMessagesDiv}
+              onscroll={() => handleMessagesScroll("right")}
+            >
               {#each rightDisplayMessages as msg}
                 <!-- svelte-ignore a11y_no_static_element_interactions -->
                 <div
@@ -913,6 +1014,7 @@
                 </div>
               {/each}
             </div>
+            {@render scrollToBottomButton("right")}
           </div>
         </div>
       </div>
@@ -950,7 +1052,11 @@
             {/each}
           </div>
           <div class="main-content">
-            <div class="messages" bind:this={singleMessagesDiv}>
+            <div
+              class="messages"
+              bind:this={singleMessagesDiv}
+              onscroll={() => handleMessagesScroll("single")}
+            >
               {#each displayMessages as msg}
                 <!-- svelte-ignore a11y_no_static_element_interactions -->
                 <div
@@ -985,6 +1091,7 @@
                 </div>
               {/each}
             </div>
+            {@render scrollToBottomButton("single")}
           </div>
         </div>
       </div>
@@ -1201,6 +1308,7 @@
   }
 
   .main-content {
+    position: relative;
     display: flex;
     flex-direction: column;
     flex: 1;
@@ -1215,6 +1323,68 @@
     font-family: var(--mono);
     font-size: 0.85rem;
     line-height: 1.3;
+  }
+
+  .scroll-bottom-btn {
+    position: absolute;
+    right: 14px;
+    bottom: 6px;
+    width: 26px;
+    height: 26px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--border-light);
+    border-radius: 50%;
+    background: var(--bg-mid);
+    color: var(--text-dim);
+    cursor: pointer;
+    opacity: 0.75;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+    transition:
+      opacity 0.15s,
+      color 0.15s,
+      border-color 0.15s;
+  }
+
+  .scroll-bottom-btn:hover,
+  .scroll-bottom-btn:focus-visible {
+    opacity: 1;
+    color: var(--text-bright);
+  }
+
+  .scroll-bottom-btn.unread {
+    opacity: 1;
+    color: var(--text-warm);
+    border-color: var(--text-warm-dim);
+  }
+
+  .scroll-bottom-icon {
+    display: flex;
+    border-radius: 50%;
+  }
+
+  .scroll-bottom-icon.flare {
+    animation: scroll-bottom-flare 0.9s ease-out;
+  }
+
+  @keyframes scroll-bottom-flare {
+    0% {
+      transform: scale(1.5);
+      color: #fff2c0;
+      filter: drop-shadow(0 0 4px #ffd070);
+    }
+    100% {
+      transform: scale(1);
+      filter: drop-shadow(0 0 0 transparent);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .scroll-bottom-icon.flare {
+      animation: none;
+    }
   }
 
   .message {
