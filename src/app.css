@@ -526,3 +526,93 @@ body.ui-nav-mode {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--border-light);
 }
+
+/* ── Login screen forms (Login.svelte and its step components) ── */
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 22.5rem;
+}
+
+.login-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  color: var(--text-warm-dim);
+  font-size: 0.9rem;
+}
+
+.login-form input {
+  padding: 0.5rem;
+  border: 1px solid var(--border-light);
+  border-radius: 4px;
+  background: var(--bg-lighter);
+  color: var(--text-bright);
+  font-size: 1rem;
+}
+
+.login-form input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.login-form button {
+  padding: 0.6rem 1rem;
+  border: 1px solid var(--accent);
+  border-radius: 4px;
+  background: var(--bg-warm);
+  color: var(--text-warm);
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.login-form button:hover:not(:disabled) {
+  background: var(--bg-warm-hover);
+}
+
+.login-form button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.login-container .status {
+  color: #a0c0a0;
+  font-size: 0.85rem;
+}
+
+.login-container .error {
+  color: #e06060;
+  font-size: 0.85rem;
+}
+
+.login-form .panel-title {
+  color: var(--text-warm);
+  font-size: 1rem;
+  margin: 0 0 0.5rem 0;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.25rem;
+}
+
+.login-form .back-btn {
+  align-self: flex-start;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-warm-dim);
+  font-size: 0.85rem;
+  padding: 0.3rem 0.6rem;
+}
+
+.login-form .back-btn:hover {
+  background: var(--bg-darker);
+  color: var(--text-warm);
+  border-color: var(--accent);
+}
+
+@media (max-width: 720px) {
+  .login-form {
+    max-width: none;
+  }
+}
