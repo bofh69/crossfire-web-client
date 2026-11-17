@@ -21,6 +21,7 @@ import {
 } from "./gamepad_defaults";
 import { loadConfig, saveConfig } from "./storage";
 import { extendedCommand } from "./p_cmd";
+import { gameEvents } from "./events";
 import {
   fireDir,
   clearFire,
@@ -192,8 +193,6 @@ interface GamepadState {
    * through the walk zone on its way back to center.
    */
   runStopSeq: number;
-  /** Registered UI callbacks. */
-  callbacks: GamepadCallbacks | null;
   /** Previous walk-stick direction used during hotbar radial-select mode. */
   prevHotbarDir: number;
   /**
@@ -223,7 +222,6 @@ const gamepadState: GamepadState = {
   walkDelayTimer: null,
   walkDelayDir: 0,
   runStopSeq: -1,
-  callbacks: null,
   prevHotbarDir: 0,
   needsWalkReset: false,
   globalButtons: [],
@@ -266,16 +264,9 @@ function rebuildProfileButtons(): void {
   gamepadState.activeProfile.buttons = merged;
 }
 
-// ──────────────────────────────────────────────────────────────────────────────
-// Callbacks (like keys.ts KeyCallbacks)
-// ──────────────────────────────────────────────────────────────────────────────
-
-export interface GamepadCallbacks {
-  drawInfo: (message: string) => void;
-}
-
-export function setGamepadCallbacks(c: GamepadCallbacks): void {
-  gamepadState.callbacks = c;
+/** Show a message in the info panel. */
+function drawInfo(message: string): void {
+  gameEvents.emit("drawInfo", 0, message);
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -391,7 +382,7 @@ function onGamepadConnected(e: GamepadEvent): void {
   gamepadState.prevRunning = false;
   gamepadState.prevFiring = false;
 
-  gamepadState.callbacks?.drawInfo(`Gamepad connected: ${profile.name}`);
+  drawInfo(`Gamepad connected: ${profile.name}`);
   startPolling();
 }
 
@@ -414,7 +405,7 @@ function onGamepadDisconnected(e: GamepadEvent): void {
     clearFire();
     clearRun();
 
-    gamepadState.callbacks?.drawInfo("Gamepad disconnected.");
+    drawInfo("Gamepad disconnected.");
   }
 }
 
@@ -810,7 +801,7 @@ export function resetGamepadBindings(): void {
   gamepadState.charButtons = [];
   rebuildProfileButtons();
   saveGamepadConfig();
-  gamepadState.callbacks?.drawInfo("Gamepad bindings reset to defaults.");
+  drawInfo("Gamepad bindings reset to defaults.");
 }
 
 /**

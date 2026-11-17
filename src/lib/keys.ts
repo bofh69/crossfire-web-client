@@ -16,9 +16,11 @@
  *   apostrophe → command mode
  */
 
-import { InputState, type Player } from "./protocol";
+import { InputState } from "./protocol";
 import { loadConfig, saveConfig } from "./storage";
 import { extendedCommand } from "./p_cmd";
+import { gameEvents } from "./events";
+import { getCpl } from "./init";
 import {
   fireDir,
   runDir,
@@ -409,20 +411,14 @@ function normaliseKeyEvent(e: KeyboardEvent): string {
   return normaliseKey(e.key);
 }
 
-// Callback interface so keys.ts doesn't depend on UI modules directly.
-export interface KeyCallbacks {
-  /** Show a message in the info panel. */
-  drawInfo: (message: string) => void;
-  /** Focus the command input field and optionally pre-fill text. */
-  focusCommandInput: (prefill?: string) => void;
-  /** Get the current Player object. */
-  getCpl: () => Player | null;
+/** Show a message in the info panel. */
+function drawInfo(message: string): void {
+  gameEvents.emit("drawInfo", 0, message);
 }
 
-let cb: KeyCallbacks | null = null;
-
-export function setKeyCallbacks(c: KeyCallbacks): void {
-  cb = c;
+/** Focus the command input field and optionally pre-fill text. */
+function focusCommandInput(prefill?: string): void {
+  gameEvents.emit("focusCommandInput", prefill);
 }
 
 /**
@@ -430,14 +426,14 @@ export function setKeyCallbacks(c: KeyCallbacks): void {
  * Equivalent to the C parse_key() function.
  */
 export function parseKey(e: KeyboardEvent): void {
-  const cpl = cb?.getCpl();
+  const cpl = getCpl();
   if (!cpl) return;
 
   const keysym = normaliseKeyEvent(e);
 
   // ── Command-mode key (apostrophe) ───────────────────────────────
   if (keysym === "'") {
-    cb?.focusCommandInput();
+    focusCommandInput();
     cpl.inputState = InputState.CommandMode;
     cpl.noEcho = false;
     return;
@@ -483,7 +479,7 @@ export function parseKey(e: KeyboardEvent): void {
     // Edit-mode binding: prefill command input and focus it
     if (kb.flags & KEYF_EDIT) {
       cpl.inputState = InputState.CommandMode;
-      cb?.focusCommandInput(kb.command);
+      focusCommandInput(kb.command);
       return;
     }
 
@@ -529,7 +525,7 @@ export function parseKey(e: KeyboardEvent): void {
   if (cpl.runOn) prefix += "run+";
   if (cpl.altOn) prefix += "alt+";
   if (cpl.metaOn) prefix += "meta+";
-  cb?.drawInfo(
+  drawInfo(
     `Key ${prefix}${keysym} is not bound to any command. ` +
       `Use 'bind' to associate this keypress with a command.`,
   );
@@ -541,7 +537,7 @@ export function parseKey(e: KeyboardEvent): void {
  * Equivalent to the C parse_key_release() function.
  */
 export function parseKeyRelease(e: KeyboardEvent): void {
-  const cpl = cb?.getCpl();
+  const cpl = getCpl();
   if (!cpl) return;
 
   if (e.key === "Shift" || e.key === "ShiftLeft" || e.key === "ShiftRight") {
@@ -588,7 +584,7 @@ export function parseKeyRelease(e: KeyboardEvent): void {
  * Clears all modifier state so we don't get stuck fire/run.
  */
 export function handleFocusLost(): void {
-  const cpl = cb?.getCpl();
+  const cpl = getCpl();
   if (!cpl) return;
   // Record the implicit releases so a replay doesn't keep the keys held.
   if (cpl.fireOn) {
@@ -646,7 +642,7 @@ let bindModifiersExplicit = false;
  */
 export function bindKey(params: string): void {
   if (!params || params.trim().length === 0) {
-    cb?.drawInfo(
+    drawInfo(
       "Usage: bind [-einframg] <command>\n" +
         "  -e  enter edit mode when key is pressed\n" +
         "  -i  ignore modifiers (keybinding works no matter if Shift/Ctrl etc are held)\n" +
@@ -706,16 +702,16 @@ export function bindKey(params: string): void {
   }
 
   if (rest.length === 0) {
-    cb?.drawInfo("bind: no command specified.");
+    drawInfo("bind: no command specified.");
     return;
   }
 
   bindCommand = rest;
-  const cpl = cb?.getCpl();
+  const cpl = getCpl();
   if (cpl) {
     cpl.inputState = InputState.ConfigureKeys;
   }
-  cb?.drawInfo(`Push key to bind to command: ${bindCommand}`);
+  drawInfo(`Push key to bind to command: ${bindCommand}`);
 }
 
 /**
@@ -723,7 +719,7 @@ export function bindKey(params: string): void {
  * Completes the bind operation.
  */
 export function configureKeys(e: KeyboardEvent): void {
-  const cpl = cb?.getCpl();
+  const cpl = getCpl();
   if (!cpl) return;
 
   // Ignore pure modifier keys during configure
@@ -744,7 +740,7 @@ export function configureKeys(e: KeyboardEvent): void {
   saveBindings();
 
   const flagStr = flagsToString(flags);
-  cb?.drawInfo(
+  drawInfo(
     `Bound key '${keysym}' [${flagStr}] to: ${bindCommand} (character binding)`,
   );
 
@@ -763,15 +759,13 @@ export function unbindKey(params: string): void {
 
   if (arg.length === 0) {
     // List all bindings
-    cb?.drawInfo("Current keybindings (use 'unbind <number>' to remove):");
+    drawInfo("Current keybindings (use 'unbind <number>' to remove):");
     const all = allBindings();
     for (let i = 0; i < all.length; i++) {
       const kb = all[i]!;
       const flagStr = flagsToString(kb.flags);
       const scope = kb.global ? "[global]" : "[char]";
-      cb?.drawInfo(
-        `  ${i}: ${scope} [${flagStr}] ${kb.keysym} → ${kb.command}`,
-      );
+      drawInfo(`  ${i}: ${scope} [${flagStr}] ${kb.keysym} → ${kb.command}`);
     }
     return;
   }
@@ -780,7 +774,7 @@ export function unbindKey(params: string): void {
   const idx = parseInt(arg, 10);
   if (!isNaN(idx) && idx >= 0 && idx < all.length) {
     const kb = all[idx]!;
-    cb?.drawInfo(`Removed binding ${idx}: ${kb.keysym} → ${kb.command}`);
+    drawInfo(`Removed binding ${idx}: ${kb.keysym} → ${kb.command}`);
     keybindRemove(kb);
     saveBindings();
     return;
@@ -795,10 +789,10 @@ export function unbindKey(params: string): void {
   const removed =
     beforeG - globalBindings.length + (beforeC - charBindings.length);
   if (removed > 0) {
-    cb?.drawInfo(`Removed ${removed} binding(s) for key '${normalised}'.`);
+    drawInfo(`Removed ${removed} binding(s) for key '${normalised}'.`);
     saveBindings();
   } else {
-    cb?.drawInfo(
+    drawInfo(
       `No binding found for '${arg}'. Try 'unbind' with no options to list.`,
     );
   }
@@ -812,7 +806,7 @@ export function resetBindings(): void {
   charBindings = [];
   loadDefaultBindings();
   saveBindings();
-  cb?.drawInfo("Key bindings reset to defaults.");
+  drawInfo("Key bindings reset to defaults.");
 }
 
 /** Return a read-only view of the current bindings (for debug/display).
