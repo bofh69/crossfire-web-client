@@ -48,34 +48,8 @@ let compareReplayMapdataSnapshot: (expected: ReplayMapdataSnapshot) => {
   mismatches: string[];
 };
 
+/** Provide the browser-only globals that the client modules use. */
 function installNodeTestGlobals(): void {
-  if (!("localStorage" in globalThis)) {
-    const store = new Map<string, string>();
-    Object.defineProperty(globalThis, "localStorage", {
-      configurable: true,
-      value: {
-        getItem(key: string) {
-          return store.get(String(key)) ?? null;
-        },
-        setItem(key: string, value: string) {
-          store.set(String(key), String(value));
-        },
-        removeItem(key: string) {
-          store.delete(String(key));
-        },
-        clear() {
-          store.clear();
-        },
-        key(index: number) {
-          return Array.from(store.keys())[index] ?? null;
-        },
-        get length() {
-          return store.size;
-        },
-      },
-    });
-  }
-
   const urlObj = URL as unknown as {
     createObjectURL?: (obj: unknown) => string;
     revokeObjectURL?: (url: string) => void;
@@ -161,6 +135,11 @@ beforeAll(() => {
 });
 
 beforeAll(async () => {
+  // Keep the config in memory.  This must happen before importing modules
+  // that read the config when they are loaded.
+  const { useInMemoryConfigStore } = await import("../../src/lib/storage");
+  useInMemoryConfigStore();
+
   ({ dispatchPacket } = await import("../../src/lib/commands"));
   ({ clientInit } = await import("../../src/lib/init"));
   ({ getFaceTileSize } = await import("../../src/lib/image"));
