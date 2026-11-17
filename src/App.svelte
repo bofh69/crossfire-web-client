@@ -59,7 +59,8 @@
     getHotbarSlots,
     isHotbarGamepadMode,
   } from "./lib/hotbar";
-  import { exportConfigBackup, loadConfig, saveConfig } from "./lib/storage";
+  import { exportConfigBackup } from "./lib/storage";
+  import { PanelSplit } from "./lib/panel_split.svelte";
   import {
     recordBrowserSize,
     recordConfigSnapshot,
@@ -76,129 +77,21 @@
   } from "./lib/ui_nav";
 
   // ── Layout resize ────────────────────────────────────────────────
-  const MIN_SIDE_WIDTH = 180;
-  const MAX_SIDE_WIDTH_FRAC = 0.6;
-  const MIN_INFO_HEIGHT = 60;
-  const MAX_INFO_HEIGHT_FRAC = 0.5;
-
-  function loadLayoutSize(
-    fracKey: string,
-    viewportSize: number,
-    min: number,
-    maxFrac: number,
-  ): number | null {
-    const frac = loadConfig<number | null>(fracKey, null);
-    if (frac === null) return null;
-    return Math.max(
-      min,
-      Math.min(
-        Math.floor(maxFrac * viewportSize),
-        Math.round(frac * viewportSize),
-      ),
-    );
-  }
-
   let gameLayoutEl = $state<HTMLDivElement | undefined>();
-  let sideWidthPx = $state(
-    loadLayoutSize(
-      "layout_sideWidthFrac",
-      window.innerWidth,
-      MIN_SIDE_WIDTH,
-      MAX_SIDE_WIDTH_FRAC,
-    ),
-  );
-  let infoHeightPx = $state(
-    loadLayoutSize(
-      "layout_infoHeightFrac",
-      window.innerHeight,
-      MIN_INFO_HEIGHT,
-      MAX_INFO_HEIGHT_FRAC,
-    ),
-  );
-  let isDraggingCol = $state(false);
-  let isDraggingRow = $state(false);
-
-  function handleColResizeStart(e: MouseEvent) {
-    e.preventDefault();
-    const layout = gameLayoutEl!;
-    const startSideWidth = layout
-      .querySelector<HTMLElement>(".side-area")!
-      .getBoundingClientRect().width;
-    const startX = e.clientX;
-    const maxSide = Math.floor(
-      layout.getBoundingClientRect().width * MAX_SIDE_WIDTH_FRAC,
-    );
-
-    isDraggingCol = true;
-    document.body.style.cursor = "col-resize";
-    document.body.style.userSelect = "none";
-
-    function onMove(me: MouseEvent) {
-      const delta = startX - me.clientX;
-      sideWidthPx = Math.max(
-        MIN_SIDE_WIDTH,
-        Math.min(maxSide, Math.round(startSideWidth + delta)),
-      );
-    }
-
-    function onUp() {
-      isDraggingCol = false;
-      document.body.style.cursor = "";
-      document.body.style.userSelect = "";
-      if (sideWidthPx !== null) {
-        saveConfig(
-          "layout_sideWidthFrac",
-          sideWidthPx / layout.getBoundingClientRect().width,
-        );
-      }
-      window.removeEventListener("mousemove", onMove);
-      window.removeEventListener("mouseup", onUp);
-    }
-
-    window.addEventListener("mousemove", onMove);
-    window.addEventListener("mouseup", onUp);
-  }
-
-  function handleRowResizeStart(e: MouseEvent) {
-    e.preventDefault();
-    const layout = gameLayoutEl!;
-    const startInfoHeight = layout
-      .querySelector<HTMLElement>(".info-area")!
-      .getBoundingClientRect().height;
-    const startY = e.clientY;
-    const maxInfo = Math.floor(
-      layout.getBoundingClientRect().height * MAX_INFO_HEIGHT_FRAC,
-    );
-
-    isDraggingRow = true;
-    document.body.style.cursor = "row-resize";
-    document.body.style.userSelect = "none";
-
-    function onMove(me: MouseEvent) {
-      const delta = startY - me.clientY;
-      infoHeightPx = Math.max(
-        MIN_INFO_HEIGHT,
-        Math.min(maxInfo, Math.round(startInfoHeight + delta)),
-      );
-    }
-
-    function onUp() {
-      isDraggingRow = false;
-      document.body.style.cursor = "";
-      document.body.style.userSelect = "";
-      if (infoHeightPx !== null) {
-        saveConfig(
-          "layout_infoHeightFrac",
-          infoHeightPx / layout.getBoundingClientRect().height,
-        );
-      }
-      window.removeEventListener("mousemove", onMove);
-      window.removeEventListener("mouseup", onUp);
-    }
-
-    window.addEventListener("mousemove", onMove);
-    window.addEventListener("mouseup", onUp);
-  }
+  const sideSplit = new PanelSplit({
+    axis: "x",
+    configKey: "layout_sideWidthFrac",
+    min: 180,
+    maxFrac: 0.6,
+    panelSelector: ".side-area",
+  });
+  const infoSplit = new PanelSplit({
+    axis: "y",
+    configKey: "layout_infoHeightFrac",
+    min: 60,
+    maxFrac: 0.5,
+    panelSelector: ".info-area",
+  });
 
   type AppState = "login" | "playing";
   let appState = $state<AppState>("login");
@@ -208,11 +101,38 @@
    *  (e.g. after "bed to reality").  Passed to Login so it shows the
    *  character-select screen immediately on re-mount. */
   let pendingCharacterList = $state<AccountPlayer[] | null>(null);
-  let activeTab = $state<
-    "inventory" | "spells" | "skills" | "protections" | "quests" | "knowledge"
-  >("inventory");
-
+  type ListTab = "knowledge" | "protections" | "quests" | "skills" | "spells";
+  type Tab = "inventory" | ListTab;
   type SecondaryTab = "protections" | "quests" | "knowledge";
+
+  /** UI-nav group of the list shown in each tab, other than the inventory. */
+  const LIST_TAB_GROUPS: Record<ListTab, string> = {
+    knowledge: "knowledge-list",
+    protections: "protection-list",
+    quests: "quest-list",
+    skills: "skill-list",
+    spells: "spell-list",
+  };
+  /** UI-nav groups of the lists in {@link LIST_TAB_GROUPS}. */
+  const LIST_GROUPS: ReadonlySet<string> = new Set(
+    Object.values(LIST_TAB_GROUPS),
+  );
+  /** UI-nav groups of the info filters, one per pane configuration. */
+  const INFO_FILTER_GROUPS: readonly string[] = [
+    "info-filters",
+    "info-left-filters",
+    "info-right-filters",
+  ];
+
+  function isListTab(tab: string): tab is ListTab {
+    return Object.hasOwn(LIST_TAB_GROUPS, tab);
+  }
+
+  function isSecondaryTab(tab: string): tab is SecondaryTab {
+    return tab === "protections" || tab === "quests" || tab === "knowledge";
+  }
+
+  let activeTab = $state<Tab>("inventory");
   const secondaryTabs: { id: SecondaryTab; label: string }[] = [
     { id: "protections", label: "Protect" },
     { id: "quests", label: "Quests" },
@@ -230,20 +150,19 @@
   /** Bound to the tab-bar element for ResizeObserver. */
   let tabBarEl = $state<HTMLDivElement | undefined>(undefined);
 
-  const isSecondaryActive = $derived(
-    activeTab === "protections" ||
-      activeTab === "quests" ||
-      activeTab === "knowledge",
-  );
+  const isSecondaryActive = $derived(isSecondaryTab(activeTab));
   const overflowTabLabel = $derived(
-    isSecondaryActive
-      ? secondaryTabs.find((t) => t.id === activeTab)!.label
-      : secondaryTabs.find((t) => t.id === lastSecondaryTab)!.label,
+    secondaryTabs.find((t) => t.id === currentSecondaryTab())!.label,
   );
 
-  function selectSecondaryTab(tab: SecondaryTab) {
+  /** Show `tab`, remembering it if it is a secondary tab. */
+  function showTab(tab: Tab) {
     activeTab = tab;
-    lastSecondaryTab = tab;
+    if (isSecondaryTab(tab)) lastSecondaryTab = tab;
+  }
+
+  function selectSecondaryTab(tab: SecondaryTab) {
+    showTab(tab);
     closeTabOverflowMenu();
   }
 
@@ -376,24 +295,18 @@
 
   /** Returns the first visible info filter ID across all pane configurations. */
   function firstInfoFilterTarget(): string | null {
-    return (
-      firstVisibleInGroup("info-filters") ??
-      firstVisibleInGroup("info-left-filters") ??
-      firstVisibleInGroup("info-right-filters")
-    );
+    for (const group of INFO_FILTER_GROUPS) {
+      const target = firstVisibleInGroup(group);
+      if (target !== null) return target;
+    }
+    return null;
   }
 
   /** Returns the first navigable target in the currently active tab's content. */
   function activeTabFirstTarget(): string | null {
     if (activeTab === "inventory")
       return firstVisibleInGroup("inventory-filters");
-    if (activeTab === "spells") return firstVisibleInGroup("spell-list");
-    if (activeTab === "skills") return firstVisibleInGroup("skill-list");
-    if (activeTab === "protections")
-      return firstVisibleInGroup("protection-list");
-    if (activeTab === "quests") return firstVisibleInGroup("quest-list");
-    if (activeTab === "knowledge") return firstVisibleInGroup("knowledge-list");
-    return null;
+    return firstVisibleInGroup(LIST_TAB_GROUPS[activeTab]);
   }
 
   /** Returns the first navigable list entry in the currently active tab's content. */
@@ -404,13 +317,7 @@
         firstVisibleInGroup("inventory-items")
       );
     }
-    if (activeTab === "spells") return firstVisibleInGroup("spell-list");
-    if (activeTab === "skills") return firstVisibleInGroup("skill-list");
-    if (activeTab === "protections")
-      return firstVisibleInGroup("protection-list");
-    if (activeTab === "quests") return firstVisibleInGroup("quest-list");
-    if (activeTab === "knowledge") return firstVisibleInGroup("knowledge-list");
-    return null;
+    return firstVisibleInGroup(LIST_TAB_GROUPS[activeTab]);
   }
 
   function uiNavComponentKey(
@@ -420,34 +327,14 @@
     if (panel === "menubar") return "menubar";
     if (group === "hotbar") return "hotbar";
     if (group === "tabs" || group === "tab-overflow-options") return "tabs";
-    if (
-      group === "info-filters" ||
-      group === "info-left-filters" ||
-      group === "info-right-filters"
-    ) {
+    if (group !== null && INFO_FILTER_GROUPS.includes(group)) {
       return "info-filters";
     }
     if (group === "inventory-filters") return "inventory-filters";
     if (group === "inventory-items") return "inventory-items";
     if (group === "ground-items") return "ground-items";
-    if (
-      group === "knowledge-list" ||
-      group === "protection-list" ||
-      group === "quest-list" ||
-      group === "skill-list" ||
-      group === "spell-list"
-    ) {
-      return "active-list";
-    }
-    if (
-      panel === "knowledge" ||
-      panel === "protections" ||
-      panel === "quests" ||
-      panel === "skills" ||
-      panel === "spells"
-    ) {
-      return "active-list";
-    }
+    if (group !== null && LIST_GROUPS.has(group)) return "active-list";
+    if (panel !== null && isListTab(panel)) return "active-list";
     return null;
   }
 
@@ -523,10 +410,7 @@
 
   /** Returns the currently selected secondary tab used by the overflow tab button/menu. */
   function currentSecondaryTab(): SecondaryTab {
-    if (activeTab === "protections") return "protections";
-    if (activeTab === "quests") return "quests";
-    if (activeTab === "knowledge") return "knowledge";
-    return lastSecondaryTab;
+    return isSecondaryTab(activeTab) ? activeTab : lastSecondaryTab;
   }
 
   onMount(() => {
@@ -545,46 +429,21 @@
     setUiNavCallbacks({
       resolveTargetId: async (target: string) => {
         switch (target) {
-          case "ground":
-            activeTab = "inventory";
-            await tick();
-            return "ui-panel-ground";
           case "hotbar":
             return hotbarVisible ? "ui-panel-hotbar" : null;
           case "info":
             return "ui-panel-info";
-          case "inventory":
-            activeTab = "inventory";
-            await tick();
-            return "ui-panel-inventory";
-          case "knowledge":
-            activeTab = "knowledge";
-            lastSecondaryTab = "knowledge";
-            await tick();
-            return "ui-panel-knowledge";
           case "menubar":
             return "ui-menu-connection";
-          case "protections":
-            activeTab = "protections";
-            lastSecondaryTab = "protections";
-            await tick();
-            return "ui-panel-protections";
-          case "quests":
-            activeTab = "quests";
-            lastSecondaryTab = "quests";
-            await tick();
-            return "ui-panel-quests";
-          case "skills":
-            activeTab = "skills";
-            await tick();
-            return "ui-panel-skills";
-          case "spells":
-            activeTab = "spells";
-            await tick();
-            return "ui-panel-spells";
-          default:
-            return target.startsWith("ui-") ? target : null;
         }
+        // The ground panel is in the inventory tab; other panels are tabs.
+        const tab = target === "ground" ? "inventory" : target;
+        if (tab === "inventory" || isListTab(tab)) {
+          showTab(tab);
+          await tick();
+          return `ui-panel-${target}`;
+        }
+        return target.startsWith("ui-") ? target : null;
       },
       onEscape: () => {
         if (tabOverflowOpen) {
@@ -657,11 +516,7 @@
         }
 
         // Info filter sidebar: up → hotbar or menubar; right → active tab's first list entry
-        if (
-          group === "info-filters" ||
-          group === "info-left-filters" ||
-          group === "info-right-filters"
-        ) {
+        if (group !== null && INFO_FILTER_GROUPS.includes(group)) {
           if (direction === "move-up") return hotbarOrMenubarTarget();
           if (direction === "move-right") return activeTabFirstListTarget();
         }
@@ -689,44 +544,12 @@
           if (direction === "move-left") return firstInfoFilterTarget();
         }
 
-        // Spell list: up → tabs; left → info filters; right → last spell
-        if (group === "spell-list") {
+        // Spell, skill, protection, quest and knowledge lists:
+        // up → tabs; left → info filters; right → last entry
+        if (group !== null && LIST_GROUPS.has(group)) {
           if (direction === "move-up") return firstVisibleInGroup("tabs");
           if (direction === "move-left") return firstInfoFilterTarget();
-          if (direction === "move-right")
-            return lastVisibleInGroup("spell-list");
-        }
-
-        // Skill list: up → tabs; left → info filters; right → last skill
-        if (group === "skill-list") {
-          if (direction === "move-up") return firstVisibleInGroup("tabs");
-          if (direction === "move-left") return firstInfoFilterTarget();
-          if (direction === "move-right")
-            return lastVisibleInGroup("skill-list");
-        }
-
-        // Protection list: up → tabs; left → info filters; right → last protection
-        if (group === "protection-list") {
-          if (direction === "move-up") return firstVisibleInGroup("tabs");
-          if (direction === "move-left") return firstInfoFilterTarget();
-          if (direction === "move-right")
-            return lastVisibleInGroup("protection-list");
-        }
-
-        // Quest list: up → tabs; left → info filters; right → last quest
-        if (group === "quest-list") {
-          if (direction === "move-up") return firstVisibleInGroup("tabs");
-          if (direction === "move-left") return firstInfoFilterTarget();
-          if (direction === "move-right")
-            return lastVisibleInGroup("quest-list");
-        }
-
-        // Knowledge list: up → tabs; left → info filters; right → last knowledge entry
-        if (group === "knowledge-list") {
-          if (direction === "move-up") return firstVisibleInGroup("tabs");
-          if (direction === "move-left") return firstInfoFilterTarget();
-          if (direction === "move-right")
-            return lastVisibleInGroup("knowledge-list");
+          if (direction === "move-right") return lastVisibleInGroup(group);
         }
 
         return null;
@@ -1033,9 +856,11 @@
     class="game-layout"
     bind:this={gameLayoutEl}
     class:hotbar-hidden={!hotbarVisible}
-    style:--side-width={sideWidthPx !== null ? `${sideWidthPx}px` : undefined}
-    style:--info-height={infoHeightPx !== null
-      ? `${infoHeightPx}px`
+    style:--side-width={sideSplit.size !== null
+      ? `${sideSplit.size}px`
+      : undefined}
+    style:--info-height={infoSplit.size !== null
+      ? `${infoSplit.size}px`
       : undefined}
   >
     <div class="menu-area">
@@ -1172,20 +997,20 @@
     <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
     <div
       class="resize-handle-col"
-      class:dragging={isDraggingCol}
+      class:dragging={sideSplit.dragging}
       role="separator"
       aria-label="Resize side panel"
       aria-orientation="vertical"
-      onmousedown={handleColResizeStart}
+      onmousedown={(e) => sideSplit.startDrag(e, gameLayoutEl!)}
     ></div>
     <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
     <div
       class="resize-handle-row"
-      class:dragging={isDraggingRow}
+      class:dragging={infoSplit.dragging}
       role="separator"
       aria-label="Resize info panel"
       aria-orientation="horizontal"
-      onmousedown={handleRowResizeStart}
+      onmousedown={(e) => infoSplit.startDrag(e, gameLayoutEl!)}
     ></div>
   </div>
 
