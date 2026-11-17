@@ -23,9 +23,12 @@
   import {
     clientConnect,
     clientNegotiate,
+    sendAccountLogin,
     sendAccountPlay,
     sendAddMe,
   } from "../lib/client";
+  import type { ReconnectLogin } from "../lib/client";
+  import { onMount } from "svelte";
   import { gameEvents } from "../lib/events";
   import { EPORT } from "../lib/protocol";
   import AccountLogin from "./AccountLogin.svelte";
@@ -42,9 +45,16 @@
     /** When returning from gameplay (e.g. bed-to-reality), pre-populate the
      *  character list and show the character-select screen immediately. */
     initialCharacters?: AccountPlayer[] | null;
+    /** When reconnecting after a lost connection, connect at once and log
+     *  back in to this account and character. */
+    reconnectLogin?: ReconnectLogin | null;
   }
 
-  let { onLoggedIn, initialCharacters = null }: Props = $props();
+  let {
+    onLoggedIn,
+    initialCharacters = null,
+    reconnectLogin = null,
+  }: Props = $props();
 
   /** Server address provided via the `?server=` URL parameter, if any.
    *  Accepts `ws://`, `wss://`, and `web+crossfire:wss?://` (protocol-handler)
@@ -97,6 +107,9 @@
   // deliberately want the snapshot at mount time, not a live derived value.
   // svelte-ignore state_referenced_locally
   const initChars = initialCharacters;
+  // svelte-ignore state_referenced_locally
+  /** Login details still to be replayed; kept if connecting fails, cleared once used or rejected. */
+  let autoLogin = $state<ReconnectLogin | null>(reconnectLogin);
   // When initialCharacters is provided we're returning from gameplay with the
   // socket still open, so start in the "connected" state.
   let connected = $state(initChars !== null);
@@ -174,11 +187,45 @@
       history.replaceState(null, "", "?" + params.toString());
       clientNegotiate();
     } catch (e) {
-      errorMessage = `Connection failed: ${e instanceof Error ? e.message : String(e)}`;
+      // When reconnecting, keep the login details so "Reconnect" can retry.
+      errorMessage = autoLogin
+        ? "Couldn't reach the server. Press Reconnect to try again."
+        : `Connection failed: ${e instanceof Error ? e.message : String(e)}`;
       connecting = false;
       statusMessage = "";
     }
   }
+
+  /** Return to the "Enter" screen after the server closes the connection. */
+  function handleConnectionLost() {
+    if (!connected) return;
+    connected = false;
+    connecting = false;
+    step = null;
+    addMeSuccessReceived = false;
+    statusMessage = "";
+    errorMessage = autoLogin
+      ? "Lost the connection to the server. Press Reconnect to try again."
+      : "Lost the connection to the server. Press Enter to connect again.";
+  }
+
+  /**
+   * Stop logging in automatically, falling back to the normal login screens.
+   * The account form is shown if the connection is still up.
+   */
+  function cancelAutoLogin() {
+    if (!autoLogin) return;
+    autoLogin = null;
+    if (connected && step === null && confirmedLoginMethod >= 1) {
+      step = "account";
+    }
+  }
+
+  // "Reconnect" on the in-game disconnect overlay: connect straight away and
+  // log back in (see the loginMethodConfirmed and accountPlayers handlers).
+  onMount(() => {
+    if (autoLogin) void handleConnect();
+  });
 
   function handleYesNoKeydown(e: KeyboardEvent) {
     if (query.handleYesNoKey(e)) {
@@ -234,7 +281,12 @@
         _cachedLoginMethod = method;
         if (method === 0) {
           // Server only supports legacy login: fall back to addme + query flow.
+          autoLogin = null;
           sendAddMe();
+        } else if (autoLogin) {
+          // Reconnecting: log back in to the same account.
+          sendAccountLogin(autoLogin.accountName, autoLogin.password);
+          statusMessage = "Logging in…";
         } else {
           // Server supports account-based login (method >= 1).
           step = "account";
@@ -250,6 +302,12 @@
         if (players.length === 0) {
           statusMessage = "No characters yet. Create one to start playing!";
         }
+        // Reconnecting: pick the same character again.
+        if (autoLogin) {
+          const name = autoLogin.characterName;
+          autoLogin = null;
+          if (players.some((p) => p.name === name)) handlePlayCharacter(name);
+        }
       }),
 
       gameEvents.on("addMeSuccess", () => {
@@ -263,6 +321,7 @@
       }),
 
       gameEvents.on("addMeFail", () => {
+        cancelAutoLogin();
         errorMessage = "Server rejected login.";
         statusMessage = "";
       }),
@@ -270,9 +329,12 @@
       gameEvents.on("failure", (command: string, message: string) => {
         // AddExistingCharacter shows its own failures.
         if (command === "accountaddplayer") return;
+        cancelAutoLogin();
         errorMessage = `${command}: ${message}`;
         statusMessage = "";
       }),
+
+      gameEvents.on("disconnect", handleConnectionLost),
 
       gameEvents.on("drawInfo", (_color: number, message: string) => {
         if (!connected) return;
@@ -317,7 +379,7 @@
         </label>
       {/if}
       <button onclick={handleConnect} disabled={connecting}>
-        {connecting ? "Connecting..." : "Enter"}
+        {connecting ? "Connecting..." : autoLogin ? "Reconnect" : "Enter"}
       </button>
     </div>
     {#if statusMessage}

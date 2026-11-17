@@ -311,6 +311,8 @@ function buildAccountAuthPacket(
  */
 export function sendAccountLogin(name: string, password: string): void {
   if (!csocket) return;
+  _accountName = name;
+  _accountPassword = password;
   csocket.send(buildAccountAuthPacket("accountlogin", name, password));
 }
 
@@ -331,7 +333,9 @@ export function sendAccountNew(name: string, password: string): void {
  * @param characterName Name of the character to play, as returned by accountplayers.
  */
 export function sendAccountPlay(characterName: string): void {
-  csocket?.sendString(`accountplay ${characterName}`);
+  if (!csocket) return;
+  _characterName = characterName;
+  csocket.sendString(`accountplay ${characterName}`);
 }
 
 /**
@@ -371,6 +375,36 @@ export function setAccountPassword(password: string): void {
 /** Return the stored account password. */
 export function getAccountPassword(): string {
   return _accountPassword;
+}
+
+// ── Session login details (for reconnecting) ─────────────────────────────────
+
+/** Account name of the most recent `accountlogin`. */
+let _accountName = "";
+/** Character of the most recent `accountplay` or `createplayer`. */
+let _characterName = "";
+
+/** What is needed to log back in to the same character after a disconnect. */
+export interface ReconnectLogin {
+  accountName: string;
+  password: string;
+  characterName: string;
+}
+
+/**
+ * The account and character used in this session, so a lost connection can
+ * log straight back in.  Only kept in memory, never stored.
+ *
+ * @returns The login details, or null when not logged in with an account
+ *          (e.g. the legacy loginmethod 0 flow).
+ */
+export function getReconnectLogin(): ReconnectLogin | null {
+  if (!_accountName || !_accountPassword || !_characterName) return null;
+  return {
+    accountName: _accountName,
+    password: _accountPassword,
+    characterName: _characterName,
+  };
 }
 
 // ── Character creation (loginmethod >= 1) ────────────────────────────────────
@@ -417,6 +451,7 @@ export function sendCreatePlayer(
   startingMapArch?: string,
 ): void {
   if (!csocket) return;
+  _characterName = charName;
 
   const sl = new SockList();
   const enc = textEncoder;
