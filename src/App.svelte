@@ -69,13 +69,12 @@
     getHotbarSlots,
     isHotbarGamepadMode,
   } from "./lib/hotbar";
-  import { loadConfig, saveConfig } from "./lib/storage";
-  import { exportConfigBackup } from "./lib/storage";
+  import { exportConfigBackup, loadConfig, saveConfig } from "./lib/storage";
   import {
+    recordBrowserSize,
     recordConfigSnapshot,
     recordKeyInput,
   } from "./lib/websocket-recording";
-  import { recordBrowserSize } from "./lib/websocket-recording";
   import {
     exitUiNavMode,
     firstVisibleInGroup,
