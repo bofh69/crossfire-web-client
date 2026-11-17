@@ -12,7 +12,7 @@
   import { gameEvents } from "./lib/events";
   import type { AccountPlayer } from "./lib/events";
   import { animateObjects } from "./lib/item";
-  import { sendReply, walkDir, runDir, stopRun } from "./lib/player";
+  import { walkDir, runDir, stopRun } from "./lib/player";
   import {
     setWalkDir,
     setRunDir,
@@ -38,13 +38,7 @@
     setCurrentCharacter as setGamepadCurrentCharacter,
   } from "./lib/gamepad";
   import type { Stats } from "./lib/protocol";
-  import {
-    InputState,
-    CS_QUERY_HIDEINPUT,
-    CS_QUERY_SINGLECHAR,
-    CS_QUERY_YESNO,
-    SHOWMAGIC_FLASH_BIT,
-  } from "./lib/protocol";
+  import { InputState, SHOWMAGIC_FLASH_BIT } from "./lib/protocol";
   import { useConfig } from "./lib/init";
   import { mapdata_animation, run_move_to } from "./lib/mapdata";
   import { initSound, stopAll as stopAllSound } from "./lib/sound";
@@ -58,6 +52,7 @@
   import SkillList from "./components/SkillList.svelte";
   import ProtectionList from "./components/ProtectionList.svelte";
   import QuestList from "./components/QuestList.svelte";
+  import QueryPrompt, { ServerQuery } from "./components/QueryPrompt.svelte";
   import KnowledgeList from "./components/KnowledgeList.svelte";
   import MenuBar from "./components/MenuBar.svelte";
   import MagicMap from "./components/MagicMap.svelte";
@@ -370,61 +365,11 @@
 
   /** Query prompt sent by the server while in the playing state (e.g. character
    *  name prompt that the server sends after addme_success on some servers). */
-  let gameQueryPrompt = $state("");
-  let lastGameQueryPrompt = "";
-  let gameQueryHidden = $state(false);
-  let gameQuerySingleChar = $state(false);
-  let gameQueryYesNo = $state(false);
-  let gameQueryInput = $state("");
-  let gameQueryInputEl: HTMLInputElement | undefined = $state();
+  const gameQuery = new ServerQuery();
 
   /** Fire / Run indicator state for display */
   let fireOn = $state(false);
   let runOn = $state(false);
-
-  $effect(() => {
-    if (gameQueryInputEl) {
-      gameQueryInputEl.focus();
-    }
-  });
-
-  function clearGameQuery() {
-    gameQueryInput = "";
-    gameQueryPrompt = "";
-    gameQuerySingleChar = false;
-    gameQueryYesNo = false;
-  }
-
-  function sendGameQueryReply(answer: string) {
-    sendReply(answer);
-    clearGameQuery();
-  }
-
-  function handleGameQuerySubmit() {
-    if (gameQueryInput.trim() === "") return;
-    sendGameQueryReply(gameQueryInput);
-  }
-
-  function handleGameQueryKeydown(e: KeyboardEvent) {
-    if (
-      gameQuerySingleChar &&
-      e.key.length === 1 &&
-      !e.ctrlKey &&
-      !e.altKey &&
-      !e.metaKey
-    ) {
-      // For single-character queries, send the reply immediately on keypress
-      // without requiring Enter. The typed character becomes the reply.
-      sendGameQueryReply(e.key);
-      e.preventDefault();
-      // Stop propagation so the global window handler doesn't re-focus the chat input.
-      e.stopPropagation();
-    } else if (e.key === "Enter") {
-      // Stop propagation so the global window handler doesn't re-focus the chat input.
-      e.stopPropagation();
-      handleGameQuerySubmit();
-    }
-  }
 
   let menuBar: MenuBar | undefined = $state();
   let showMagicMap = $state(false);
@@ -884,19 +829,10 @@
     }
 
     // Query prompt active: don't dispatch game keys.
-    if (gameQueryPrompt) {
+    if (gameQuery.active) {
       // For yes/no queries, handle y/n key presses without needing focus on a button.
-      if (gameQueryYesNo) {
-        const key = e.key.toLowerCase();
-        if (
-          (key === "y" || key === "n") &&
-          !e.ctrlKey &&
-          !e.altKey &&
-          !e.metaKey
-        ) {
-          sendGameQueryReply(key);
-          e.preventDefault();
-        }
+      if (gameQuery.handleYesNoKey(e)) {
+        e.preventDefault();
       }
       return;
     }
@@ -1019,9 +955,7 @@
     for (const unsub of eventCleanups) unsub();
     eventCleanups = [];
 
-    gameQueryPrompt = "";
-    gameQuerySingleChar = false;
-    gameQueryYesNo = false;
+    gameQuery.clear();
     showMagicMap = false;
     hotbarVisible = false;
     exitUiNavMode(false);
@@ -1058,17 +992,7 @@
         }
       }),
 
-      gameEvents.on("query", (flags: number, prompt: string) => {
-        // If the server sends an empty prompt, reuse the previous prompt text.
-        if (prompt) {
-          lastGameQueryPrompt = prompt;
-        }
-        gameQueryPrompt = lastGameQueryPrompt;
-        gameQueryHidden = (flags & CS_QUERY_HIDEINPUT) !== 0;
-        gameQuerySingleChar = (flags & CS_QUERY_SINGLECHAR) !== 0;
-        gameQueryYesNo = (flags & CS_QUERY_YESNO) !== 0;
-        gameQueryInput = "";
-      }),
+      gameQuery.listen(),
 
       gameEvents.on("newMap", () => {
         // Switching to a new map hides the magic map overlay.
@@ -1111,9 +1035,7 @@
       // asks the user to reconnect when leaving the game).
       gameEvents.on("addMeSuccess", () => {
         serverDisconnected = false;
-        gameQueryPrompt = "";
-        gameQuerySingleChar = false;
-        gameQueryYesNo = false;
+        gameQuery.clear();
       }),
     );
 
@@ -1178,34 +1100,10 @@
       {#if showMagicMap}
         <MagicMap />
       {/if}
-      {#if gameQueryPrompt}
+      {#if gameQuery.active}
         <div class="query-overlay">
           <div class="query-box">
-            <p class="query-text" aria-live="polite">{gameQueryPrompt}</p>
-            {#if gameQueryYesNo}
-              <div class="yesno-buttons">
-                <button
-                  aria-keyshortcuts="y"
-                  onclick={() => sendGameQueryReply("y")}>Yes</button
-                >
-                <button
-                  aria-keyshortcuts="n"
-                  onclick={() => sendGameQueryReply("n")}>No</button
-                >
-              </div>
-            {:else}
-              <label>
-                <input
-                  type={gameQueryHidden ? "password" : "text"}
-                  bind:value={gameQueryInput}
-                  bind:this={gameQueryInputEl}
-                  onkeydown={handleGameQueryKeydown}
-                />
-              </label>
-              {#if !gameQuerySingleChar}
-                <button onclick={handleGameQuerySubmit}>Submit</button>
-              {/if}
-            {/if}
+            <QueryPrompt query={gameQuery} />
           </div>
         </div>
       {/if}
@@ -1306,12 +1204,12 @@
     </div>
     <div
       class="info-area"
-      class:query-active={!!gameQueryPrompt}
+      class:query-active={gameQuery.active}
       data-ui-nav-entry="info"
       data-ui-nav-id="ui-panel-info"
       data-ui-nav-panel="info"
     >
-      <InfoPanel inputDisabled={!!gameQueryPrompt} />
+      <InfoPanel inputDisabled={gameQuery.active} />
     </div>
     <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
     <div
@@ -1385,65 +1283,11 @@
     top: calc(50% + 48px);
     left: 50%;
     transform: translateX(-50%);
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
     width: 340px;
     padding: 1.5rem;
     background: var(--bg);
     border: 1px solid var(--accent);
     border-radius: 6px;
-  }
-
-  .query-box .query-text {
-    color: var(--text-warm-dim);
-    font-size: 0.9rem;
-    margin: 0;
-  }
-
-  .query-box .yesno-buttons {
-    display: flex;
-    gap: 0.5rem;
-  }
-
-  .query-box .yesno-buttons button {
-    flex: 1;
-  }
-
-  .query-box label {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-    color: var(--text-warm-dim);
-    font-size: 0.9rem;
-  }
-
-  .query-box input {
-    padding: 0.5rem;
-    border: 1px solid var(--border-light);
-    border-radius: 4px;
-    background: var(--bg-lighter);
-    color: var(--text-bright);
-    font-size: 1rem;
-  }
-
-  .query-box input:focus {
-    outline: none;
-    border-color: var(--accent);
-  }
-
-  .query-box button {
-    padding: 0.6rem 1rem;
-    border: 1px solid var(--accent);
-    border-radius: 4px;
-    background: var(--bg-warm);
-    color: var(--text-warm);
-    font-size: 1rem;
-    cursor: pointer;
-  }
-
-  .query-box button:hover {
-    background: var(--bg-warm-hover);
   }
 
   .menu-area {
