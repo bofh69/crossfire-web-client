@@ -71,7 +71,10 @@
   } from "./lib/hotbar";
   import { loadConfig, saveConfig } from "./lib/storage";
   import { exportConfigBackup } from "./lib/storage";
-  import { recordConfigSnapshot } from "./lib/websocket-recording";
+  import {
+    recordConfigSnapshot,
+    recordKeyInput,
+  } from "./lib/websocket-recording";
   import { recordBrowserSize } from "./lib/websocket-recording";
   import {
     exitUiNavMode,
@@ -916,16 +919,20 @@
       case InputState.Playing:
         // Verify that modifier key state matches reality
         // (handles missed key-ups from focus changes).
+        // Missed key-ups are recorded so a replay releases the keys too.
         if (cpl.runOn && !e.altKey) {
           cpl.runOn = false;
           runOn = false;
+          recordKeyInput("Alt", "up", "");
         }
         if (cpl.fireOn && !e.shiftKey) {
           cpl.fireOn = false;
           fireOn = false;
+          recordKeyInput("Shift", "up", "");
         }
         if (cpl.altOn && !e.ctrlKey) {
           cpl.altOn = false;
+          recordKeyInput("Control", "up", "");
         }
 
         // F1–F12 activate hotbar slots before keybinding lookup.
