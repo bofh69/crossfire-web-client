@@ -590,16 +590,25 @@ export function parseKeyRelease(e: KeyboardEvent): void {
 export function handleFocusLost(): void {
   const cpl = cb?.getCpl();
   if (!cpl) return;
+  // Record the implicit releases so a replay doesn't keep the keys held.
   if (cpl.fireOn) {
     cpl.fireOn = false;
+    recordKeyInput("Shift", "up", "");
     clearFire();
   }
   if (cpl.runOn) {
     cpl.runOn = false;
+    recordKeyInput("Alt", "up", "");
     clearRun();
   }
-  cpl.altOn = false;
-  cpl.metaOn = false;
+  if (cpl.altOn) {
+    cpl.altOn = false;
+    recordKeyInput("Control", "up", "");
+  }
+  if (cpl.metaOn) {
+    cpl.metaOn = false;
+    recordKeyInput("Meta", "up", "");
+  }
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
