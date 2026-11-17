@@ -236,6 +236,10 @@
           storedScale ?? computeScale(containerW, containerH, baseTileSize);
         updateStoredScale(current - 1);
       }),
+      gameEvents.on("configReloaded", () => {
+        storedScale = loadConfig<number | null>(ZOOM_STORAGE_KEY, null);
+        scheduleRedraw();
+      }),
       gameEvents.on("debugPickTile", (mode) => {
         debugPickMode = mode;
       }),
@@ -1010,6 +1014,7 @@
     const centerY = currentStartOffsetY + Math.floor(view.height / 2);
     const dx = tileX - centerX;
     const dy = tileY - centerY;
+    recordUiInteraction("moveToClick", { dx, dy });
     set_move_to(dx, dy);
   }
 
