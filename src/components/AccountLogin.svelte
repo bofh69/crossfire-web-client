@@ -115,7 +115,7 @@
     {:else}
       <button type="submit">Log In</button>
     {/if}
-    <button onclick={disconnectAndReload}>Disconnect</button>
+    <button type="button" onclick={disconnectAndReload}>Disconnect</button>
   </form>
 {/if}
 

@@ -225,6 +225,29 @@
     dialogMode = "idle";
   }
 
+  /** Cancel handler for each dialog mode that Escape may close. */
+  const DIALOG_CANCELLERS: Partial<Record<DialogMode, () => void>> = {
+    "bind-cmd-gp-capture": () => cancelBindCmdGpCapture(),
+    "bind-cmd-gp-confirm": () => cancelBindCmdGpConfirm(),
+    "bind-cmd-gp-input": () => cancelBindCmdGp(),
+    "gp-axis-config": () => cancelGamepadAxisConfig(),
+    "gp-button-capture": () => cancelGamepadButtonCapture(),
+    "gp-button-confirm": () => cancelGamepadButtonBind(),
+    "gp-show-bindings": () => closeGamepadBindings(),
+  };
+
+  /**
+   * Closes the open dialog (Escape key).
+   *
+   * @returns True if a dialog was closed.
+   */
+  export function cancelDialog(): boolean {
+    const cancel = DIALOG_CANCELLERS[dialogMode];
+    if (!cancel) return false;
+    cancel();
+    return true;
+  }
+
   function handleResetGamepad() {
     resetGamepadBindings();
     onClose();

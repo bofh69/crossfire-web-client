@@ -18,6 +18,8 @@
   const hasWebSocketRecording = isWebSocketRecordingRequested();
 
   function handleDisconnect() {
+    onClose();
+    if (!window.confirm("Disconnect from the server?")) return;
     disconnectAndReload();
   }
 
