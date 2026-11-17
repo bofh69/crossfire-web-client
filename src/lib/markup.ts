@@ -200,7 +200,8 @@ function emitInfoPanelColorsChanged(): void {
   gameEvents.emit("infoPanelColorsChanged");
 }
 
-function loadInfoPanelColorsFromStorage(): void {
+/** Load the info panel colors from the config store and apply them. */
+export function loadInfoPanelColorsFromStorage(): void {
   if (typeof localStorage === "undefined") {
     applyInfoPanelColorCssVariables();
     return;

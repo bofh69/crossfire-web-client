@@ -294,6 +294,15 @@ export function getCpl(): Player | null {
 }
 
 /**
+ * Reset {@link wantConfig} / {@link useConfig} to the built-in defaults and
+ * overlay the saved configuration again, e.g. after the config store changed.
+ */
+export function reloadSavedConfig(): void {
+  initConfig();
+  loadSavedConfig();
+}
+
+/**
  * One-time client startup initialization. Sets built-in defaults, then
  * overlays any previously-saved user configuration from localStorage.
  * Equivalent to the C `client_init()` function.

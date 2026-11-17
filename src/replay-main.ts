@@ -1,3 +1,5 @@
+// Must be first, before any module reads its saved configuration.
+import "./lib/replay_config_store";
 import { mount } from "svelte";
 import "./app.css";
 import ReplayApp from "./ReplayApp.svelte";

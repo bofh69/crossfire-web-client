@@ -19,12 +19,72 @@ export interface ConfigBackupV1 {
 // localStorage helpers (configuration and keybindings)
 // ──────────────────────────────────────────────────────────────────────────────
 
+/** The parts of the Web Storage API used for the configuration. */
+type ConfigStore = Pick<
+  Storage,
+  "getItem" | "key" | "length" | "removeItem" | "setItem"
+>;
+
+/** A {@link ConfigStore} kept in memory only; nothing is persisted. */
+class MemoryConfigStore implements ConfigStore {
+  private readonly items = new Map<string, string>();
+
+  get length(): number {
+    return this.items.size;
+  }
+
+  getItem(key: string): string | null {
+    return this.items.get(key) ?? null;
+  }
+
+  key(index: number): string | null {
+    return [...this.items.keys()][index] ?? null;
+  }
+
+  removeItem(key: string): void {
+    this.items.delete(key);
+  }
+
+  setItem(key: string, value: string): void {
+    this.items.set(key, value);
+  }
+}
+
+/** Replaces `localStorage` when set by {@link useInMemoryConfigStore}. */
+let memoryStore: MemoryConfigStore | null = null;
+
+function configStore(): ConfigStore {
+  return memoryStore ?? localStorage;
+}
+
+/** Return every prefixed key in the active config store. */
+function prefixedStorageKeys(): string[] {
+  const store = configStore();
+  const keys: string[] = [];
+  for (let i = 0; i < store.length; i++) {
+    const key = store.key(i);
+    if (key !== null && key.startsWith(STORAGE_PREFIX)) {
+      keys.push(key);
+    }
+  }
+  return keys;
+}
+
+/**
+ * Keep the configuration in a new, empty in-memory store instead of
+ * `localStorage`. Used by the replay page so that it never changes the normal
+ * client's saved configuration. Call it again to start over with defaults.
+ */
+export function useInMemoryConfigStore(): void {
+  memoryStore = new MemoryConfigStore();
+}
+
 /**
  * Save a configuration value to localStorage.
  */
 export function saveConfig<T>(key: string, value: T): void {
   const fullKey = STORAGE_PREFIX + key;
-  localStorage.setItem(fullKey, JSON.stringify(value));
+  configStore().setItem(fullKey, JSON.stringify(value));
 }
 
 /**
@@ -33,7 +93,7 @@ export function saveConfig<T>(key: string, value: T): void {
  */
 export function loadConfig<T>(key: string, defaultValue: T): T {
   const fullKey = STORAGE_PREFIX + key;
-  const raw = localStorage.getItem(fullKey);
+  const raw = configStore().getItem(fullKey);
   if (raw === null) {
     return defaultValue;
   }
@@ -46,11 +106,9 @@ export function loadConfig<T>(key: string, defaultValue: T): T {
 
 export function exportConfigBackup(): ConfigBackupV1 {
   const values: Record<string, unknown> = {};
-  const localStorageKeys = Object.keys(localStorage);
-  for (const fullKey of localStorageKeys) {
-    if (!fullKey.startsWith(STORAGE_PREFIX)) continue;
+  for (const fullKey of prefixedStorageKeys()) {
     const key = fullKey.substring(STORAGE_PREFIX.length);
-    const raw = localStorage.getItem(fullKey);
+    const raw = configStore().getItem(fullKey);
     if (raw === null) continue;
     try {
       values[key] = JSON.parse(raw) as unknown;
@@ -70,19 +128,13 @@ export function importConfigBackup(rawData: unknown): void {
     throw new Error("Invalid configuration backup file.");
   }
 
-  const keysToRemove: string[] = [];
-  const localStorageKeys = Object.keys(localStorage);
-  for (const key of localStorageKeys) {
-    if (key.startsWith(STORAGE_PREFIX)) {
-      keysToRemove.push(key);
-    }
-  }
-  for (const key of keysToRemove) {
-    localStorage.removeItem(key);
+  const store = configStore();
+  for (const key of prefixedStorageKeys()) {
+    store.removeItem(key);
   }
 
   for (const [key, value] of Object.entries(rawData.values)) {
-    localStorage.setItem(STORAGE_PREFIX + key, JSON.stringify(value));
+    store.setItem(STORAGE_PREFIX + key, JSON.stringify(value));
   }
 }
 
@@ -105,15 +157,8 @@ export function isConfigBackupV1(data: unknown): data is ConfigBackupV1 {
  */
 export async function clearAllData(): Promise<void> {
   // Clear prefixed localStorage keys
-  const keysToRemove: string[] = [];
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i);
-    if (key !== null && key.startsWith(STORAGE_PREFIX)) {
-      keysToRemove.push(key);
-    }
-  }
-  for (const key of keysToRemove) {
-    localStorage.removeItem(key);
+  for (const key of prefixedStorageKeys()) {
+    configStore().removeItem(key);
   }
 
   // Delete the entire IndexedDB database
