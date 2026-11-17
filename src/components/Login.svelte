@@ -23,16 +23,14 @@
   import {
     clientConnect,
     clientNegotiate,
-    sendAccountAddPlayer,
-    sendAccountLogin,
-    sendAccountNew,
     sendAccountPlay,
     sendAddMe,
-    setAccountPassword,
   } from "../lib/client";
-  import { disconnectAndReload } from "../lib/disconnect";
   import { gameEvents } from "../lib/events";
   import { EPORT } from "../lib/protocol";
+  import AccountLogin from "./AccountLogin.svelte";
+  import AddExistingCharacter from "./AddExistingCharacter.svelte";
+  import CharacterList from "./CharacterList.svelte";
   import CreateCharacter from "./CreateCharacter.svelte";
   import QueryPrompt, { ServerQuery } from "./QueryPrompt.svelte";
   import { parseMarkupLines } from "../lib/markup";
@@ -119,36 +117,13 @@
 
   // ── Account-based login state (loginmethod >= 1) ───────────────────────────
 
-  /** True when the server has confirmed loginmethod >= 1 and we should show
-   *  the account-based login form instead of the legacy query flow. */
-  let accountLoginVisible = $state(false);
-  /** True when showing "create new account" form instead of login form. */
-  let showNewAccount = $state(false);
+  /** The account-login step shown, or null for none (connecting, or the
+   *  legacy query-based login of loginmethod 0). */
+  let step = $state<
+    "account" | "characters" | "addExisting" | "createChar" | null
+  >(initChars !== null ? "characters" : null);
   /** Characters returned by the server's accountplayers command. */
   let characterList = $state<AccountPlayer[]>(initChars ?? []);
-  /** True when the character selection panel is visible. */
-  let characterSelectVisible = $state(initChars !== null);
-  /** Account name input. */
-  let accountName = $state("");
-  /** Account password input (login form). */
-  let accountPassword = $state("");
-  /** Confirm-password field for new-account creation. */
-  let accountPasswordConfirm = $state("");
-
-  // ── Add-existing-character state (loginmethod >= 1) ────────────────────────
-
-  /** True when the "add existing character" form is visible. */
-  let addExistingVisible = $state(false);
-  /** Character name input for add-existing flow. */
-  let addExistingName = $state("");
-  /** Character password input for add-existing flow. */
-  let addExistingPassword = $state("");
-  /** True when the server failure response said force=1 is allowed. */
-  let addExistingCanForce = $state(false);
-  /** The error text from the server when force is possible. */
-  let addExistingForceMessage = $state("");
-
-  // ── Character-creation state (loginmethod >= 2) ────────────────────────────
 
   /** Login method confirmed by the server (0 = legacy, 1 or 2 = account).
    *  Restored from the module-level cache when returning from gameplay so that
@@ -156,9 +131,6 @@
   let confirmedLoginMethod = $state(
     initChars !== null ? _cachedLoginMethod : 0,
   );
-
-  /** True when the character-creation form is visible. */
-  let createCharVisible = $state(false);
 
   function infoTypeLabel(type: string): string {
     switch (type) {
@@ -208,10 +180,6 @@
     }
   }
 
-  function handleDisconnectBtn() {
-    disconnectAndReload();
-  }
-
   function handleYesNoKeydown(e: KeyboardEvent) {
     if (query.handleYesNoKey(e)) {
       e.preventDefault();
@@ -219,101 +187,14 @@
     }
   }
 
-  // ── Account login handlers ─────────────────────────────────────────────────
-
-  function handleAccountLogin() {
-    errorMessage = "";
-    if (!accountName.trim() || !accountPassword) {
-      errorMessage = "Please enter both an account name and password.";
-      return;
-    }
-    // Cache the password so it can be included in a future createplayer packet.
-    setAccountPassword(accountPassword);
-    sendAccountLogin(accountName.trim(), accountPassword);
-    statusMessage = "Logging in…";
-  }
-
-  function handleAccountNew() {
-    errorMessage = "";
-    if (!accountName.trim() || !accountPassword) {
-      errorMessage = "Please fill in all fields.";
-      return;
-    }
-    if (accountPassword !== accountPasswordConfirm) {
-      errorMessage = "Passwords do not match.";
-      return;
-    }
-    setAccountPassword(accountPassword);
-    sendAccountNew(accountName.trim(), accountPassword);
-    statusMessage = "Creating account…";
-  }
-
   function handlePlayCharacter(name: string) {
     sendAccountPlay(name);
     statusMessage = "Starting game…";
   }
 
-  // ── Add-existing-character helpers ─────────────────────────────────────────
-
-  /** Show the add-existing-character form. */
-  function handleShowAddExisting() {
-    addExistingVisible = true;
-    characterSelectVisible = false;
-    addExistingName = "";
-    addExistingPassword = "";
-    addExistingCanForce = false;
-    addExistingForceMessage = "";
-    errorMessage = "";
-    statusMessage = "";
-  }
-
-  /** Return from the add-existing form to the character-select panel. */
-  function handleCancelAddExisting() {
-    addExistingVisible = false;
-    characterSelectVisible = true;
-    addExistingName = "";
-    addExistingPassword = "";
-    addExistingCanForce = false;
-    addExistingForceMessage = "";
-    errorMessage = "";
-    statusMessage = "";
-  }
-
-  /** Submit the add-existing request (normal, force=0). */
-  function handleAddExisting() {
-    errorMessage = "";
-    const name = addExistingName.trim();
-    if (!name || !addExistingPassword) {
-      errorMessage = "Please enter both a character name and password.";
-      return;
-    }
-    addExistingCanForce = false;
-    addExistingForceMessage = "";
-    sendAccountAddPlayer(0, name, addExistingPassword);
-    statusMessage = "Adding character…";
-  }
-
-  /** Re-submit with force=1 when the server said it is allowed. */
-  function handleForceAddExisting() {
-    errorMessage = "";
-    addExistingCanForce = false;
-    addExistingForceMessage = "";
-    sendAccountAddPlayer(1, addExistingName.trim(), addExistingPassword);
-    statusMessage = "Adding character…";
-  }
-
-  /** Show the create-character form. */
-  function handleShowCreateChar() {
-    createCharVisible = true;
-    characterSelectVisible = false;
-    errorMessage = "";
-    statusMessage = "";
-  }
-
-  /** Return from character creation to the character-select panel. */
-  function handleCancelCreateChar() {
-    createCharVisible = false;
-    characterSelectVisible = true;
+  /** Show the login step `next`, clearing any messages. */
+  function showStep(next: typeof step) {
+    step = next;
     errorMessage = "";
     statusMessage = "";
   }
@@ -356,17 +237,14 @@
           sendAddMe();
         } else {
           // Server supports account-based login (method >= 1).
-          accountLoginVisible = true;
+          step = "account";
           statusMessage = "";
         }
       }),
 
       gameEvents.on("accountPlayers", (players: AccountPlayer[]) => {
         characterList = players;
-        characterSelectVisible = true;
-        createCharVisible = false;
-        addExistingVisible = false;
-        accountLoginVisible = false;
+        step = "characters";
         statusMessage = "";
         errorMessage = "";
         if (players.length === 0) {
@@ -390,21 +268,9 @@
       }),
 
       gameEvents.on("failure", (command: string, message: string) => {
-        if (command === "accountaddplayer") {
-          // The message starts with a force flag: "0 <text>" (not retriable)
-          // or "1 <text>" (can retry with force=1).
-          const spaceIdx = message.indexOf(" ");
-          const forceFlag =
-            spaceIdx > 0 ? parseInt(message.substring(0, spaceIdx), 10) : 0;
-          const text = spaceIdx > 0 ? message.substring(spaceIdx + 1) : message;
-          errorMessage = text;
-          if (forceFlag === 1) {
-            addExistingCanForce = true;
-            addExistingForceMessage = text;
-          }
-        } else {
-          errorMessage = `${command}: ${message}`;
-        }
+        // AddExistingCharacter shows its own failures.
+        if (command === "accountaddplayer") return;
+        errorMessage = `${command}: ${message}`;
         statusMessage = "";
       }),
 
@@ -499,159 +365,32 @@
       {/if}
       <div class="query-panel">
         <CreateCharacter
-          visible={createCharVisible}
+          visible={step === "createChar"}
           loginMethod={confirmedLoginMethod}
-          onCancel={handleCancelCreateChar}
+          onCancel={() => showStep("characters")}
           onError={(text) => (errorMessage = text)}
           onStatus={(text) => (statusMessage = text)}
         />
-        {#if createCharVisible}
-          <!-- CreateCharacter above is shown instead of the other panels. -->
-        {:else if characterSelectVisible}
-          <!-- Character selection (loginmethod >= 1) -->
-          <div class="login-form">
-            <h3 class="panel-title">Choose Character</h3>
-            {#if characterList.length > 0}
-              <div class="character-list">
-                {#each characterList as char}
-                  <button
-                    class="character-entry"
-                    onclick={() => handlePlayCharacter(char.name)}
-                  >
-                    <span class="char-name">{char.name}</span>
-                    <span class="char-details"
-                      >{char.charClass} {char.race} — Level {char.level}</span
-                    >
-                  </button>
-                {/each}
-              </div>
-            {:else}
-              <p class="status">No characters on this account yet.</p>
-            {/if}
-            <button onclick={handleShowCreateChar}
-              >+ Create New Character</button
-            >
-            <button onclick={handleShowAddExisting}
-              >+ Add Existing Character</button
-            >
-            <button
-              class="back-btn"
-              onclick={() => {
-                characterSelectVisible = false;
-                accountLoginVisible = true;
-                errorMessage = "";
-                statusMessage = "";
-              }}>← Back</button
-            >
-          </div>
-        {:else if addExistingVisible}
-          <!-- Add existing character form (loginmethod >= 1) -->
-          <form
-            class="login-form"
-            onsubmit={(e) => {
-              e.preventDefault();
-              handleAddExisting();
-            }}
-          >
-            <h3 class="panel-title">Add Existing Character</h3>
-            <label>
-              Character Name
-              <!-- svelte-ignore a11y_autofocus -->
-              <input
-                type="text"
-                bind:value={addExistingName}
-                autocomplete="username"
-                autofocus
-              />
-            </label>
-            <label>
-              Character Password
-              <input
-                type="password"
-                bind:value={addExistingPassword}
-                autocomplete="current-password"
-              />
-            </label>
-            <button type="submit">Add Character</button>
-            {#if addExistingCanForce}
-              <p class="error">{addExistingForceMessage}</p>
-              <p class="query-text">
-                This character is already linked to another account. Override
-                the link?
-              </p>
-              <button type="button" onclick={handleForceAddExisting}
-                >Yes, override</button
-              >
-            {/if}
-            <button
-              type="button"
-              class="back-btn"
-              onclick={handleCancelAddExisting}>← Back</button
-            >
-          </form>
-        {:else if accountLoginVisible}
-          <!-- Account-based login / create form (loginmethod >= 1) -->
-          <form
-            class="login-form"
-            onsubmit={(e) => {
-              e.preventDefault();
-              showNewAccount ? handleAccountNew() : handleAccountLogin();
-            }}
-          >
-            <div class="tab-row">
-              <button
-                type="button"
-                class:tab-active={!showNewAccount}
-                onclick={() => {
-                  showNewAccount = false;
-                  errorMessage = "";
-                }}>Log In</button
-              >
-              <button
-                type="button"
-                class:tab-active={showNewAccount}
-                onclick={() => {
-                  showNewAccount = true;
-                  errorMessage = "";
-                }}>New Account</button
-              >
-            </div>
-            <label>
-              Account Name
-              <!-- svelte-ignore a11y_autofocus -->
-              <input
-                type="text"
-                bind:value={accountName}
-                autocomplete="username"
-                autofocus
-              />
-            </label>
-            <label>
-              Password
-              <input
-                type="password"
-                bind:value={accountPassword}
-                autocomplete={showNewAccount
-                  ? "new-password"
-                  : "current-password"}
-              />
-            </label>
-            {#if showNewAccount}
-              <label>
-                Confirm Password
-                <input
-                  type="password"
-                  bind:value={accountPasswordConfirm}
-                  autocomplete="new-password"
-                />
-              </label>
-              <button type="submit">Create Account</button>
-            {:else}
-              <button type="submit">Log In</button>
-            {/if}
-            <button onclick={handleDisconnectBtn}>Disconnect</button>
-          </form>
-        {:else if query.active}
+        <AccountLogin
+          visible={step === "account"}
+          onError={(text) => (errorMessage = text)}
+          onStatus={(text) => (statusMessage = text)}
+        />
+        {#if step === "characters"}
+          <CharacterList
+            characters={characterList}
+            onPlay={handlePlayCharacter}
+            onCreate={() => showStep("createChar")}
+            onAddExisting={() => showStep("addExisting")}
+            onBack={() => showStep("account")}
+          />
+        {:else if step === "addExisting"}
+          <AddExistingCharacter
+            onCancel={() => showStep("characters")}
+            onError={(text) => (errorMessage = text)}
+            onStatus={(text) => (statusMessage = text)}
+          />
+        {:else if step === null && query.active}
           <!-- Legacy query-based login (loginmethod 0) -->
           <div class="login-form">
             <QueryPrompt {query} onReplied={checkLoginComplete} />
@@ -758,12 +497,6 @@
     min-width: 18rem;
   }
 
-  .query-text {
-    color: var(--text-warm-dim);
-    font-size: 0.9rem;
-    margin: 0;
-  }
-
   .github-ribbon {
     position: fixed;
     top: 0.5rem;
@@ -785,66 +518,6 @@
 
   .github-ribbon:hover {
     background: #9a8a6a;
-  }
-
-  .tab-row {
-    display: flex;
-    gap: 0;
-    border-bottom: 1px solid var(--border);
-    margin-bottom: 0.25rem;
-  }
-
-  .tab-row button {
-    flex: 1;
-    border: 1px solid var(--border);
-    border-bottom: none;
-    border-radius: 4px 4px 0 0;
-    background: var(--bg-darker);
-    color: var(--text-warm-dim);
-    font-size: 0.9rem;
-    padding: 0.4rem 0.75rem;
-  }
-
-  .tab-row button.tab-active {
-    background: var(--bg-warm);
-    color: var(--text-warm);
-  }
-
-  .character-list {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    max-height: 40vh;
-    overflow-y: auto;
-  }
-
-  .character-entry {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.1rem;
-    padding: 0.5rem 0.75rem;
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    background: var(--bg-darker);
-    cursor: pointer;
-    text-align: left;
-  }
-
-  .character-entry:hover {
-    background: var(--bg-warm);
-    border-color: var(--accent);
-  }
-
-  .char-name {
-    color: var(--text-warm);
-    font-weight: bold;
-    font-size: 1rem;
-  }
-
-  .char-details {
-    color: var(--text-warm-dim);
-    font-size: 0.8rem;
   }
 
   @media (max-width: 900px) {
