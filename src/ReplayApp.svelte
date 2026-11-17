@@ -10,11 +10,13 @@
   import { animateObjects } from "./lib/item";
   import {
     mapdata_animation,
-    mapdata_debug_bigface,
-    mapdata_debug_tile,
     run_move_to,
     setGetMapImageSize,
   } from "./lib/mapdata";
+  import {
+    mapdata_debug_bigface,
+    mapdata_debug_tile,
+  } from "./lib/mapdata_debug";
   import { initCommands } from "./lib/p_cmd";
   import {
     decodeReplayMap2Payload,

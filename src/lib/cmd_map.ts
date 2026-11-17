@@ -24,8 +24,8 @@ import {
   mapdata_begin_cell_update,
   mapdata_drop_unrefreshed_big_faces,
   mapdata_set_size,
-  mapdata_apply_magicmap,
 } from "./mapdata.js";
+import { mapdata_apply_magicmap } from "./mapdata_magicmap.js";
 import { mapdata_restore_fog, mapdata_save_fog } from "./mapdata_fog.js";
 import { animations } from "./item.js";
 import { addSmooth, setCurrentFaceset } from "./image.js";
