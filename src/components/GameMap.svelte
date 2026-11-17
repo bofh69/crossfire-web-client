@@ -492,6 +492,11 @@
 
     if (c.width !== canvasW) c.width = canvasW;
     if (c.height !== canvasH) c.height = canvasH;
+    // Expose the layout so a replay can click a tile by its offset from the
+    // player (see lookAtClick in scripts/replay-with-playwright.mjs).
+    c.dataset.tileSize = String(tileSize);
+    c.dataset.playerTileX = String(startOffsetX + Math.floor(vw / 2));
+    c.dataset.playerTileY = String(startOffsetY + Math.floor(vh / 2));
 
     ctx.fillStyle = "#111";
     ctx.fillRect(0, 0, canvasW, canvasH);
