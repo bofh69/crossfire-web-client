@@ -16,6 +16,7 @@
   import {
     getFaceBitmap,
     getFaceBitmapCacheSize,
+    getFogFaceBitmap,
     hasPendingFaceBitmaps,
     isFaceBitmapPending,
     getSmoothFace,
@@ -47,8 +48,6 @@
   const MIN_SCALE = 1;
   const MAX_SCALE = 8;
   const MAX_MISSING_FACES_PREVIEW = 12;
-  /** Apply 55% desaturation, retaining about 45% of the original color. */
-  const FOG_DESATURATION_AMOUNT = 0.55;
   const PERF_INFO_PREFIX = "[debug perf]";
   const ZOOM_STORAGE_KEY = "tileScale";
   /**
@@ -340,9 +339,10 @@
    * @param tileSize Effective tile size in pixels (baseTs × integer scale).
    * @param baseTs   Base tile size in pixels from the active faceset (used for
    *                 source pixel offsets within the smooth-face sprite sheet).
+   * @param fogged   Draw the desaturated fog-of-war version of the overlays.
    */
   function drawsmooth(
-    ctx: CanvasRenderingContext2D,
+    ctx: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
     ax: number,
     ay: number,
     layer: number,
@@ -351,6 +351,7 @@
     tileSize: number,
     baseTs: number,
     missingFaces: Set<number>,
+    fogged: boolean,
   ): void {
     // Smooth only makes sense when there is visible content on some layer ≤ current.
     let hasFace = false;
@@ -416,11 +417,12 @@
       const smoothFaceNum = _sfaces[lowestIdx]!;
       if (smoothFaceNum <= 0) continue;
 
-      const smoothImg = getFaceBitmap(smoothFaceNum);
-      if (!smoothImg) {
+      const smoothBitmap = getFaceBitmap(smoothFaceNum);
+      if (!smoothBitmap) {
         missingFaces.add(smoothFaceNum);
         continue;
       }
+      const smoothImg = fogged ? getFogFaceBitmap(smoothBitmap) : smoothBitmap;
 
       // Draw border sub-tile (row 0, column = weight bitmask).
       if (weight > 0) {
@@ -460,13 +462,14 @@
     if (!ctx) return;
 
     function drawPlaceholder(
+      target: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
       px: number,
       py: number,
       ts: number,
       layer: number,
     ) {
-      ctx!.fillStyle = layer === 0 ? "#222" : "#333";
-      ctx!.fillRect(px + 1, py + 1, ts - 2, ts - 2);
+      target.fillStyle = layer === 0 ? "#222" : "#333";
+      target.fillRect(px + 1, py + 1, ts - 2, ts - 2);
     }
 
     // Disable image smoothing so pixel art tiles remain crisp at any integer
@@ -558,179 +561,255 @@
     let placeholders = 0;
     const missingFaces = new Set<number>();
 
-    // Iterate layer by layer (matching the old C client's map_draw_layer approach).
-    // This ensures correct z-ordering: all tiles for layer N are fully drawn before
-    // any tile at layer N+1, so large multi-tile images never overdraw objects on a
-    // higher layer that happen to sit on an earlier tile in scan order.
-
-    // Pass 1: fog-of-war background and per-tile setup (collect cell info).
+    // Fog-of-war cells are drawn with desaturated copies of the faces.  With
+    // darkness interpolation on, the desaturation fades in over one tile at the
+    // Visible/Fog boundary: those cells are drawn in colour, then again
+    // desaturated into fadeCanvas, which is masked by a bilinearly scaled
+    // 1 px per tile mask and drawn on top.  This only uses plain alpha
+    // compositing, which keeps the canvas on the GPU in Firefox.
+    const cellCount = displayW * displayH;
+    if (fogCells.length !== cellCount) {
+      fogCells = new Uint8Array(cellCount);
+      fadeCells = new Uint8Array(cellCount);
+    }
+    const fogGrayscale = useConfig.fogGrayscale;
+    const softFog = fogGrayscale && useConfig.darknessInterpolation;
     for (let vy = 0; vy < displayH; vy++) {
       for (let vx = 0; vx < displayW; vx++) {
         const ax = plPos.x + vx - startOffsetX;
         const ay = plPos.y + vy - startOffsetY;
-        if (!mapdata_contains(ax, ay)) continue;
-        const state1 = mapdata_get_state(ax, ay);
-        if (state1 === MapCellState.Empty) continue;
-        tilesDrawn++;
-        const px = vx * tileSize;
-        const py = vy * tileSize;
-        if (state1 === MapCellState.Fog) {
-          ctx.fillStyle = "#1a1a1a";
-          ctx.fillRect(px, py, tileSize, tileSize);
+        // Fog, Empty and out-of-bounds cells are desaturated.
+        const visible =
+          mapdata_contains(ax, ay) &&
+          mapdata_get_state(ax, ay) === MapCellState.Visible;
+        fogCells[vy * displayW + vx] = fogGrayscale && !visible ? 1 : 0;
+      }
+    }
+    // Bounding box of the fade cells, in cells.
+    let fadeMinX = displayW;
+    let fadeMinY = displayH;
+    let fadeMaxX = -1;
+    let fadeMaxY = -1;
+    for (let vy = 0; vy < displayH; vy++) {
+      for (let vx = 0; vx < displayW; vx++) {
+        const i = vy * displayW + vx;
+        let fade = 0;
+        // The scaled mask blends each cell with its eight neighbours.
+        for (let ny = vy - 1; softFog && !fade && ny <= vy + 1; ny++) {
+          for (let nx = vx - 1; nx <= vx + 1; nx++) {
+            if (nx < 0 || ny < 0 || nx >= displayW || ny >= displayH) continue;
+            if (fogCells[ny * displayW + nx] !== fogCells[i]) {
+              fade = 1;
+              break;
+            }
+          }
+        }
+        fadeCells[i] = fade;
+        if (fade) {
+          fadeMinX = Math.min(fadeMinX, vx);
+          fadeMinY = Math.min(fadeMinY, vy);
+          fadeMaxX = Math.max(fadeMaxX, vx);
+          fadeMaxY = Math.max(fadeMaxY, vy);
         }
       }
     }
 
-    // Pass 2: draw all tiles for each layer in order (layer 0 first, then 1, …).
-    // Images are scaled by the integer scale factor (naturalSize × scale), keeping
-    // pixel art crisp.  imageSmoothingEnabled=false (set above) ensures the
-    // canvas does not interpolate when drawing at non-1× sizes.
-    const imgScale = scale;
-    for (let layer = 0; layer < MAXLAYERS; layer++) {
-      for (let vy = 0; vy < displayH; vy++) {
+    /**
+     * Draw the cells' faces layer by layer onto `target`.
+     * @param fadeOnly Draw only the fade cells, desaturated (for fadeCanvas);
+     *                 otherwise draw all cells, with fog cells desaturated
+     *                 unless they are fade cells.
+     */
+    function drawCells(
+      target: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
+      fadeOnly: boolean,
+    ) {
+      // Iterate layer by layer (matching the old C client's map_draw_layer approach).
+      // This ensures correct z-ordering: all tiles for layer N are fully drawn before
+      // any tile at layer N+1, so large multi-tile images never overdraw objects on a
+      // higher layer that happen to sit on an earlier tile in scan order.
+
+      // Pass 1: fog-of-war background.  fadeCanvas needs none, since the
+      // colour pass below it already has the same background.
+      for (let vy = 0; !fadeOnly && vy < displayH; vy++) {
         for (let vx = 0; vx < displayW; vx++) {
           const ax = plPos.x + vx - startOffsetX;
           const ay = plPos.y + vy - startOffsetY;
           if (!mapdata_contains(ax, ay)) continue;
-          if (mapdata_get_state(ax, ay) === MapCellState.Empty) continue;
-
-          // Capture head face for this cell/layer so drawResolvedFace can
-          // reference it without allocating a MapCell object.
-          const headFaceOnCell = mapdata_get_head_face(ax, ay, layer);
-
-          const px = vx * tileSize;
-          const py = vy * tileSize;
-
-          function drawResolvedFace(
-            face: number,
-            dx: number,
-            dy: number,
-            placeholderForHead: boolean,
-          ) {
-            if (face === 0) return;
-            const drawCtx = ctx;
-            if (!drawCtx) return;
-            const img = getFaceBitmap(face);
-            if (img) {
-              const drawW = img.width * imgScale;
-              const drawH = img.height * imgScale;
-              // Align the image's bottom-right corner to the head tile's
-              // bottom-right corner.  dx/dy shift vx/vy to the head tile
-              // position when this cell is a tail, so both cases use one
-              // formula: (vx+dx)*ts + ts - drawW.
-              const drawX = (vx + dx) * tileSize + tileSize - drawW;
-              const drawY = (vy + dy) * tileSize + tileSize - drawH;
-              // Skip drawing if the image lies entirely outside the canvas.
-              if (
-                drawX + drawW > 0 &&
-                drawY + drawH > 0 &&
-                drawX < canvasW &&
-                drawY < canvasH
-              ) {
-                if (
-                  dx === 0 &&
-                  dy === 0 &&
-                  drawW <= tileSize &&
-                  drawH <= tileSize
-                ) {
-                  // Fits inside its own tile (bottom-right aligned): no clip needed.
-                  drawCtx.drawImage(img, drawX, drawY, drawW, drawH);
-                } else {
-                  // Clip to the current cell's tile area so that each cell
-                  // only renders the portion of the bigface image that falls
-                  // within its own tile.  This ensures that Empty cells (which
-                  // are skipped by the guard above) are never painted over by
-                  // a neighbouring non-Empty head or tail cell.
-                  drawCtx.save();
-                  drawCtx.beginPath();
-                  drawCtx.rect(px, py, tileSize, tileSize);
-                  drawCtx.clip();
-                  drawCtx.drawImage(img, drawX, drawY, drawW, drawH);
-                  drawCtx.restore();
-                }
-                imagesDrawn++;
-              }
-            } else if (placeholderForHead && headFaceOnCell !== 0) {
-              missingFaces.add(face);
-              drawPlaceholder(px, py, tileSize, layer);
-              placeholders++;
-            }
+          const state1 = mapdata_get_state(ax, ay);
+          if (state1 === MapCellState.Empty) continue;
+          tilesDrawn++;
+          if (state1 === MapCellState.Fog) {
+            target.fillStyle = "#1a1a1a";
+            target.fillRect(vx * tileSize, vy * tileSize, tileSize, tileSize);
           }
+        }
+      }
 
-          // Draw normal/head tile first, then overlay tail tile from a bigface
-          // if both exist on this same layer/cell.
-          const headInfo = mapdata_head_face_info(ax, ay, layer);
-          drawResolvedFace(headInfo.face, headInfo.dx, headInfo.dy, true);
-          const tailInfo = mapdata_tail_face_info(ax, ay, layer);
-          drawResolvedFace(tailInfo.face, tailInfo.dx, tailInfo.dy, false);
+      // Pass 2: draw all tiles for each layer in order (layer 0 first, then 1, …).
+      // Images are scaled by the integer scale factor (naturalSize × scale), keeping
+      // pixel art crisp.  imageSmoothingEnabled=false ensures the canvas does not
+      // interpolate when drawing at non-1× sizes.
+      target.imageSmoothingEnabled = false;
+      const imgScale = scale;
+      for (let layer = 0; layer < MAXLAYERS; layer++) {
+        for (let vy = 0; vy < displayH; vy++) {
+          for (let vx = 0; vx < displayW; vx++) {
+            const cellIndex = vy * displayW + vx;
+            const fadeCell = fadeCells[cellIndex] === 1;
+            if (fadeOnly && !fadeCell) continue;
+            const ax = plPos.x + vx - startOffsetX;
+            const ay = plPos.y + vy - startOffsetY;
+            if (!mapdata_contains(ax, ay)) continue;
+            if (mapdata_get_state(ax, ay) === MapCellState.Empty) continue;
+            const fogged = fadeOnly || (fogCells[cellIndex] === 1 && !fadeCell);
 
-          if (useConfig.smooth) {
-            drawsmooth(
-              ctx,
-              ax,
-              ay,
-              layer,
-              px,
-              py,
-              tileSize,
-              baseTileSize,
-              missingFaces,
-            );
+            // Capture head face for this cell/layer so drawResolvedFace can
+            // reference it without allocating a MapCell object.
+            const headFaceOnCell = mapdata_get_head_face(ax, ay, layer);
+
+            const px = vx * tileSize;
+            const py = vy * tileSize;
+
+            function drawResolvedFace(
+              face: number,
+              dx: number,
+              dy: number,
+              placeholderForHead: boolean,
+            ) {
+              if (face === 0) return;
+              const bitmap = getFaceBitmap(face);
+              if (bitmap) {
+                const img = fogged ? getFogFaceBitmap(bitmap) : bitmap;
+                const drawW = img.width * imgScale;
+                const drawH = img.height * imgScale;
+                // Align the image's bottom-right corner to the head tile's
+                // bottom-right corner.  dx/dy shift vx/vy to the head tile
+                // position when this cell is a tail, so both cases use one
+                // formula: (vx+dx)*ts + ts - drawW.
+                const drawX = (vx + dx) * tileSize + tileSize - drawW;
+                const drawY = (vy + dy) * tileSize + tileSize - drawH;
+                // Skip drawing if the image lies entirely outside the canvas.
+                if (
+                  drawX + drawW > 0 &&
+                  drawY + drawH > 0 &&
+                  drawX < canvasW &&
+                  drawY < canvasH
+                ) {
+                  if (
+                    dx === 0 &&
+                    dy === 0 &&
+                    drawW <= tileSize &&
+                    drawH <= tileSize
+                  ) {
+                    // Fits inside its own tile (bottom-right aligned): no clip needed.
+                    target.drawImage(img, drawX, drawY, drawW, drawH);
+                  } else {
+                    // Clip to the current cell's tile area so that each cell
+                    // only renders the portion of the bigface image that falls
+                    // within its own tile.  This ensures that Empty cells (which
+                    // are skipped by the guard above) are never painted over by
+                    // a neighbouring non-Empty head or tail cell.
+                    target.save();
+                    target.beginPath();
+                    target.rect(px, py, tileSize, tileSize);
+                    target.clip();
+                    target.drawImage(img, drawX, drawY, drawW, drawH);
+                    target.restore();
+                  }
+                  imagesDrawn++;
+                }
+              } else if (placeholderForHead && headFaceOnCell !== 0) {
+                missingFaces.add(face);
+                drawPlaceholder(target, px, py, tileSize, layer);
+                placeholders++;
+              }
+            }
+
+            // Draw normal/head tile first, then overlay tail tile from a bigface
+            // if both exist on this same layer/cell.
+            const headInfo = mapdata_head_face_info(ax, ay, layer);
+            drawResolvedFace(headInfo.face, headInfo.dx, headInfo.dy, true);
+            const tailInfo = mapdata_tail_face_info(ax, ay, layer);
+            drawResolvedFace(tailInfo.face, tailInfo.dx, tailInfo.dy, false);
+
+            if (useConfig.smooth) {
+              drawsmooth(
+                target,
+                ax,
+                ay,
+                layer,
+                px,
+                py,
+                tileSize,
+                baseTileSize,
+                missingFaces,
+                fogged,
+              );
+            }
           }
         }
       }
     }
 
-    // Pass 2.5: desaturated overlay for fog-of-war cells.
-    // Fog cells (and Empty / out-of-bounds) keep some of their color; Visible cells
-    // remain in full colour.  A 1-pixel-per-tile grey mask is bilinearly scaled
-    // up over the map with the "saturation" blend mode: where the mask is opaque
-    // the pixels take the mask's (zero) saturation, and its alpha sets how much,
-    // so the Visible/Fog boundary fades smoothly.  This avoids filtering a full
-    // copy of the canvas, which is slow when the canvas is drawn on the CPU.
-    if (useConfig.fogGrayscale) {
-      if (
-        grayMaskCanvas === null ||
-        grayMaskCanvasW !== displayW ||
-        grayMaskCanvasH !== displayH
-      ) {
-        grayMaskCanvas = new OffscreenCanvas(displayW, displayH);
-        grayMaskCtx = grayMaskCanvas.getContext("2d")!;
-        grayMaskImageData = grayMaskCtx.createImageData(displayW, displayH);
-        grayMaskCanvasW = displayW;
-        grayMaskCanvasH = displayH;
-      }
-      const fogAlpha = Math.round(FOG_DESATURATION_AMOUNT * 255);
-      const gm = grayMaskImageData!.data;
-      for (let vy = 0; vy < displayH; vy++) {
-        for (let vx = 0; vx < displayW; vx++) {
-          const ax = plPos.x + vx - startOffsetX;
-          const ay = plPos.y + vy - startOffsetY;
-          // Visible cells → keep colour (alpha 0).
-          // Fog, Empty and out-of-bounds → desaturate (alpha fogAlpha).
-          let maskAlpha = fogAlpha;
-          if (
-            mapdata_contains(ax, ay) &&
-            mapdata_get_state(ax, ay) === MapCellState.Visible
-          ) {
-            maskAlpha = 0;
-          }
-          // Any grey works: only its zero saturation is used by the blend.
-          const idx = (vy * displayW + vx) * 4;
-          gm[idx] = 128;
-          gm[idx + 1] = 128;
-          gm[idx + 2] = 128;
-          gm[idx + 3] = maskAlpha;
-        }
-      }
-      grayMaskCtx!.putImageData(grayMaskImageData!, 0, 0);
+    drawCells(ctx, false);
 
-      ctx.globalCompositeOperation = "saturation";
-      ctx.imageSmoothingEnabled = true;
-      ctx.imageSmoothingQuality = "high";
-      ctx.drawImage(grayMaskCanvas, 0, 0, canvasW, canvasH);
-      ctx.imageSmoothingEnabled = false;
-      ctx.globalCompositeOperation = "source-over";
+    // Pass 2.5: fade the desaturation in at the Visible/Fog boundary.
+    if (fadeMaxX >= 0) {
+      if (
+        fadeCanvas === null ||
+        fadeCanvas.width !== canvasW ||
+        fadeCanvas.height !== canvasH
+      ) {
+        fadeCanvas = document.createElement("canvas");
+        fadeCanvas.width = canvasW;
+        fadeCanvas.height = canvasH;
+        fadeCtx = fadeCanvas.getContext("2d")!;
+      }
+      if (
+        fogMaskCanvas === null ||
+        fogMaskCanvas.width !== displayW ||
+        fogMaskCanvas.height !== displayH
+      ) {
+        fogMaskCanvas = new OffscreenCanvas(displayW, displayH);
+        fogMaskCtx = fogMaskCanvas.getContext("2d")!;
+        fogMaskImageData = fogMaskCtx.createImageData(displayW, displayH);
+      }
+      const mask = fogMaskImageData!.data;
+      for (let i = 0; i < cellCount; i++) {
+        mask[i * 4 + 3] = fogCells[i] ? 255 : 0;
+      }
+      fogMaskCtx!.putImageData(fogMaskImageData!, 0, 0);
+
+      // Only the area around the fade cells is cleared, masked and copied.
+      const fadeX = fadeMinX * tileSize;
+      const fadeY = fadeMinY * tileSize;
+      const fadeW = (fadeMaxX - fadeMinX + 1) * tileSize;
+      const fadeH = (fadeMaxY - fadeMinY + 1) * tileSize;
+      const fctx = fadeCtx!;
+      fctx.save();
+      fctx.beginPath();
+      fctx.rect(fadeX, fadeY, fadeW, fadeH);
+      fctx.clip();
+      fctx.clearRect(fadeX, fadeY, fadeW, fadeH);
+      drawCells(fctx, true);
+      // Keep the desaturated pixels in proportion to the scaled-up mask.
+      fctx.globalCompositeOperation = "destination-in";
+      fctx.imageSmoothingEnabled = true;
+      fctx.imageSmoothingQuality = "high";
+      fctx.drawImage(fogMaskCanvas!, 0, 0, canvasW, canvasH);
+      fctx.restore();
+      ctx.drawImage(
+        fadeCanvas,
+        fadeX,
+        fadeY,
+        fadeW,
+        fadeH,
+        fadeX,
+        fadeY,
+        fadeW,
+        fadeH,
+      );
     }
 
     // Pass 3: darkness overlay with bilinear interpolation.
@@ -978,13 +1057,19 @@
     }
   }
 
-  // Cached 1 px per tile mask used in Pass 2.5 for the grayscale fog overlay;
-  // it is scaled up bilinearly over the whole canvas.
-  let grayMaskCanvas: OffscreenCanvas | null = null;
-  let grayMaskCtx: OffscreenCanvasRenderingContext2D | null = null;
-  let grayMaskImageData: ImageData | null = null;
-  let grayMaskCanvasW = 0;
-  let grayMaskCanvasH = 0;
+  // Per display cell: 1 for fog-of-war cells to desaturate, and 1 for cells
+  // at the Visible/Fog boundary where the desaturation fades in (Pass 2.5).
+  let fogCells = new Uint8Array(0);
+  let fadeCells = new Uint8Array(0);
+  // Cached canvases used in Pass 2.5: the desaturated boundary cells, and the
+  // 1 px per tile fog mask that is scaled up over them.  fadeCanvas is a
+  // <canvas> element, not an OffscreenCanvas: Firefox draws a large
+  // OffscreenCanvas on the CPU, which made this pass ten times slower there.
+  let fadeCanvas: HTMLCanvasElement | null = null;
+  let fadeCtx: CanvasRenderingContext2D | null = null;
+  let fogMaskCanvas: OffscreenCanvas | null = null;
+  let fogMaskCtx: OffscreenCanvasRenderingContext2D | null = null;
+  let fogMaskImageData: ImageData | null = null;
 
   // Cached OffscreenCanvas used in Pass 3 for the bilinear darkness overlay.
   // Recreated only when the display tile-grid dimensions change.

@@ -162,6 +162,13 @@ const faceBitmaps = new Map<number, ImageBitmap>();
 const faceBitmapVersions = new Map<number, number>();
 /** Faces whose current ImageBitmap decode is still in flight. */
 const pendingFaceBitmaps = new Set<number>();
+/**
+ * Desaturated copies of face bitmaps for fog-of-war cells, keyed by the
+ * source bitmap so that a re-decoded face gets a new copy.
+ */
+const fogFaceBitmaps = new WeakMap<ImageBitmap, ImageBitmap>();
+/** How much fog-of-war cells are desaturated; 0.55 keeps about 45% of the colour. */
+const FOG_DESATURATION_AMOUNT = 0.55;
 /** Guard so missing createImageBitmap support is logged once. */
 let loggedMissingCreateImageBitmap = false;
 
@@ -205,6 +212,47 @@ export function getFaceUrl(face: number): string | null {
 /** Return the decoded ImageBitmap for a face, or `null` if not yet ready. */
 export function getFaceBitmap(face: number): ImageBitmap | null {
   return faceBitmaps.get(face) ?? null;
+}
+
+/**
+ * Return a partly desaturated copy of `bitmap` for drawing fog-of-war cells.
+ *
+ * The copy is made once per bitmap and cached, so drawing a fog cell costs no
+ * more than drawing a visible one.  Desaturating the whole map every frame
+ * instead (with a filter or a "saturation" blend) makes Firefox draw the map
+ * canvas on the CPU, which is slow on large or high-DPI canvases.
+ */
+export function getFogFaceBitmap(bitmap: ImageBitmap): ImageBitmap {
+  let fogBitmap = fogFaceBitmaps.get(bitmap);
+  if (!fogBitmap) {
+    fogBitmap = desaturateBitmap(bitmap, FOG_DESATURATION_AMOUNT);
+    fogFaceBitmaps.set(bitmap, fogBitmap);
+  }
+  return fogBitmap;
+}
+
+/**
+ * Return a copy of `bitmap` moved `amount` (0–1) of the way towards grey,
+ * like the CSS `grayscale(amount)` filter.
+ */
+function desaturateBitmap(bitmap: ImageBitmap, amount: number): ImageBitmap {
+  const canvas = new OffscreenCanvas(bitmap.width, bitmap.height);
+  const ctx = canvas.getContext("2d")!;
+  ctx.drawImage(bitmap, 0, 0);
+  const image = ctx.getImageData(0, 0, bitmap.width, bitmap.height);
+  const d = image.data;
+  for (let i = 0; i < d.length; i += 4) {
+    const r = d[i]!;
+    const g = d[i + 1]!;
+    const b = d[i + 2]!;
+    // Rec. 709 luma, as used by the CSS grayscale() filter.
+    const luma = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+    d[i] = r + (luma - r) * amount;
+    d[i + 1] = g + (luma - g) * amount;
+    d[i + 2] = b + (luma - b) * amount;
+  }
+  ctx.putImageData(image, 0, 0);
+  return canvas.transferToImageBitmap();
 }
 
 /** Return whether a face's current ImageBitmap decode is still pending. */
