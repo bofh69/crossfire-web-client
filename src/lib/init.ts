@@ -155,20 +155,6 @@ export const wantConfig = {} as ClientConfig;
 export const useConfig = {} as ClientConfig;
 
 // ──────────────────────────────────────────────────────────────────────────────
-// Browser capability detection
-// ──────────────────────────────────────────────────────────────────────────────
-
-/**
- * True when running in Firefox.  Firefox renders OffscreenCanvas CSS filters
- * entirely on the CPU, making the full-canvas grayscale pass used by the
- * fog-of-war desaturation effect 10–15× slower than in Chromium-based
- * browsers.  The feature is therefore disabled by default in Firefox; users
- * can still enable it via the Config menu.
- */
-const isFirefox: boolean =
-  typeof navigator !== "undefined" && /Firefox\//.test(navigator.userAgent);
-
-// ──────────────────────────────────────────────────────────────────────────────
 // Configuration defaults
 // ──────────────────────────────────────────────────────────────────────────────
 
@@ -214,9 +200,7 @@ function initConfig(): void {
   wantConfig.tooltips = true;
   wantConfig.triminfo = false;
   wantConfig.autoAfk = 300;
-  // Disabled by default on Firefox: the full-canvas CSS-filter grayscale pass
-  // runs on the CPU in Firefox and is 10–15× slower than in Chrome.
-  wantConfig.fogGrayscale = !isFirefox;
+  wantConfig.fogGrayscale = true;
   wantConfig.darknessInterpolation = true;
   wantConfig.loginMethod = 2;
 
