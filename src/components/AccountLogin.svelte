@@ -4,22 +4,24 @@
    * log in to an existing account or create a new one.
    */
   import {
+    clientIsConnected,
     sendAccountLogin,
     sendAccountNew,
     setAccountPassword,
   } from "../lib/client";
-  import { disconnectAndReload } from "../lib/disconnect";
 
   interface Props {
     /** Whether the form is shown.  The typed values are kept while hidden. */
     visible: boolean;
+    /** Called when the user wants to disconnect from the server. */
+    onDisconnect: () => void;
     /** Show an error message; "" clears it. */
     onError: (text: string) => void;
     /** Show a status message; "" clears it. */
     onStatus: (text: string) => void;
   }
 
-  let { visible, onError, onStatus }: Props = $props();
+  let { visible, onDisconnect, onError, onStatus }: Props = $props();
 
   /** True when showing "create new account" form instead of login form. */
   let showNewAccount = $state(false);
@@ -30,12 +32,23 @@
   /** Confirm-password field for new-account creation. */
   let accountPasswordConfirm = $state("");
 
+  /**
+   * Show an error and return false if the connection to the server is gone,
+   * so that the form does not wait for a reply that can't come.
+   */
+  function checkConnected(): boolean {
+    if (clientIsConnected()) return true;
+    onError("Not connected to the server. Press Disconnect to connect again.");
+    return false;
+  }
+
   function handleAccountLogin() {
     onError("");
     if (!accountName.trim() || !accountPassword) {
       onError("Please enter both an account name and password.");
       return;
     }
+    if (!checkConnected()) return;
     // Cache the password so it can be included in a future createplayer packet.
     setAccountPassword(accountPassword);
     sendAccountLogin(accountName.trim(), accountPassword);
@@ -52,6 +65,7 @@
       onError("Passwords do not match.");
       return;
     }
+    if (!checkConnected()) return;
     setAccountPassword(accountPassword);
     sendAccountNew(accountName.trim(), accountPassword);
     onStatus("Creating account…");
@@ -115,7 +129,7 @@
     {:else}
       <button type="submit">Log In</button>
     {/if}
-    <button type="button" onclick={disconnectAndReload}>Disconnect</button>
+    <button type="button" onclick={onDisconnect}>Disconnect</button>
   </form>
 {/if}
 
