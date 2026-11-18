@@ -24,8 +24,30 @@
     "#f0e68c", // 12 - Khaki
   ];
 
+  /**
+   * What each color mostly shows, from the magicmap colors of the archetypes
+   * (the server's color names in brackets).
+   */
+  const MAGIC_MAP_LEGEND: string[] = [
+    "Unknown, dark walls", // 0 black
+    "Snow, metal", // 1 white
+    "Rivers, deep water", // 2 blue
+    "Lava, fire", // 3 red
+    "Doors, items", // 4 orange
+    "Lakes, shallow water", // 5 light_blue
+    "Castle walls, moats", // 6 dark_orange
+    "Grass, woods", // 7 green
+    "Fields", // 8 light_green
+    "Stone walls, floors, roads", // 9 grey
+    "Wooden walls, buildings", // 10 brown
+    "Lights, runes", // 11 yellow
+    "People, containers", // 12 khaki
+  ];
+
   let canvas: HTMLCanvasElement | undefined = $state();
   let drawVersion = $state(0);
+  /** Color indexes used in the shown map, for the legend. */
+  let usedColors = $state<number[]>([]);
 
   /** Whether a requestAnimationFrame callback is already pending. */
   let rafPending = false;
@@ -98,15 +120,24 @@
     ctx.fillRect(0, 0, canvasW, canvasH);
 
     // Draw each tile as a colored square.
+    const used = new Set<number>();
     for (let y = 0; y < cpl.mmapy; y++) {
       for (let x = 0; x < cpl.mmapx; x++) {
         const val = cpl.magicmap[y * cpl.mmapx + x]!;
         const colorIdx = val & FACE_COLOR_MASK;
+        used.add(colorIdx);
         const color = MAGIC_MAP_COLORS[colorIdx] ?? MAGIC_MAP_COLORS[0]!;
         ctx.fillStyle = color;
         ctx.fillRect(tileSize * x, tileSize * y, tileSize, tileSize);
       }
     }
+
+    // The legend lists the colors in use; black (unknown) last.
+    const nextUsed = [...used]
+      .filter((i) => i > 0 && i < MAGIC_MAP_LEGEND.length)
+      .sort((a, b) => a - b);
+    if (used.has(0)) nextUsed.push(0);
+    if (nextUsed.join() !== usedColors.join()) usedColors = nextUsed;
 
     // Flash the player position: alternate between Black and White each tick.
     if (cpl.showmagic) {
@@ -138,6 +169,20 @@
     <div class="magic-map-canvas-wrap">
       <canvas bind:this={canvas} width={640} height={640}></canvas>
     </div>
+    <ul class="magic-map-legend" aria-label="Map colors">
+      <li>
+        <span class="swatch you" aria-hidden="true"></span>You (flashing)
+      </li>
+      {#each usedColors as colorIdx (colorIdx)}
+        <li>
+          <span
+            class="swatch"
+            style:background={MAGIC_MAP_COLORS[colorIdx]}
+            aria-hidden="true"
+          ></span>{MAGIC_MAP_LEGEND[colorIdx]}
+        </li>
+      {/each}
+    </ul>
   </div>
 </div>
 
@@ -197,5 +242,50 @@
 
   canvas {
     image-rendering: pixelated;
+  }
+
+  .magic-map-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.2rem 0.8rem;
+    margin: 0;
+    padding: 0.3rem 0.6rem 0.4rem;
+    list-style: none;
+    border-top: 1px solid #333;
+    color: #c0b090;
+    font-size: 0.75rem;
+  }
+
+  .magic-map-legend li {
+    display: flex;
+    align-items: center;
+    gap: 0.3rem;
+  }
+
+  .swatch {
+    width: 0.8rem;
+    height: 0.8rem;
+    border: 1px solid #555;
+    flex-shrink: 0;
+  }
+
+  .swatch.you {
+    background: #ffffff;
+    animation: you-flash 1s steps(2, jump-none) infinite;
+  }
+
+  @keyframes you-flash {
+    from {
+      background: #ffffff;
+    }
+    to {
+      background: #000000;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .swatch.you {
+      animation: none;
+    }
   }
 </style>

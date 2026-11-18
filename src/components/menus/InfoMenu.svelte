@@ -204,21 +204,80 @@
   <div class="dialog-overlay">
     <div class="dialog dialog-wide">
       <p class="dialog-title">Help</p>
-      <p>
-        Type <strong>help</strong> in the command input to see in-game help about
-        commands.
-      </p>
-      <p>
-        Default key bindings are available in <strong>Keyboard</strong> →
-        <strong>Show key bindings</strong>.
-      </p>
-      <p>
-        Use <strong>Alt</strong> together with a movement key to run.
-      </p>
-      <p>
-        Use <strong>Shift</strong> with direction keys to fire the currently applied
-        object, spell, or prayer.
-      </p>
+      <div class="help-text">
+        <h4>Moving and fighting</h4>
+        <ul>
+          <li>
+            Move with the <strong>arrow keys</strong>, the
+            <strong>numpad</strong> or <strong>y u h j k l b n</strong>. Walk
+            into a monster to attack it.
+          </li>
+          <li>
+            Hold <strong>Alt</strong> with a direction to run, and
+            <strong>Shift</strong> to fire the readied spell, skill or ranged
+            weapon.
+            <strong>+</strong> and <strong>-</strong> change what is readied.
+          </li>
+          <li>
+            <strong>a</strong> applies (uses) what you stand on,
+            <strong>,</strong> picks it up and <strong>s</strong> searches.
+          </li>
+        </ul>
+        <h4>Mouse</h4>
+        <ul>
+          <li>
+            On the map, click a square to look at it; right-click to walk there.
+          </li>
+          <li>
+            Click an item, spell or skill to use it (items need a second click
+            unless turned off in <strong>Config</strong>); right-click it for
+            more actions, such as <strong>Drop N…</strong> or
+            <strong>Add to hotbar…</strong>.
+          </li>
+          <li>
+            <strong>Ctrl</strong>+wheel over the map zooms;
+            <strong>Config</strong> → <strong>Automatic Zoom</strong> fits it to the
+            window again.
+          </li>
+        </ul>
+        <h4>Commands and messages</h4>
+        <ul>
+          <li>
+            <strong>'</strong> opens the command line, <strong>Enter</strong>
+            starts a chat message and <strong>"</strong> says something to the people
+            next to you. Up and Down go through earlier commands; Tab completes them.
+          </li>
+          <li>
+            Type <strong>help</strong> for the server's help, or
+            <strong>help</strong> and a command name for that command.
+          </li>
+          <li>
+            When talking to someone, their reply choices appear above the
+            command line; press <strong>1</strong>–<strong>9</strong> to pick one.
+          </li>
+          <li>
+            Right-click a message to copy it or to filter what is shown; 🔍
+            searches the messages, and Page Up and Page Down scroll them from
+            the command line.
+          </li>
+        </ul>
+        <h4>Keyboard only</h4>
+        <ul>
+          <li>
+            <strong>Tab</strong> moves the focus to the menus, lists and
+            buttons; then use the arrow keys, <strong>Enter</strong> to choose,
+            <strong>m</strong> for a list entry's actions and
+            <strong>Esc</strong> to go back to the game.
+          </li>
+          <li>
+            <strong>F1</strong>–<strong>F12</strong> use the hotbar slots.
+          </li>
+          <li>
+            All key bindings are in <strong>Keyboard</strong> →
+            <strong>Show key bindings</strong>.
+          </li>
+        </ul>
+      </div>
       <div class="dialog-buttons">
         <button onclick={closeHelp}>Close</button>
       </div>
@@ -267,6 +326,29 @@
 {/if}
 
 <style>
+  .help-text {
+    max-height: 60vh;
+    overflow-y: auto;
+  }
+
+  .help-text h4 {
+    margin: 0.6rem 0 0.2rem;
+    color: var(--text-warm);
+  }
+
+  .help-text h4:first-child {
+    margin-top: 0;
+  }
+
+  .help-text ul {
+    margin: 0;
+    padding-left: 1.2rem;
+  }
+
+  .help-text li {
+    margin: 0.15rem 0;
+  }
+
   .hiscore-table {
     min-width: 100%;
     table-layout: auto;

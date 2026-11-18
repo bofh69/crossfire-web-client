@@ -62,6 +62,7 @@ export interface ClientConfig {
   fogGrayscale: boolean; // (web-client only) desaturate fog-of-war cells
   darknessInterpolation: boolean; // (web-client only) bilinear-interpolate darkness overlay
   confirmClickApply: boolean; // (web-client only) a left click on an item must be repeated to apply it
+  hideEmptyHotbar: boolean; // (web-client only) hide the hotbar until a slot is assigned
 
   // --- numeric values ---
   cWindow: number; // CONFIG_CWINDOW         = 4  (command-window depth)
@@ -146,6 +147,7 @@ const CONFIG_DESCS: (ConfigDesc | null)[] = [
   { key: "fogGrayscale", name: "fog_grayscale" }, // (web-only)
   { key: "darknessInterpolation", name: "darkness_interpolation" }, // (web-only)
   { key: "confirmClickApply", name: "confirm_click_apply" }, // (web-only)
+  { key: "hideEmptyHotbar", name: "hide_empty_hotbar" }, // (web-only)
 ];
 
 /** Desired configuration values. */
@@ -176,6 +178,7 @@ function initConfig(): void {
   wantConfig.fogwar = true;
   wantConfig.foodbeep = false;
   wantConfig.gradColor = false;
+  wantConfig.hideEmptyHotbar = false;
   wantConfig.iconscale = 100;
   wantConfig.invMenu = true;
   wantConfig.lighting = CFG_LT_PIXEL;

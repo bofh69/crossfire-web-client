@@ -260,6 +260,12 @@
           storedScale ?? computeScale(containerW, containerH, baseTileSize);
         updateStoredScale(current - 1);
       }),
+      gameEvents.on("zoomReset", () => {
+        if (storedScale === null) return;
+        storedScale = null;
+        saveConfig(ZOOM_STORAGE_KEY, null);
+        scheduleRedraw();
+      }),
       gameEvents.on("configReloaded", () => {
         storedScale = loadConfig<number | null>(ZOOM_STORAGE_KEY, null);
         scheduleRedraw();

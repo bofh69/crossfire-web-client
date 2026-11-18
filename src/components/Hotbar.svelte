@@ -19,6 +19,11 @@
   } from "../lib/hotbar";
   import { getFaceUrl } from "../lib/image";
   import { locateItem } from "../lib/item";
+  import {
+    MSG_TYPE_CLIENT,
+    MSG_TYPE_CLIENT_NOTICE,
+    NDI_WHITE,
+  } from "../lib/protocol";
 
   let currentSlots = $state([...getHotbarSlots()]);
   let gamepadMode = $state(false);
@@ -69,7 +74,21 @@
     return slot.face;
   }
 
+  /** How to fill an empty slot, shown in its tooltip and when it is clicked. */
+  const EMPTY_SLOT_HINT =
+    'Right-click an item, spell or skill and choose "Add to hotbar…".';
+
   function handleSlotClick(index: number) {
+    if (currentSlots[index] === null) {
+      gameEvents.emit(
+        "drawExtInfo",
+        NDI_WHITE,
+        MSG_TYPE_CLIENT,
+        MSG_TYPE_CLIENT_NOTICE,
+        `F${index + 1} is empty. ${EMPTY_SLOT_HINT}`,
+      );
+      return;
+    }
     activateHotbarSlot(index);
   }
 
@@ -109,7 +128,9 @@
         data-ui-nav-panel="hotbar"
         onclick={() => handleSlotClick(i)}
         oncontextmenu={(e: MouseEvent) => handleContextMenu(e, i)}
-        title={slot ? `F${i + 1}: ${slot.command}` : `F${i + 1} (empty)`}
+        title={slot
+          ? `F${i + 1}: ${slot.command}`
+          : `F${i + 1} (empty). ${EMPTY_SLOT_HINT}`}
       >
         <span class="fkey">F{i + 1}</span>
         {#if slot}

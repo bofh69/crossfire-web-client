@@ -799,7 +799,9 @@
 
   function refreshHotbarVisibility() {
     hotbarVisible =
-      getHotbarSlots().some((s) => s !== null) || isHotbarGamepadMode();
+      !useConfig.hideEmptyHotbar ||
+      getHotbarSlots().some((s) => s !== null) ||
+      isHotbarGamepadMode();
   }
 
   function wireCallbacks() {
