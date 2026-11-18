@@ -78,6 +78,9 @@ let currentMusic = "";
  */
 const missingMusic = new Set<string>();
 
+/** URL of the music file that played for each track name. */
+const musicUrls = new Map<string, string>();
+
 /** Master sound-enabled flag. */
 let soundEnabled = true;
 
@@ -359,9 +362,19 @@ function fadeInElement(
 }
 
 /**
+ * Whether `err` from `play()` means the file could not be loaded (missing or
+ * in an unsupported format), as opposed to e.g. autoplay being blocked.
+ */
+function isUnplayableFile(err: unknown): boolean {
+  return err instanceof DOMException && err.name === "NotSupportedError";
+}
+
+/**
  * Create a new Audio element for `name` and start playing it.
  * If `fadeIn` is true the track fades in over `MUSIC_FADE_IN_MS`; otherwise
- * it starts at full volume immediately.  OGG is tried first, with MP3 as fallback.
+ * it starts at full volume immediately.  OGG is tried first, with MP3 as
+ * fallback; the file that played is remembered in `musicUrls`, so a missing
+ * OGG file is only requested once.
  */
 function startTrack(name: string, fadeIn: boolean): void {
   if (missingMusic.has(name)) return;
@@ -370,42 +383,39 @@ function startTrack(name: string, fadeIn: boolean): void {
   const targetVol = (Math.min(musicVolume, 100) / 100) * MUSIC_VOLUME_CAP; // cap at 75 % like old client
   musicElement = el;
 
-  const oggUrl = `${SOUND_BASE}/music/${name}.ogg`;
-  const mp3Url = `${SOUND_BASE}/music/${name}.mp3`;
+  const knownUrl = musicUrls.get(name);
+  const urls = knownUrl
+    ? [knownUrl]
+    : [`${SOUND_BASE}/music/${name}.ogg`, `${SOUND_BASE}/music/${name}.mp3`];
 
-  el.src = oggUrl;
-  el.play()
-    .then(() => {
-      if (fadeIn) {
-        fadeInElement(el, targetVol, MUSIC_FADE_IN_MS);
-      } else {
-        el.volume = targetVol;
-      }
-    })
-    .catch(() => {
-      // OGG may not be supported; try MP3.
-      el.src = mp3Url;
-      el.play()
-        .then(() => {
-          if (fadeIn) {
-            fadeInElement(el, targetVol, MUSIC_FADE_IN_MS);
-          } else {
-            el.volume = targetVol;
-          }
-        })
-        .catch((err) => {
-          // A missing file fails with NotSupportedError; other errors, such
-          // as autoplay being blocked, may work later.
-          if (err instanceof DOMException && err.name === "NotSupportedError") {
-            missingMusic.add(name);
-          }
-          LOG(
-            LogLevel.Warning,
-            "playMusic",
-            `Could not play music "${name}": ${err}`,
-          );
-        });
-    });
+  const tryUrl = (index: number, allUnplayable: boolean): void => {
+    const url = urls[index]!;
+    el.src = url;
+    el.play()
+      .then(() => {
+        musicUrls.set(name, url);
+        if (fadeIn) {
+          fadeInElement(el, targetVol, MUSIC_FADE_IN_MS);
+        } else {
+          el.volume = targetVol;
+        }
+      })
+      .catch((err) => {
+        const unplayable = allUnplayable && isUnplayableFile(err);
+        if (index + 1 < urls.length) {
+          tryUrl(index + 1, unplayable);
+          return;
+        }
+        // Other errors, such as autoplay being blocked, may work later.
+        if (unplayable) missingMusic.add(name);
+        LOG(
+          LogLevel.Warning,
+          "playMusic",
+          `Could not play music "${name}": ${err}`,
+        );
+      });
+  };
+  tryUrl(0, true);
 }
 
 /**
