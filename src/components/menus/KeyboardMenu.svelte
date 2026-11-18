@@ -325,7 +325,7 @@
     }}>Keyboard</button
   >
   {#if isOpen}
-    <div class="dropdown" class:fading>
+    <div class="dropdown" class:fading data-ui-nav-scope="ui-menu-keyboard">
       <button
         data-ui-nav-id="ui-menu-keyboard-bind-last"
         data-ui-nav-panel="menubar"

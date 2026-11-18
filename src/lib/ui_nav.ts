@@ -330,6 +330,12 @@ export function performUiNavAction(action: UiNavAction): boolean {
       if (action === "move-end") {
         return moveToBoundary(true);
       }
+      if (
+        (action === "move-left" || action === "move-right") &&
+        adjustCurrentTarget(action === "move-right" ? 1 : -1)
+      ) {
+        return true;
+      }
       return moveDirectional(action);
     case "next-component":
       return moveSequentialByComponent(1);
@@ -417,6 +423,44 @@ function resetGamepadUiNavState(): void {
   uiNavState.prevStickDir = null;
 }
 
+/**
+ * Change the value of the current target when it is a slider or a drop-down
+ * list: a slider moves 5% of its range (at least one step), a list moves to
+ * the next or previous option.  The element gets the same input/change
+ * events as when the user changes it.
+ * @param delta 1 to increase / pick the next option, -1 for the opposite.
+ * @returns Whether the target was a slider or a list.
+ */
+function adjustCurrentTarget(delta: 1 | -1): boolean {
+  const target = getCurrentVisibleTarget();
+  if (target instanceof HTMLInputElement && target.type === "range") {
+    const min = Number(target.min || 0);
+    const max = Number(target.max || 100);
+    const step = Number(target.step) || 1;
+    const amount = Math.max(step, Math.round((max - min) / 20 / step) * step);
+    const value = Math.min(
+      max,
+      Math.max(min, Number(target.value) + delta * amount),
+    );
+    if (value !== Number(target.value)) {
+      target.value = String(value);
+      target.dispatchEvent(new Event("input", { bubbles: true }));
+      target.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+    return true;
+  }
+  if (target instanceof HTMLSelectElement) {
+    const index = target.selectedIndex + delta;
+    if (index >= 0 && index < target.options.length) {
+      target.selectedIndex = index;
+      target.dispatchEvent(new Event("input", { bubbles: true }));
+      target.dispatchEvent(new Event("change", { bubbles: true }));
+    }
+    return true;
+  }
+  return false;
+}
+
 function activateCurrentTarget(): boolean {
   const target = getCurrentVisibleTarget();
   if (!target) {
@@ -466,6 +510,41 @@ function moveDirectional(action: UiNavDirectionalAction): boolean {
   }
 
   const current = getCurrentVisibleTarget() ?? targets[0]!;
+
+  // Moves inside an element marked with data-ui-nav-scope (a menu-bar
+  // dropdown) stay inside it, so they never jump to something it covers.
+  // Leaving it goes through the target named by the attribute (the menu's
+  // button): Up from the first entry goes to that button, and Left/Right
+  // move on from it as if it had been the current target.  Left/Right only
+  // pick entries on the same row inside it.
+  const scope = current.closest<HTMLElement>("[data-ui-nav-scope]");
+  if (scope) {
+    const horizontal = action === "move-left" || action === "move-right";
+    const rowRect = current.getBoundingClientRect();
+    const bestInScope = pickDirectionalTarget(
+      current,
+      action,
+      targets.filter((candidate) => {
+        if (!scope.contains(candidate)) return false;
+        if (!horizontal) return true;
+        const rect = candidate.getBoundingClientRect();
+        const cy = rect.top + rect.height / 2;
+        return cy >= rowRect.top && cy <= rowRect.bottom;
+      }),
+    );
+    if (bestInScope) {
+      return setActiveTargetElement(bestInScope);
+    }
+    const owner = scope.dataset.uiNavScope
+      ? findVisibleTargetById(scope.dataset.uiNavScope)
+      : null;
+    if (!owner || action === "move-down") {
+      return true;
+    }
+    setActiveTargetElement(owner);
+    return action === "move-up" ? true : moveDirectional(action);
+  }
+
   const constrainedTargets = constrainedTargetsForAction(
     current,
     action,

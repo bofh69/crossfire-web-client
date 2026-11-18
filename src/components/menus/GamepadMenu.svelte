@@ -276,7 +276,7 @@
     }}>Gamepad</button
   >
   {#if isOpen}
-    <div class="dropdown" class:fading>
+    <div class="dropdown" class:fading data-ui-nav-scope="ui-menu-gamepad">
       {#if isGamepadConnected()}
         <button
           data-ui-nav-id="ui-menu-gamepad-bind-last"

@@ -77,7 +77,7 @@
     }}>Connection</button
   >
   {#if isOpen}
-    <div class="dropdown" class:fading>
+    <div class="dropdown" class:fading data-ui-nav-scope="ui-menu-connection">
       <button
         data-ui-nav-id="ui-menu-connection-disconnect"
         data-ui-nav-panel="menubar"
