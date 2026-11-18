@@ -5,12 +5,20 @@
  *   addquest  — server sends quest data at login or when new quests start
  *   updquest  — server updates an existing quest's completion/step
  *   addknowledge — server sends knowledge items at login or when new knowledge is gained
+ *
+ * Also tidies the server's reply when the quest list asks for a quest's details.
  */
 
 import { BinaryReader } from "./binary_reader.js";
 import { LOG } from "./misc.js";
-import { LogLevel } from "./protocol.js";
+import {
+  LogLevel,
+  MSG_TYPE_COMMAND,
+  MSG_TYPE_COMMAND_QUESTS,
+  SC_ALWAYS,
+} from "./protocol.js";
 import { gameEvents } from "./events.js";
+import { getLastNcomSeqSent, sendCommand } from "./player.js";
 
 // ── Quest ──────────────────────────────────────────────────────────────────
 
@@ -69,6 +77,72 @@ export function UpdQuestCmd(data: DataView, len: number): void {
     LOG(LogLevel.Warning, "UpdQuestCmd", `Parse error: ${e}`);
   }
   gameEvents.emit("questUpdate");
+}
+
+// ── Quest details requested from the quest list ────────────────────────────
+
+/** ncom sequence of the pending quest list request, or -1 if none. */
+let questInfoNcomSeq = -1;
+/** Title of the requested quest. */
+let questInfoTitle = "";
+/** Whether the reply's first "Quest:" / "Description:" line was seen. */
+let questInfoTitleSeen = false;
+let questInfoDescriptionSeen = false;
+
+/** A label of the server's quest details, e.g. `[color=#aa55ff]Quest:[/color] `. */
+const QUEST_INFO_LABEL = /^\[color=[^\]]*\](Quest|Description):\[\/color\] ?/;
+
+/**
+ * Ask the server for the details of `quest`, to be shown in the message log.
+ * The caller already shows the title, so the reply's own title line is
+ * dropped, and its "Description:" label too (see {@link tidyQuestInfoLine}).
+ */
+export function requestQuestInfo(quest: Quest): void {
+  // info_c looks the quest up by the client code the server sent.
+  if (!sendCommand(`quest info_c ${quest.code}`, 0, SC_ALWAYS)) return;
+  questInfoNcomSeq = getLastNcomSeqSent();
+  questInfoTitle = quest.title;
+  questInfoTitleSeen = false;
+  questInfoDescriptionSeen = false;
+}
+
+/**
+ * Tidy a drawextinfo line that may be part of the reply to
+ * {@link requestQuestInfo}: drop its first "Quest: <title>" line when the
+ * title is the requested quest's, and remove the label of its first
+ * "Description:" line.  Lines about the quest's sub-quests are kept as they
+ * are.
+ * @returns The message to show, or null to drop it.
+ */
+export function tidyQuestInfoLine(
+  type: number,
+  subtype: number,
+  message: string,
+): string | null {
+  if (
+    questInfoNcomSeq === -1 ||
+    type !== MSG_TYPE_COMMAND ||
+    subtype !== MSG_TYPE_COMMAND_QUESTS
+  ) {
+    return message;
+  }
+  const label = QUEST_INFO_LABEL.exec(message);
+  if (!label) return message;
+  const text = message.slice(label[0].length);
+  if (label[1] === "Quest" && !questInfoTitleSeen) {
+    questInfoTitleSeen = true;
+    return text.trim() === questInfoTitle.trim() ? null : message;
+  }
+  if (label[1] === "Description" && !questInfoDescriptionSeen) {
+    questInfoDescriptionSeen = true;
+    return text.trim() === "" ? null : text;
+  }
+  return message;
+}
+
+/** Stop tidying quest details once the server has finished command `seq`. */
+export function notifyQuestInfoAck(seq: number): void {
+  if (seq === questInfoNcomSeq) questInfoNcomSeq = -1;
 }
 
 // ── Knowledge ──────────────────────────────────────────────────────────────

@@ -1,9 +1,10 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { quests } from "../lib/commands";
+  import { quests, requestQuestInfo } from "../lib/commands";
   import type { Quest } from "../lib/commands";
   import { gameEvents } from "../lib/events";
   import { getFaceUrl } from "../lib/image";
+  import { NDI_NAVY } from "../lib/protocol";
 
   interface QuestNode {
     quest: Quest;
@@ -52,6 +53,12 @@
     return buildNodes(topLevel, 0, new Set());
   }
 
+  /** Show the quest's details in the message log, like knowledge items. */
+  function showInfo(quest: Quest) {
+    gameEvents.emit("drawInfo", NDI_NAVY, quest.title);
+    requestQuestInfo(quest);
+  }
+
   function updateQuests() {
     questNodes = buildTree();
   }
@@ -85,6 +92,7 @@
         </thead>
         <tbody>
           {#each questNodes as node (node.quest.code)}
+            <!-- svelte-ignore a11y_click_events_have_key_events -->
             <tr
               data-ui-nav-id={`ui-quest-${node.quest.code}`}
               data-ui-nav-group="quest-list"
@@ -92,6 +100,7 @@
               data-ui-nav-panel="quests"
               class:completed={node.quest.end}
               title={node.quest.step || undefined}
+              onclick={() => showInfo(node.quest)}
             >
               <td class="col-face">
                 {#if getFaceUrl(node.quest.face)}
@@ -165,6 +174,10 @@
 
   tr {
     color: var(--text);
+  }
+
+  tbody tr {
+    cursor: pointer;
   }
 
   tr:hover {
