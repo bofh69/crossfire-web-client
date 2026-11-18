@@ -642,9 +642,20 @@ export interface Spell {
   skill: string;
   path: number;
   face: number;
+  /** Whether the spell takes an argument: one of the SPELL_USAGE_* values. */
   usage: number;
+  /** Items needed to cast the spell, comma-separated; "" if none. */
   requirements: string;
 }
+
+/** Spell usage (addspell, spellmon 2): the spell takes no argument. */
+export const SPELL_USAGE_NONE = 0;
+/** Spell usage: the spell needs the name of another spell as argument. */
+export const SPELL_USAGE_SPELL = 1;
+/** Spell usage: the spell can take a text argument. */
+export const SPELL_USAGE_OPTIONAL_TEXT = 2;
+/** Spell usage: the spell needs a text argument. */
+export const SPELL_USAGE_TEXT = 3;
 
 export interface Item {
   tag: number;

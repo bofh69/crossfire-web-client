@@ -13,8 +13,8 @@
   import { gameEvents } from "../lib/events";
   import { setHotbarSlot } from "../lib/hotbar";
   import ContextMenu from "./ContextMenu.svelte";
-  import CountPrompt from "./CountPrompt.svelte";
   import HotbarSlotPicker from "./HotbarSlotPicker.svelte";
+  import MenuPrompt from "./MenuPrompt.svelte";
   import { playerStats } from "../lib/commands";
   import { charConfigKey, loadConfig, saveConfig } from "../lib/storage";
   import { capitalizeFirstLetter } from "../lib/misc";
@@ -838,10 +838,10 @@
         {/if}
       {/if}
       {#if countPrompt}
-        <CountPrompt
+        <MenuPrompt
           label={countPrompt.label}
           max={item.nrof}
-          onConfirm={countPrompt.onConfirm}
+          onConfirm={(count) => countPrompt?.onConfirm(Number(count))}
           onCancel={closeContextMenu}
         />
       {/if}
