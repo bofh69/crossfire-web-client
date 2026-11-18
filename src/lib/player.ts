@@ -129,12 +129,24 @@ export function clientSendExamine(tag: number): void {
   notifyUiNavCommandIssued();
 }
 
-export function clientSendMove(loc: number, tag: number, nrof: number): void {
+/**
+ * Move `nrof` of item `tag` (0 = all) into location `loc`: a container's tag,
+ * the player's tag for the inventory, or 0 for the ground.
+ * @param stayInUiNav Keep UI navigation mode on, so several items can be moved in a row.
+ */
+export function clientSendMove(
+  loc: number,
+  tag: number,
+  nrof: number,
+  stayInUiNav = false,
+): void {
   if (!csocket) {
     return;
   }
   csocket.sendString(`move ${loc} ${tag} ${nrof}`);
-  notifyUiNavCommandIssued();
+  if (!stayInUiNav) {
+    notifyUiNavCommandIssued();
+  }
 }
 
 // ── Fire / Run ───────────────────────────────────────────────────────────────

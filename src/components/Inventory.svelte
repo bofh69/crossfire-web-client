@@ -7,16 +7,18 @@
   } from "../lib/player";
   import { toggleLocked, locateItem, sendMarkObj } from "../lib/item";
   import { getFaceUrl } from "../lib/image";
-  import { getCpl } from "../lib/init";
+  import { getCpl, useConfig } from "../lib/init";
   import type { Item } from "../lib/protocol";
   import { F_UNIDENTIFIED } from "../lib/protocol";
   import { gameEvents } from "../lib/events";
   import { setHotbarSlot } from "../lib/hotbar";
-  import HotbarSlotPicker from "./HotbarSlotPicker.svelte";
   import ContextMenu from "./ContextMenu.svelte";
+  import CountPrompt from "./CountPrompt.svelte";
+  import HotbarSlotPicker from "./HotbarSlotPicker.svelte";
   import { playerStats } from "../lib/commands";
   import { charConfigKey, loadConfig, saveConfig } from "../lib/storage";
   import { capitalizeFirstLetter } from "../lib/misc";
+  import { focusUiNavTarget, isUiNavEnabled } from "../lib/ui_nav";
   import { recordUiInteraction } from "../lib/websocket-recording";
 
   interface FlatItem {
@@ -220,6 +222,17 @@
   } | null>(null);
   let itemCount = $state(0);
   let showSlotPicker = $state(false);
+  /** The "how many?" prompt shown in the context menu, if any. */
+  let countPrompt = $state<{
+    label: string;
+    onConfirm: (count: number) => void;
+  } | null>(null);
+
+  /** How long a first click on an item waits for the second click that applies it. */
+  const CLICK_APPLY_CONFIRM_MS = 3000;
+  /** Tag of the item clicked once and waiting for a second click to apply. */
+  let armedApplyTag = $state<number | null>(null);
+  let armedApplyTimer: ReturnType<typeof setTimeout> | null = null;
 
   /** Element refs for preserving scroll positions across inventory updates. */
   let playerListEl: HTMLElement | null = null;
@@ -362,6 +375,7 @@
     ];
     return () => {
       for (const unsub of cleanups) unsub();
+      disarmApply();
     };
   });
 
@@ -374,20 +388,95 @@
     contextMenu = null;
   }
 
-  function handleDrop(item: FlatItem) {
-    // Move item to ground (loc = 0)
-    clientSendMove(0, item.tag, getMoveCount());
-    clearCount();
-    contextMenu = null;
+  /**
+   * Apply an item clicked in a list.  When click confirmation is on, the
+   * first click only arms the item and a second click applies it.
+   */
+  function handleRowClick(item: FlatItem) {
+    if (!useConfig.confirmClickApply || armedApplyTag === item.tag) {
+      disarmApply();
+      handleApply(item.tag);
+      return;
+    }
+    disarmApply();
+    armedApplyTag = item.tag;
+    armedApplyTimer = setTimeout(disarmApply, CLICK_APPLY_CONFIRM_MS);
   }
 
-  function handlePickup(item: FlatItem) {
-    // Move item from ground to player (loc = player tag)
-    const cpl = getCpl();
-    const playerTag = cpl?.ob?.tag ?? 0;
-    clientSendMove(playerTag, item.tag, getMoveCount());
+  /** Forget an item waiting for a second click. */
+  function disarmApply() {
+    if (armedApplyTimer !== null) clearTimeout(armedApplyTimer);
+    armedApplyTimer = null;
+    armedApplyTag = null;
+  }
+
+  /** The UI-nav target ID of an item row. */
+  function rowNavId(item: FlatItem, isGround: boolean): string {
+    return isGround
+      ? `ui-ground-item-${item.tag}`
+      : `ui-inventory-item-${item.tag}`;
+  }
+
+  /**
+   * The row to focus after moving `count` of `item` (0 = all): the item
+   * itself when part of the stack stays, otherwise the next item at the same
+   * level, the previous one, or the enclosing container.
+   */
+  function rowNavIdAfterMove(
+    item: FlatItem,
+    count: number,
+    isGround: boolean,
+  ): string | null {
+    if (count > 0 && count < item.nrof) return rowNavId(item, isGround);
+    const rows = isGround ? groundItems : filteredPlayerItems;
+    const index = rows.findIndex((row) => row.tag === item.tag);
+    if (index < 0) return null;
+    // Deeper rows right below the item are its own contents and move with it.
+    let after = index + 1;
+    while (after < rows.length && rows[after]!.depth > item.depth) after++;
+    let target = rows[after]?.depth === item.depth ? rows[after] : undefined;
+    for (let i = index - 1; !target && i >= 0; i--) {
+      if (rows[i]!.depth <= item.depth) target = rows[i];
+    }
+    target ??= rows[after];
+    return target ? rowNavId(target, isGround) : null;
+  }
+
+  /**
+   * Move `count` of `item` (0 = all) to `loc`.  In UI-nav mode, stay in it
+   * and focus the next item, so several items can be moved in a row.
+   */
+  function moveItem(
+    item: FlatItem,
+    loc: number,
+    count: number,
+    isGround: boolean,
+  ) {
+    const stayInUiNav = isUiNavEnabled();
+    const focusId = stayInUiNav
+      ? rowNavIdAfterMove(item, count, isGround)
+      : null;
+    clientSendMove(loc, item.tag, count, stayInUiNav);
     clearCount();
-    contextMenu = null;
+    closeContextMenu();
+    if (focusId) void tick().then(() => focusUiNavTarget(focusId));
+  }
+
+  function handleDrop(item: FlatItem, count = getMoveCount()) {
+    // Move item to ground (loc = 0)
+    moveItem(item, 0, count, false);
+  }
+
+  function handlePickup(item: FlatItem, count = getMoveCount()) {
+    // Move item from ground to player (loc = player tag)
+    const playerTag = getCpl()?.ob?.tag ?? 0;
+    moveItem(item, playerTag, count, true);
+  }
+
+  /** Ask how many of `item` to act on, then call `onConfirm` with the count. */
+  function promptCount(label: string, onConfirm: (count: number) => void) {
+    showSlotPicker = false;
+    countPrompt = { label, onConfirm };
   }
 
   function handleLock(item: FlatItem) {
@@ -407,39 +496,33 @@
   }
 
   /** Move an item between the player inventory and the open container. */
-  function handleMoveToContainer(item: FlatItem) {
+  function handleMoveToContainer(item: FlatItem, count = getMoveCount()) {
     const cpl = getCpl();
     const container = cpl?.container;
     if (!container) {
       contextMenu = null;
       return;
     }
-    const count = getMoveCount();
     // If the item is currently in the container, move it to the player inventory.
     // Otherwise move it into the container.
     const realItem = locateItem(item.tag);
-    if (realItem?.env?.tag === container.tag) {
-      // Move to player inventory
-      const playerTag = cpl?.ob?.tag ?? 0;
-      clientSendMove(playerTag, item.tag, count);
-    } else {
-      // Move to container
-      clientSendMove(container.tag, item.tag, count);
-    }
-    clearCount();
-    contextMenu = null;
+    const loc =
+      realItem?.env?.tag === container.tag
+        ? (cpl?.ob?.tag ?? 0)
+        : container.tag;
+    moveItem(item, loc, count, false);
   }
 
   function handleContextMenu(e: MouseEvent, item: FlatItem, isGround: boolean) {
     e.preventDefault();
     showSlotPicker = false;
+    countPrompt = null;
+    disarmApply();
     // Place the menu so the cursor sits slightly inside the top-left corner.
     contextMenu = {
       isGround,
       item,
-      targetId: isGround
-        ? `ui-ground-item-${item.tag}`
-        : `ui-inventory-item-${item.tag}`,
+      targetId: rowNavId(item, isGround),
       x: e.clientX - 8,
       y: e.clientY - 8,
     };
@@ -448,9 +531,11 @@
   function closeContextMenu() {
     contextMenu = null;
     showSlotPicker = false;
+    countPrompt = null;
   }
 
   function handleAddToHotbar(_item: FlatItem) {
+    countPrompt = null;
     showSlotPicker = true;
   }
 
@@ -495,6 +580,14 @@
     itemCount = 0;
   }
 </script>
+
+{#snippet weightOrApplyHint(item: FlatItem)}
+  {#if armedApplyTag === item.tag}
+    <span class="apply-hint" role="status">Click again to apply</span>
+  {:else}
+    <span class="item-weight">{formatWeight(item.weight)}</span>
+  {/if}
+{/snippet}
 
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -550,6 +643,7 @@
           class:cursed={item.cursed || item.damned}
           class:magical={item.magical}
           class:applied={item.applied}
+          class:armed={armedApplyTag === item.tag}
           data-ui-nav-down-target={item === filteredPlayerItems.at(-1) &&
           groundItems.length > 0
             ? `ui-ground-item-${groundItems[0]!.tag}`
@@ -561,7 +655,7 @@
           data-ui-nav-panel="inventory"
           style:padding-left="{0.4 + item.depth * 1}rem"
           title={capitalizeFirstLetter(item.fullName)}
-          onclick={() => handleApply(item.tag)}
+          onclick={() => handleRowClick(item)}
           oncontextmenu={(e: MouseEvent) => handleContextMenu(e, item, false)}
         >
           {#if getFaceUrl(item.face)}
@@ -576,7 +670,7 @@
             {#if item.applied}*{/if}
             {#if item.unpaid}(unpaid){/if}
           </span>
-          <span class="item-weight">{formatWeight(item.weight)}</span>
+          {@render weightOrApplyHint(item)}
         </div>
       {/each}
     </div>
@@ -602,6 +696,7 @@
           class="item-row"
           class:cursed={item.cursed || item.damned}
           class:magical={item.magical}
+          class:armed={armedApplyTag === item.tag}
           data-ui-nav-id={`ui-ground-item-${item.tag}`}
           data-ui-nav-group="ground-items"
           data-ui-nav-group-policy="vertical"
@@ -609,7 +704,7 @@
           data-ui-nav-panel="inventory"
           style:padding-left="{0.4 + item.depth * 1}rem"
           title={capitalizeFirstLetter(item.fullName)}
-          onclick={() => handleApply(item.tag)}
+          onclick={() => handleRowClick(item)}
           oncontextmenu={(e: MouseEvent) => handleContextMenu(e, item, true)}
         >
           {#if getFaceUrl(item.face)}
@@ -621,7 +716,7 @@
             {capitalizeFirstLetter(item.name)}
             {#if item.open}📂{/if}
           </span>
-          <span class="item-weight">{formatWeight(item.weight)}</span>
+          {@render weightOrApplyHint(item)}
         </div>
       {/each}
     </div>
@@ -635,6 +730,15 @@
       {@const realItem = locateItem(item.tag)}
       {@const inContainer =
         openContainer !== null && realItem?.env?.tag === openContainer.tag}
+      {#snippet menuItem(label: string, action: () => void)}
+        <button
+          onclick={action}
+          oncontextmenu={(e) => {
+            e.preventDefault();
+            action();
+          }}>{label}</button
+        >
+      {/snippet}
       <button
         onclick={handleContextMenuActivate}
         oncontextmenu={(e) => {
@@ -657,6 +761,11 @@
             contextMenu && handlePickup(contextMenu.item);
           }}>Pickup</button
         >
+        {#if item.nrof > 1}
+          {@render menuItem("Pick up N…", () =>
+            promptCount("Pick up how many?", (n) => handlePickup(item, n)),
+          )}
+        {/if}
       {:else}
         {#if openContainer !== null}
           <button
@@ -669,6 +778,15 @@
           >
             {inContainer ? "Move to inventory" : "Move to container"}
           </button>
+          {#if item.nrof > 1}
+            {@render menuItem(
+              inContainer ? "Move N to inventory…" : "Move N to container…",
+              () =>
+                promptCount("Move how many?", (n) =>
+                  handleMoveToContainer(item, n),
+                ),
+            )}
+          {/if}
         {/if}
         <button
           onclick={() => contextMenu && handleDrop(contextMenu.item)}
@@ -677,6 +795,11 @@
             contextMenu && handleDrop(contextMenu.item);
           }}>Drop</button
         >
+        {#if item.nrof > 1}
+          {@render menuItem("Drop N…", () =>
+            promptCount("Drop how many?", (n) => handleDrop(item, n)),
+          )}
+        {/if}
         <button
           onclick={() => contextMenu && handleExamine(contextMenu.item)}
           oncontextmenu={(e) => {
@@ -713,6 +836,14 @@
             onCancel={closeContextMenu}
           />
         {/if}
+      {/if}
+      {#if countPrompt}
+        <CountPrompt
+          label={countPrompt.label}
+          max={item.nrof}
+          onConfirm={countPrompt.onConfirm}
+          onCancel={closeContextMenu}
+        />
       {/if}
     {/snippet}
     <ContextMenu x={contextMenu.x} y={contextMenu.y} onClose={closeContextMenu}>
@@ -829,6 +960,11 @@
     background: #351a1a;
   }
 
+  .item-row.armed {
+    outline: 1px solid var(--accent);
+    outline-offset: -1px;
+  }
+
   .item-icon {
     width: 24px;
     height: 24px;
@@ -857,6 +993,12 @@
 
   .item-weight {
     color: var(--text-dim);
+    font-size: 0.7rem;
+    flex-shrink: 0;
+  }
+
+  .apply-hint {
+    color: var(--text-warm);
     font-size: 0.7rem;
     flex-shrink: 0;
   }

@@ -41,6 +41,7 @@
 
   let musicVolume = $state(getMusicVolume());
   let sfxVolume = $state(getSfxVolume());
+  let confirmClickApply = $state(useConfig.confirmClickApply);
   let fogGrayscale = $state(useConfig.fogGrayscale);
   let darknessInterpolation = $state(useConfig.darknessInterpolation);
   let showColorsDialog = $state(false);
@@ -66,6 +67,14 @@
     const volume = Number(input.value);
     setSfxVolume(volume);
     sfxVolume = getSfxVolume();
+  }
+
+  function toggleConfirmClickApply() {
+    confirmClickApply = !confirmClickApply;
+    useConfig.confirmClickApply = confirmClickApply;
+    wantConfig.confirmClickApply = confirmClickApply;
+    saveCurrentConfig();
+    onClose();
   }
 
   function toggleFogGrayscale() {
@@ -409,6 +418,20 @@
         >{darknessInterpolation
           ? "Disable Darkness Interpolation"
           : "Enable Darkness Interpolation"}</button
+      >
+      <div class="separator"></div>
+      <button
+        data-ui-nav-id="ui-menu-config-confirm-click-apply"
+        data-ui-nav-panel="menubar"
+        title="When on, an item clicked in the inventory or ground list is only applied by a second click"
+        onclick={toggleConfirmClickApply}
+        oncontextmenu={(e) => {
+          e.preventDefault();
+          toggleConfirmClickApply();
+        }}
+        >{confirmClickApply
+          ? "Apply Items With One Click"
+          : "Click Items Twice to Apply"}</button
       >
       <div class="separator"></div>
       <button

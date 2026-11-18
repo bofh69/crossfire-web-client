@@ -61,6 +61,7 @@ export interface ClientConfig {
   debounce: boolean; // CONFIG_DEBOUNCE        = 36
   fogGrayscale: boolean; // (web-client only) desaturate fog-of-war cells
   darknessInterpolation: boolean; // (web-client only) bilinear-interpolate darkness overlay
+  confirmClickApply: boolean; // (web-client only) a left click on an item must be repeated to apply it
 
   // --- numeric values ---
   cWindow: number; // CONFIG_CWINDOW         = 4  (command-window depth)
@@ -144,6 +145,7 @@ const CONFIG_DESCS: (ConfigDesc | null)[] = [
   { key: "debounce", name: "debounce" }, // 36 CONFIG_DEBOUNCE
   { key: "fogGrayscale", name: "fog_grayscale" }, // (web-only)
   { key: "darknessInterpolation", name: "darkness_interpolation" }, // (web-only)
+  { key: "confirmClickApply", name: "confirm_click_apply" }, // (web-only)
 ];
 
 /** Desired configuration values. */
@@ -177,6 +179,7 @@ const isFirefox: boolean =
 function initConfig(): void {
   wantConfig.applyContainer = true;
   wantConfig.cache = false;
+  wantConfig.confirmClickApply = true;
   wantConfig.cWindow = COMMAND_WINDOW;
   wantConfig.darkness = true;
   wantConfig.debounce = true;
