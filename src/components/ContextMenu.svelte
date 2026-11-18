@@ -69,6 +69,21 @@
     });
   });
 
+  // A right-click outside the menu closes it.  The capture phase runs before
+  // the clicked element's own handler, which may then open a new menu.
+  $effect(() => {
+    const closeOnOutsideContextMenu = (e: MouseEvent) => {
+      if (menuEl && !menuEl.contains(e.target as Node)) onClose();
+    };
+    window.addEventListener("contextmenu", closeOnOutsideContextMenu, true);
+    return () =>
+      window.removeEventListener(
+        "contextmenu",
+        closeOnOutsideContextMenu,
+        true,
+      );
+  });
+
   // The menu can grow after it is shown (e.g. when a hotbar slot picker is
   // added to it), so keep it inside the viewport whenever its size changes.
   $effect(() => {
@@ -96,7 +111,14 @@
     }
   }
 
+  /** Whether a field in the menu has focus, e.g. a count being typed. */
+  function isTypingInMenu(): boolean {
+    const el = document.activeElement;
+    return !!el && !!menuEl?.contains(el) && el.matches("input, select");
+  }
+
   function handleMouseLeave() {
+    if (isTypingInMenu()) return;
     menuFading = true;
     fadeTimer = setTimeout(() => {
       menuFading = false;
@@ -131,6 +153,9 @@
   style:visibility={menuVisible ? "visible" : "hidden"}
   onmouseenter={handleMouseEnter}
   onmouseleave={handleMouseLeave}
+  onfocusin={() => {
+    if (isTypingInMenu()) handleMouseEnter();
+  }}
   onclick={(e) => e.stopPropagation()}
   role="menu"
   tabindex="-1"

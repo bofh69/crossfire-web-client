@@ -196,13 +196,20 @@ export async function clientConnect(
 
 /**
  * Disconnect from the current server.
+ *
+ * This is not reported as a "disconnect" event, which is only for
+ * connections the server or network closed; so a later connection is not
+ * mistaken for a lost one when the old socket finishes closing.
  */
 export function clientDisconnect(): void {
   if (csocket) {
     LOG(LogLevel.Debug, "client", "Closing server connection");
+    csocket.onDisconnect = null;
     csocket.disconnect();
     csocket = null;
   }
+  connectedServerUrl = null;
+  clearNotifications();
   stopHeartbeat();
   beatUnsubscribe?.();
   beatUnsubscribe = null;

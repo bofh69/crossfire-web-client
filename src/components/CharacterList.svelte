@@ -15,11 +15,12 @@
     onCreate: () => void;
     /** Called when the user wants to add an existing character. */
     onAddExisting: () => void;
-    /** Called when the user goes back to the account login. */
-    onBack: () => void;
+    /** Called when the user logs out of the account. */
+    onLogOut: () => void;
   }
 
-  let { characters, onPlay, onCreate, onAddExisting, onBack }: Props = $props();
+  let { characters, onPlay, onCreate, onAddExisting, onLogOut }: Props =
+    $props();
 </script>
 
 <div class="login-form">
@@ -40,7 +41,7 @@
   {/if}
   <button onclick={onCreate}>+ Create New Character</button>
   <button onclick={onAddExisting}>+ Add Existing Character</button>
-  <button class="back-btn" onclick={onBack}>← Back</button>
+  <button class="back-btn" onclick={onLogOut}>Log Out</button>
 </div>
 
 <style>
