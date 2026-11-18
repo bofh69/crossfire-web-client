@@ -73,6 +73,8 @@ export interface GameEventMap {
   query: [flags: number, prompt: string];
   newMap: [];
   mapUpdate: [];
+  /** A tick advanced a map animation, so the map needs redrawing. */
+  mapAnimated: [];
   playerUpdate: [];
   /** A character has logged in, so per-character settings can be loaded. */
   characterLogin: [name: string];

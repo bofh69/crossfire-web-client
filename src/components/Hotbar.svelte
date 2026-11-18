@@ -39,9 +39,6 @@
       gameEvents.on("playerUpdate", () => {
         inventoryVersion++;
       }),
-      gameEvents.on("tick", () => {
-        inventoryVersion++;
-      }),
       gameEvents.on("uiNavTargetChanged", (targetId) => {
         if (
           contextMenu &&

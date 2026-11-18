@@ -1010,24 +1010,31 @@ function animateList(head: Item | null): boolean {
 /**
  * Called once per tick to advance animation frames for items in the
  * player's inventory, an open container, or the map / look window.
+ *
+ * @returns True if any item changed face, so item lists need refreshing.
  */
-export function animateObjects(): void {
+export function animateObjects(): boolean {
+  let changed = false;
   // Player inventory
   if (animateList(player.inv)) {
     player.invUpdated = true;
+    changed = true;
   }
 
   if (cpl?.container) {
     // Open container
     if (animateList(cpl.container.inv)) {
       cpl.container.invUpdated = true;
+      changed = true;
     }
   } else if (cpl?.below) {
     // Ground / look window
     if (animateList(cpl.below.inv)) {
       cpl.below.invUpdated = true;
+      changed = true;
     }
   }
+  return changed;
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
