@@ -56,6 +56,7 @@ export {
   knowledgeItems,
   knowledgeTypeInfos,
   clearNotifications,
+  requestQuestInfo,
 } from "./cmd_notifications.js";
 export type {
   Quest,
@@ -98,7 +99,9 @@ import {
   AddQuestCmd,
   UpdQuestCmd,
   AddKnowledgeCmd,
+  notifyQuestInfoAck,
   parseKnowledgeInfo,
+  tidyQuestInfoLine,
 } from "./cmd_notifications.js";
 import {
   processDialogExtInfo,
@@ -190,13 +193,9 @@ function DrawExtInfoCmd(data: string): void {
     // Suppressed by dialog state machine (Replies: header or key/value line).
     return;
   }
-  gameEvents.emit(
-    "drawExtInfo",
-    color & NDI_COLOR_MASK,
-    type,
-    subtype,
-    message,
-  );
+  const shown = tidyQuestInfoLine(type, subtype, message);
+  if (shown === null) return;
+  gameEvents.emit("drawExtInfo", color & NDI_COLOR_MASK, type, subtype, shown);
 }
 
 function handleQuery(data: string): void {
@@ -221,6 +220,7 @@ function ComcCmd(data: DataView, len: number): void {
   }
   const seq = new BinaryReader(data, len).readInt16();
   notifyNcomAck(seq);
+  notifyQuestInfoAck(seq);
 
   // If this comc acknowledges the pending hiscore command, emit all buffered
   // lines as a single hiscoreResult event.
