@@ -27,8 +27,13 @@
   <h3 class="panel-title">Choose Character</h3>
   {#if characters.length > 0}
     <div class="character-list">
-      {#each characters as char}
-        <button class="character-entry" onclick={() => onPlay(char.name)}>
+      {#each characters as char, i}
+        <!-- svelte-ignore a11y_autofocus -->
+        <button
+          class="character-entry"
+          autofocus={i === 0}
+          onclick={() => onPlay(char.name)}
+        >
           <span class="char-name">{char.name}</span>
           <span class="char-details"
             >{char.charClass} {char.race} — Level {char.level}</span
@@ -39,7 +44,10 @@
   {:else}
     <p class="status">No characters on this account yet.</p>
   {/if}
-  <button onclick={onCreate}>+ Create New Character</button>
+  <!-- svelte-ignore a11y_autofocus -->
+  <button autofocus={characters.length === 0} onclick={onCreate}
+    >+ Create New Character</button
+  >
   <button onclick={onAddExisting}>+ Add Existing Character</button>
   <button class="back-btn" onclick={onLogOut}>Log Out</button>
 </div>
@@ -51,6 +59,10 @@
     gap: 0.5rem;
     max-height: 40vh;
     overflow-y: auto;
+    /* Room for the focus outline, which the scroll box would clip, without
+       moving the entries. */
+    margin: -4px;
+    padding: 4px;
   }
 
   .character-entry {
