@@ -400,7 +400,12 @@ function startTrack(name: string, fadeIn: boolean): void {
  * @param name  Music track name (without path or extension), or `"NONE"`.
  */
 export function playMusic(name: string): void {
-  if (!soundEnabled || musicVolume <= 0) return;
+  if (!soundEnabled) return;
+  if (musicVolume <= 0) {
+    // Remember the track, so that turning the volume up starts it.
+    currentMusic = name;
+    return;
+  }
   if (name === currentMusic) return;
   currentMusic = name;
 
