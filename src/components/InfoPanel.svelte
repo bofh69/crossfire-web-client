@@ -42,6 +42,7 @@
   import { gameEvents } from "../lib/events";
   import { MSG_BUFFER_MAX, MSG_BUFFER_TRIM } from "../lib/constants";
   import { sendCommand } from "../lib/player";
+  import { loadConfig, saveConfig } from "../lib/storage";
   import { recordUiInteraction } from "../lib/websocket-recording";
   import ContextMenu from "./ContextMenu.svelte";
 
@@ -50,6 +51,8 @@
   interface Message {
     spans: MessageSpan[];
     rawText: string;
+    /** The text without markup, for search and copying. */
+    plainText: string;
     rawColor: number;
     count: number;
     /** MSG_TYPE_* value from drawExtInfo, or null for plain drawInfo messages. */
@@ -129,20 +132,92 @@
 
   const ALL_CATEGORY_IDS = new Set(CATEGORY_FILTERS.map((f) => f.id));
 
+  /** Config key of the saved filter and split-view settings. */
+  const FILTERS_KEY = "info_filters";
+  /** Config key of the saved command history. */
+  const HISTORY_KEY = "info_commandHistory";
+  /** How many commands the saved history keeps. */
+  const MAX_SAVED_HISTORY = 100;
+  /** Commands that take a password, which are never saved in the history. */
+  const UNSAVED_COMMANDS = new Set(["dm", "passwd"]);
+
+  /** Whether `cmd` may be saved in the browser's command history. */
+  function isSavableCommand(cmd: string): boolean {
+    const name = cmd.trim().split(/\s+/)[0]?.toLowerCase() ?? "";
+    return !UNSAVED_COMMANDS.has(name);
+  }
+
+  /** Filter settings of one view, as saved. */
+  interface SavedViewFilters {
+    showAll: boolean;
+    categories: string[];
+  }
+
+  /** Filter and split-view settings, as saved. */
+  interface SavedFilters {
+    split: boolean;
+    single: SavedViewFilters;
+    left: SavedViewFilters;
+    right: SavedViewFilters;
+  }
+
+  /** Saved filters of one view, or "all messages" when missing or invalid. */
+  function loadViewFilters(saved: unknown): {
+    showAll: boolean;
+    enabled: Set<string>;
+  } {
+    const view = saved as Partial<SavedViewFilters> | null;
+    if (!view || !Array.isArray(view.categories)) {
+      return { showAll: true, enabled: new Set(ALL_CATEGORY_IDS) };
+    }
+    return {
+      showAll: view.showAll !== false,
+      enabled: new Set(
+        view.categories.filter((id) => ALL_CATEGORY_IDS.has(id)),
+      ),
+    };
+  }
+
+  const savedFilters = loadConfig<Partial<SavedFilters> | null>(
+    FILTERS_KEY,
+    null,
+  );
+  const savedSingle = loadViewFilters(savedFilters?.single);
+  const savedLeft = loadViewFilters(savedFilters?.left);
+  const savedRight = loadViewFilters(savedFilters?.right);
+
   let messages: Message[] = $state([]);
   /** Currently active NPC dialog reply options.  Empty array = none shown. */
   let dialogOptions: Array<{ key: string; value: string }> = $state([]);
 
   /** Single-view filter state */
-  let showAll = $state(true);
-  let enabledCategories = $state<Set<string>>(new Set(ALL_CATEGORY_IDS));
+  let showAll = $state(savedSingle.showAll);
+  let enabledCategories = $state<Set<string>>(savedSingle.enabled);
 
   /** Split-view filter state */
-  let isSplit = $state(false);
-  let leftShowAll = $state(true);
-  let rightShowAll = $state(true);
-  let leftEnabledCategories = $state<Set<string>>(new Set(ALL_CATEGORY_IDS));
-  let rightEnabledCategories = $state<Set<string>>(new Set(ALL_CATEGORY_IDS));
+  let isSplit = $state(savedFilters?.split === true);
+  let leftShowAll = $state(savedLeft.showAll);
+  let rightShowAll = $state(savedRight.showAll);
+  let leftEnabledCategories = $state<Set<string>>(savedLeft.enabled);
+  let rightEnabledCategories = $state<Set<string>>(savedRight.enabled);
+
+  // Save the filter and split-view settings whenever they change.
+  $effect(() => {
+    const saved: SavedFilters = {
+      split: isSplit,
+      single: { showAll, categories: [...enabledCategories] },
+      left: { showAll: leftShowAll, categories: [...leftEnabledCategories] },
+      right: { showAll: rightShowAll, categories: [...rightEnabledCategories] },
+    };
+    saveConfig(FILTERS_KEY, saved);
+  });
+
+  /** Whether the search bar is shown, and the text searched for. */
+  let searchOpen = $state(false);
+  let searchText = $state("");
+  let searchEl: HTMLInputElement | undefined = $state();
+  /** The search text in lower case, or "" when not searching. */
+  let searchQuery = $derived(searchOpen ? searchText.trim().toLowerCase() : "");
 
   let commandInput = $state("");
   let singleMessagesDiv: HTMLDivElement | undefined = $state();
@@ -169,8 +244,13 @@
   });
   let inputEl: HTMLInputElement | undefined = $state();
 
-  // Command history: oldest entry at index 0, newest at the end.
-  let commandHistory: string[] = $state([]);
+  // Command history: oldest entry at index 0, newest at the end.  It is
+  // saved, so it survives a reload.
+  let commandHistory: string[] = $state(
+    loadConfig<unknown[]>(HISTORY_KEY, [])
+      .filter((cmd): cmd is string => typeof cmd === "string")
+      .slice(-MAX_SAVED_HISTORY),
+  );
   // -1 = not browsing history (live input); counts from newest (0) to oldest (length-1).
   let historyIndex = $state(-1);
   // Current input saved before browsing so we can restore it on ArrowDown.
@@ -185,34 +265,37 @@
     view: PanelViewId;
   } | null>(null);
 
-  let displayMessages = $derived(
-    showAll
-      ? messages
-      : messages.filter((m) =>
-          CATEGORY_FILTERS.some(
-            (f) => enabledCategories.has(f.id) && f.match(m.msgType),
-          ),
-        ),
-  );
+  /** Whether `message` contains the search text (always true when not searching). */
+  function matchesSearch(message: Message): boolean {
+    return (
+      searchQuery === "" ||
+      message.plainText.toLowerCase().includes(searchQuery)
+    );
+  }
 
+  /** The messages a view shows with these filter settings and the search. */
+  function filterMessages(all: boolean, enabled: Set<string>): Message[] {
+    if (all && searchQuery === "") return messages;
+    return messages.filter(
+      (m) =>
+        (all ||
+          CATEGORY_FILTERS.some(
+            (f) => enabled.has(f.id) && f.match(m.msgType),
+          )) &&
+        matchesSearch(m),
+    );
+  }
+
+  let displayMessages = $derived(filterMessages(showAll, enabledCategories));
   let leftDisplayMessages = $derived(
-    leftShowAll
-      ? messages
-      : messages.filter((m) =>
-          CATEGORY_FILTERS.some(
-            (f) => leftEnabledCategories.has(f.id) && f.match(m.msgType),
-          ),
-        ),
+    filterMessages(leftShowAll, leftEnabledCategories),
   );
-
   let rightDisplayMessages = $derived(
-    rightShowAll
-      ? messages
-      : messages.filter((m) =>
-          CATEGORY_FILTERS.some(
-            (f) => rightEnabledCategories.has(f.id) && f.match(m.msgType),
-          ),
-        ),
+    filterMessages(rightShowAll, rightEnabledCategories),
+  );
+  /** Number of messages that contain the search text. */
+  let searchMatchCount = $derived(
+    searchQuery === "" ? 0 : messages.filter(matchesSearch).length,
   );
 
   function viewShowAll(view: PanelViewId): boolean {
@@ -560,6 +643,18 @@
     closeContextMenu();
   }
 
+  /** Copies the text of the right-clicked message. */
+  async function handleCopyMessageFromMenu() {
+    if (!contextMenu) return;
+    try {
+      await copyTextToClipboard(contextMenu.message.plainText);
+    } catch (error) {
+      console.error("Failed to copy message from info panel:", error);
+    } finally {
+      closeContextMenu();
+    }
+  }
+
   /**
    * Copies currently selected info panel text using the context menu action.
    *
@@ -604,6 +699,7 @@
       const newMsg: Message = {
         spans,
         rawText: text,
+        plainText: spans.map((span) => span.text).join(""),
         rawColor: color,
         count: 1,
         msgType,
@@ -660,6 +756,52 @@
     addMessage(0, ` - ${value}`, MSG_TYPE_COMMUNICATION, null);
     dialogOptions = [];
   }
+
+  /**
+   * Pick an NPC reply with the number keys 1–9 of the main keyboard (not the
+   * keypad, which is used for moving) while reply buttons are shown.
+   * @returns Whether `e` picked a reply.
+   */
+  export function handleDialogShortcut(e: KeyboardEvent): boolean {
+    if (dialogOptions.length === 0) return false;
+    if (e.ctrlKey || e.altKey || e.metaKey || e.shiftKey) return false;
+    const match = /^Digit([1-9])$/.exec(e.code);
+    if (!match) return false;
+    const option = dialogOptions[Number(match[1]) - 1];
+    if (!option) return false;
+    handleDialogOptionClick(option.key, option.value);
+    return true;
+  }
+
+  /** Show or hide the search bar; hiding it clears the search. */
+  function toggleSearch() {
+    if (searchOpen) {
+      closeSearch();
+      return;
+    }
+    searchOpen = true;
+    requestAnimationFrame(() => searchEl?.focus());
+  }
+
+  function closeSearch() {
+    searchOpen = false;
+    searchText = "";
+    scrollAllViewsToBottom();
+  }
+
+  function handleSearchKeydown(e: KeyboardEvent) {
+    if (e.key === "Escape") {
+      e.stopPropagation();
+      closeSearch();
+      searchEl?.blur();
+    }
+  }
+
+  // Show the newest matches whenever the search changes.
+  $effect(() => {
+    void searchQuery;
+    scrollAllViewsToBottom();
+  });
 
   onMount(() => {
     const cleanups = [
@@ -784,6 +926,10 @@
       commandHistory[commandHistory.length - 1] !== cmd
     ) {
       commandHistory = [...commandHistory, cmd];
+      saveConfig(
+        HISTORY_KEY,
+        commandHistory.filter(isSavableCommand).slice(-MAX_SAVED_HISTORY),
+      );
     }
     historyIndex = -1;
     savedInput = "";
@@ -1133,15 +1279,42 @@
 
   {#if dialogOptions.length > 0}
     <div class="dialog-options">
-      {#each dialogOptions as option}
+      {#each dialogOptions as option, i}
         <button
           class="dialog-option-btn"
           data-ui-nav-id={`ui-info-dialog-option-${option.key}`}
           data-ui-nav-panel="info"
+          aria-keyshortcuts={i < 9 ? String(i + 1) : undefined}
           onclick={() => handleDialogOptionClick(option.key, option.value)}
-          >{option.value}</button
+          >{#if i < 9}<span class="dialog-option-key" aria-hidden="true"
+              >{i + 1}</span
+            >{/if}{option.value}</button
         >
       {/each}
+    </div>
+  {/if}
+
+  {#if searchOpen}
+    <div class="search-row">
+      <input
+        type="search"
+        bind:value={searchText}
+        bind:this={searchEl}
+        onkeydown={handleSearchKeydown}
+        placeholder="Search messages..."
+        aria-label="Search messages"
+      />
+      {#if searchQuery !== ""}
+        <span class="search-count" aria-live="polite"
+          >{searchMatchCount} found</span
+        >
+      {/if}
+      <button
+        data-ui-nav-skip="true"
+        title="Close search"
+        aria-label="Close search"
+        onclick={closeSearch}>✕</button
+      >
     </div>
   {/if}
 
@@ -1155,6 +1328,15 @@
       placeholder="Type command..."
       disabled={inputDisabled}
     />
+    <button
+      class="search-btn"
+      class:active={searchOpen}
+      data-ui-nav-skip="true"
+      title="Search messages"
+      aria-label="Search messages"
+      aria-pressed={searchOpen}
+      onclick={toggleSearch}>🔍</button
+    >
     <button
       data-ui-nav-skip="true"
       onclick={submitCommand}
@@ -1175,9 +1357,17 @@
           oncontextmenu={(e) => {
             e.preventDefault();
             void handleCopyFromMenu();
-          }}>Copy</button
+          }}>Copy selection</button
         >
       {/if}
+      <button
+        type="button"
+        onclick={handleCopyMessageFromMenu}
+        oncontextmenu={(e) => {
+          e.preventDefault();
+          void handleCopyMessageFromMenu();
+        }}>Copy message</button
+      >
       <button
         disabled={!menuHasType}
         onclick={handleStopListeningFromMenu}
@@ -1502,6 +1692,32 @@
   .dialog-option-btn:hover {
     background: #2a3e2a;
     border-color: #5a9a5a;
+  }
+
+  .dialog-option-key {
+    display: inline-block;
+    min-width: 1.2em;
+    margin-right: 0.4rem;
+    color: var(--text-warm-dim);
+    font-family: var(--mono);
+  }
+
+  .search-row {
+    display: flex;
+    align-items: center;
+    border-top: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .search-count {
+    padding: 0 0.5rem;
+    color: var(--text-dim);
+    font-size: 0.75rem;
+    white-space: nowrap;
+  }
+
+  .search-btn.active {
+    background: var(--border-mid);
   }
 
   input {

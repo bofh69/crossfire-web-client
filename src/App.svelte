@@ -304,6 +304,7 @@
   let fireOn = $state(false);
   let runOn = $state(false);
 
+  let infoPanel: InfoPanel | undefined = $state();
   let menuBar: MenuBar | undefined = $state();
   let showMagicMap = $state(false);
 
@@ -687,6 +688,12 @@
           recordKeyInput("Control", "up", "");
         }
 
+        // 1–9 pick an NPC reply while reply buttons are shown.
+        if (infoPanel?.handleDialogShortcut(e)) {
+          e.preventDefault();
+          break;
+        }
+
         // F1–F12 activate hotbar slots before keybinding lookup.
         if (e.key.startsWith("F") && e.key.length <= 3) {
           const fNum = parseInt(e.key.slice(1), 10);
@@ -1027,7 +1034,7 @@
       data-ui-nav-id="ui-panel-info"
       data-ui-nav-panel="info"
     >
-      <InfoPanel inputDisabled={gameQuery.active} />
+      <InfoPanel bind:this={infoPanel} inputDisabled={gameQuery.active} />
     </div>
     <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
     <div
