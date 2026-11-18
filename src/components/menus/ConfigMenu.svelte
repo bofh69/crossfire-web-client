@@ -43,6 +43,7 @@
   let sfxVolume = $state(getSfxVolume());
   let confirmClickApply = $state(useConfig.confirmClickApply);
   let fogGrayscale = $state(useConfig.fogGrayscale);
+  let hideEmptyHotbar = $state(useConfig.hideEmptyHotbar);
   let darknessInterpolation = $state(useConfig.darknessInterpolation);
   let showColorsDialog = $state(false);
   let editableBackgroundColor = $state(INFO_PANEL_BACKGROUND_DEFAULT);
@@ -77,6 +78,16 @@
     onClose();
   }
 
+  function toggleHideEmptyHotbar() {
+    hideEmptyHotbar = !hideEmptyHotbar;
+    useConfig.hideEmptyHotbar = hideEmptyHotbar;
+    wantConfig.hideEmptyHotbar = hideEmptyHotbar;
+    saveCurrentConfig();
+    // The game layout shows or hides the hotbar on hotbar updates.
+    gameEvents.emit("hotbarUpdate");
+    onClose();
+  }
+
   function toggleFogGrayscale() {
     fogGrayscale = !fogGrayscale;
     useConfig.fogGrayscale = fogGrayscale;
@@ -100,6 +111,11 @@
 
   function handleZoomOut() {
     gameEvents.emit("zoomOut");
+    onClose();
+  }
+
+  function handleZoomReset() {
+    gameEvents.emit("zoomReset");
     onClose();
   }
 
@@ -437,6 +453,19 @@
           ? "Apply Items With One Click"
           : "Click Items Twice to Apply"}</button
       >
+      <button
+        data-ui-nav-id="ui-menu-config-hide-empty-hotbar"
+        data-ui-nav-panel="menubar"
+        title="Whether the F1–F12 hotbar is shown before anything is added to it"
+        onclick={toggleHideEmptyHotbar}
+        oncontextmenu={(e) => {
+          e.preventDefault();
+          toggleHideEmptyHotbar();
+        }}
+        >{hideEmptyHotbar
+          ? "Always Show Hotbar"
+          : "Hide Hotbar While Empty"}</button
+      >
       <div class="separator"></div>
       <button
         data-ui-nav-id="ui-menu-config-zoom-in"
@@ -455,6 +484,16 @@
           e.preventDefault();
           handleZoomOut();
         }}>Zoom Out</button
+      >
+      <button
+        data-ui-nav-id="ui-menu-config-zoom-reset"
+        data-ui-nav-panel="menubar"
+        title="Size the map tiles to fit the window again (Ctrl+wheel over the map also zooms)"
+        onclick={handleZoomReset}
+        oncontextmenu={(e) => {
+          e.preventDefault();
+          handleZoomReset();
+        }}>Automatic Zoom</button
       >
       <div class="separator"></div>
       {#if clientIsConnected() && hasFacesetInfo() && availableFacesets.length > 0}

@@ -141,6 +141,8 @@ export interface GameEventMap {
   zoomIn: [];
   /** Decrease the tile zoom level by one step. */
   zoomOut: [];
+  /** Go back to the automatic tile zoom level that fits the window. */
+  zoomReset: [];
   /** The saved configuration was replaced; re-read settings kept in state. */
   configReloaded: [];
   /** Emitted when UI-nav focus moves to another target ID. */
