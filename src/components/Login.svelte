@@ -370,15 +370,26 @@
       {#if !hideAddressInput}
         <label>
           Server Address
+          <!-- svelte-ignore a11y_autofocus -->
           <input
             type="text"
             bind:value={serverAddress}
+            autofocus
+            onkeydown={(e) => {
+              if (e.key === "Enter" && !connecting) handleConnect();
+            }}
             placeholder="ws://hostname:port"
             disabled={connecting}
           />
         </label>
       {/if}
-      <button onclick={handleConnect} disabled={connecting}>
+      <!-- Focus the button when there is no address to type. -->
+      <!-- svelte-ignore a11y_autofocus -->
+      <button
+        onclick={handleConnect}
+        disabled={connecting}
+        autofocus={hideAddressInput}
+      >
         {connecting ? "Connecting..." : autoLogin ? "Reconnect" : "Enter"}
       </button>
     </div>
