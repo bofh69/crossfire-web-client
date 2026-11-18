@@ -4,6 +4,16 @@
   import type { Stats } from "../lib/protocol";
   import { gameEvents } from "../lib/events";
   import { MAX_FOOD } from "../lib/constants";
+  import {
+    MSG_TYPE_CLIENT,
+    MSG_TYPE_CLIENT_NOTICE,
+    NDI_RED,
+  } from "../lib/protocol";
+
+  /** HP or food below this percentage of the maximum gives a warning. */
+  const LOW_PERCENT = 25;
+  /** A new warning is given only after rising above this percentage again. */
+  const REARM_PERCENT = 35;
 
   let stats: Stats = $state({
     Str: 0,
@@ -63,8 +73,46 @@
     appliedPow: 0,
   });
 
+  /** Whether a low-HP / low-food warning was given and not yet re-armed. */
+  let hpWarned = false;
+  let foodWarned = false;
+
   function updateStats(newStats: Partial<Stats>) {
     stats = { ...stats, ...newStats };
+    // maxhp is 0 until the first real stats arrive.
+    if (stats.maxhp <= 0) return;
+    hpWarned = warnWhenLow(
+      barPercent(stats.hp, stats.maxhp),
+      hpWarned,
+      "Warning: your health is low!",
+    );
+    foodWarned = warnWhenLow(
+      barPercent(stats.food, MAX_FOOD),
+      foodWarned,
+      "Warning: you are getting hungry. Eat something!",
+    );
+  }
+
+  /**
+   * Print `message` in the message log when `percent` drops below
+   * LOW_PERCENT, unless already `warned`.
+   * @returns Whether the warning is still in effect.
+   */
+  function warnWhenLow(
+    percent: number,
+    warned: boolean,
+    message: string,
+  ): boolean {
+    if (percent >= REARM_PERCENT) return false;
+    if (warned || percent >= LOW_PERCENT) return warned;
+    gameEvents.emit(
+      "drawExtInfo",
+      NDI_RED,
+      MSG_TYPE_CLIENT,
+      MSG_TYPE_CLIENT_NOTICE,
+      message,
+    );
+    return true;
   }
 
   onMount(() => {
@@ -87,6 +135,8 @@
   let spPercent = $derived(barPercent(stats.sp, stats.maxsp));
   let gracePercent = $derived(barPercent(stats.grace, stats.maxgrace));
   let foodPercent = $derived(barPercent(stats.food, MAX_FOOD));
+  let hpLow = $derived(stats.maxhp > 0 && hpPercent < LOW_PERCENT);
+  let foodLow = $derived(stats.maxhp > 0 && foodPercent < LOW_PERCENT);
   // expTable is a plain array mutated on login; re-evaluated whenever stats updates.
   let expPercent = $derived(expBarPercent(stats.exp, stats.level));
 </script>
@@ -95,7 +145,7 @@
   <h3>{stats.title ? stats.title : "Stats"}</h3>
 
   <div class="bars">
-    <div class="bar-row">
+    <div class="bar-row" class:low={hpLow}>
       <span class="bar-label">HP</span>
       <div class="bar-track">
         <div
@@ -128,7 +178,7 @@
       </div>
       <span class="bar-value">{stats.grace}/{stats.maxgrace}</span>
     </div>
-    <div class="bar-row">
+    <div class="bar-row" class:low={foodLow}>
       <span class="bar-label">Food</span>
       <div class="bar-track">
         <div
@@ -235,6 +285,33 @@
     background: #222;
     border-radius: 2px;
     overflow: hidden;
+  }
+
+  /* A low HP or food bar pulses until it recovers. */
+  .bar-row.low .bar-label,
+  .bar-row.low .bar-value {
+    color: var(--danger-text);
+    font-weight: bold;
+  }
+
+  .bar-row.low .bar-track {
+    outline: 1px solid var(--danger-text);
+    animation: low-pulse 1s ease-in-out infinite alternate;
+  }
+
+  @keyframes low-pulse {
+    from {
+      box-shadow: 0 0 0 transparent;
+    }
+    to {
+      box-shadow: 0 0 6px var(--danger-text);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .bar-row.low .bar-track {
+      animation: none;
+    }
   }
 
   .bar-fill {
