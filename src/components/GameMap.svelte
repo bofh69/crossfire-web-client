@@ -96,7 +96,9 @@
   let containerH = $state(0);
 
   /**
-   * User-chosen tile scale (1 = 32 px, 2 = 64 px, …).
+   * User-chosen tile scale in CSS pixels (1 = 32 px, 2 = 64 px, …).  On
+   * high-DPI displays it can be fractional (1.5 = 48 CSS px = 96 device px at
+   * 200%), see stepZoom().
    * null means "auto" — computeScale() is used instead.
    * Persisted in localStorage so it survives page reloads.
    */
@@ -217,6 +219,18 @@
     scheduleRedraw();
   }
 
+  /**
+   * Zoom in or out by one step: one more or one less device-pixel multiple of
+   * the base tile size.  On high-DPI displays this gives finer steps than whole
+   * CSS-pixel multiples (2×, 3×, 4× instead of 2×, 4×, 6× at 200%).
+   *
+   * @param direction - 1 to zoom in, -1 to zoom out.
+   */
+  function stepZoom(direction: 1 | -1) {
+    const { scale } = tileGeometry();
+    updateStoredScale(Math.max(1, scale + direction) / dpr);
+  }
+
   function scheduleRedraw() {
     pendingRedrawCount++;
     if (rafPending) return;
@@ -250,16 +264,8 @@
         }
         scheduleRedraw();
       }),
-      gameEvents.on("zoomIn", () => {
-        const current =
-          storedScale ?? computeScale(containerW, containerH, baseTileSize);
-        updateStoredScale(current + 1);
-      }),
-      gameEvents.on("zoomOut", () => {
-        const current =
-          storedScale ?? computeScale(containerW, containerH, baseTileSize);
-        updateStoredScale(current - 1);
-      }),
+      gameEvents.on("zoomIn", () => stepZoom(1)),
+      gameEvents.on("zoomOut", () => stepZoom(-1)),
       gameEvents.on("zoomReset", () => {
         if (storedScale === null) return;
         storedScale = null;
@@ -1152,9 +1158,7 @@
       direction: e.deltaY < 0 ? "in" : "out",
       source: "wheel",
     });
-    const current =
-      storedScale ?? computeScale(containerW, containerH, baseTileSize);
-    updateStoredScale(e.deltaY < 0 ? current + 1 : current - 1);
+    stepZoom(e.deltaY < 0 ? 1 : -1);
   }
 </script>
 

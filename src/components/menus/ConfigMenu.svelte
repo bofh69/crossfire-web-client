@@ -106,12 +106,10 @@
 
   function handleZoomIn() {
     gameEvents.emit("zoomIn");
-    onClose();
   }
 
   function handleZoomOut() {
     gameEvents.emit("zoomOut");
-    onClose();
   }
 
   function handleZoomReset() {
