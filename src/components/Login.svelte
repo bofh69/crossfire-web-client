@@ -245,17 +245,31 @@
     }
   }
 
+  /** Close the connection to the server and forget the account password. */
+  function closeConnection() {
+    setAccountPassword("");
+    clientDisconnect();
+    connected = false;
+    connecting = false;
+    step = null;
+    addMeSuccessReceived = false;
+  }
+
   /**
    * Log out of the account.  The server has no logout command, so close the
    * connection and connect again, which shows a fresh account form.
    */
   function handleLogOut() {
-    setAccountPassword("");
-    clientDisconnect();
-    connected = false;
-    step = null;
-    addMeSuccessReceived = false;
+    closeConnection();
     void handleConnect();
+  }
+
+  /** "Disconnect" on the account form: go back to the "Enter" screen. */
+  function handleDisconnect() {
+    closeConnection();
+    autoLogin = null;
+    errorMessage = "";
+    statusMessage = "";
   }
 
   function handlePlayCharacter(name: string) {
@@ -470,6 +484,7 @@
         />
         <AccountLogin
           visible={step === "account"}
+          onDisconnect={handleDisconnect}
           onError={(text) => (errorMessage = text)}
           onStatus={(text) => (statusMessage = text)}
         />
