@@ -4,8 +4,9 @@
    *
    * Displays a 2×6 grid of all 12 hotbar slots.  Each cell shows the F-key
    * label and, if the slot is occupied, a short truncated label of the current
-   * occupant.  Clicking a cell calls onSelect(index); pressing Escape or
-   * clicking the "Cancel" button calls onCancel().
+   * occupant.  Clicking a cell calls onSelect(index); clicking the "Cancel"
+   * button calls onCancel().  Escape closes the surrounding ContextMenu,
+   * and the picker with it.
    */
   import { onMount } from "svelte";
   import { getHotbarSlots } from "../lib/hotbar";

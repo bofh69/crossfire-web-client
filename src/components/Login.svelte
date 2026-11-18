@@ -22,10 +22,12 @@
 <script lang="ts">
   import {
     clientConnect,
+    clientDisconnect,
     clientNegotiate,
     sendAccountLogin,
     sendAccountPlay,
     sendAddMe,
+    setAccountPassword,
   } from "../lib/client";
   import type { ReconnectLogin } from "../lib/client";
   import { onMount } from "svelte";
@@ -38,6 +40,7 @@
   import QueryPrompt, { ServerQuery } from "./QueryPrompt.svelte";
   import { parseMarkupLines } from "../lib/markup";
   import { wantConfig } from "../lib/init";
+  import { loadConfig, saveConfig } from "../lib/storage";
   import type { AccountPlayer } from "../lib/events";
 
   interface Props {
@@ -90,6 +93,9 @@
   /** True when the address input should be hidden (standard port or URL param). */
   const hideAddressInput = standardPort || urlParamServer !== "";
 
+  /** Config key of the last server address typed in the address field. */
+  const SERVER_ADDRESS_KEY = "serverAddress";
+
   function defaultServerAddress(): string {
     if (urlParamServer) {
       return urlParamServer;
@@ -98,7 +104,10 @@
       const scheme = window.location.protocol === "https:" ? "wss" : "ws";
       return `${scheme}://${window.location.host}/ws`;
     }
-    return "ws://" + window.location.hostname + ":" + EPORT;
+    return loadConfig(
+      SERVER_ADDRESS_KEY,
+      "ws://" + window.location.hostname + ":" + EPORT,
+    );
   }
 
   let serverAddress = $state(defaultServerAddress());
@@ -179,9 +188,11 @@
     try {
       await clientConnect(serverAddress);
       connected = true;
+      // Remember a typed address for the next visit.
+      if (!hideAddressInput) saveConfig(SERVER_ADDRESS_KEY, serverAddress);
       statusMessage = "Connected. Negotiating...";
       // Reflect the connected server in the URL so the page can be bookmarked
-      // or shared and will auto-connect on reload.
+      // or shared and will use the same server on reload.
       const params = new URLSearchParams(window.location.search);
       params.set("server", serverAddress);
       history.replaceState(null, "", "?" + params.toString());
@@ -232,6 +243,19 @@
       e.preventDefault();
       checkLoginComplete();
     }
+  }
+
+  /**
+   * Log out of the account.  The server has no logout command, so close the
+   * connection and connect again, which shows a fresh account form.
+   */
+  function handleLogOut() {
+    setAccountPassword("");
+    clientDisconnect();
+    connected = false;
+    step = null;
+    addMeSuccessReceived = false;
+    void handleConnect();
   }
 
   function handlePlayCharacter(name: string) {
@@ -455,7 +479,7 @@
             onPlay={handlePlayCharacter}
             onCreate={() => showStep("createChar")}
             onAddExisting={() => showStep("addExisting")}
-            onBack={() => showStep("account")}
+            onLogOut={handleLogOut}
           />
         {:else if step === "addExisting"}
           <AddExistingCharacter

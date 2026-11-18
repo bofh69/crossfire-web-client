@@ -15,15 +15,17 @@ testing and can go down at any time.
 
 ## Connecting to a specific server
 
-Append a `?server=` query parameter to the page URL to pre-fill (and
-automatically initiate) the connection to a particular server, e.g.:
+Append a `?server=` query parameter to the page URL to connect to a
+particular server, e.g.:
 
 ```
 https://example.com/?server=wss://crossfire.example.com/ws
 ```
 
 When this parameter is present the server-address input field is hidden and
-the client connects automatically, bypassing the manual "Enter" step.
+the "Enter" button is focused, so pressing Enter connects. After connecting,
+the client adds the parameter to the URL, so a bookmark or a reload goes back
+to the same server.
 
 ## Choose login method
 
