@@ -2124,7 +2124,13 @@ export function mapdata_newmap(): void {
 // Animation tick
 // ──────────────────────────────────────────────────────────────────────────────
 
-export function mapdata_animation(): void {
+/**
+ * Advance map animations by one tick.
+ *
+ * @returns True if any visible cell changed face, so the map needs a redraw.
+ */
+export function mapdata_animation(): boolean {
+  let changed = false;
   // Update synchronized animations.
   for (let a = 0; a < Math.min(animations.length, MAXANIM); a++) {
     const anim = animations[a];
@@ -2168,6 +2174,7 @@ export function mapdata_animation(): void {
               headAnimPhase[lIdx] = 0;
             }
             const face = animations[anim]?.faces[headAnimPhase[lIdx]] ?? 0;
+            changed = true;
             if (face > 0) {
               expandSetFace(pl_pos.x + x, pl_pos.y + y, layer, face, false);
             } else {
@@ -2192,11 +2199,13 @@ export function mapdata_animation(): void {
             const face =
               animations[bfCell.animation]?.faces[bfCell.animationPhase] ?? 0;
             expandSetBigface(x, y, layer, face, false);
+            changed = true;
           }
         }
       }
     }
   }
+  return changed;
 }
 
 // ──────────────────────────────────────────────────────────────────────────────

@@ -821,8 +821,9 @@
       }),
 
       gameEvents.on("tick", (_tickNo: number) => {
-        mapdata_animation();
-        animateObjects();
+        // Only ask for redraws when an animation actually changed something.
+        if (mapdata_animation()) gameEvents.emit("mapAnimated");
+        if (animateObjects()) gameEvents.emit("playerUpdate");
         run_move_to();
 
         // Flash player position on the magic map.
@@ -861,24 +862,13 @@
       }),
     );
 
-    // Self-tick fallback: if the server doesn't send ticks, drive
-    // animations with a local 8 fps timer (matching the old C client).
+    // Self-tick fallback: if the server doesn't send ticks, emit them locally
+    // at 8 fps (matching the old C client) so the "tick" handlers above and
+    // in other components run the same way as with server ticks.
     if (!useConfig.serverTicks) {
+      let selfTickNo = 0;
       selfTickTimer = setInterval(() => {
-        mapdata_animation();
-        animateObjects();
-        run_move_to();
-        // Emit mapUpdate and playerUpdate so child components refresh
-        // (same as tick handler would in child components).
-        gameEvents.emit("mapUpdate");
-        gameEvents.emit("playerUpdate");
-
-        const cpl = getCpl();
-        if (cpl && cpl.showmagic && showMagicMap) {
-          cpl.showmagic ^= SHOWMAGIC_FLASH_BIT;
-        } else if (showMagicMap && cpl && !cpl.showmagic) {
-          showMagicMap = false;
-        }
+        gameEvents.emit("tick", selfTickNo++);
       }, SELF_TICK_INTERVAL_MS);
     }
   }

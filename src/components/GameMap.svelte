@@ -16,6 +16,7 @@
   import {
     getFaceBitmap,
     getFaceBitmapCacheSize,
+    hasPendingFaceBitmaps,
     isFaceBitmapPending,
     getSmoothFace,
     getCurrentFacesetTileSize,
@@ -110,7 +111,33 @@
    */
   let baseTileSize = $state(getCurrentFacesetTileSize());
 
-  /** Effective tile size used in the last draw — kept for click-to-tile mapping. */
+  /** Device pixels per CSS pixel; the canvas is drawn at device resolution. */
+  let dpr = $state(window.devicePixelRatio || 1);
+
+  /**
+   * Tile geometry for the current zoom level and display density.
+   *
+   * The zoom scale (`storedScale` or the automatic one) is in CSS pixels, as
+   * before.  It is rounded to a whole multiple of the faceset tile size in
+   * device pixels so that pixel art stays crisp on high-DPI displays.
+   *
+   * @returns `scale`: device-pixel multiple of the base tile size;
+   *          `tileSize`: tile size in device pixels;
+   *          `cssTileSize`: tile size in CSS pixels.
+   */
+  function tileGeometry(): {
+    scale: number;
+    tileSize: number;
+    cssTileSize: number;
+  } {
+    const cssScale =
+      storedScale ?? computeScale(containerW, containerH, baseTileSize);
+    const scale = Math.max(1, Math.round(cssScale * dpr));
+    const tileSize = baseTileSize * scale;
+    return { scale, tileSize, cssTileSize: tileSize / dpr };
+  }
+
+  /** CSS tile size used in the last draw — kept for click-to-tile mapping. */
   let currentTileSize = getCurrentFacesetTileSize();
   /**
    * Display offset saved from the last drawMap call.  When the container needs
@@ -145,11 +172,9 @@
    */
   $effect(() => {
     if (containerW <= 0 || containerH <= 0) return;
-    const scale =
-      storedScale ?? computeScale(containerW, containerH, baseTileSize);
-    const tileSize = baseTileSize * scale;
-    const desiredW = Math.ceil(containerW / tileSize);
-    const desiredH = Math.ceil(containerH / tileSize);
+    const { cssTileSize } = tileGeometry();
+    const desiredW = Math.ceil(containerW / cssTileSize);
+    const desiredH = Math.ceil(containerH / cssTileSize);
     if (desiredW === lastRequestedW && desiredH === lastRequestedH) return;
     wantConfig.mapWidth = desiredW;
     wantConfig.mapHeight = desiredH;
@@ -170,8 +195,8 @@
   /** Timestamp of the last stats log. */
   let lastStatsTime = performance.now();
   /**
-   * Number of server tick events to skip before rendering again.
-   * Set after a slow drawMap() call so that tick-triggered redraws are
+   * Number of animation-tick redraws to skip before rendering again.
+   * Set after a slow drawMap() call so that animation-triggered redraws are
    * suppressed until real-time and tick-time are back in sync.
    * Each server tick represents SELF_TICK_INTERVAL_MS (125 ms / 8 fps).
    */
@@ -219,7 +244,7 @@
       gameEvents.on("mapUpdate", () => scheduleRedraw()),
       gameEvents.on("newMap", () => scheduleRedraw()),
       gameEvents.on("faceReady", () => scheduleRedraw()),
-      gameEvents.on("tick", () => {
+      gameEvents.on("mapAnimated", () => {
         if (tickSkipsRemaining > 0) {
           tickSkipsRemaining--;
           return;
@@ -248,8 +273,25 @@
         scheduleRedraw();
       }),
     ];
+
+    // Follow devicePixelRatio changes (browser zoom, moving the window to a
+    // monitor with another scaling).  A media query only matches one ratio,
+    // so re-arm it for the new ratio after every change.
+    let dprQuery: MediaQueryList | null = null;
+    const onDprChange = () => {
+      dpr = window.devicePixelRatio || 1;
+      watchDpr();
+    };
+    const watchDpr = () => {
+      dprQuery?.removeEventListener("change", onDprChange);
+      dprQuery = window.matchMedia(`(resolution: ${dpr}dppx)`);
+      dprQuery.addEventListener("change", onDprChange);
+    };
+    watchDpr();
+
     return () => {
       for (const unsub of cleanups) unsub();
+      dprQuery?.removeEventListener("change", onDprChange);
     };
   });
 
@@ -258,6 +300,7 @@
     void mapVersion;
     void containerW;
     void containerH;
+    void dpr;
     if (!canvas) return;
     drawMap(canvas);
   });
@@ -444,10 +487,9 @@
     // Integer multiples keep pixel art crisp (32 → 64 → 96 → …).
     // The server fills the view with more or fewer tiles (via clientMapsize);
     // we request enough tiles to cover the container (see the $effect above).
-    const scale =
-      storedScale ?? computeScale(containerW, containerH, baseTileSize);
-    const tileSize = baseTileSize * scale;
-    currentTileSize = tileSize;
+    // All drawing below is in device pixels.
+    const { scale, tileSize, cssTileSize } = tileGeometry();
+    currentTileSize = cssTileSize;
 
     // Number of tiles required to fill the container.  This may be larger than
     // the server viewport (vw × vh) when the server caps its supported mapsize.
@@ -456,8 +498,8 @@
     // surrounding area from the fog-of-war virtual map so there is no black border.
     // containerW/H can be 0 before the first browser layout; fall back to the
     // server viewport size in that case so the canvas still has a valid size.
-    const displayW = containerW > 0 ? Math.ceil(containerW / tileSize) : vw;
-    const displayH = containerH > 0 ? Math.ceil(containerH / tileSize) : vh;
+    const displayW = containerW > 0 ? Math.ceil(containerW / cssTileSize) : vw;
+    const displayH = containerH > 0 ? Math.ceil(containerH / cssTileSize) : vh;
 
     // Shift the drawing origin so the server viewport stays centred in the
     // canvas regardless of relative sizes.
@@ -477,7 +519,9 @@
     const canvasW = displayW * tileSize;
     const canvasH = displayH * tileSize;
 
-    for (let layer = 0; layer < MAXLAYERS; layer++) {
+    // Postpone the redraw while a visible face is still decoding (a faceReady
+    // event redraws once it is done).  Skip the scan when nothing is pending.
+    for (let layer = 0; hasPendingFaceBitmaps() && layer < MAXLAYERS; layer++) {
       for (let vy = 0; vy < displayH; vy++) {
         for (let vx = 0; vx < displayW; vx++) {
           const ax = plPos.x + vx - startOffsetX;
@@ -496,9 +540,13 @@
 
     if (c.width !== canvasW) c.width = canvasW;
     if (c.height !== canvasH) c.height = canvasH;
-    // Expose the layout so a replay can click a tile by its offset from the
-    // player (see lookAtClick in scripts/replay-with-playwright.mjs).
-    c.dataset.tileSize = String(tileSize);
+    // Show the device-pixel canvas at its CSS size, one canvas pixel per
+    // device pixel.
+    c.style.width = `${canvasW / dpr}px`;
+    c.style.height = `${canvasH / dpr}px`;
+    // Expose the layout (in CSS pixels) so a replay can click a tile by its
+    // offset from the player (see lookAtClick in scripts/replay-with-playwright.mjs).
+    c.dataset.tileSize = String(cssTileSize);
     c.dataset.playerTileX = String(startOffsetX + Math.floor(vw / 2));
     c.dataset.playerTileY = String(startOffsetY + Math.floor(vh / 2));
 
@@ -579,17 +627,27 @@
                 drawX < canvasW &&
                 drawY < canvasH
               ) {
-                // Clip to the current cell's tile area so that each cell
-                // only renders the portion of the bigface image that falls
-                // within its own tile.  This ensures that Empty cells (which
-                // are skipped by the guard above) are never painted over by
-                // a neighbouring non-Empty head or tail cell.
-                drawCtx.save();
-                drawCtx.beginPath();
-                drawCtx.rect(px, py, tileSize, tileSize);
-                drawCtx.clip();
-                drawCtx.drawImage(img, drawX, drawY, drawW, drawH);
-                drawCtx.restore();
+                if (
+                  dx === 0 &&
+                  dy === 0 &&
+                  drawW <= tileSize &&
+                  drawH <= tileSize
+                ) {
+                  // Fits inside its own tile (bottom-right aligned): no clip needed.
+                  drawCtx.drawImage(img, drawX, drawY, drawW, drawH);
+                } else {
+                  // Clip to the current cell's tile area so that each cell
+                  // only renders the portion of the bigface image that falls
+                  // within its own tile.  This ensures that Empty cells (which
+                  // are skipped by the guard above) are never painted over by
+                  // a neighbouring non-Empty head or tail cell.
+                  drawCtx.save();
+                  drawCtx.beginPath();
+                  drawCtx.rect(px, py, tileSize, tileSize);
+                  drawCtx.clip();
+                  drawCtx.drawImage(img, drawX, drawY, drawW, drawH);
+                  drawCtx.restore();
+                }
                 imagesDrawn++;
               }
             } else if (placeholderForHead && headFaceOnCell !== 0) {
@@ -625,29 +683,12 @@
 
     // Pass 2.5: desaturated overlay for fog-of-war cells.
     // Fog cells (and Empty / out-of-bounds) keep some of their color; Visible cells
-    // remain in full colour.  Cells that straddle the Visible/Fog boundary get
-    // a smooth per-pixel fade because the 1-pixel-per-tile mask is bilinearly
-    // scaled up to the full canvas resolution before being composited.
+    // remain in full colour.  A 1-pixel-per-tile grey mask is bilinearly scaled
+    // up over the map with the "saturation" blend mode: where the mask is opaque
+    // the pixels take the mask's (zero) saturation, and its alpha sets how much,
+    // so the Visible/Fog boundary fades smoothly.  This avoids filtering a full
+    // copy of the canvas, which is slow when the canvas is drawn on the CPU.
     if (useConfig.fogGrayscale) {
-      // --- grayCanvas: partially desaturated copy of the drawn tiles ----------
-      if (
-        grayCanvas === null ||
-        grayCanvasW !== canvasW ||
-        grayCanvasH !== canvasH
-      ) {
-        grayCanvas = new OffscreenCanvas(canvasW, canvasH);
-        grayCanvasCtx = grayCanvas.getContext("2d")!;
-        grayCanvasW = canvasW;
-        grayCanvasH = canvasH;
-      }
-      const grayCtx = grayCanvasCtx!;
-      // Draw the current (coloured) main canvas into grayCanvas with a
-      // partial grayscale filter so fog retains some of its original color.
-      grayCtx.filter = `grayscale(${FOG_DESATURATION_AMOUNT})`;
-      grayCtx.drawImage(c, 0, 0);
-      grayCtx.filter = "none";
-
-      // --- grayMaskCanvas: 1 px per tile mask (alpha = grayscale strength) ---
       if (
         grayMaskCanvas === null ||
         grayMaskCanvasW !== displayW ||
@@ -659,46 +700,37 @@
         grayMaskCanvasW = displayW;
         grayMaskCanvasH = displayH;
       }
+      const fogAlpha = Math.round(FOG_DESATURATION_AMOUNT * 255);
       const gm = grayMaskImageData!.data;
       for (let vy = 0; vy < displayH; vy++) {
         for (let vx = 0; vx < displayW; vx++) {
           const ax = plPos.x + vx - startOffsetX;
           const ay = plPos.y + vy - startOffsetY;
-          // Visible cells → no grayscale (alpha 0).
-          // Fog, Empty and out-of-bounds → full grayscale (alpha 255).
-          let maskAlpha = 255;
-          if (mapdata_contains(ax, ay)) {
-            if (mapdata_get_state(ax, ay) === MapCellState.Visible) {
-              maskAlpha = 0;
-            }
-            // Fog and Empty fall through → maskAlpha stays 255.
+          // Visible cells → keep colour (alpha 0).
+          // Fog, Empty and out-of-bounds → desaturate (alpha fogAlpha).
+          let maskAlpha = fogAlpha;
+          if (
+            mapdata_contains(ax, ay) &&
+            mapdata_get_state(ax, ay) === MapCellState.Visible
+          ) {
+            maskAlpha = 0;
           }
-          // R=G=B=255 (white) so destination-in keeps the grayscale pixels
-          // at their original luminance; only alpha controls blending.
+          // Any grey works: only its zero saturation is used by the blend.
           const idx = (vy * displayW + vx) * 4;
-          gm[idx] = 255;
-          gm[idx + 1] = 255;
-          gm[idx + 2] = 255;
+          gm[idx] = 128;
+          gm[idx + 1] = 128;
+          gm[idx + 2] = 128;
           gm[idx + 3] = maskAlpha;
         }
       }
       grayMaskCtx!.putImageData(grayMaskImageData!, 0, 0);
 
-      // Scale the mask up onto grayCanvas with bilinear interpolation so the
-      // Visible/Fog boundary fades smoothly across pixels rather than snapping
-      // at tile edges.  destination-in clips grayCanvas to the mask's alpha.
-      grayCtx.globalCompositeOperation = "destination-in";
-      grayCtx.imageSmoothingEnabled = true;
-      grayCtx.imageSmoothingQuality = "high";
-      grayCtx.drawImage(grayMaskCanvas, 0, 0, canvasW, canvasH);
-      grayCtx.imageSmoothingEnabled = false;
-      grayCtx.globalCompositeOperation = "source-over";
-
-      // Composite the masked grayscale layer back onto the main canvas.
-      // Where the mask was fully transparent (Visible) grayCanvas contributes
-      // nothing, so the original colour tiles show through.  Where the mask was
-      // opaque (Fog/Empty) the grayscale pixels overwrite the colour ones.
-      ctx.drawImage(grayCanvas, 0, 0);
+      ctx.globalCompositeOperation = "saturation";
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = "high";
+      ctx.drawImage(grayMaskCanvas, 0, 0, canvasW, canvasH);
+      ctx.imageSmoothingEnabled = false;
+      ctx.globalCompositeOperation = "source-over";
     }
 
     // Pass 3: darkness overlay with bilinear interpolation.
@@ -897,7 +929,7 @@
     drawElapsedTotalMs += elapsed;
 
     // If this draw took longer than one tick period, schedule tick skips so
-    // that tick-triggered redraws are suppressed until real-time and tick-time
+    // that animation-triggered redraws are suppressed until real-time and tick-time
     // are back in sync.  Example: elapsed=500ms → skip 3 ticks (render on the
     // 4th), because 500ms / 125ms = 4 ticks worth of time has already passed.
     //
@@ -946,13 +978,8 @@
     }
   }
 
-  // Cached OffscreenCanvas used in Pass 2.5 for the grayscale fog overlay.
-  // grayCanvas is full-resolution (canvasW × canvasH); grayMaskCanvas is
-  // 1 px per tile (displayW × displayH) and is scaled up bilinearly.
-  let grayCanvas: OffscreenCanvas | null = null;
-  let grayCanvasCtx: OffscreenCanvasRenderingContext2D | null = null;
-  let grayCanvasW = 0;
-  let grayCanvasH = 0;
+  // Cached 1 px per tile mask used in Pass 2.5 for the grayscale fog overlay;
+  // it is scaled up bilinearly over the whole canvas.
   let grayMaskCanvas: OffscreenCanvas | null = null;
   let grayMaskCtx: OffscreenCanvasRenderingContext2D | null = null;
   let grayMaskImageData: ImageData | null = null;

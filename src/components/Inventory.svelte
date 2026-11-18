@@ -170,7 +170,7 @@
       0,
     ),
   );
-  let weightLimit = $state(0);
+  let weightLimit = $state(playerStats.weightLimit / 1000);
 
   /** Key used to persist filters for a given character name. */
   function filtersKey(charName: string): string {
@@ -331,7 +331,6 @@
     playerItems = flattenItems(playerRoot);
     groundItems = flattenItems(groundRoot);
     itemCount = getCpl()?.count ?? 0;
-    weightLimit = playerStats.weightLimit / 1000;
 
     // Restore scroll positions after Svelte flushes DOM changes, so that
     // inserting/removing items (e.g. moving out of a container) doesn't jump
@@ -344,7 +343,13 @@
   onMount(() => {
     const cleanups = [
       gameEvents.on("playerUpdate", refreshInventory),
-      gameEvents.on("tick", refreshInventory),
+      // The typed item count changes without an event; polling it is cheap.
+      gameEvents.on("tick", () => {
+        itemCount = getCpl()?.count ?? 0;
+      }),
+      gameEvents.on("statsUpdate", () => {
+        weightLimit = playerStats.weightLimit / 1000;
+      }),
       gameEvents.on("uiNavTargetChanged", (targetId) => {
         if (
           contextMenu &&

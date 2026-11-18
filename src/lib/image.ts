@@ -212,6 +212,11 @@ export function isFaceBitmapPending(face: number): boolean {
   return pendingFaceBitmaps.has(face);
 }
 
+/** Return whether any face ImageBitmap decode is still pending. */
+export function hasPendingFaceBitmaps(): boolean {
+  return pendingFaceBitmaps.size > 0;
+}
+
 /** Return the number of cached decoded face ImageBitmaps. */
 export function getFaceBitmapCacheSize(): number {
   return faceBitmaps.size;
