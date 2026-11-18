@@ -102,7 +102,7 @@
     }}>Info</button
   >
   {#if isOpen}
-    <div class="dropdown" class:fading>
+    <div class="dropdown" class:fading data-ui-nav-scope="ui-menu-info">
       <button
         data-ui-nav-id="ui-menu-info-hiscore"
         data-ui-nav-panel="menubar"

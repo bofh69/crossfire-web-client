@@ -355,12 +355,14 @@
     }}>Config</button
   >
   {#if isOpen}
-    <div class="dropdown" class:fading>
+    <div class="dropdown" class:fading data-ui-nav-scope="ui-menu-config">
       <div class="slider-row">
         <label for="music-volume">Music</label>
         <input
           id="music-volume"
           type="range"
+          data-ui-nav-id="ui-menu-config-music-volume"
+          data-ui-nav-panel="menubar"
           min="0"
           max="100"
           step="1"
@@ -375,6 +377,8 @@
         <input
           id="sfx-volume"
           type="range"
+          data-ui-nav-id="ui-menu-config-sfx-volume"
+          data-ui-nav-panel="menubar"
           min="0"
           max="100"
           step="1"
@@ -458,6 +462,8 @@
           <label for="faceset-select">Faceset</label>
           <select
             id="faceset-select"
+            data-ui-nav-id="ui-menu-config-faceset"
+            data-ui-nav-panel="menubar"
             value={selectedFaceset}
             onchange={changeFaceset}
           >

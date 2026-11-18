@@ -202,6 +202,7 @@
       <!-- svelte-ignore a11y_no_static_element_interactions -->
       <div
         class="dropdown"
+        data-ui-nav-scope="ui-menu-pickup"
         class:fading={menuFading}
         onclick={(e: MouseEvent) => e.stopPropagation()}
       >
