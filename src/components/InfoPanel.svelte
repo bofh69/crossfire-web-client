@@ -312,12 +312,25 @@
     unreadFlare[view]++;
   }
 
+  /** The message views currently shown. */
+  function shownViews(): PanelViewId[] {
+    return isSplit ? ["left", "right"] : ["single"];
+  }
+
   function scrollAllViewsToBottom() {
-    if (isSplit) {
-      scrollViewToBottom("left");
-      scrollViewToBottom("right");
-    } else {
-      scrollViewToBottom("single");
+    for (const view of shownViews()) scrollViewToBottom(view);
+  }
+
+  /** Fraction of a view's height that Page Up/Down scroll it by. */
+  const PAGE_SCROLL_FRACTION = 0.9;
+
+  /** Scroll every shown view one page up (-1) or down (1). */
+  function pageAllViews(direction: -1 | 1) {
+    for (const view of shownViews()) {
+      const container = viewContainerFor(view);
+      container?.scrollBy({
+        top: direction * container.clientHeight * PAGE_SCROLL_FRACTION,
+      });
     }
   }
 
@@ -691,6 +704,9 @@
       historyIndex = -1;
       blurInput();
       e.stopPropagation();
+    } else if (e.key === "PageUp" || e.key === "PageDown") {
+      e.preventDefault();
+      pageAllViews(e.key === "PageUp" ? -1 : 1);
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
       if (commandHistory.length === 0) return;
@@ -736,12 +752,21 @@
     }
   }
 
+  /**
+   * Set while the pointer is pressed in the message log, which also takes
+   * focus from the input; the log then keeps its position so text can be
+   * selected.
+   */
+  let pressingInLog = false;
+
   function handleBlur() {
     // When the input loses focus, return to Playing state.
     const cpl = getCpl();
     if (cpl && cpl.inputState === InputState.CommandMode) {
       cpl.inputState = InputState.Playing;
     }
+    // Leaving the input ends paging through the log with Page Up/Down.
+    if (!pressingInLog) scrollAllViewsToBottom();
   }
 
   function blurInput() {
@@ -845,7 +870,15 @@
 {/snippet}
 
 <div class="info-panel" style:--info-panel-bg={infoPanelBackgroundColor}>
-  <div class="message-panels" class:split={isSplit}>
+  <!-- svelte-ignore a11y_no_static_element_interactions -->
+  <div
+    class="message-panels"
+    class:split={isSplit}
+    onpointerdown={() => {
+      pressingInLog = true;
+      setTimeout(() => (pressingInLog = false));
+    }}
+  >
     {#if isSplit}
       <div class="message-pane">
         <div class="message-pane-header">
