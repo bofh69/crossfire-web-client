@@ -215,13 +215,15 @@ export function AddspellCmd(data: DataView, len: number): void {
     const msgLen = reader.readInt16();
     const message = reader.readString(msgLen);
 
-    // Consume spellmon 2 extension fields (always present: client requests spellmon 2).
-    // usage: 1 byte; requirements: 1-byte length + string
+    // spellmon 2 extension fields (always present: client requests spellmon 2).
+    // usage: 1 byte (SPELL_USAGE_*); requirements: 1-byte length + string
+    let usage = 0;
+    let requirements = "";
     if (reader.remaining > 0) {
-      reader.skip(1); // usage
+      usage = reader.readUint8();
       if (reader.remaining > 0) {
         const reqLen = reader.readUint8();
-        reader.skip(reqLen);
+        requirements = reader.readString(reqLen);
       }
     }
 
@@ -238,8 +240,8 @@ export function AddspellCmd(data: DataView, len: number): void {
       skill: "",
       path,
       face,
-      usage: 0,
-      requirements: "",
+      usage,
+      requirements,
     };
     spells.push(spell);
     hotbarChanged = updateHotbarFacesFromSpell(name, face) || hotbarChanged;

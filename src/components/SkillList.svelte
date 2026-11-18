@@ -139,8 +139,10 @@
               data-ui-nav-group-policy="vertical"
               data-ui-nav-menu="context"
               data-ui-nav-panel="skills"
+              onclick={() => useSkill(skill)}
               oncontextmenu={(e: MouseEvent) => handleContextMenu(e, skill)}
               title={skill.description || undefined}
+              class="skill-row"
             >
               <td class="skill-name">{capitalizeFirstLetter(skill.name)}</td>
               <td>{skill.level}</td>
@@ -232,6 +234,10 @@
 
   tr:hover {
     background: var(--bg-lighter);
+  }
+
+  .skill-row {
+    cursor: pointer;
   }
 
   td {
