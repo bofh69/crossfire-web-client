@@ -71,6 +71,13 @@ let fadeInIntervalId: ReturnType<typeof setInterval> | null = null;
 /** Name of the music track currently playing (without extension). */
 let currentMusic = "";
 
+/**
+ * Music tracks the server asked for that have no file.  The server sends the
+ * region name when a map has no music of its own, and most regions have no
+ * track, so these are not requested again.
+ */
+const missingMusic = new Set<string>();
+
 /** Master sound-enabled flag. */
 let soundEnabled = true;
 
@@ -273,6 +280,17 @@ export function playSound(
 // Public API – music
 // ---------------------------------------------------------------------------
 
+/**
+ * Stop `el` and release its media resource.  Removing the src attribute
+ * (instead of setting it to "") keeps Firefox from trying to load an empty
+ * URL.
+ */
+function releaseAudio(el: HTMLAudioElement): void {
+  el.pause();
+  el.removeAttribute("src");
+  el.load();
+}
+
 /** Stop and discard any element that is currently fading out. */
 function stopFadeOut(): void {
   if (fadeOutIntervalId !== null) {
@@ -280,8 +298,7 @@ function stopFadeOut(): void {
     fadeOutIntervalId = null;
   }
   if (fadingOutElement) {
-    fadingOutElement.pause();
-    fadingOutElement.src = "";
+    releaseAudio(fadingOutElement);
     fadingOutElement = null;
   }
 }
@@ -313,8 +330,7 @@ function fadeOutElement(
     if (step >= steps) {
       clearInterval(fadeOutIntervalId!);
       fadeOutIntervalId = null;
-      el.pause();
-      el.src = "";
+      releaseAudio(el);
       if (fadingOutElement === el) fadingOutElement = null;
       onComplete();
     }
@@ -348,6 +364,7 @@ function fadeInElement(
  * it starts at full volume immediately.  OGG is tried first, with MP3 as fallback.
  */
 function startTrack(name: string, fadeIn: boolean): void {
+  if (missingMusic.has(name)) return;
   const el = new Audio();
   el.loop = true;
   const targetVol = (Math.min(musicVolume, 100) / 100) * MUSIC_VOLUME_CAP; // cap at 75 % like old client
@@ -377,6 +394,11 @@ function startTrack(name: string, fadeIn: boolean): void {
           }
         })
         .catch((err) => {
+          // A missing file fails with NotSupportedError; other errors, such
+          // as autoplay being blocked, may work later.
+          if (err instanceof DOMException && err.name === "NotSupportedError") {
+            missingMusic.add(name);
+          }
           LOG(
             LogLevel.Warning,
             "playMusic",
@@ -460,8 +482,7 @@ export function setMusicVolume(vol: number): void {
     stopFadeIn();
     stopFadeOut();
     if (musicElement) {
-      musicElement.pause();
-      musicElement.src = "";
+      releaseAudio(musicElement);
       musicElement = null;
     }
     return;
@@ -501,8 +522,7 @@ export function stopAll(): void {
   stopFadeIn();
   stopFadeOut();
   if (musicElement) {
-    musicElement.pause();
-    musicElement.src = "";
+    releaseAudio(musicElement);
     musicElement = null;
   }
   currentMusic = "";
