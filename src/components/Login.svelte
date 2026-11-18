@@ -509,6 +509,9 @@
   }
 
   .server-info {
+    /* The rest of the UI turns text selection off (see app.css). */
+    user-select: text;
+    -webkit-user-select: text;
     flex: 1 1 24rem;
     min-width: 18rem;
     max-height: 70vh;
