@@ -48,6 +48,21 @@ body {
   overflow: hidden;
 }
 
+/* Clicking UI elements must not select text.  Only the message log (see
+   InfoPanel), the server news on the login page and fields you type in
+   allow selecting text. */
+body {
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+input,
+textarea,
+[contenteditable="true"] {
+  user-select: text;
+  -webkit-user-select: text;
+}
+
 body.ui-nav-mode {
   cursor: default;
 }

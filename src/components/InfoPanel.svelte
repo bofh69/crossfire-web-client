@@ -1317,6 +1317,9 @@
   }
 
   .messages {
+    /* The rest of the UI turns text selection off (see app.css). */
+    user-select: text;
+    -webkit-user-select: text;
     flex: 1;
     overflow-y: auto;
     padding: 0.5rem;
