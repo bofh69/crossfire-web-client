@@ -14,6 +14,7 @@
     KEYF_ANY,
     type KeyBind,
   } from "../../lib/keys";
+  import { formatCommands } from "../../lib/command_list";
   import { getLastCommand } from "../../lib/player";
   import {
     setHotbarSlot,
@@ -44,6 +45,8 @@
   let { fading, isOpen, onToggle, onClose }: Props = $props();
 
   let dialogMode = $state<DialogMode>("idle");
+  /** Add the command after the key's current commands instead of replacing them. */
+  let dialogAppend = $state(false);
   let dialogKeyStr = $state("");
   let dialogCommand = $state("");
   let dialogExisting = $state<KeyBind | null>(null);
@@ -67,13 +70,19 @@
 
   // ── Bind last command to key ──────────────────────────────────────
 
-  export function startBind() {
+  /**
+   * Start binding the last command to a key.
+   *
+   * @param append Pre-check the "add after current commands" option.
+   */
+  export function startBind(append = false) {
     const cmd = getLastCommand();
     if (!cmd) {
       onClose();
       return;
     }
     dialogCommand = cmd;
+    dialogAppend = append;
     dialogMode = "bind-capture";
     onClose();
   }
@@ -89,7 +98,8 @@
   }
 
   function confirmBind() {
-    if (capturedEvent) bindCommandToEvent(capturedEvent, dialogCommand);
+    if (capturedEvent)
+      bindCommandToEvent(capturedEvent, dialogCommand, dialogAppend);
     dialogMode = "idle";
     capturedEvent = null;
   }
@@ -97,6 +107,12 @@
   function cancelBind() {
     dialogMode = "idle";
     capturedEvent = null;
+  }
+
+  /** Label for the confirm button of the bind dialogs. */
+  function bindButtonLabel(): string {
+    if (!dialogExisting) return "Bind";
+    return dialogAppend ? "Add" : "Overwrite";
   }
 
   // ── Unbind a key ──────────────────────────────────────────────────
@@ -177,6 +193,7 @@
     dialogCommand = "";
     dialogBindCmdEdit = false;
     dialogBindCmdAny = false;
+    dialogAppend = false;
     dialogMode = "bind-cmd-key-input";
     onClose();
   }
@@ -201,7 +218,12 @@
     if (capturedEvent) {
       const extraFlags =
         (dialogBindCmdAny ? KEYF_ANY : 0) | (dialogBindCmdEdit ? KEYF_EDIT : 0);
-      bindCommandWithFlags(capturedEvent, dialogCommand, extraFlags);
+      bindCommandWithFlags(
+        capturedEvent,
+        dialogCommand,
+        extraFlags,
+        dialogAppend,
+      );
     }
     dialogMode = "idle";
     capturedEvent = null;
@@ -311,6 +333,22 @@
 
 <svelte:window onkeydown={handleWindowKeydown} />
 
+{#snippet existingBinding()}
+  {#if dialogExisting}
+    <p class="dialog-warn">
+      Already bound to: <strong>{formatCommands(dialogExisting.command)}</strong
+      >
+    </p>
+    <label class="dialog-checkbox-label">
+      <input type="checkbox" bind:checked={dialogAppend} />
+      Add after current commands
+    </label>
+    {#if !dialogAppend}
+      <p>Overwrite?</p>
+    {/if}
+  {/if}
+{/snippet}
+
 <div class="menu-item">
   <button
     class="menu-button"
@@ -329,7 +367,7 @@
       <button
         data-ui-nav-id="ui-menu-keyboard-bind-last"
         data-ui-nav-panel="menubar"
-        onclick={startBind}
+        onclick={() => startBind()}
         oncontextmenu={(e) => {
           e.preventDefault();
           startBind();
@@ -392,15 +430,10 @@
       <p class="dialog-title">Bind command to key</p>
       <p>Key: <strong>{dialogKeyStr}</strong></p>
       <p>Command: <strong>{dialogCommand}</strong></p>
-      {#if dialogExisting}
-        <p class="dialog-warn">
-          Already bound to: <strong>{dialogExisting.command}</strong>
-        </p>
-        <p>Overwrite?</p>
-      {/if}
+      {@render existingBinding()}
       <div class="dialog-buttons">
         <button class="btn-primary" onclick={confirmBind}>
-          {dialogExisting ? "Overwrite" : "Bind"}
+          {bindButtonLabel()}
         </button>
         <button onclick={cancelBind}>Cancel</button>
       </div>
@@ -422,7 +455,11 @@
       <p class="dialog-title">Unbind a key</p>
       <p>Key: <strong>{dialogKeyStr}</strong></p>
       {#if dialogExisting}
-        <p>Currently bound to: <strong>{dialogExisting.command}</strong></p>
+        <p>
+          Currently bound to: <strong
+            >{formatCommands(dialogExisting.command)}</strong
+          >
+        </p>
         <p>Remove this binding?</p>
         <div class="dialog-buttons">
           <button class="btn-danger" onclick={confirmUnbind}>Remove</button>
@@ -458,7 +495,7 @@
               <tr>
                 <td>{kb.keysym}</td>
                 <td>{flagsToDisplayString(kb.flags)}</td>
-                <td class="command-cell">{kb.command}</td>
+                <td class="command-cell">{formatCommands(kb.command)}</td>
                 <td>
                   <input
                     type="checkbox"
@@ -533,15 +570,10 @@
       <p class="dialog-title">Bind command to key</p>
       <p>Key: <strong>{dialogKeyStr}</strong></p>
       <p>Command: <strong>{dialogCommand}</strong></p>
-      {#if dialogExisting}
-        <p class="dialog-warn">
-          Already bound to: <strong>{dialogExisting.command}</strong>
-        </p>
-        <p>Overwrite?</p>
-      {/if}
+      {@render existingBinding()}
       <div class="dialog-buttons">
         <button class="btn-primary" onclick={confirmBindCmdKey}>
-          {dialogExisting ? "Overwrite" : "Bind"}
+          {bindButtonLabel()}
         </button>
         <button onclick={cancelBindCmdKeyConfirm}>Cancel</button>
       </div>

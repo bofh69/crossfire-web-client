@@ -4,6 +4,7 @@
  */
 
 import { CommCat, LogLevel, type ConsoleCommand } from "./protocol";
+import { splitCommands } from "./command_list";
 import { NDI_COLOR_DEFINITIONS, NDI_COLORS } from "./markup";
 import { LOG } from "./misc";
 import { sendCommand, setLastCommand } from "./player";
@@ -150,28 +151,53 @@ function commandHelp(args: string): void {
   }
 }
 
+/**
+ * Parse the arguments of the `bind` / `gamepad_bind` commands.
+ *
+ * Recognises a leading `-a` / `--append` option.
+ *
+ * @returns The command to bind and whether it should be appended, or null
+ *          if no command was given.
+ */
+function parseBindArgs(
+  args: string,
+): { append: boolean; command: string } | null {
+  let rest = (args ?? "").trim();
+  let append = false;
+  const match = /^(-a|--append)(\s+|$)/.exec(rest);
+  if (match) {
+    append = true;
+    rest = rest.slice(match[0].length).trim();
+  }
+  return rest.length > 0 ? { append, command: rest } : null;
+}
+
 function commandBind(args: string): void {
-  if (!args || args.trim().length === 0) {
+  const parsed = parseBindArgs(args);
+  if (!parsed) {
     drawInfo(
-      "Usage: bind <command>\n" +
-        "  Sets <command> as the pending command and opens the key-bind dialog.",
+      "Usage: bind [-a|--append] <command>\n" +
+        "  Sets <command> as the pending command and opens the key-bind dialog.\n" +
+        "  -a, --append  add the command after the key's current commands.",
     );
     return;
   }
-  setLastCommand(args.trim());
-  gameEvents.emit("openKeyBind");
+  setLastCommand(parsed.command);
+  gameEvents.emit("openKeyBind", parsed.append);
 }
 
 function commandGamepadBind(args: string): void {
-  if (!args || args.trim().length === 0) {
+  const parsed = parseBindArgs(args);
+  if (!parsed) {
     drawInfo(
-      "Usage: gamepad_bind <command>\n" +
-        "  Sets <command> as the pending command and opens the gamepad button-bind dialog.",
+      "Usage: gamepad_bind [-a|--append] <command>\n" +
+        "  Sets <command> as the pending command and opens the gamepad button-bind dialog.\n" +
+        "  -a, --append  add the command after the button's current commands.",
     );
     return;
   }
-  setLastCommand(args.trim());
-  gameEvents.emit("openGamepadBind");
+  setLastCommand(parsed.command);
+  gameEvents.emit("openGamepadBind", parsed.append);
 }
 
 function commandResetKeys(_args: string): void {
@@ -408,15 +434,22 @@ const builtinCommands: ConsoleCommand[] = [
     description: "Store a command and open the key-bind dialog",
     longDescription:
       "Syntax:\n" +
-      "  bind <command>\n" +
+      "  bind [-a|--append] <command>\n" +
       "\n" +
       "Stores <command> as the pending command (without sending it to the\n" +
       "server) and opens the keyboard key-bind dialog so you can assign\n" +
       "it to a key.\n" +
       "\n" +
-      "Example:\n" +
+      "A key can run several commands, one after another.  With -a or\n" +
+      "--append, the 'Add after current commands' option in the dialog is\n" +
+      "pre-checked, so <command> is added after the commands already bound\n" +
+      "to the key instead of replacing them.\n" +
+      "\n" +
+      "Examples:\n" +
       "  bind cast fireball\n" +
-      "    Opens the bind dialog with 'cast fireball' ready to be assigned.",
+      "    Opens the bind dialog with 'cast fireball' ready to be assigned.\n" +
+      "  bind -a fire\n" +
+      "    Adds 'fire' after the commands of the key you press.",
     handler: commandBind,
   },
   {
@@ -454,15 +487,22 @@ const builtinCommands: ConsoleCommand[] = [
     description: "Store a command and open the gamepad button-bind dialog",
     longDescription:
       "Syntax:\n" +
-      "  gamepad_bind <command>\n" +
+      "  gamepad_bind [-a|--append] <command>\n" +
       "\n" +
       "Stores <command> as the pending command (without sending it to the\n" +
       "server) and opens the gamepad button-bind dialog so you can assign\n" +
       "it to a controller button.\n" +
       "\n" +
-      "Example:\n" +
+      "A button can run several commands, one after another.  With -a or\n" +
+      "--append, the 'Add after current commands' option in the dialog is\n" +
+      "pre-checked, so <command> is added after the commands already bound\n" +
+      "to the button instead of replacing them.\n" +
+      "\n" +
+      "Examples:\n" +
       "  gamepad_bind cast fireball\n" +
-      "    Opens the gamepad bind dialog with 'cast fireball' ready to be assigned.",
+      "    Opens the gamepad bind dialog with 'cast fireball' ready to be assigned.\n" +
+      "  gamepad_bind -a fire\n" +
+      "    Adds 'fire' after the commands of the button you press.",
     handler: commandGamepadBind,
   },
   {
@@ -693,5 +733,15 @@ export function extendedCommand(command: string): void {
   if (!handleLocalCommand(cp, cpnext)) {
     // Not a local command – forward to the server as-is.
     sendCommand(trimmed, 0, 1);
+  }
+}
+
+/**
+ * Execute every command of a (possibly multi-command) binding in order.
+ * See command_list.ts for the format.
+ */
+export function extendedCommands(commands: string): void {
+  for (const command of splitCommands(commands)) {
+    extendedCommand(command);
   }
 }

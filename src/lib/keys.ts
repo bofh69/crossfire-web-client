@@ -18,7 +18,8 @@
 
 import { InputState } from "./protocol";
 import { charConfigKey, loadConfig, saveConfig } from "./storage";
-import { extendedCommand } from "./p_cmd";
+import { appendCommand, formatCommands, splitCommands } from "./command_list";
+import { extendedCommand, extendedCommands } from "./p_cmd";
 import { gameEvents } from "./events";
 import { getCpl } from "./init";
 import {
@@ -57,7 +58,7 @@ export interface KeyBind {
   keysym: string; // KeyboardEvent.key (lower-cased for letters)
   flags: number; // KEYF_* bitmask
   direction: number; // -1 for non-direction, 0-8 for direction
-  command: string;
+  command: string; // one or more commands, see command_list.ts
   global: boolean; // true = applies to all characters; false = current character only
 }
 
@@ -131,6 +132,22 @@ function keybindInsert(
   } else {
     charBindings.push(kb);
   }
+}
+
+/**
+ * Add a command after the commands of an existing binding, keeping its
+ * keysym, flags and scope.
+ */
+function keybindAppend(kb: KeyBind, command: string): void {
+  const combined = appendCommand(kb.command, command);
+  const arr = kb.global ? globalBindings : charBindings;
+  const idx = arr.indexOf(kb);
+  if (idx < 0) return;
+  arr[idx] = {
+    ...kb,
+    command: combined,
+    direction: directionFromCommand(combined),
+  };
 }
 
 function keybindRemove(kb: KeyBind): void {
@@ -478,10 +495,14 @@ export function parseKey(e: KeyboardEvent): void {
   const kb = keybindFind(keysym, presentFlags);
 
   if (kb) {
-    // Edit-mode binding: prefill command input and focus it
+    // Edit-mode binding: run all but the last command, then prefill the
+    // command input with the last one and focus it.
     if (kb.flags & KEYF_EDIT) {
+      const commands = splitCommands(kb.command);
+      const last = commands.pop() ?? "";
+      for (const command of commands) extendedCommand(command);
       cpl.inputState = InputState.CommandMode;
-      focusCommandInput(kb.command);
+      focusCommandInput(last);
       return;
     }
 
@@ -507,7 +528,7 @@ export function parseKey(e: KeyboardEvent): void {
       return;
     }
     recordKeyInput(keysym, "press", kb.command);
-    extendedCommand(kb.command);
+    extendedCommands(kb.command);
     if (e.repeat) {
       recordRepeatSend();
     }
@@ -767,7 +788,9 @@ export function unbindKey(params: string): void {
       const kb = all[i]!;
       const flagStr = flagsToString(kb.flags);
       const scope = kb.global ? "[global]" : "[char]";
-      drawInfo(`  ${i}: ${scope} [${flagStr}] ${kb.keysym} → ${kb.command}`);
+      drawInfo(
+        `  ${i}: ${scope} [${flagStr}] ${kb.keysym} → ${formatCommands(kb.command)}`,
+      );
     }
     return;
   }
@@ -776,7 +799,9 @@ export function unbindKey(params: string): void {
   const idx = parseInt(arg, 10);
   if (!isNaN(idx) && idx >= 0 && idx < all.length) {
     const kb = all[idx]!;
-    drawInfo(`Removed binding ${idx}: ${kb.keysym} → ${kb.command}`);
+    drawInfo(
+      `Removed binding ${idx}: ${kb.keysym} → ${formatCommands(kb.command)}`,
+    );
     keybindRemove(kb);
     saveBindings();
     return;
@@ -869,30 +894,40 @@ export function findBindingForEvent(e: KeyboardEvent): KeyBind | null {
 
 /**
  * Bind a command to the key described by a keyboard event.
- * Replaces any existing binding for the same key+modifiers.
+ * Replaces any existing binding for the same key+modifiers, or, when
+ * `append` is true, adds the command after the existing binding's commands.
  * Persists to localStorage.
  */
-export function bindCommandToEvent(e: KeyboardEvent, command: string): void {
-  const keysym = normaliseKeyEvent(e);
-  const flags = keyEventToFlags(e);
-  keybindInsert(keysym, flags, command);
-  saveBindings();
+export function bindCommandToEvent(
+  e: KeyboardEvent,
+  command: string,
+  append = false,
+): void {
+  bindCommandWithFlags(e, command, 0, append);
 }
 
 /**
  * Bind a command to the key described by a keyboard event, merging in extra flags.
  * extraFlags should be KEYF_* bits to OR in (e.g. KEYF_ANY | KEYF_EDIT).
- * Replaces any existing binding for the same key+modifiers.
+ * Replaces any existing binding for the same key+modifiers, or, when
+ * `append` is true, adds the command after the existing binding's commands
+ * (keeping that binding's flags and scope).
  * Persists to localStorage.
  */
 export function bindCommandWithFlags(
   e: KeyboardEvent,
   command: string,
   extraFlags: number,
+  append = false,
 ): void {
   const keysym = normaliseKeyEvent(e);
   const flags = keyEventToFlags(e) | extraFlags;
-  keybindInsert(keysym, flags, command);
+  const existing = append ? keybindFind(keysym, flags) : null;
+  if (existing) {
+    keybindAppend(existing, command);
+  } else {
+    keybindInsert(keysym, flags, command);
+  }
   saveBindings();
 }
 

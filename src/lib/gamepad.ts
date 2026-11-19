@@ -25,7 +25,8 @@ import {
   sanitiseKeySegment,
   saveConfig,
 } from "./storage";
-import { extendedCommand } from "./p_cmd";
+import { appendCommand } from "./command_list";
+import { extendedCommands } from "./p_cmd";
 import { gameEvents } from "./events";
 import {
   fireDir,
@@ -699,7 +700,7 @@ function processButtons(gp: Gamepad): void {
 
     // Normal button: fire command on rising edge only.
     if (pressed && !wasPressed) {
-      extendedCommand(mapping.command);
+      extendedCommands(mapping.command);
     }
   }
 
@@ -734,9 +735,32 @@ export function getAxisTestDirection(): number {
 /**
  * Set or replace the command for a specific button.
  * New bindings are always character-specific (global = false) by default.
+ * When `append` is true and the button is already bound, the command is
+ * added after the existing commands instead (keeping the binding's scope).
  */
-export function setButtonCommand(button: number, command: string): void {
+export function setButtonCommand(
+  button: number,
+  command: string,
+  append = false,
+): void {
   if (!gamepadState.activeProfile) return;
+
+  if (append) {
+    // Character bindings take priority, matching rebuildProfileButtons().
+    for (const list of [gamepadState.charButtons, gamepadState.globalButtons]) {
+      const idx = list.findIndex((b) => b.button === button);
+      if (idx < 0) continue;
+      // Replace rather than mutate: entries may be shared with the defaults.
+      const existing = list[idx]!;
+      list[idx] = {
+        ...existing,
+        command: appendCommand(existing.command, command),
+      };
+      rebuildProfileButtons();
+      saveGamepadConfig();
+      return;
+    }
+  }
 
   // Add/replace in charButtons (character-specific by default).
   const existingChar = gamepadState.charButtons.find(

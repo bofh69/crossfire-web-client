@@ -127,10 +127,16 @@ export interface GameEventMap {
   focusCommandInput: [prefill?: string];
   /** Ask the InfoPanel to clear all displayed messages. */
   clearMessages: [];
-  /** Ask the MenuBar to start a "bind last command to key" flow. */
-  openKeyBind: [];
-  /** Ask the MenuBar to start a "bind last command to gamepad button" flow. */
-  openGamepadBind: [];
+  /**
+   * Ask the MenuBar to start a "bind last command to key" flow.
+   * `append` pre-checks the "add after current commands" option.
+   */
+  openKeyBind: [append?: boolean];
+  /**
+   * Ask the MenuBar to start a "bind last command to gamepad button" flow.
+   * `append` pre-checks the "add after current commands" option.
+   */
+  openGamepadBind: [append?: boolean];
   /** Ask the app to show the magic map overlay. */
   showMagicMap: [];
   /** InfoPanel named colors or background changed. */
