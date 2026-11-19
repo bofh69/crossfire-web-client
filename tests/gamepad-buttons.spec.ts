@@ -3,6 +3,7 @@ import {
   buttonIdForIndex,
   buttonIndex,
   buttonLabel,
+  controllerFamily,
   normaliseButtonId,
 } from "../src/lib/gamepad_buttons";
 
@@ -33,5 +34,15 @@ describe("gamepad button ids", () => {
     expect(buttonLabel("a")).toBe("A");
     expect(buttonLabel("dpup")).toBe("D-pad up");
     expect(buttonLabel("b17")).toBe("B17");
+    expect(buttonLabel("a", "playstation")).toBe("Cross");
+    expect(buttonLabel("a", "nintendo")).toBe("B");
+  });
+
+  test("controller family from the vendor ID", () => {
+    const chrome = "DualSense (STANDARD GAMEPAD Vendor: 054c Product: 0ce6)";
+    expect(controllerFamily(chrome)).toBe("playstation");
+    expect(controllerFamily("057e-2009-Pro Controller")).toBe("nintendo");
+    expect(controllerFamily("045e-02dd-Microsoft X-Box One pad")).toBe("xbox");
+    expect(controllerFamily("Some unknown pad")).toBe("xbox");
   });
 });

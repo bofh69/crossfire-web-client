@@ -18,9 +18,11 @@
 import {
   buttonIdForIndex,
   buttonIndex,
+  controllerFamily,
   isStandardGamepad,
   normaliseButtonId,
   type ButtonId,
+  type ControllerFamily,
 } from "./gamepad_buttons";
 import {
   findProfileForGamepad,
@@ -186,6 +188,8 @@ interface GamepadState {
   legacyControllerKey: string;
   /** Whether the active controller has the W3C standard mapping. */
   standardMapping: boolean;
+  /** The button-label style of the active controller. */
+  family: ControllerFamily;
   /** Active gamepad profile (resolved per-controller, possibly user-customised). */
   activeProfile: GamepadProfile | null;
   /** The gamepad index we're currently tracking (-1 = none). */
@@ -234,6 +238,7 @@ const gamepadState: GamepadState = {
   activeControllerKey: "",
   legacyControllerKey: "",
   standardMapping: false,
+  family: "xbox",
   activeProfile: null,
   activeGamepadIndex: -1,
   prevButtons: [],
@@ -397,6 +402,7 @@ function onGamepadConnected(e: GamepadEvent): void {
 
   gamepadState.activeGamepadIndex = gp.index;
   gamepadState.standardMapping = isStandardGamepad(gp);
+  gamepadState.family = controllerFamily(gp.id);
   // All standard-mapped controllers share one configuration.  Older
   // versions stored it per controller, so read that if needed.
   const idKey = sanitiseKeySegment(gp.id);
@@ -951,6 +957,18 @@ export function getActiveProfileName(): string {
   return gamepadState.activeProfile?.name ?? "(none)";
 }
 
+/** Get the button-label style of the active controller. */
+export function getControllerFamily(): ControllerFamily {
+  return gamepadState.family;
+}
+
+/** The buttons whose binding is exactly `command`. */
+export function getButtonsForCommand(command: string): ButtonId[] {
+  return (gamepadState.activeProfile?.buttons ?? [])
+    .filter((b) => b.command === command)
+    .map((b) => b.button);
+}
+
 /** Find the existing command for a given button, or null. */
 export function getButtonCommand(button: ButtonId): string | null {
   return (
@@ -1010,6 +1028,7 @@ export function gamepadShutdown(): void {
   gamepadState.activeControllerKey = "";
   gamepadState.legacyControllerKey = "";
   gamepadState.standardMapping = false;
+  gamepadState.family = "xbox";
   gamepadState.activeProfile = null;
   gamepadState.prevButtons = [];
   gamepadState.prevWalkDir = 0;
