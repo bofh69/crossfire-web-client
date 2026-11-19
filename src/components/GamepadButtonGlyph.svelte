@@ -1,9 +1,9 @@
 <script lang="ts">
   /**
    * GamepadButtonGlyph — a small picture of a gamepad button in the style of
-   * the controller family (Xbox, PlayStation or Nintendo), using Kenney's
-   * Input Prompts (CC0, www.kenney.nl).  Buttons without a picture are shown
-   * as a labelled key cap.
+   * the controller family (Xbox, PlayStation, Nintendo, Steam Deck or Steam
+   * Controller), using Kenney's Input Prompts (CC0, www.kenney.nl).  Buttons
+   * without a picture are shown as a labelled key cap.
    */
   import {
     buttonIndex,
@@ -58,6 +58,25 @@
       "switch_dpad_right",
       "switch_button_home",
     ],
+    playstation3: [
+      "playstation_button_color_cross",
+      "playstation_button_color_circle",
+      "playstation_button_color_square",
+      "playstation_button_color_triangle",
+      "playstation_trigger_l1",
+      "playstation_trigger_r1",
+      "playstation_trigger_l2",
+      "playstation_trigger_r2",
+      "playstation3_button_select",
+      "playstation3_button_start",
+      "playstation_button_l3",
+      "playstation_button_r3",
+      "playstation_dpad_up",
+      "playstation_dpad_down",
+      "playstation_dpad_left",
+      "playstation_dpad_right",
+      "",
+    ],
     playstation: [
       "playstation_button_color_cross",
       "playstation_button_color_circle",
@@ -76,6 +95,44 @@
       "playstation_dpad_left",
       "playstation_dpad_right",
       "",
+    ],
+    steamcontroller: [
+      "steam_button_color_a",
+      "steam_button_color_b",
+      "steam_button_color_x",
+      "steam_button_color_y",
+      "steam_lb",
+      "steam_rb",
+      "steam_lt",
+      "steam_rt",
+      "steam_button_back_icon",
+      "steam_button_start_icon",
+      "steam_stick_l_press",
+      "steam_button_rp",
+      "steam_dpad_up",
+      "steam_dpad_down",
+      "steam_dpad_left",
+      "steam_dpad_right",
+      "steam_button_steam",
+    ],
+    steamdeck: [
+      "steamdeck_button_a",
+      "steamdeck_button_b",
+      "steamdeck_button_x",
+      "steamdeck_button_y",
+      "steamdeck_button_l1",
+      "steamdeck_button_r1",
+      "steamdeck_button_l2",
+      "steamdeck_button_r2",
+      "steamdeck_button_view",
+      "steamdeck_button_options",
+      "steamdeck_stick_l_press",
+      "steamdeck_stick_r_press",
+      "steamdeck_dpad_up",
+      "steamdeck_dpad_down",
+      "steamdeck_dpad_left",
+      "steamdeck_dpad_right",
+      "steamdeck_button_guide",
     ],
     xbox: [
       "xbox_button_color_a",

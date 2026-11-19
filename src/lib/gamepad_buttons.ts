@@ -37,10 +37,16 @@ export const STANDARD_BUTTON_NAMES: readonly string[] = [
 ];
 
 /**
- * The button-label style of a controller.  Third-party and Steam
- * controllers mostly copy the Xbox labels, so that is the default.
+ * The button-label style of a controller.  Third-party controllers mostly
+ * copy the Xbox labels, so that is the default.
  */
-export type ControllerFamily = "nintendo" | "playstation" | "xbox";
+export type ControllerFamily =
+  | "nintendo"
+  | "playstation"
+  | "playstation3"
+  | "steamcontroller"
+  | "steamdeck"
+  | "xbox";
 
 /** Labels for {@link STANDARD_BUTTON_NAMES} per controller family, same order. */
 const STANDARD_BUTTON_LABELS: Readonly<
@@ -66,6 +72,25 @@ const STANDARD_BUTTON_LABELS: Readonly<
     "D-pad right",
     "Home",
   ],
+  playstation3: [
+    "Cross",
+    "Circle",
+    "Square",
+    "Triangle",
+    "L1",
+    "R1",
+    "L2",
+    "R2",
+    "Select",
+    "Start",
+    "L3",
+    "R3",
+    "D-pad up",
+    "D-pad down",
+    "D-pad left",
+    "D-pad right",
+    "PS",
+  ],
   playstation: [
     "Cross",
     "Circle",
@@ -84,6 +109,45 @@ const STANDARD_BUTTON_LABELS: Readonly<
     "D-pad left",
     "D-pad right",
     "PS",
+  ],
+  // The original (2015) Steam Controller: the right stick is a trackpad.
+  steamcontroller: [
+    "A",
+    "B",
+    "X",
+    "Y",
+    "LB",
+    "RB",
+    "LT",
+    "RT",
+    "Back",
+    "Start",
+    "L stick",
+    "R pad",
+    "D-pad up",
+    "D-pad down",
+    "D-pad left",
+    "D-pad right",
+    "Steam",
+  ],
+  steamdeck: [
+    "A",
+    "B",
+    "X",
+    "Y",
+    "L1",
+    "R1",
+    "L2",
+    "R2",
+    "View",
+    "Menu",
+    "L3",
+    "R3",
+    "D-pad up",
+    "D-pad down",
+    "D-pad left",
+    "D-pad right",
+    "Steam",
   ],
   xbox: [
     "A",
@@ -106,23 +170,34 @@ const STANDARD_BUTTON_LABELS: Readonly<
   ],
 };
 
-/** USB vendor IDs of controller makers whose labels differ from Xbox's. */
-const VENDOR_FAMILIES: Readonly<Record<string, ControllerFamily>> = {
+/**
+ * Controllers whose labels differ from Xbox's, keyed by USB vendor ID or
+ * by "vendor:product" for a single model (which takes precedence).
+ */
+const USB_ID_FAMILIES: Readonly<Record<string, ControllerFamily>> = {
   "054c": "playstation", // Sony
+  "054c:0268": "playstation3", // DualShock 3
   "057e": "nintendo", // Nintendo
+  "28de": "steamdeck", // Valve: Steam Deck and Steam Input's virtual pad
+  "28de:1102": "steamcontroller", // Steam Controller (2015), wired
+  "28de:1142": "steamcontroller", // Steam Controller (2015), wireless dongle
 };
 
 /**
- * Matches the USB vendor ID in a `Gamepad.id`: Chrome writes
+ * Matches the USB vendor and product IDs in a `Gamepad.id`: Chrome writes
  * "Vendor: 054c Product: 0ce6", Firefox starts with "054c-0ce6-".
  */
-const VENDOR_RE = /Vendor: ([0-9a-f]{4})|^([0-9a-f]{4})-[0-9a-f]{4}-/i;
+const USB_ID_RE =
+  /Vendor: ([0-9a-f]{4}) Product: ([0-9a-f]{4})|^([0-9a-f]{4})-([0-9a-f]{4})-/i;
 
 /** The label style of the controller with the given `Gamepad.id`. */
 export function controllerFamily(gamepadId: string): ControllerFamily {
-  const m = VENDOR_RE.exec(gamepadId);
-  const vendor = (m?.[1] ?? m?.[2] ?? "").toLowerCase();
-  return VENDOR_FAMILIES[vendor] ?? "xbox";
+  const m = USB_ID_RE.exec(gamepadId);
+  const vendor = (m?.[1] ?? m?.[3] ?? "").toLowerCase();
+  const product = (m?.[2] ?? m?.[4] ?? "").toLowerCase();
+  return (
+    USB_ID_FAMILIES[`${vendor}:${product}`] ?? USB_ID_FAMILIES[vendor] ?? "xbox"
+  );
 }
 
 const RAW_BUTTON_RE = /^b(\d+)$/;

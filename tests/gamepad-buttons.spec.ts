@@ -36,6 +36,8 @@ describe("gamepad button ids", () => {
     expect(buttonLabel("b17")).toBe("B17");
     expect(buttonLabel("a", "playstation")).toBe("Cross");
     expect(buttonLabel("a", "nintendo")).toBe("B");
+    expect(buttonLabel("back", "playstation3")).toBe("Select");
+    expect(buttonLabel("guide", "steamdeck")).toBe("Steam");
   });
 
   test("controller family from the vendor ID", () => {
@@ -44,5 +46,13 @@ describe("gamepad button ids", () => {
     expect(controllerFamily("057e-2009-Pro Controller")).toBe("nintendo");
     expect(controllerFamily("045e-02dd-Microsoft X-Box One pad")).toBe("xbox");
     expect(controllerFamily("Some unknown pad")).toBe("xbox");
+    const ds3 = "PLAYSTATION(R)3 Controller (Vendor: 054c Product: 0268)";
+    expect(controllerFamily(ds3)).toBe("playstation3");
+    expect(controllerFamily("054c-0268-Sony PLAYSTATION(R)3")).toBe(
+      "playstation3",
+    );
+    expect(controllerFamily("28de-1205-Steam Deck")).toBe("steamdeck");
+    const steamController = "Steam Controller (Vendor: 28de Product: 1142)";
+    expect(controllerFamily(steamController)).toBe("steamcontroller");
   });
 });
