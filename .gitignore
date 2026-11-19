@@ -23,3 +23,5 @@ old/build/
 
 # Screenshots from replay
 screenshots/replay-playwright/*.png
+
+.claude
