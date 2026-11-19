@@ -276,6 +276,13 @@
             All key bindings are in <strong>Keyboard</strong> →
             <strong>Show key bindings</strong>.
           </li>
+          <li>
+            A key or gamepad button can run several commands in a row: when
+            binding one that is already bound, check
+            <strong>Add after current commands</strong>. Typing
+            <strong>bind -a</strong> and a command does the same from the command
+            line.
+          </li>
         </ul>
       </div>
       <div class="dialog-buttons">

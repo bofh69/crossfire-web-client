@@ -175,6 +175,12 @@ be redone.
 
 Bindings can be stored for all characters or the current logged in one.
 
+A key or gamepad button can run several commands, one after another.
+When binding a key/button that is already bound, check "Add after current
+commands" in the dialog to add the new command after the existing ones
+instead of replacing them. The `bind` and `gamepad_bind` commands take
+`-a`/`--append` to pre-check that option, e.g. `bind -a fire`.
+
 Press `Tab` to enter UI navigation mode. In that mode the visible UI can be
 navigated with mode-specific keyboard or gamepad controls, `Escape` leaves the
 mode. Return selects items/shows menus in the UI navigation mode.

@@ -20,6 +20,7 @@
     type AxisConfigStep,
     type ButtonMapping,
   } from "../../lib/gamepad";
+  import { formatCommands } from "../../lib/command_list";
   import { getLastCommand } from "../../lib/player";
   import { gameEvents } from "../../lib/events";
   import { directionName } from "../../lib/directions";
@@ -44,6 +45,8 @@
 
   let dialogMode = $state<DialogMode>("idle");
   let dialogCommand = $state("");
+  /** Add the command after the button's current commands instead of replacing them. */
+  let dialogAppend = $state(false);
   let gpAxisTarget = $state<AxisConfigTarget>("walk");
   let gpAxisStep = $state<AxisConfigStep>("move-north");
   let gpAxisTestDir = $state(0);
@@ -156,13 +159,19 @@
 
   // ── Bind last command to gamepad button ───────────────────────────
 
-  export function startGamepadButtonBind() {
+  /**
+   * Start binding the last command to a gamepad button.
+   *
+   * @param append Pre-check the "add after current commands" option.
+   */
+  export function startGamepadButtonBind(append = false) {
     const cmd = getLastCommand();
     if (!cmd) {
       onClose();
       return;
     }
     dialogCommand = cmd;
+    dialogAppend = append;
     dialogMode = "gp-button-capture";
     onClose();
     startButtonConfig((button: number) => {
@@ -172,6 +181,12 @@
     });
   }
 
+  /** Label for the confirm button of the bind dialogs. */
+  function bindButtonLabel(): string {
+    if (!gpButtonExistingCmd) return "Bind";
+    return dialogAppend ? "Add" : "Overwrite";
+  }
+
   function cancelGamepadButtonCapture() {
     cancelButtonConfig();
     dialogMode = "idle";
@@ -179,7 +194,7 @@
 
   function confirmGamepadButtonBind() {
     if (gpCapturedButton >= 0 && dialogCommand) {
-      setButtonCommand(gpCapturedButton, dialogCommand);
+      setButtonCommand(gpCapturedButton, dialogCommand, dialogAppend);
     }
     dialogMode = "idle";
   }
@@ -192,6 +207,7 @@
 
   function startBindCmdGp() {
     dialogCommand = "";
+    dialogAppend = false;
     dialogMode = "bind-cmd-gp-input";
     onClose();
   }
@@ -207,7 +223,7 @@
 
   function confirmBindCmdGp() {
     if (gpCapturedButton >= 0 && dialogCommand) {
-      setButtonCommand(gpCapturedButton, dialogCommand);
+      setButtonCommand(gpCapturedButton, dialogCommand, dialogAppend);
     }
     dialogMode = "idle";
   }
@@ -261,6 +277,21 @@
     }
   });
 </script>
+
+{#snippet existingBinding()}
+  {#if gpButtonExistingCmd}
+    <p class="dialog-warn">
+      Already bound to: <strong>{formatCommands(gpButtonExistingCmd)}</strong>
+    </p>
+    <label class="dialog-checkbox-label">
+      <input type="checkbox" bind:checked={dialogAppend} />
+      Add after current commands
+    </label>
+    {#if !dialogAppend}
+      <p>Overwrite?</p>
+    {/if}
+  {/if}
+{/snippet}
 
 <div class="menu-item">
   <button
@@ -365,7 +396,7 @@
             {#each gpMappingsSnapshot as mapping}
               <tr>
                 <td>B{mapping.button}</td>
-                <td class="command-cell">{mapping.command}</td>
+                <td class="command-cell">{formatCommands(mapping.command)}</td>
                 <td>
                   <input
                     type="checkbox"
@@ -382,7 +413,7 @@
                     onclick={() => {
                       if (
                         confirm(
-                          `Remove binding for button B${mapping.button} (${mapping.command})?`,
+                          `Remove binding for button B${mapping.button} (${formatCommands(mapping.command)})?`,
                         )
                       ) {
                         handleRemoveGamepadButton(mapping.button);
@@ -461,15 +492,10 @@
       <p class="dialog-title">Bind Gamepad Button</p>
       <p>Button: <strong>B{gpCapturedButton}</strong></p>
       <p>Command: <strong>{dialogCommand}</strong></p>
-      {#if gpButtonExistingCmd}
-        <p class="dialog-warn">
-          Already bound to: <strong>{gpButtonExistingCmd}</strong>
-        </p>
-        <p>Overwrite?</p>
-      {/if}
+      {@render existingBinding()}
       <div class="dialog-buttons">
         <button class="btn-primary" onclick={confirmGamepadButtonBind}>
-          {gpButtonExistingCmd ? "Overwrite" : "Bind"}
+          {bindButtonLabel()}
         </button>
         <button onclick={cancelGamepadButtonBind}>Cancel</button>
       </div>
@@ -515,15 +541,10 @@
       <p class="dialog-title">Bind command to gamepad button</p>
       <p>Button: <strong>B{gpCapturedButton}</strong></p>
       <p>Command: <strong>{dialogCommand}</strong></p>
-      {#if gpButtonExistingCmd}
-        <p class="dialog-warn">
-          Already bound to: <strong>{gpButtonExistingCmd}</strong>
-        </p>
-        <p>Overwrite?</p>
-      {/if}
+      {@render existingBinding()}
       <div class="dialog-buttons">
         <button class="btn-primary" onclick={confirmBindCmdGp}>
-          {gpButtonExistingCmd ? "Overwrite" : "Bind"}
+          {bindButtonLabel()}
         </button>
         <button onclick={cancelBindCmdGpConfirm}>Cancel</button>
       </div>
