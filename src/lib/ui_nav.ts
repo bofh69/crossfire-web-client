@@ -1,3 +1,4 @@
+import { buttonIndex, type ButtonId } from "./gamepad_buttons";
 import type { GamepadProfile } from "./gamepad_defaults";
 
 /**
@@ -275,19 +276,20 @@ export function processUiNavGamepad(
     }
   }
 
-  const buttonActions: Array<[button: number, action: UiNavAction]> = [
-    [0, "activate"],
-    [1, "exit"],
-    [2, "menu"],
-    [4, "prev"],
-    [5, "next"],
-    [12, "move-up"],
-    [13, "move-down"],
-    [14, "move-left"],
-    [15, "move-right"],
+  const buttonActions: Array<[button: ButtonId, action: UiNavAction]> = [
+    ["a", "activate"],
+    ["b", "exit"],
+    ["x", "menu"],
+    ["leftshoulder", "prev"],
+    ["rightshoulder", "next"],
+    ["dpup", "move-up"],
+    ["dpdown", "move-down"],
+    ["dpleft", "move-left"],
+    ["dpright", "move-right"],
   ];
 
-  for (const [button, action] of buttonActions) {
+  for (const [id, action] of buttonActions) {
+    const button = buttonIndex(id);
     if (button >= gamepad.buttons.length) {
       continue;
     }

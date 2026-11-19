@@ -1,12 +1,14 @@
 /**
  * Default gamepad profiles for the Crossfire web client.
  *
- * Each profile matches controllers whose `Gamepad.id` string contains
- * a specific substring (case-insensitive).  Profiles define which axes
- * map to the walk/run stick and fire stick, and what command each button
- * sends.
+ * Gamepads that the browser maps to the W3C standard layout all use the
+ * standard profile.  Other gamepads use the first profile whose `matchId`
+ * is found in their `Gamepad.id` string (case-insensitive), or the fallback
+ * profile.  Profiles define which axes map to the walk/run stick and fire
+ * stick, and what command each button sends.
  */
 
+import type { ButtonId } from "./gamepad_buttons";
 import { LOG } from "./misc";
 import { LogLevel } from "./protocol";
 import {
@@ -31,9 +33,10 @@ export interface StickAxes {
   invertY: boolean;
 }
 
-/** Button-to-command mapping.  Button index → command string. */
+/** Button-to-command mapping. */
 export interface ButtonMapping {
-  button: number;
+  /** The button, see {@link ButtonId}. */
+  button: ButtonId;
   command: string;
   /** true = applies to all characters; false (default) = current character only. */
   global?: boolean;
@@ -66,7 +69,34 @@ export interface GamepadProfile {
 // Built-in profiles
 // ──────────────────────────────────────────────────────────────────────────────
 
+/** Default button bindings for gamepads with a standard-like layout. */
+const standardButtons: readonly ButtonMapping[] = [
+  { button: "a", command: "apply", global: true },
+  { button: "b", command: "disarm", global: true },
+  { button: "x", command: "use_skill pray", global: true },
+  { button: "y", command: "hotbar", global: true },
+  { button: "rightstick", command: "stay fire", global: true },
+  { button: "dpup", command: "ready_skill throwing", global: true },
+  { button: "dpdown", command: "take", global: true },
+  { button: "dpleft", command: "rotateshoottype -1", global: true },
+  { button: "dpright", command: "rotateshoottype", global: true },
+  { button: "guide", command: "brace", global: true },
+];
+
+/** The profile for every gamepad that has the standard mapping. */
+export const standardProfile: GamepadProfile = {
+  name: "Standard Gamepad",
+  matchId: [],
+  walkStick: { axisX: 0, axisY: 1, invertX: false, invertY: false },
+  fireStick: { axisX: 2, axisY: 3, invertX: false, invertY: false },
+  walkThreshold: DEFAULT_WALK_THRESHOLD,
+  runThreshold: DEFAULT_RUN_THRESHOLD,
+  fireThreshold: DEFAULT_FIRE_THRESHOLD,
+  buttons: [...standardButtons],
+};
+
 const xboxProfile: GamepadProfile = {
+  ...standardProfile,
   name: "Xbox One Controller",
   matchId: [
     "045e-02dd-",
@@ -74,35 +104,18 @@ const xboxProfile: GamepadProfile = {
     "Microsoft Controller",
     "Microsoft X-Box One",
   ],
-  walkStick: { axisX: 0, axisY: 1, invertX: false, invertY: false },
-  fireStick: { axisX: 2, axisY: 3, invertX: false, invertY: false },
-  walkThreshold: DEFAULT_WALK_THRESHOLD,
-  runThreshold: DEFAULT_RUN_THRESHOLD,
-  fireThreshold: DEFAULT_FIRE_THRESHOLD,
-  buttons: [
-    { button: 0, command: "apply", global: true },
-    { button: 1, command: "disarm", global: true },
-    { button: 2, command: "use_skill pray", global: true },
-    { button: 3, command: "hotbar", global: true },
-    { button: 11, command: "stay fire", global: true },
-    { button: 12, command: "ready_skill throwing", global: true },
-    { button: 13, command: "take", global: true },
-    { button: 14, command: "rotateshoottype -1", global: true },
-    { button: 15, command: "rotateshoottype", global: true },
-    { button: 16, command: "brace", global: true },
-  ],
 };
 
 /**
- * All built-in profiles, ordered by specificity (most specific first).
- * The first profile whose `matchId` is found in the gamepad's `id`
- * string will be used.
+ * Profiles for gamepads without the standard mapping, ordered by
+ * specificity (most specific first).  The first profile whose `matchId` is
+ * found in the gamepad's `id` string will be used.
  */
 export const defaultProfiles: readonly GamepadProfile[] = [xboxProfile];
 
 /**
  * A fallback profile used when no built-in profile matches.
- * Uses the standard mapping (axes 0–1 for L stick, 2–3 for R stick).
+ * Uses the standard axes (0–1 for L stick, 2–3 for R stick).
  */
 export const fallbackProfile: GamepadProfile = {
   name: "Generic Controller",
@@ -113,18 +126,30 @@ export const fallbackProfile: GamepadProfile = {
   runThreshold: DEFAULT_RUN_THRESHOLD,
   fireThreshold: DEFAULT_FIRE_THRESHOLD,
   buttons: [
-    { button: 0, command: "apply", global: true },
-    { button: 1, command: "hotbar", global: true },
-    { button: 2, command: "use_skill pray", global: true },
-    { button: 3, command: "search", global: true },
+    { button: "a", command: "apply", global: true },
+    { button: "b", command: "hotbar", global: true },
+    { button: "x", command: "use_skill pray", global: true },
+    { button: "y", command: "search", global: true },
   ],
 };
 
 /**
- * Find the best matching profile for a gamepad, based on its `id` string.
+ * Find the best matching profile for a gamepad: the standard profile if
+ * `standard` is true, otherwise based on its `id` string.
  * Returns a deep copy so the caller can modify it freely.
  */
-export function findProfileForGamepad(gamepadId: string): GamepadProfile {
+export function findProfileForGamepad(
+  gamepadId: string,
+  standard: boolean,
+): GamepadProfile {
+  if (standard) {
+    LOG(
+      LogLevel.Debug,
+      "gamepad::profile",
+      `${gamepadId} has the standard mapping`,
+    );
+    return structuredClone(standardProfile);
+  }
   const lower = gamepadId.toLowerCase();
   for (const profile of defaultProfiles) {
     for (const matchId of profile.matchId) {

@@ -5,7 +5,9 @@
  *  • Polling-based gamepad input (requestAnimationFrame loop)
  *  • Analog stick → direction conversion with walk/run/fire zones
  *  • Button → command mapping with edge-detection (press/release)
- *  • Per-controller profiles (auto-detected by name, stored per-controller)
+ *  • Buttons named by the W3C standard layout when the browser provides it
+ *  • Profiles (one shared by all standard-mapped controllers, otherwise
+ *    auto-detected by name and stored per-controller)
  *  • Persistence of user-customised bindings via localStorage
  *  • Interactive axis-configuration (move stick N/E/S/W + test mode)
  *  • Interactive button-binding (press button, binds last command sent)
@@ -13,6 +15,13 @@
  *  • Relaxed diagonal detection for near-threshold second axis
  */
 
+import {
+  buttonIdForIndex,
+  buttonIndex,
+  isStandardGamepad,
+  normaliseButtonId,
+  type ButtonId,
+} from "./gamepad_buttons";
 import {
   findProfileForGamepad,
   type GamepadProfile,
@@ -45,6 +54,7 @@ import {
   isButtonConfigActive,
   handleAxisConfig as doHandleAxisConfig,
   handleButtonConfig as doHandleButtonConfig,
+  startButtonConfig as doStartButtonConfig,
   acceptAxisConfig as doAcceptAxisConfig,
   getAxisTestDirection as doGetAxisTestDirection,
 } from "./gamepad_config";
@@ -158,14 +168,24 @@ function stickToDirection(
 
 const STORAGE_KEY_PREFIX = "gamepad_";
 const CHAR_BUTTON_KEY_PREFIX = "gamepad_char_";
+/** Controller key shared by all gamepads with the standard mapping. */
+const STANDARD_CONTROLLER_KEY = "standard";
 
 // ──────────────────────────────────────────────────────────────────────────────
 // Module state
 // ──────────────────────────────────────────────────────────────────────────────
 
 interface GamepadState {
-  /** The sanitised name of the currently active controller (for storage). */
+  /** The storage key segment of the currently active controller. */
   activeControllerKey: string;
+  /**
+   * The sanitised name of the active controller, under which older versions
+   * stored its settings.  Read when nothing is stored under
+   * `activeControllerKey` yet.
+   */
+  legacyControllerKey: string;
+  /** Whether the active controller has the W3C standard mapping. */
+  standardMapping: boolean;
   /** Active gamepad profile (resolved per-controller, possibly user-customised). */
   activeProfile: GamepadProfile | null;
   /** The gamepad index we're currently tracking (-1 = none). */
@@ -212,6 +232,8 @@ interface GamepadState {
 
 const gamepadState: GamepadState = {
   activeControllerKey: "",
+  legacyControllerKey: "",
+  standardMapping: false,
   activeProfile: null,
   activeGamepadIndex: -1,
   prevButtons: [],
@@ -236,11 +258,35 @@ interface SavedGamepadConfig {
   walkThreshold: number;
   runThreshold: number;
   fireThreshold: number;
-  buttons: ButtonMapping[];
+  buttons: SavedButtonMapping[];
 }
 
+/** A saved button mapping; older versions saved the button as an index. */
+type SavedButtonMapping = Omit<ButtonMapping, "button"> & {
+  button: ButtonId | number;
+};
+
 /** Saved format for per-character button overrides. */
-type SavedCharButtons = ButtonMapping[];
+type SavedCharButtons = SavedButtonMapping[];
+
+/**
+ * Convert saved or default mappings to the active controller's canonical
+ * button identifiers, dropping invalid entries and duplicate buttons.
+ */
+function normaliseMappings(
+  mappings: readonly SavedButtonMapping[],
+  global: boolean,
+): ButtonMapping[] {
+  const seen = new Set<ButtonId>();
+  const result: ButtonMapping[] = [];
+  for (const m of mappings) {
+    const button = normaliseButtonId(m.button, gamepadState.standardMapping);
+    if (button === null || seen.has(button)) continue;
+    seen.add(button);
+    result.push({ ...m, button, global });
+  }
+  return result;
+}
 
 /**
  * Rebuild `activeProfile.buttons` as the de-duplicated merged list used at
@@ -249,7 +295,7 @@ type SavedCharButtons = ButtonMapping[];
  */
 function rebuildProfileButtons(): void {
   if (!gamepadState.activeProfile) return;
-  const seen = new Set<number>();
+  const seen = new Set<ButtonId>();
   const merged: ButtonMapping[] = [];
 
   for (const b of gamepadState.charButtons) {
@@ -299,10 +345,24 @@ function saveGamepadConfig(): void {
   }
 }
 
-function loadSavedConfig(controllerKey: string): SavedGamepadConfig | null {
-  return loadConfig<SavedGamepadConfig | null>(
-    STORAGE_KEY_PREFIX + controllerKey,
+/**
+ * Load a value saved for the active controller, falling back to the key
+ * that older versions used for it.
+ */
+function loadControllerConfig<T>(
+  keyFor: (controllerKey: string) => string,
+): T | null {
+  const value = loadConfig<T | null>(
+    keyFor(gamepadState.activeControllerKey),
     null,
+  );
+  if (value !== null || !gamepadState.legacyControllerKey) return value;
+  return loadConfig<T | null>(keyFor(gamepadState.legacyControllerKey), null);
+}
+
+function loadSavedConfig(): SavedGamepadConfig | null {
+  return loadControllerConfig<SavedGamepadConfig>(
+    (key) => STORAGE_KEY_PREFIX + key,
   );
 }
 
@@ -310,14 +370,11 @@ function charButtonStorageKey(controllerKey: string, charName: string): string {
   return charConfigKey(CHAR_BUTTON_KEY_PREFIX + controllerKey, charName);
 }
 
-function loadCharButtons(
-  controllerKey: string,
-  charName: string,
-): SavedCharButtons {
-  return loadConfig<SavedCharButtons>(
-    charButtonStorageKey(controllerKey, charName),
-    [],
+function loadCharButtons(charName: string): ButtonMapping[] {
+  const saved = loadControllerConfig<SavedCharButtons>((key) =>
+    charButtonStorageKey(key, charName),
   );
+  return normaliseMappings(saved ?? [], false);
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -339,12 +396,19 @@ function onGamepadConnected(e: GamepadEvent): void {
   }
 
   gamepadState.activeGamepadIndex = gp.index;
-  gamepadState.activeControllerKey = sanitiseKeySegment(gp.id);
+  gamepadState.standardMapping = isStandardGamepad(gp);
+  // All standard-mapped controllers share one configuration.  Older
+  // versions stored it per controller, so read that if needed.
+  const idKey = sanitiseKeySegment(gp.id);
+  gamepadState.activeControllerKey = gamepadState.standardMapping
+    ? STANDARD_CONTROLLER_KEY
+    : idKey;
+  gamepadState.legacyControllerKey = gamepadState.standardMapping ? idKey : "";
 
   // Try to load saved config for this controller, otherwise use a
   // matching built-in profile.
-  const saved = loadSavedConfig(gamepadState.activeControllerKey);
-  const profile = findProfileForGamepad(gp.id);
+  const saved = loadSavedConfig();
+  const profile = findProfileForGamepad(gp.id, gamepadState.standardMapping);
   if (saved) {
     profile.walkStick = saved.walkStick;
     profile.fireStick = saved.fireStick;
@@ -352,24 +416,15 @@ function onGamepadConnected(e: GamepadEvent): void {
     profile.runThreshold = saved.runThreshold;
     profile.fireThreshold = saved.fireThreshold;
     // Global buttons come from the saved config.
-    gamepadState.globalButtons = saved.buttons.map((b) => ({
-      ...b,
-      global: true,
-    }));
+    gamepadState.globalButtons = normaliseMappings(saved.buttons, true);
   } else {
     // Use built-in profile buttons as global defaults.
-    gamepadState.globalButtons = profile.buttons.map((b) => ({
-      ...b,
-      global: true,
-    }));
+    gamepadState.globalButtons = normaliseMappings(profile.buttons, true);
   }
 
   // Load character-specific buttons if a character is already known.
   if (gamepadState.currentCharName) {
-    gamepadState.charButtons = loadCharButtons(
-      gamepadState.activeControllerKey,
-      gamepadState.currentCharName,
-    );
+    gamepadState.charButtons = loadCharButtons(gamepadState.currentCharName);
   } else {
     gamepadState.charButtons = [];
   }
@@ -398,6 +453,7 @@ function onGamepadDisconnected(e: GamepadEvent): void {
   if (gp.index === gamepadState.activeGamepadIndex) {
     gamepadState.activeGamepadIndex = -1;
     gamepadState.activeControllerKey = "";
+    gamepadState.legacyControllerKey = "";
     gamepadState.activeProfile = null;
     gamepadState.prevButtons = [];
     stopPolling();
@@ -676,10 +732,11 @@ function processButtons(gp: Gamepad): void {
   if (!gamepadState.activeProfile) return;
 
   for (const mapping of gamepadState.activeProfile.buttons) {
-    if (mapping.button >= gp.buttons.length) continue;
+    const index = buttonIndex(mapping.button);
+    if (index < 0 || index >= gp.buttons.length) continue;
 
-    const pressed = gp.buttons[mapping.button]!.pressed;
-    const wasPressed = gamepadState.prevButtons[mapping.button] ?? false;
+    const pressed = gp.buttons[index]!.pressed;
+    const wasPressed = gamepadState.prevButtons[index] ?? false;
 
     // The special command "hotbar" drives radial slot-selection mode.
     if (mapping.command === "hotbar") {
@@ -715,7 +772,16 @@ function processButtons(gp: Gamepad): void {
 // ──────────────────────────────────────────────────────────────────────────────
 
 export { startAxisConfig, cancelAxisConfig } from "./gamepad_config";
-export { startButtonConfig, cancelButtonConfig } from "./gamepad_config";
+export { cancelButtonConfig } from "./gamepad_config";
+
+/**
+ * Start button-configuration mode: `onDone` gets the next button pressed.
+ */
+export function startButtonConfig(onDone: (button: ButtonId) => void): void {
+  doStartButtonConfig((index) =>
+    onDone(buttonIdForIndex(index, gamepadState.standardMapping)),
+  );
+}
 
 export function acceptAxisConfig(): void {
   doAcceptAxisConfig(gamepadState.activeProfile, saveGamepadConfig);
@@ -739,7 +805,7 @@ export function getAxisTestDirection(): number {
  * added after the existing commands instead (keeping the binding's scope).
  */
 export function setButtonCommand(
-  button: number,
+  button: ButtonId,
   command: string,
   append = false,
 ): void {
@@ -780,7 +846,7 @@ export function setButtonCommand(
 }
 
 /** Remove the command mapping for a specific button from both global and char lists. */
-export function removeButtonCommand(button: number): void {
+export function removeButtonCommand(button: ButtonId): void {
   if (!gamepadState.activeProfile) return;
   gamepadState.globalButtons = gamepadState.globalButtons.filter(
     (b) => b.button !== button,
@@ -816,12 +882,12 @@ export function resetGamepadBindings(): void {
   const gp = gamepads[gamepadState.activeGamepadIndex];
   if (!gp) return;
 
-  const defaultProfile = findProfileForGamepad(gp.id);
+  const defaultProfile = findProfileForGamepad(
+    gp.id,
+    gamepadState.standardMapping,
+  );
   gamepadState.activeProfile = defaultProfile;
-  gamepadState.globalButtons = defaultProfile.buttons.map((b) => ({
-    ...b,
-    global: true,
-  }));
+  gamepadState.globalButtons = normaliseMappings(defaultProfile.buttons, true);
   gamepadState.charButtons = [];
   rebuildProfileButtons();
   saveGamepadConfig();
@@ -835,10 +901,7 @@ export function resetGamepadBindings(): void {
 function setCurrentCharacter(charName: string): void {
   gamepadState.currentCharName = charName;
   if (gamepadState.activeControllerKey && charName) {
-    gamepadState.charButtons = loadCharButtons(
-      gamepadState.activeControllerKey,
-      charName,
-    );
+    gamepadState.charButtons = loadCharButtons(charName);
     rebuildProfileButtons();
   } else {
     gamepadState.charButtons = [];
@@ -853,7 +916,7 @@ gameEvents.on("characterLogin", setCurrentCharacter);
  * persist.  Each entry identifies a button by number and the desired scope.
  */
 export function saveGamepadButtonScopes(
-  changes: Array<{ button: number; newGlobal: boolean }>,
+  changes: Array<{ button: ButtonId; newGlobal: boolean }>,
 ): void {
   for (const { button, newGlobal } of changes) {
     // Find in whichever list currently owns it.
@@ -889,7 +952,7 @@ export function getActiveProfileName(): string {
 }
 
 /** Find the existing command for a given button, or null. */
-export function getButtonCommand(button: number): string | null {
+export function getButtonCommand(button: ButtonId): string | null {
   return (
     gamepadState.activeProfile?.buttons.find((b) => b.button === button)
       ?.command ?? null
@@ -945,6 +1008,8 @@ export function gamepadShutdown(): void {
 
   gamepadState.activeGamepadIndex = -1;
   gamepadState.activeControllerKey = "";
+  gamepadState.legacyControllerKey = "";
+  gamepadState.standardMapping = false;
   gamepadState.activeProfile = null;
   gamepadState.prevButtons = [];
   gamepadState.prevWalkDir = 0;

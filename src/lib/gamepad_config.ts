@@ -7,6 +7,7 @@
  * - Button capture (single-press detection)
  */
 
+import { buttonIndex } from "./gamepad_buttons";
 import type { StickAxes, GamepadProfile } from "./gamepad_defaults";
 
 // ── Types ───────────────────────────────────────────────────────────────────
@@ -237,7 +238,9 @@ export function handleAxisConfig(
     case "testing":
       for (let i = 0; i < gp.buttons.length; i++) {
         if (gp.buttons[i]!.pressed && !(prevButtons[i] ?? false)) {
-          const mapping = activeProfile?.buttons.find((b) => b.button === i);
+          const mapping = activeProfile?.buttons.find(
+            (b) => buttonIndex(b.button) === i,
+          );
           if (mapping?.command === "apply") {
             acceptAxisConfig(activeProfile, saveGamepadConfig);
             break;
