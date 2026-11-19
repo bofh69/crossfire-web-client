@@ -218,6 +218,8 @@ interface GamepadState {
    * through the walk zone on its way back to center.
    */
   runStopSeq: number;
+  /** The button held for hotbar radial-select mode (null = none). */
+  hotbarButton: ButtonId | null;
   /** Previous walk-stick direction used during hotbar radial-select mode. */
   prevHotbarDir: number;
   /**
@@ -250,6 +252,7 @@ const gamepadState: GamepadState = {
   walkDelayTimer: null,
   walkDelayDir: 0,
   runStopSeq: -1,
+  hotbarButton: null,
   prevHotbarDir: 0,
   needsWalkReset: false,
   globalButtons: [],
@@ -462,6 +465,7 @@ function onGamepadDisconnected(e: GamepadEvent): void {
     gamepadState.legacyControllerKey = "";
     gamepadState.activeProfile = null;
     gamepadState.prevButtons = [];
+    gamepadState.hotbarButton = null;
     stopPolling();
 
     // Clean up any in-progress fire/run.
@@ -746,11 +750,17 @@ function processButtons(gp: Gamepad): void {
 
     // The special command "hotbar" drives radial slot-selection mode.
     if (mapping.command === "hotbar") {
-      if (pressed && !wasPressed) {
+      if (pressed && !wasPressed && !gamepadState.hotbarButton) {
         // Rising edge: enter hotbar radial-select mode.
+        gamepadState.hotbarButton = mapping.button;
         enterHotbarGamepadMode();
-      } else if (!pressed && wasPressed) {
+      } else if (
+        !pressed &&
+        wasPressed &&
+        gamepadState.hotbarButton === mapping.button
+      ) {
         // Falling edge: activate the highlighted slot (or cancel).
+        gamepadState.hotbarButton = null;
         exitHotbarGamepadMode(getHotbarGamepadHighlight());
         gamepadState.prevHotbarDir = 0;
         // Guard against the walk stick still being deflected after
@@ -962,11 +972,9 @@ export function getControllerFamily(): ControllerFamily {
   return gamepadState.family;
 }
 
-/** The buttons whose binding is exactly `command`. */
-export function getButtonsForCommand(command: string): ButtonId[] {
-  return (gamepadState.activeProfile?.buttons ?? [])
-    .filter((b) => b.command === command)
-    .map((b) => b.button);
+/** The button held for hotbar radial-select mode, or null. */
+export function getHotbarButton(): ButtonId | null {
+  return gamepadState.hotbarButton;
 }
 
 /** Find the existing command for a given button, or null. */
@@ -1036,6 +1044,7 @@ export function gamepadShutdown(): void {
   gamepadState.prevRunning = false;
   gamepadState.prevFiring = false;
   gamepadState.runStopSeq = -1;
+  gamepadState.hotbarButton = null;
   gamepadState.prevHotbarDir = 0;
   gamepadState.needsWalkReset = false;
   gamepadState.globalButtons = [];

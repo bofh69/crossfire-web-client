@@ -76,6 +76,7 @@ const standardButtons: readonly ButtonMapping[] = [
   { button: "x", command: "use_skill pray", global: true },
   { button: "y", command: "hotbar", global: true },
   { button: "rightstick", command: "stay fire", global: true },
+  { button: "start", command: "ui_nav", global: true },
   { button: "dpup", command: "ready_skill throwing", global: true },
   { button: "dpdown", command: "take", global: true },
   { button: "dpleft", command: "rotateshoottype -1", global: true },
@@ -130,6 +131,8 @@ export const fallbackProfile: GamepadProfile = {
     { button: "b", command: "hotbar", global: true },
     { button: "x", command: "use_skill pray", global: true },
     { button: "y", command: "search", global: true },
+    // Button 9 is Start on most DirectInput gamepads too.
+    { button: "start", command: "ui_nav", global: true },
   ],
 };
 
