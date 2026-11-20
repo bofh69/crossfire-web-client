@@ -210,15 +210,19 @@ Walls are drawn as thin lines.
 
 ## Gamepad support
 
-There is simple gamepad support built in. Currently it only has default
-bindings for my XBox One controller.
+Gamepads that the browser maps to the standard layout (most Xbox,
+PlayStation, Switch Pro and Steam controllers) share one set of default
+bindings. Other gamepads get a generic profile that can be adjusted with
+the "Gamepad" menu.
 
-When UI navigation mode is active, the controller switches to UI navigation
-bindings instead of the normal gameplay bindings. By default the left stick or
-D-pad moves between UI elements, A activates the current element, X opens the
-current element's menu, and B exits UI navigation mode.
+The left stick walks (runs when pushed far), the right stick fires.
+Buttons can be bound to commands from the "Gamepad" menu or with
+`gamepad_bind`, and "Show gamepad bindings" lists them.
 
-It is possible to configure the client for more controllers, but it
-takes some time. It is probably easier to change it in the code instead.
+Holding a button bound to `hotbar` lets the left stick pick a hotbar slot,
+which is used when the button is released.
 
-PRs for more controllers are welcome.
+By default the Start/Menu button runs `ui_nav`. In UI navigation mode the
+gamepad navigates the UI instead: the left stick or D-pad moves, A
+activates, X opens the element's menu, LB/RB move to the previous/next
+element and B leaves the mode.

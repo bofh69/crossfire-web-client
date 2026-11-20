@@ -72,8 +72,9 @@ export interface GamepadProfile {
 /**
  * Default button bindings for gamepads with a standard-like layout, in
  * button order.  Search and disarm are on the left and right face buttons
- * since they are used together.  Home is left unbound: the system or Steam
- * often takes it.
+ * since they are used together, and praying and meditation on the left
+ * bumper and trigger.  Home is left unbound: the system or Steam often
+ * takes it.
  */
 const standardButtons: readonly ButtonMapping[] = [
   { button: "a", command: "apply", global: true },
@@ -82,10 +83,11 @@ const standardButtons: readonly ButtonMapping[] = [
   { button: "y", command: "hotbar", global: true },
   { button: "leftshoulder", command: "use_skill pray", global: true },
   { button: "rightshoulder", command: "brace", global: true },
-  { button: "lefttrigger", command: "reply", global: true },
-  { button: "righttrigger", command: "examine", global: true },
+  { button: "lefttrigger", command: "use_skill meditation", global: true },
+  { button: "righttrigger", command: "reply", global: true },
   { button: "back", command: "help", global: true },
   { button: "start", command: "ui_nav", global: true },
+  { button: "leftstick", command: "examine", global: true },
   { button: "rightstick", command: "stay fire", global: true },
   { button: "dpup", command: "ready_skill throwing", global: true },
   { button: "dpdown", command: "take", global: true },
