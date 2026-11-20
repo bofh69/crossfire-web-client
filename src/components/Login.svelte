@@ -30,6 +30,7 @@
     setAccountPassword,
   } from "../lib/client";
   import type { ReconnectLogin } from "../lib/client";
+  import { clientTour } from "../lib/client_tour.svelte";
   import { onMount } from "svelte";
   import { gameEvents } from "../lib/events";
   import { EPORT } from "../lib/protocol";
@@ -367,6 +368,8 @@
       gameEvents.on("failure", (command: string, message: string) => {
         // AddExistingCharacter shows its own failures.
         if (command === "accountaddplayer") return;
+        // The account wasn't made after all, so don't show its tour.
+        if (command === "accountnew") clientTour.cancelRequest();
         cancelAutoLogin();
         errorMessage = `${command}: ${message}`;
         statusMessage = "";
@@ -443,7 +446,8 @@
     </p>
   {:else}
     <div class="connected-layout">
-      {#if serverInfoSections.length > 0}
+      <!-- Character creation needs the whole width. -->
+      {#if serverInfoSections.length > 0 && step !== "createChar"}
         <div class="server-info">
           {#each serverInfoSections as section}
             <div class="info-section">
@@ -474,7 +478,7 @@
           {/each}
         </div>
       {/if}
-      <div class="query-panel">
+      <div class="query-panel" class:wide={step === "createChar"}>
         <CreateCharacter
           visible={step === "createChar"}
           loginMethod={confirmedLoginMethod}
@@ -610,6 +614,12 @@
     gap: 0.75rem;
     flex: 0 1 24rem;
     min-width: 18rem;
+  }
+
+  .query-panel.wide {
+    flex: 0 1 60rem;
+    align-items: center;
+    margin: 0 auto;
   }
 
   .github-ribbon {
