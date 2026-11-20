@@ -30,6 +30,7 @@
   } from "../../lib/markup";
   import type { FaceSet } from "../../lib/protocol";
   import { MSG_TYPE_CLIENT, MSG_TYPE_CLIENT_NOTICE } from "../../lib/protocol";
+  import { isUiNavEnabled } from "../../lib/ui_nav";
 
   interface Props {
     fading: boolean;
@@ -70,12 +71,21 @@
     sfxVolume = getSfxVolume();
   }
 
+  /**
+   * Close the menu after a setting was changed, unless the UI is navigated
+   * with keyboard or gamepad: then the menu stays open with the focus on the
+   * entry, so more settings can be changed.
+   */
+  function closeAfterSettingChange() {
+    if (!isUiNavEnabled()) onClose();
+  }
+
   function toggleConfirmClickApply() {
     confirmClickApply = !confirmClickApply;
     useConfig.confirmClickApply = confirmClickApply;
     wantConfig.confirmClickApply = confirmClickApply;
     saveCurrentConfig();
-    onClose();
+    closeAfterSettingChange();
   }
 
   function toggleHideEmptyHotbar() {
@@ -85,7 +95,7 @@
     saveCurrentConfig();
     // The game layout shows or hides the hotbar on hotbar updates.
     gameEvents.emit("hotbarUpdate");
-    onClose();
+    closeAfterSettingChange();
   }
 
   function toggleFogGrayscale() {
@@ -93,7 +103,7 @@
     useConfig.fogGrayscale = fogGrayscale;
     wantConfig.fogGrayscale = fogGrayscale;
     saveCurrentConfig();
-    onClose();
+    closeAfterSettingChange();
   }
 
   function toggleDarknessInterpolation() {
@@ -101,7 +111,7 @@
     useConfig.darknessInterpolation = darknessInterpolation;
     wantConfig.darknessInterpolation = darknessInterpolation;
     saveCurrentConfig();
-    onClose();
+    closeAfterSettingChange();
   }
 
   function handleZoomIn() {
@@ -114,7 +124,7 @@
 
   function handleZoomReset() {
     gameEvents.emit("zoomReset");
-    onClose();
+    closeAfterSettingChange();
   }
 
   function facesetLabel(faceset: FaceSet): string {

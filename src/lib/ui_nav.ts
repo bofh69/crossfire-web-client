@@ -454,13 +454,21 @@ function adjustCurrentTarget(delta: 1 | -1): boolean {
   if (target instanceof HTMLSelectElement) {
     const index = target.selectedIndex + delta;
     if (index >= 0 && index < target.options.length) {
-      target.selectedIndex = index;
-      target.dispatchEvent(new Event("input", { bubbles: true }));
-      target.dispatchEvent(new Event("change", { bubbles: true }));
+      selectOption(target, index);
     }
     return true;
   }
   return false;
+}
+
+/**
+ * Select option `index` of `select`, sending the same input/change events as
+ * when the user picks it.
+ */
+function selectOption(select: HTMLSelectElement, index: number): void {
+  select.selectedIndex = index;
+  select.dispatchEvent(new Event("input", { bubbles: true }));
+  select.dispatchEvent(new Event("change", { bubbles: true }));
 }
 
 function activateCurrentTarget(): boolean {
@@ -470,6 +478,13 @@ function activateCurrentTarget(): boolean {
   }
   if (target.dataset.uiNavMenu === "context") {
     return openMenuForCurrentTarget();
+  }
+  if (target instanceof HTMLSelectElement) {
+    // A drop-down list can't be opened from script; pick the next option.
+    if (target.options.length > 0) {
+      selectOption(target, (target.selectedIndex + 1) % target.options.length);
+    }
+    return true;
   }
   target.click();
   scheduleSync();
