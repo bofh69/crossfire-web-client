@@ -376,8 +376,10 @@
     oncontextmenu={(e) => {
       e.preventDefault();
       onToggle();
-    }}>Config</button
+    }}
   >
+    Config
+  </button>
   {#if isOpen}
     <div class="dropdown" class:fading data-ui-nav-scope="ui-menu-config">
       <div class="slider-row">
@@ -420,8 +422,10 @@
         oncontextmenu={(e) => {
           e.preventDefault();
           openColorsDialog();
-        }}>Colors</button
+        }}
       >
+        Colors
+      </button>
       <div class="separator"></div>
       <button
         data-ui-nav-id="ui-menu-config-fog"
@@ -431,10 +435,11 @@
           e.preventDefault();
           toggleFogGrayscale();
         }}
-        >{fogGrayscale
-          ? "Disable Desaturated Fog of War"
-          : "Enable Desaturated Fog of War"}</button
       >
+        {fogGrayscale
+          ? "Disable Desaturated Fog of War"
+          : "Enable Desaturated Fog of War"}
+      </button>
       <button
         data-ui-nav-id="ui-menu-config-darkness"
         data-ui-nav-panel="menubar"
@@ -443,10 +448,11 @@
           e.preventDefault();
           toggleDarknessInterpolation();
         }}
-        >{darknessInterpolation
-          ? "Disable Darkness Interpolation"
-          : "Enable Darkness Interpolation"}</button
       >
+        {darknessInterpolation
+          ? "Disable Darkness Interpolation"
+          : "Enable Darkness Interpolation"}
+      </button>
       <div class="separator"></div>
       <button
         data-ui-nav-id="ui-menu-config-confirm-click-apply"
@@ -457,10 +463,11 @@
           e.preventDefault();
           toggleConfirmClickApply();
         }}
-        >{confirmClickApply
-          ? "Apply Items With One Click"
-          : "Click Items Twice to Apply"}</button
       >
+        {confirmClickApply
+          ? "Apply Items With One Click"
+          : "Click Items Twice to Apply"}
+      </button>
       <button
         data-ui-nav-id="ui-menu-config-hide-empty-hotbar"
         data-ui-nav-panel="menubar"
@@ -470,10 +477,9 @@
           e.preventDefault();
           toggleHideEmptyHotbar();
         }}
-        >{hideEmptyHotbar
-          ? "Always Show Hotbar"
-          : "Hide Hotbar While Empty"}</button
       >
+        {hideEmptyHotbar ? "Always Show Hotbar" : "Hide Hotbar While Empty"}
+      </button>
       <div class="separator"></div>
       <button
         data-ui-nav-id="ui-menu-config-zoom-in"
@@ -482,8 +488,10 @@
         oncontextmenu={(e) => {
           e.preventDefault();
           handleZoomIn();
-        }}>Zoom In</button
+        }}
       >
+        Zoom In
+      </button>
       <button
         data-ui-nav-id="ui-menu-config-zoom-out"
         data-ui-nav-panel="menubar"
@@ -491,8 +499,10 @@
         oncontextmenu={(e) => {
           e.preventDefault();
           handleZoomOut();
-        }}>Zoom Out</button
+        }}
       >
+        Zoom Out
+      </button>
       <button
         data-ui-nav-id="ui-menu-config-zoom-reset"
         data-ui-nav-panel="menubar"
@@ -501,8 +511,10 @@
         oncontextmenu={(e) => {
           e.preventDefault();
           handleZoomReset();
-        }}>Automatic Zoom</button
+        }}
       >
+        Automatic Zoom
+      </button>
       <div class="separator"></div>
       {#if clientIsConnected() && hasFacesetInfo() && availableFacesets.length > 0}
         <div class="faceset-row">
@@ -530,8 +542,10 @@
         oncontextmenu={(e) => {
           e.preventDefault();
           backupConfig();
-        }}>Backup Config…</button
+        }}
       >
+        Backup Config…
+      </button>
       <button
         data-ui-nav-id="ui-menu-config-restore"
         data-ui-nav-panel="menubar"
@@ -539,8 +553,10 @@
         oncontextmenu={(e) => {
           e.preventDefault();
           restoreConfig();
-        }}>Restore Config…</button
+        }}
       >
+        Restore Config…
+      </button>
     </div>
   {/if}
 </div>
@@ -590,19 +606,20 @@
             <span
               class="preview-name"
               style:color={editableNdiColors[def.id] ?? def.defaultColor}
-              >{def.name}</span
             >
-            <span style:color={editableNdiColors[def.id] ?? def.defaultColor}
-              >The quick brown fox jumps over the lazy dragon.</span
-            >
+              {def.name}
+            </span>
+            <span style:color={editableNdiColors[def.id] ?? def.defaultColor}>
+              The quick brown fox jumps over the lazy dragon.
+            </span>
           </div>
         {/each}
       </div>
 
       <div class="dialog-buttons">
-        <button onclick={resetAllEditableColorsToDefaults}
-          >Reset All to Defaults</button
-        >
+        <button onclick={resetAllEditableColorsToDefaults}>
+          Reset All to Defaults
+        </button>
         <button onclick={saveColors} class="btn-primary">Save</button>
         <button onclick={closeColorsDialog}>Cancel</button>
       </div>
@@ -618,9 +635,9 @@
         Replace all saved configuration with the selected backup file?
       </p>
       <div class="dialog-buttons">
-        <button class="btn-primary" onclick={confirmRestoreConfig}
-          >Restore</button
-        >
+        <button class="btn-primary" onclick={confirmRestoreConfig}>
+          Restore
+        </button>
         <button onclick={cancelRestoreConfig}>Cancel</button>
       </div>
     </div>

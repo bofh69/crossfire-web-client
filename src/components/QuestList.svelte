@@ -114,8 +114,9 @@
               <td
                 class="quest-title"
                 style:padding-left="{0.4 + Math.min(node.depth, 2) * 1.0}rem"
-                >{node.quest.title}</td
               >
+                {node.quest.title}
+              </td>
               <td class="quest-status">{node.quest.end ? "Done" : "Active"}</td>
             </tr>
           {/each}

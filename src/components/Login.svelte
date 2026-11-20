@@ -399,8 +399,10 @@
     class="github-ribbon"
     href="https://github.com/bofh69/crossfire-web-client"
     target="_blank"
-    rel="noopener noreferrer">Fork me</a
+    rel="noopener noreferrer"
   >
+    Fork me
+  </a>
 {/if}
 
 <div class="login-container">
@@ -463,8 +465,10 @@
                       style:font-family={span.fontFamily}
                       style:text-decoration={span.underline
                         ? "underline"
-                        : "none"}>{span.text}</span
-                    >{/each}
+                        : "none"}
+                    >
+                      {span.text}
+                    </span>{/each}
                 {/snippet}
                 {#each section.lines as line}{#if line.isTitle}<p
                       class="info-title"

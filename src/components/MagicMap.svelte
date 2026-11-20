@@ -163,8 +163,10 @@
       <button
         class="close-btn"
         onclick={() => hide()}
-        aria-label="Close magic map">&times;</button
+        aria-label="Close magic map"
       >
+        &times;
+      </button>
     </div>
     <div class="magic-map-canvas-wrap">
       <canvas bind:this={canvas} width={640} height={640}></canvas>

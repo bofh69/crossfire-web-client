@@ -598,18 +598,20 @@
       data-ui-nav-id="ui-panel-inventory"
       data-ui-nav-panel="inventory"
     >
-      <span
-        >Inventory ({filteredPlayerItems.length}{invFilters.size > 0
+      <span>
+        Inventory ({filteredPlayerItems.length}{invFilters.size > 0
           ? `/${playerItems.length}`
-          : ""})</span
-      >
+          : ""})
+      </span>
       <span class="inv-header-right">
         <span
           class="inv-total-weight"
           title={weightLimit > 0
             ? `Carrying ${formatWeight(totalInventoryWeight)}, weight limit ${formatWeight(weightLimit)}`
-            : "Total carried weight"}>{formatWeight(totalInventoryWeight)}</span
+            : "Total carried weight"}
         >
+          {formatWeight(totalInventoryWeight)}
+        </span>
         {#if itemCount > 0}
           <span class="item-count">
             {itemCount}
@@ -632,8 +634,10 @@
           title={f.tooltip}
           aria-label={f.tooltip}
           aria-pressed={invFilters.has(f.id)}
-          onclick={() => toggleFilter(f.id)}>{f.icon}</button
+          onclick={() => toggleFilter(f.id)}
         >
+          {f.icon}
+        </button>
       {/each}
     </div>
     <div class="item-list" bind:this={playerListEl}>
@@ -736,31 +740,39 @@
           oncontextmenu={(e) => {
             e.preventDefault();
             action();
-          }}>{label}</button
+          }}
         >
+          {label}
+        </button>
       {/snippet}
       <button
         onclick={handleContextMenuActivate}
         oncontextmenu={(e) => {
           e.preventDefault();
           handleContextMenuActivate();
-        }}>Apply</button
+        }}
       >
+        Apply
+      </button>
       {#if isGround}
         <button
           onclick={() => contextMenu && handleExamine(contextMenu.item)}
           oncontextmenu={(e) => {
             e.preventDefault();
             contextMenu && handleExamine(contextMenu.item);
-          }}>Examine</button
+          }}
         >
+          Examine
+        </button>
         <button
           onclick={() => contextMenu && handlePickup(contextMenu.item)}
           oncontextmenu={(e) => {
             e.preventDefault();
             contextMenu && handlePickup(contextMenu.item);
-          }}>Pickup</button
+          }}
         >
+          Pickup
+        </button>
         {#if item.nrof > 1}
           {@render menuItem("Pick up N…", () =>
             promptCount("Pick up how many?", (n) => handlePickup(item, n)),
@@ -793,8 +805,10 @@
           oncontextmenu={(e) => {
             e.preventDefault();
             contextMenu && handleDrop(contextMenu.item);
-          }}>Drop</button
+          }}
         >
+          Drop
+        </button>
         {#if item.nrof > 1}
           {@render menuItem("Drop N…", () =>
             promptCount("Drop how many?", (n) => handleDrop(item, n)),
@@ -805,8 +819,10 @@
           oncontextmenu={(e) => {
             e.preventDefault();
             contextMenu && handleExamine(contextMenu.item);
-          }}>Examine</button
+          }}
         >
+          Examine
+        </button>
         <button
           onclick={() => contextMenu && handleLock(contextMenu.item)}
           oncontextmenu={(e) => {
@@ -821,15 +837,19 @@
           oncontextmenu={(e) => {
             e.preventDefault();
             contextMenu && handleMark(contextMenu.item);
-          }}>Mark</button
+          }}
         >
+          Mark
+        </button>
         <button
           onclick={() => contextMenu && handleAddToHotbar(contextMenu.item)}
           oncontextmenu={(e) => {
             e.preventDefault();
             contextMenu && handleAddToHotbar(contextMenu.item);
-          }}>Add to hotbar…</button
+          }}
         >
+          Add to hotbar…
+        </button>
         {#if showSlotPicker}
           <HotbarSlotPicker
             onSelect={handleSlotSelected}

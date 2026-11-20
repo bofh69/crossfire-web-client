@@ -97,8 +97,9 @@
     <p class="query-text">
       This character is already linked to another account. Override the link?
     </p>
-    <button type="button" onclick={handleForceAddExisting}>Yes, override</button
-    >
+    <button type="button" onclick={handleForceAddExisting}>
+      Yes, override
+    </button>
   {/if}
   <button type="button" class="back-btn" onclick={onCancel}>← Back</button>
 </form>

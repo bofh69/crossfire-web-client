@@ -206,9 +206,9 @@
         {#if attr.base !== 0 || attr.race !== 0 || attr.applied !== 0}
           <span class="attr-sub">{attr.base}</span>
           <span class="attr-sub">{attr.race}</span>
-          <span class="attr-sub"
-            >{attr.applied > 0 ? "+" : ""}{attr.applied}</span
-          >
+          <span class="attr-sub">
+            {attr.applied > 0 ? "+" : ""}{attr.applied}
+          </span>
         {:else}
           <span class="attr-sub attr-unavail">—</span>
           <span class="attr-sub attr-unavail"></span>
