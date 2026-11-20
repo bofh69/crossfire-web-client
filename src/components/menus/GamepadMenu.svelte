@@ -13,6 +13,7 @@
     cancelButtonConfig,
     getButtonCommand,
     getButtonMappings,
+    getControllerFamily,
     getStickConfig,
     saveGamepadButtonScopes,
     getActiveProfileName,
@@ -21,6 +22,8 @@
     type ButtonMapping,
   } from "../../lib/gamepad";
   import { formatCommands } from "../../lib/command_list";
+  import { buttonLabel, type ButtonId } from "../../lib/gamepad_buttons";
+  import GamepadButtonGlyph from "../GamepadButtonGlyph.svelte";
   import { getLastCommand } from "../../lib/player";
   import { gameEvents } from "../../lib/events";
   import { directionName } from "../../lib/directions";
@@ -51,11 +54,11 @@
   let gpAxisStep = $state<AxisConfigStep>("move-north");
   let gpAxisTestDir = $state(0);
   let gpAxisTestTimer: ReturnType<typeof setInterval> | null = null;
-  let gpCapturedButton = $state(-1);
+  let gpCapturedButton = $state<ButtonId | null>(null);
   let gpButtonExistingCmd = $state<string | null>(null);
 
   let gpMappingsSnapshot = $state<readonly ButtonMapping[]>([]);
-  let pendingGpScopes = $state(new Map<number, boolean>());
+  let pendingGpScopes = $state(new Map<ButtonId, boolean>());
 
   onMount(() => {
     return gameEvents.on("openGamepadBind", startGamepadButtonBind);
@@ -96,7 +99,7 @@
   }
 
   function saveGpButtonScopes() {
-    const changes: Array<{ button: number; newGlobal: boolean }> = [];
+    const changes: Array<{ button: ButtonId; newGlobal: boolean }> = [];
     for (const [button, newGlobal] of pendingGpScopes) {
       changes.push({ button, newGlobal });
     }
@@ -108,7 +111,7 @@
     );
   }
 
-  function handleRemoveGamepadButton(button: number) {
+  function handleRemoveGamepadButton(button: ButtonId) {
     removeButtonCommand(button);
     gpMappingsSnapshot = getButtonMappings();
   }
@@ -174,7 +177,7 @@
     dialogAppend = append;
     dialogMode = "gp-button-capture";
     onClose();
-    startButtonConfig((button: number) => {
+    startButtonConfig((button) => {
       gpCapturedButton = button;
       gpButtonExistingCmd = getButtonCommand(button);
       dialogMode = "gp-button-confirm";
@@ -193,7 +196,7 @@
   }
 
   function confirmGamepadButtonBind() {
-    if (gpCapturedButton >= 0 && dialogCommand) {
+    if (gpCapturedButton !== null && dialogCommand) {
       setButtonCommand(gpCapturedButton, dialogCommand, dialogAppend);
     }
     dialogMode = "idle";
@@ -214,7 +217,7 @@
 
   function beginBindCmdGpCapture() {
     dialogMode = "bind-cmd-gp-capture";
-    startButtonConfig((button: number) => {
+    startButtonConfig((button) => {
       gpCapturedButton = button;
       gpButtonExistingCmd = getButtonCommand(button);
       dialogMode = "bind-cmd-gp-confirm";
@@ -222,7 +225,7 @@
   }
 
   function confirmBindCmdGp() {
-    if (gpCapturedButton >= 0 && dialogCommand) {
+    if (gpCapturedButton !== null && dialogCommand) {
       setButtonCommand(gpCapturedButton, dialogCommand, dialogAppend);
     }
     dialogMode = "idle";
@@ -395,7 +398,13 @@
           <tbody>
             {#each gpMappingsSnapshot as mapping}
               <tr>
-                <td>B{mapping.button}</td>
+                <td>
+                  <GamepadButtonGlyph
+                    button={mapping.button}
+                    family={getControllerFamily()}
+                    withLabel
+                  />
+                </td>
                 <td class="command-cell">{formatCommands(mapping.command)}</td>
                 <td>
                   <input
@@ -413,7 +422,7 @@
                     onclick={() => {
                       if (
                         confirm(
-                          `Remove binding for button B${mapping.button} (${formatCommands(mapping.command)})?`,
+                          `Remove binding for button ${buttonLabel(mapping.button, getControllerFamily())} (${formatCommands(mapping.command)})?`,
                         )
                       ) {
                         handleRemoveGamepadButton(mapping.button);
@@ -490,7 +499,16 @@
   <div class="dialog-overlay">
     <div class="dialog">
       <p class="dialog-title">Bind Gamepad Button</p>
-      <p>Button: <strong>B{gpCapturedButton}</strong></p>
+      <p>
+        Button:
+        {#if gpCapturedButton !== null}
+          <GamepadButtonGlyph
+            button={gpCapturedButton}
+            family={getControllerFamily()}
+            withLabel
+          />
+        {/if}
+      </p>
       <p>Command: <strong>{dialogCommand}</strong></p>
       {@render existingBinding()}
       <div class="dialog-buttons">
@@ -539,7 +557,16 @@
   <div class="dialog-overlay">
     <div class="dialog">
       <p class="dialog-title">Bind command to gamepad button</p>
-      <p>Button: <strong>B{gpCapturedButton}</strong></p>
+      <p>
+        Button:
+        {#if gpCapturedButton !== null}
+          <GamepadButtonGlyph
+            button={gpCapturedButton}
+            family={getControllerFamily()}
+            withLabel
+          />
+        {/if}
+      </p>
       <p>Command: <strong>{dialogCommand}</strong></p>
       {@render existingBinding()}
       <div class="dialog-buttons">

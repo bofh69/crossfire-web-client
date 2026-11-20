@@ -9,7 +9,9 @@
    */
   import { onMount } from "svelte";
   import ContextMenu from "./ContextMenu.svelte";
+  import GamepadButtonGlyph from "./GamepadButtonGlyph.svelte";
   import { gameEvents } from "../lib/events";
+  import { getControllerFamily, getHotbarButton } from "../lib/gamepad";
   import {
     activateHotbarSlot,
     clearHotbarSlot,
@@ -113,7 +115,19 @@
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div class="hotbar" class:gamepad-mode={gamepadMode}>
   {#if gamepadMode}
-    <div class="gamepad-hint">🎮 Select slot with stick…</div>
+    {@const hotbarButton = getHotbarButton()}
+    <div class="gamepad-hint">
+      🎮 Select slot with stick, release
+      {#if hotbarButton}
+        <GamepadButtonGlyph
+          button={hotbarButton}
+          family={getControllerFamily()}
+        />
+      {:else}
+        the button
+      {/if}
+      to use it
+    </div>
   {/if}
   <div class="slot-row">
     {#each currentSlots as slot, i}

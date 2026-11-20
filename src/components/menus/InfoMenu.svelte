@@ -193,6 +193,24 @@
         This license is available with a FAQ at:
         <a href="http://scripts.sil.org/OFL">OFL</a>.
       </p>
+      <p>
+        Gamepad button images are from
+        <a
+          href="https://kenney.nl/assets/input-prompts"
+          target="_blank"
+          rel="noopener noreferrer">Input Prompts</a
+        >
+        by Kenney (<a
+          href="https://www.kenney.nl/"
+          target="_blank"
+          rel="noopener noreferrer">www.kenney.nl</a
+        >), licensed under
+        <a
+          href="https://creativecommons.org/publicdomain/zero/1.0/"
+          target="_blank"
+          rel="noopener noreferrer">CC0</a
+        >.
+      </p>
       <div class="dialog-buttons">
         <button onclick={closeAbout}>Close</button>
       </div>
