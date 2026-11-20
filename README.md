@@ -1,19 +1,65 @@
 # Crossfire Web Client
 
-This is a conversion of the [Crossfire](https://crossfire.real-time.com/) GTK-v2 client to TypeScript and
-[Svelte](https://svelte.dev/).
+A web browser client for [Crossfire](https://crossfire.real-time.com/), the
+multiplayer roguelike game. It started as a conversion of the Crossfire
+GTK-v2 client to TypeScript and [Svelte](https://svelte.dev/). It runs in
+any modern browser, so players don't need to install anything.
 
-[Vite](https://vite.dev/) is used for the building everything.
+Almost everything was done by generative AI, with and me just testing
+and prompting.
 
-Almost everything was done by GitHub Copilot with Claude Opus or Sonnet,
-and me just testing the different versions.
-
-There is a test server at [crossfire.diegeekdie.com](https://crossfire.diegeekdie.com/). It is just for
-testing and can go down at any time.
+There is a test server at
+[crossfire.diegeekdie.com](https://crossfire.diegeekdie.com/). It is just
+for testing and can go down at any time.
 
 <img src="screenshots/game_ui.png" width="50%" alt="Old screenshot of the client">
 
-## Connecting to a specific server
+## Features
+
+- Map with fog of war, and magic mapping drawn into the unseen parts of
+  the map.
+- Inventory, spells, skills, hotbar and character sheets.
+- Music and sound effects.
+- Configurable key bindings, and gamepad support.
+- Keyboard and gamepad navigation of the whole user interface.
+- Account login and character creation in the client.
+
+See [Differences from the GTK client](#differences-from-the-gtk-client)
+for how it differs from the GTK-v2 client.
+
+## Installation
+
+For step-by-step instructions for Debian, Ubuntu and Red Hat/Fedora, see
+[INSTALL.md](INSTALL.md).
+
+1. **Patch the server.** Browsers can only use WebSockets, which the
+   Crossfire server doesn't support yet. Apply
+   [patch #471](https://sourceforge.net/p/crossfire/patches/471/) to the
+   server, rebuild it and start it with `-ws-port <port>`, e.g.
+   `-ws-port 8080`. The WebSocket port is unencrypted, so don't expose
+   it directly.
+2. **Install the client.** Download `dist.tar.gz` from the
+   [latest release](https://github.com/bofh69/crossfire-web-client/releases/latest)
+   and unpack its `dist/` directory into your web root. There is also a
+   single-file `index.html` in the release that can be used for other
+   URLs.
+3. **Install the sounds.** The client loads `sounds/sounds.conf`, the
+   sound effects from `sounds/` and the music from `sounds/music/`, all
+   relative to `index.html`. `dist.tar.gz` already includes them. With
+   the single-file `index.html`, copy
+   [crossfire-sounds](https://git.code.sf.net/p/crossfire/crossfire-sounds crossfire-crossfire-sounds)
+   into a `sounds/` directory next to it.
+4. **Set up a reverse proxy.** Serve the client over HTTPS and forward
+   `/ws` to the server's WebSocket port with the `Upgrade` and
+   `Connection` headers, and `X-Forwarded-For` so bans still work. When
+   the page is served on port 80 or 443, the client connects to
+   `ws(s)://<same host>/ws` by itself.
+
+## Usage
+
+Open the page in a browser and log in.
+
+### Connecting to a specific server
 
 Append a `?server=` query parameter to the page URL to connect to a
 particular server, e.g.:
@@ -27,151 +73,47 @@ the "Enter" button is focused, so pressing Enter connects. After connecting,
 the client adds the parameter to the URL, so a bookmark or a reload goes back
 to the same server.
 
-## Choose login method
+### Choosing the login method
 
-The client supports both the old login method of logging in to
-the character and the latest where new characters are created in
-the client.
-Add a query parameter `?loginmethod=0` to use the old login method.
-The new one is the default.
+The client supports both the old login method, where you log in to the
+character directly, and the newer one, where you log in to an account and
+create characters in the client. The new one is the default. Add
+`?loginmethod=0` to the URL to use the old login method.
 
-## Convert websocket recording logs
+## Development
 
-When recording is enabled (`?record`), downloaded logs are in the compact format:
+See [DEVELOPMENT.md](DEVELOPMENT.md) for how to build and test the client,
+run it against a server without WebSocket support, and record and replay
+sessions.
 
-```
-<timestamp>\t<TX|RX>\t<byte_length>\t<base64_payload>
-<timestamp>\t<MARK>\t<json_marker_text>
-<timestamp>\t<KEY|UI>\t<json_payload>
-```
+## License
 
-Use this converter to transform them into:
+The client is licensed under the GNU General Public License, version 2. See
+[COPYING](COPYING). The sound files have their own licenses, see
+[sounds/COPYING](sounds/COPYING).
 
-```
-timestamp TX/RX/MARK/KEY/UI text
-```
+## Differences from the GTK client
 
-where `text` is C-string escaped (`\n` for newline, `\xXX` for non-printables).
+### Connecting
 
-```bash
-npm run recording:convert -- input.log output.txt
-```
+Web pages can't use raw TCP sockets, so the client connects with
+WebSockets. The server must support WebSockets, see
+[Installation](#installation).
 
-If `output.txt` is omitted, converted output is written to stdout.
+The client doesn't contact a metaserver.
 
-## Replay ws-recording logs
-
-There is also a separate replay page at:
-
-```
-/replay.html
-```
-
-It accepts both the compact downloaded ws-recording logs and the converted text
-format from `npm run recording:convert`.
-
-The replay page can export state snapshot files in the same format as
-used by the mapdata replay tests.
-
-More marks can be added by editing the logfile.
-
-## One-command Playwright replay automation
-
-Run an end-to-end replay with:
-
-```bash
-npm run replay:playwright -- --log tests/replay-mapdata/logs/scorn.converted.log --mark-regex ".*"
-```
-
-This command starts:
-
-- a local Vite dev server
-- a replay WebSocket server that replays the logfile to the client
-- a Playwright Chromium browser connected to that replay server
-
-Behavior:
-
-- For each `TX` line in the logfile, replay waits for the client to send a matching command (or timeout).
-- Matching is command-only, except for `ncom` where the embedded command text is also matched (`ncom.north`, `ncom.apply`, etc.).
-- The next replayed `RX comc` packet is sequence-patched to the sequence sent by the client for that matched `ncom`.
-- `KEY` and `UI` lines replay recorded keyboard and UI interactions.
-- Every `MARK` line whose label matches `--mark-regex` saves a screenshot in `screenshots/replay-playwright/`.
-
-### Optional JSON instructions
-
-Use `--instructions` to apply Playwright actions synchronized to `TX` lines:
-
-```bash
-npm run replay:playwright -- \
-  --log tests/replay-mapdata/logs/scorn.converted.log \
-  --instructions scripts/replay-playwright.instructions.example.json \
-  --mark-regex ".*"
-```
-
-Instruction format (`JSON`):
-
-- top-level `tx` array
-- each entry has:
-  - `match`: regex string tested against replay command key
-    - normal commands: `accountlogin`, `accountplay`
-    - `ncom` commands: `ncom.<embedded command>`, e.g. `ncom.north`
-  - `actions`: list of actions (`clickRole`, `clickText`, `fillRole`, `clickSelector`, `fillSelector`, `press`, `keyDown`, `keyUp`, `waitForTimeout`, `screenshot`)
-    - Action string values support regex captures from `match` via `$1`, `$2`, etc.
-
-Built-in actions already exist for `accountlogin` (click **Log In**) and
-`accountplay` (click matching character button), and can be extended with
-instruction rules.
-
-## Mapdata replay tests
-
-Run the mapdata replay tests with:
-
-```bash
-npm run test:mapdata
-```
-
-Test cases are listed in:
-
-```
-tests/replay-mapdata/tests.json
-```
-
-Each case has:
-
-- `name`: test name
-- `log`: replay log file path (in compact or converted format)
-- `mark`: MARK label to replay the log up to
-- `state`: path to expected mapdata state file
-
-Only cells listed in the state file are compared.
-
-## Protocol changes
-
-Web pages can't use raw TCP sockets so WebSockets has to be used.
-
-The public crossfire clients don't support WebSockets, so a WebSocket
-proxy has to be used when connecting to them. There is one included in
-the repo (under scripts/) that also handles crossfire's protocol's
-length header.
-
-The [crossfire-server](https://github.com/bofh69/crossfire-server) fork
-has a branch with built in support for WebSockets.
-It is not thoroughly reviewed yet, but it works well.
-
-## UX differences compared to GTK client.
-
-The client doesn't contact a metaserver as the normal servers
-don't use support WebSockets anyway.
+### Keyboard
 
 A web page can't override all the browser's built in hot keys,
-so ALT is used instead of CTRL for running. That way it hopefully
-leads to fewer conflicts with the browser.
+so ALT is used instead of CTRL for running. That way it leads to fewer
+conflicts with the browser.
 
 There is a "Keyboard" menu for handling key bindings.
 
 Key bindings are stored locally in the browser. If playing
 from different computers/browsers, the bindings will have to
-be redone.
+be redone, or the config can be stored to a file and uploaded
+to the other server.
 
 Bindings can be stored for all characters or the current logged in one.
 
@@ -181,34 +123,36 @@ commands" in the dialog to add the new command after the existing ones
 instead of replacing them. The `bind` and `gamepad_bind` commands take
 `-a`/`--append` to pre-check that option, e.g. `bind -a fire`.
 
+### UI navigation mode
+
 Press `Tab` to enter UI navigation mode. In that mode the visible UI can be
 navigated with mode-specific keyboard or gamepad controls, `Escape` leaves the
 mode. Return selects items/shows menus in the UI navigation mode.
 
-The local commands `ui_nav` is used to enter the mode. `ui_nav --stay`
+The local command `ui_nav` is used to enter the mode. `ui_nav --stay`
 keeps the mode active after running a UI command; by default it exits
 automatically after a UI command is sent.
 
-Left clicking on items activates them.
+### Mouse
 
-Right clicking on items and skills brings up a menu.
+Left clicking on items and skills activates them.
 
-Left clicking on a spell selects it.
+Left clicking on a spell selects/readies it.
 
-Right clicking on skills brings up a menu for use/ready of it.
+Right clicking on items, spells and skills brings up a menu.
 
-## Music & sfx
+### Music & sfx
 
 The client supports music and sfx, they are downloaded
-as needed from the server. Both can be muted.
+as needed from the web server. Both can be muted.
 
-## Magic mapping
+### Magic mapping
 
 It works somewhat like the DockWindow client,
 the map is integrated into the unseen parts of the main map.
 Walls are drawn as thin lines.
 
-## Gamepad support
+### Gamepad support
 
 Gamepads that the browser maps to the standard layout (most Xbox,
 PlayStation, Switch Pro and Steam controllers) share one set of default

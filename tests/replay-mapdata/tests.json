@@ -91,7 +91,7 @@
   },
   {
     "name": "magic mapping",
-    "log": "tests/replay-mapdata/logs/magic-mapping.log",
+    "log": "tests/replay-mapdata/logs/magic-mapping.converted.log",
     "mark": "after magic mapping",
     "state": "tests/replay-mapdata/states/magic-mapping.state.json"
   }
