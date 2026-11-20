@@ -230,6 +230,8 @@ function loadDefaultBindings(): void {
     ["a", "N", "apply"],
     ["d", "N", "disarm"],
     ["e", "NR", "examine"],
+    ["m", "N", "use_skill meditation"],
+    ["p", "N", "use_skill praying"],
     ["s", "F", "brace"],
     ["s", "N", "search"],
     ["t", "N", "ready_skill throwing"],
