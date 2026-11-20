@@ -40,8 +40,10 @@
   import { initSound, stopAll as stopAllSound } from "./lib/sound";
   import { SELF_TICK_INTERVAL_MS } from "./lib/constants";
   import { getReconnectLogin } from "./lib/client";
+  import { clientTour } from "./lib/client_tour.svelte";
   import type { ReconnectLogin } from "./lib/client";
   import { disconnectAndReload, isReloadRequested } from "./lib/disconnect";
+  import ClientTour from "./components/ClientTour.svelte";
   import Login from "./components/Login.svelte";
   import GameMap from "./components/GameMap.svelte";
   import InfoPanel from "./components/InfoPanel.svelte";
@@ -621,6 +623,8 @@
     // Only handle game keys when in the playing state. While the disconnect
     // overlay is up, leave keys to the browser so they reach its buttons.
     if (appState !== "playing" || serverDisconnected) return;
+    // The tour's balloon handles the keys while it is shown.
+    if (clientTour.active) return;
 
     const cpl = getCpl();
     if (!cpl) return;
@@ -771,6 +775,7 @@
     wireCallbacks();
     initSound();
     recordConfigSnapshot(exportConfigBackup());
+    clientTour.startIfRequested();
   }
 
   /** Unsubscribe functions for game event subscriptions. */
@@ -791,6 +796,7 @@
     eventCleanups = [];
 
     gameQuery.clear();
+    clientTour.stop();
     showMagicMap = false;
     hotbarVisible = false;
     exitUiNavMode(false);
@@ -1057,6 +1063,10 @@
       onmousedown={(e) => infoSplit.startDrag(e, gameLayoutEl!)}
     ></div>
   </div>
+
+  {#if clientTour.active && !serverDisconnected}
+    <ClientTour />
+  {/if}
 
   {#if serverDisconnected}
     <div class="disconnect-overlay">

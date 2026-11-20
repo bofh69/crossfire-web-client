@@ -4,6 +4,7 @@
     requestMenuHiscore,
     cancelPendingMenuHiscore,
   } from "../../lib/commands";
+  import { clientTour } from "../../lib/client_tour.svelte";
   import { gameEvents } from "../../lib/events";
   import { type HiscoreRow, parseHiscoreRows } from "../../lib/markup";
 
@@ -37,6 +38,11 @@
 
   function closeHelp() {
     showHelpDialog = false;
+  }
+
+  function showTour() {
+    onClose();
+    clientTour.start();
   }
 
   function showHiscore() {
@@ -120,6 +126,15 @@
           e.preventDefault();
           showHelp();
         }}>Help</button
+      >
+      <button
+        data-ui-nav-id="ui-menu-info-tour"
+        data-ui-nav-panel="menubar"
+        onclick={showTour}
+        oncontextmenu={(e) => {
+          e.preventDefault();
+          showTour();
+        }}>Client Tour</button
       >
       <button
         data-ui-nav-id="ui-menu-info-about"

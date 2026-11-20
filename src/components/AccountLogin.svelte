@@ -9,6 +9,7 @@
     sendAccountNew,
     setAccountPassword,
   } from "../lib/client";
+  import { clientTour } from "../lib/client_tour.svelte";
 
   interface Props {
     /** Whether the form is shown.  The typed values are kept while hidden. */
@@ -68,6 +69,8 @@
     if (!checkConnected()) return;
     setAccountPassword(accountPassword);
     sendAccountNew(accountName.trim(), accountPassword);
+    // A new player: show the tour of the game screen when they start playing.
+    clientTour.requestOnNextLogin();
     onStatus("Creating account…");
   }
 </script>
