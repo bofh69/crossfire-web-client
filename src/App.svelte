@@ -960,24 +960,30 @@
           data-ui-nav-group="tabs"
           data-ui-nav-group-policy="horizontal"
           data-ui-nav-panel="tabs"
-          onclick={() => (activeTab = "inventory")}>Items</button
+          onclick={() => (activeTab = "inventory")}
         >
+          Items
+        </button>
         <button
           class:active={activeTab === "spells"}
           data-ui-nav-id="ui-tab-spells"
           data-ui-nav-group="tabs"
           data-ui-nav-group-policy="horizontal"
           data-ui-nav-panel="tabs"
-          onclick={() => (activeTab = "spells")}>Spells</button
+          onclick={() => (activeTab = "spells")}
         >
+          Spells
+        </button>
         <button
           class:active={activeTab === "skills"}
           data-ui-nav-id="ui-tab-skills"
           data-ui-nav-group="tabs"
           data-ui-nav-group-policy="horizontal"
           data-ui-nav-panel="tabs"
-          onclick={() => (activeTab = "skills")}>Skills</button
+          onclick={() => (activeTab = "skills")}
         >
+          Skills
+        </button>
         {#if !tabOverflow}
           <button
             class:active={activeTab === "protections"}
@@ -985,24 +991,30 @@
             data-ui-nav-group="tabs"
             data-ui-nav-group-policy="horizontal"
             data-ui-nav-panel="tabs"
-            onclick={() => (activeTab = "protections")}>Protect</button
+            onclick={() => (activeTab = "protections")}
           >
+            Protect
+          </button>
           <button
             class:active={activeTab === "quests"}
             data-ui-nav-id="ui-tab-quests"
             data-ui-nav-group="tabs"
             data-ui-nav-group-policy="horizontal"
             data-ui-nav-panel="tabs"
-            onclick={() => (activeTab = "quests")}>Quests</button
+            onclick={() => (activeTab = "quests")}
           >
+            Quests
+          </button>
           <button
             class:active={activeTab === "knowledge"}
             data-ui-nav-id="ui-tab-knowledge"
             data-ui-nav-group="tabs"
             data-ui-nav-group-policy="horizontal"
             data-ui-nav-panel="tabs"
-            onclick={() => (activeTab = "knowledge")}>Know</button
+            onclick={() => (activeTab = "knowledge")}
           >
+            Know
+          </button>
         {:else}
           <button
             class:active={isSecondaryActive}
@@ -1010,8 +1022,10 @@
             data-ui-nav-group="tabs"
             data-ui-nav-group-policy="horizontal"
             data-ui-nav-panel="tabs"
-            onclick={handleOverflowBtnClick}>{overflowTabLabel} ▾</button
+            onclick={handleOverflowBtnClick}
           >
+            {overflowTabLabel} ▾
+          </button>
         {/if}
       </div>
       <div class="tab-content">
@@ -1084,13 +1098,13 @@
             : "The connection to the server was lost. Log in again from the start page."}
         </p>
         {#if canReconnect}
-          <button bind:this={disconnectButton} onclick={handleReconnect}
-            >Reconnect</button
-          >
+          <button bind:this={disconnectButton} onclick={handleReconnect}>
+            Reconnect
+          </button>
         {:else}
-          <button bind:this={disconnectButton} onclick={disconnectAndReload}
-            >Back to start page</button
-          >
+          <button bind:this={disconnectButton} onclick={disconnectAndReload}>
+            Back to start page
+          </button>
         {/if}
       </div>
     </div>
@@ -1119,8 +1133,10 @@
             activeTab = tab.id;
             lastSecondaryTab = tab.id;
           }}
-          onclick={() => selectSecondaryTab(tab.id)}>{tab.label}</button
+          onclick={() => selectSecondaryTab(tab.id)}
         >
+          {tab.label}
+        </button>
       {/each}
     </div>
   {/if}

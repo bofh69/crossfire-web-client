@@ -471,8 +471,10 @@
           aria-checked={entry === selected}
           class="cc-option"
           class:selected={entry === selected}
-          onclick={() => select(entry.archName)}>{entry.publicName}</button
+          onclick={() => select(entry.archName)}
         >
+          {entry.publicName}
+        </button>
       {/each}
     </div>
     {#if selected}
@@ -488,8 +490,11 @@
                   class="cc-chip"
                   class:pos={b.value > 0}
                   class:neg={b.value < 0}
-                  title={statLongName(b.sn)}>{b.sn} {formatBonus(b.value)}</span
+                  title={statLongName(b.sn)}
                 >
+                  {b.sn}
+                  {formatBonus(b.value)}
+                </span>
               {/each}
             </span>
           {/if}
@@ -601,15 +606,16 @@
                 class="cc-points"
                 class:done={ccRemaining === 0}
                 class:over={ccRemaining < 0}
-                >{ccRemaining} point{ccRemaining === 1 ? "" : "s"} left</span
               >
+                {ccRemaining} point{ccRemaining === 1 ? "" : "s"} left
+              </span>
             </div>
             <div class="stat-table">
               <span class="stat-col-head"></span>
               <span class="stat-col-head">Points</span>
-              <span class="stat-col-head" title="Race and class bonus"
-                >Bonus</span
-              >
+              <span class="stat-col-head" title="Race and class bonus">
+                Bonus
+              </span>
               <span class="stat-col-head">Total</span>
               {#each newCharStatNames as sn}
                 {@const b = bonus(sn)}
@@ -627,8 +633,10 @@
                     class="spin-btn"
                     aria-label="Less {statLongName(sn)}"
                     onclick={(e) => adjustStat(sn, e.shiftKey ? -BIG_STEP : -1)}
-                    disabled={alloc <= newCharStatMin}>−</button
+                    disabled={alloc <= newCharStatMin}
                   >
+                    −
+                  </button>
                   <span class="spin-val">{alloc}</span>
                   <button
                     type="button"
@@ -636,23 +644,24 @@
                     aria-label="More {statLongName(sn)}"
                     onclick={(e) => adjustStat(sn, e.shiftKey ? BIG_STEP : 1)}
                     disabled={ccRemaining <= 0 || alloc >= newCharStatMax}
-                    >+</button
                   >
+                    +
+                  </button>
                 </span>
-                <span class="stat-bonus" class:pos={b > 0} class:neg={b < 0}
-                  >{formatBonus(b)}</span
-                >
+                <span class="stat-bonus" class:pos={b > 0} class:neg={b < 0}>
+                  {formatBonus(b)}
+                </span>
                 <span class="stat-total" class:bad={total < MIN_STAT_TOTAL}>
                   <span class="stat-total-val">{total}</span>
-                  <span class="stat-bar"
-                    ><span
+                  <span class="stat-bar">
+                    <span
                       class="stat-bar-fill"
                       style:width="{Math.max(
                         0,
                         Math.min(100, (100 * total) / statBarMax),
                       )}%"
-                    ></span></span
-                  >
+                    ></span>
+                  </span>
                 </span>
               {/each}
             </div>
@@ -662,11 +671,12 @@
                 class="cc-small-btn"
                 onclick={suggestStats}
                 title="Spend the points to suit the race and class"
-                >Suggest</button
               >
-              <button type="button" class="cc-small-btn" onclick={resetStats}
-                >Reset</button
-              >
+                Suggest
+              </button>
+              <button type="button" class="cc-small-btn" onclick={resetStats}>
+                Reset
+              </button>
               <span class="cc-hint">Shift-click − or + to move 5 points.</span>
             </div>
           </section>
@@ -682,14 +692,14 @@
             {selectedClass?.publicName}{#if ccRemaining > 0}<span
                 class="cc-unspent"
               >
-                — {ccRemaining} point{ccRemaining === 1 ? "" : "s"} not spent</span
-              >{/if}
+                — {ccRemaining} point{ccRemaining === 1 ? "" : "s"} not spent
+              </span>{/if}
           </p>
         {/if}
         <div class="cc-buttons">
-          <button type="button" class="back-btn" onclick={onCancel}
-            >← Back</button
-          >
+          <button type="button" class="back-btn" onclick={onCancel}>
+            ← Back
+          </button>
           <button type="submit" class="cc-create" disabled={ccBlocker !== ""}>
             {availableStartingMaps.length > 0 ? "Next →" : "Create Character"}
           </button>
@@ -718,16 +728,17 @@
           >
             <span class="cc-map-name">{map.publicName}</span>
             {#if map.description}
-              <span class="cc-map-desc">{stripMarkupTags(map.description)}</span
-              >
+              <span class="cc-map-desc">
+                {stripMarkupTags(map.description)}
+              </span>
             {/if}
           </button>
         {/each}
       </div>
       <div class="cc-buttons">
-        <button type="button" class="back-btn" onclick={handleBackToCreateChar}
-          >← Back</button
-        >
+        <button type="button" class="back-btn" onclick={handleBackToCreateChar}>
+          ← Back
+        </button>
         <button type="submit" class="cc-create">Create Character</button>
       </div>
     </form>

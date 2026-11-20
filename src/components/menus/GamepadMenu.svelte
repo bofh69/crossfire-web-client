@@ -307,8 +307,10 @@
     oncontextmenu={(e) => {
       e.preventDefault();
       onToggle();
-    }}>Gamepad</button
+    }}
   >
+    Gamepad
+  </button>
   {#if isOpen}
     <div class="dropdown" class:fading data-ui-nav-scope="ui-menu-gamepad">
       {#if isGamepadConnected()}
@@ -319,8 +321,10 @@
           oncontextmenu={(e) => {
             e.preventDefault();
             startGamepadButtonBind();
-          }}>Bind last command to button…</button
+          }}
         >
+          Bind last command to button…
+        </button>
         <button
           data-ui-nav-id="ui-menu-gamepad-bind-command"
           data-ui-nav-panel="menubar"
@@ -328,8 +332,10 @@
           oncontextmenu={(e) => {
             e.preventDefault();
             startBindCmdGp();
-          }}>Bind command to button…</button
+          }}
         >
+          Bind command to button…
+        </button>
         <button
           data-ui-nav-id="ui-menu-gamepad-config-walk"
           data-ui-nav-panel="menubar"
@@ -337,8 +343,10 @@
           oncontextmenu={(e) => {
             e.preventDefault();
             startGamepadAxisConfig("walk");
-          }}>Configure walk/run stick…</button
+          }}
         >
+          Configure walk/run stick…
+        </button>
         <button
           data-ui-nav-id="ui-menu-gamepad-config-fire"
           data-ui-nav-panel="menubar"
@@ -346,8 +354,10 @@
           oncontextmenu={(e) => {
             e.preventDefault();
             startGamepadAxisConfig("fire");
-          }}>Configure fire stick…</button
+          }}
         >
+          Configure fire stick…
+        </button>
         <button
           data-ui-nav-id="ui-menu-gamepad-reset"
           data-ui-nav-panel="menubar"
@@ -355,8 +365,10 @@
           oncontextmenu={(e) => {
             e.preventDefault();
             handleResetGamepad();
-          }}>Reset to defaults</button
+          }}
         >
+          Reset to defaults
+        </button>
         <button
           data-ui-nav-id="ui-menu-gamepad-show"
           data-ui-nav-panel="menubar"
@@ -364,8 +376,10 @@
           oncontextmenu={(e) => {
             e.preventDefault();
             showGamepadBindings();
-          }}>Show gamepad bindings</button
+          }}
         >
+          Show gamepad bindings
+        </button>
       {:else}
         <button disabled>No gamepad connected</button>
       {/if}
@@ -390,8 +404,9 @@
               <th>Command</th>
               <th
                 title="When checked the binding applies to all characters; unchecked = this character only"
-                >Global</th
               >
+                Global
+              </th>
               <th>Delete</th>
             </tr>
           </thead>
@@ -427,8 +442,10 @@
                       ) {
                         handleRemoveGamepadButton(mapping.button);
                       }
-                    }}>✕</button
+                    }}
                   >
+                    ✕
+                  </button>
                 </td>
               </tr>
             {/each}
@@ -437,9 +454,9 @@
       </div>
       <div class="dialog-buttons">
         {#if pendingGpScopes.size > 0}
-          <button class="btn-primary" onclick={saveGpButtonScopes}
-            >Save scope changes</button
-          >
+          <button class="btn-primary" onclick={saveGpButtonScopes}>
+            Save scope changes
+          </button>
         {/if}
         <button onclick={closeGamepadBindings}>Close</button>
       </div>
@@ -471,9 +488,9 @@
           {gpAxisTestDir > 0 ? directionName(gpAxisTestDir) : "(center)"}
         </p>
         <div class="dialog-buttons">
-          <button class="btn-primary" onclick={handleAcceptAxisConfig}
-            >Accept</button
-          >
+          <button class="btn-primary" onclick={handleAcceptAxisConfig}>
+            Accept
+          </button>
           <button onclick={cancelGamepadAxisConfig}>Abort</button>
         </div>
       {/if}
@@ -536,8 +553,10 @@
         <button
           class="btn-primary"
           disabled={!dialogCommand}
-          onclick={beginBindCmdGpCapture}>Capture Button…</button
+          onclick={beginBindCmdGpCapture}
         >
+          Capture Button…
+        </button>
         <button onclick={cancelBindCmdGp}>Cancel</button>
       </div>
     </div>

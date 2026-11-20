@@ -103,9 +103,9 @@
     </span>
   </label>
   <div class="prompt-buttons">
-    <button type="button" onclick={confirm} disabled={validValue() === null}
-      >OK</button
-    >
+    <button type="button" onclick={confirm} disabled={validValue() === null}>
+      OK
+    </button>
     <button type="button" onclick={onCancel}>Cancel</button>
   </div>
 </div>

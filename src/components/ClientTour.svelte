@@ -189,9 +189,9 @@
         {/each}
       </span>
       {#if !isLast}
-        <button class="tour-skip" onclick={() => clientTour.stop()}
-          >Skip tour</button
-        >
+        <button class="tour-skip" onclick={() => clientTour.stop()}>
+          Skip tour
+        </button>
       {/if}
       {#if index > 0}
         <button onclick={() => go(index - 1)}>Back</button>
@@ -200,8 +200,9 @@
         class="tour-next"
         bind:this={nextButton}
         onclick={() => go(index + 1)}
-        >{isLast ? "Start playing" : "Next"}</button
       >
+        {isLast ? "Start playing" : "Next"}
+      </button>
     </div>
   </div>
 {/if}

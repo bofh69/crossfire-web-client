@@ -35,9 +35,10 @@
           onclick={() => onPlay(char.name)}
         >
           <span class="char-name">{char.name}</span>
-          <span class="char-details"
-            >{char.charClass} {char.race} — Level {char.level}</span
-          >
+          <span class="char-details">
+            {char.charClass}
+            {char.race} — Level {char.level}
+          </span>
         </button>
       {/each}
     </div>
@@ -45,9 +46,9 @@
     <p class="status">No characters on this account yet.</p>
   {/if}
   <!-- svelte-ignore a11y_autofocus -->
-  <button autofocus={characters.length === 0} onclick={onCreate}
-    >+ Create New Character</button
-  >
+  <button autofocus={characters.length === 0} onclick={onCreate}>
+    + Create New Character
+  </button>
   <button onclick={onAddExisting}>+ Add Existing Character</button>
   <button class="back-btn" onclick={onLogOut}>Log Out</button>
 </div>

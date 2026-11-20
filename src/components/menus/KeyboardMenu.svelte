@@ -336,8 +336,9 @@
 {#snippet existingBinding()}
   {#if dialogExisting}
     <p class="dialog-warn">
-      Already bound to: <strong>{formatCommands(dialogExisting.command)}</strong
-      >
+      Already bound to: <strong>
+        {formatCommands(dialogExisting.command)}
+      </strong>
     </p>
     <label class="dialog-checkbox-label">
       <input type="checkbox" bind:checked={dialogAppend} />
@@ -360,8 +361,10 @@
     oncontextmenu={(e) => {
       e.preventDefault();
       onToggle();
-    }}>Keyboard</button
+    }}
   >
+    Keyboard
+  </button>
   {#if isOpen}
     <div class="dropdown" class:fading data-ui-nav-scope="ui-menu-keyboard">
       <button
@@ -371,8 +374,10 @@
         oncontextmenu={(e) => {
           e.preventDefault();
           startBind();
-        }}>Bind last command to key…</button
+        }}
       >
+        Bind last command to key…
+      </button>
       <button
         data-ui-nav-id="ui-menu-keyboard-bind-command"
         data-ui-nav-panel="menubar"
@@ -380,8 +385,10 @@
         oncontextmenu={(e) => {
           e.preventDefault();
           startBindCmdKey();
-        }}>Bind command to key…</button
+        }}
       >
+        Bind command to key…
+      </button>
       <button
         data-ui-nav-id="ui-menu-keyboard-bind-hotbar"
         data-ui-nav-panel="menubar"
@@ -389,8 +396,10 @@
         oncontextmenu={(e) => {
           e.preventDefault();
           startBindCmdHotbar();
-        }}>Bind command to hotbar slot…</button
+        }}
       >
+        Bind command to hotbar slot…
+      </button>
       <button
         data-ui-nav-id="ui-menu-keyboard-unbind"
         data-ui-nav-panel="menubar"
@@ -398,8 +407,10 @@
         oncontextmenu={(e) => {
           e.preventDefault();
           startUnbind();
-        }}>Unbind a key…</button
+        }}
       >
+        Unbind a key…
+      </button>
       <button
         data-ui-nav-id="ui-menu-keyboard-show"
         data-ui-nav-panel="menubar"
@@ -407,8 +418,10 @@
         oncontextmenu={(e) => {
           e.preventDefault();
           showBindings();
-        }}>Show key bindings</button
+        }}
       >
+        Show key bindings
+      </button>
     </div>
   {/if}
 </div>
@@ -456,9 +469,9 @@
       <p>Key: <strong>{dialogKeyStr}</strong></p>
       {#if dialogExisting}
         <p>
-          Currently bound to: <strong
-            >{formatCommands(dialogExisting.command)}</strong
-          >
+          Currently bound to: <strong>
+            {formatCommands(dialogExisting.command)}
+          </strong>
         </p>
         <p>Remove this binding?</p>
         <div class="dialog-buttons">
@@ -486,8 +499,9 @@
               <th>Command</th>
               <th
                 title="When checked the binding applies to all characters; unchecked = this character only"
-                >Global</th
               >
+                Global
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -513,9 +527,9 @@
       </div>
       <div class="dialog-buttons">
         {#if pendingKeyScopes.size > 0}
-          <button class="btn-primary" onclick={saveKeyBindingScopes}
-            >Save scope changes</button
-          >
+          <button class="btn-primary" onclick={saveKeyBindingScopes}>
+            Save scope changes
+          </button>
         {/if}
         <button onclick={closeBindings}>Close</button>
       </div>
@@ -525,8 +539,9 @@
   <div class="dialog-overlay">
     <div class="dialog">
       <p class="dialog-title">Bind command to key</p>
-      <label class="dialog-field-label" for="bind-cmd-key-input">Command:</label
-      >
+      <label class="dialog-field-label" for="bind-cmd-key-input">
+        Command:
+      </label>
       <!-- svelte-ignore a11y_autofocus -->
       <input
         id="bind-cmd-key-input"
@@ -547,8 +562,10 @@
         <button
           class="btn-primary"
           disabled={!dialogCommand}
-          onclick={beginBindCmdKeyCapture}>Capture Key…</button
+          onclick={beginBindCmdKeyCapture}
         >
+          Capture Key…
+        </button>
         <button onclick={cancelBindCmdKey}>Cancel</button>
       </div>
     </div>
@@ -583,9 +600,9 @@
   <div class="dialog-overlay">
     <div class="dialog">
       <p class="dialog-title">Bind command to hotbar slot</p>
-      <label class="dialog-field-label" for="bind-cmd-hotbar-cmd"
-        >Command:</label
-      >
+      <label class="dialog-field-label" for="bind-cmd-hotbar-cmd">
+        Command:
+      </label>
       <!-- svelte-ignore a11y_autofocus -->
       <input
         id="bind-cmd-hotbar-cmd"
@@ -594,9 +611,9 @@
         bind:value={dialogCommand}
         autofocus
       />
-      <label class="dialog-field-label" for="bind-cmd-hotbar-label"
-        >Label (leave blank to use command):</label
-      >
+      <label class="dialog-field-label" for="bind-cmd-hotbar-label">
+        Label (leave blank to use command):
+      </label>
       <input
         id="bind-cmd-hotbar-label"
         class="dialog-input"
@@ -618,8 +635,10 @@
         <button
           class="btn-primary"
           disabled={!dialogCommand}
-          onclick={handleBindCmdHotbar}>Bind</button
+          onclick={handleBindCmdHotbar}
         >
+          Bind
+        </button>
         <button onclick={cancelBindCmdHotbar}>Cancel</button>
       </div>
     </div>
@@ -637,9 +656,9 @@
         <p>Overwrite?</p>
       {/if}
       <div class="dialog-buttons">
-        <button class="btn-primary" onclick={confirmBindCmdHotbar}
-          >Overwrite</button
-        >
+        <button class="btn-primary" onclick={confirmBindCmdHotbar}>
+          Overwrite
+        </button>
         <button onclick={cancelBindCmdHotbarConfirm}>Back</button>
       </div>
     </div>

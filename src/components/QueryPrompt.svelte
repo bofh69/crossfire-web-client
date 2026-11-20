@@ -130,12 +130,12 @@
   <p class="query-text" aria-live="polite">{query.prompt}</p>
   {#if query.yesNo}
     <div class="yesno-buttons">
-      <button type="button" aria-keyshortcuts="y" onclick={() => reply("y")}
-        >Yes</button
-      >
-      <button type="button" aria-keyshortcuts="n" onclick={() => reply("n")}
-        >No</button
-      >
+      <button type="button" aria-keyshortcuts="y" onclick={() => reply("y")}>
+        Yes
+      </button>
+      <button type="button" aria-keyshortcuts="n" onclick={() => reply("n")}>
+        No
+      </button>
     </div>
   {:else}
     <label>

@@ -265,11 +265,14 @@
                       data-ui-nav-skip="true"
                       title={`Sort by ${column.label.toLowerCase()}`}
                       onclick={() => sortBy(key)}
-                      >{column.label}{#if sortKey === key}<span
-                          class="sort-arrow"
-                          aria-hidden="true">{sortDescending ? "▾" : "▴"}</span
-                        >{/if}</button
                     >
+                      {column.label}{#if sortKey === key}<span
+                          class="sort-arrow"
+                          aria-hidden="true"
+                        >
+                          {sortDescending ? "▾" : "▴"}
+                        </span>{/if}
+                    </button>
                   {/each}
                 </span>
               </th>
@@ -297,18 +300,22 @@
                   <span class="spell-icon-placeholder"></span>
                 {/if}
               </td>
-              <td class="spell-name"
-                >{capitalizeFirstLetter(
+              <td class="spell-name">
+                {capitalizeFirstLetter(
                   spell.name,
                 )}{#if spell.usage !== SPELL_USAGE_NONE}<span
                     class="spell-arg"
                     aria-label={needsArgument(spell)
                       ? "needs an argument"
-                      : "takes an argument"}>…</span
-                  >{/if}{#if spellSchool(spell)}<span class="spell-school"
-                    >{capitalizeFirstLetter(spellSchool(spell))}</span
-                  >{/if}</td
-              >
+                      : "takes an argument"}
+                  >
+                    …
+                  </span>{/if}{#if spellSchool(spell)}<span
+                    class="spell-school"
+                  >
+                    {capitalizeFirstLetter(spellSchool(spell))}
+                  </span>{/if}
+              </td>
               <td>{spell.level}</td>
               <td>{spell.sp > 0 ? spell.sp : "-"}</td>
               <td>{spell.grace > 0 ? spell.grace : "-"}</td>
@@ -332,8 +339,10 @@
       oncontextmenu={(e) => {
         e.preventDefault();
         action();
-      }}>{label}</button
+      }}
     >
+      {label}
+    </button>
   {/snippet}
   <ContextMenu x={contextMenu.x} y={contextMenu.y} onClose={closeContextMenu}>
     <!-- Same order as the skill menu: use (invoke) first, then ready. -->

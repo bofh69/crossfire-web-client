@@ -118,9 +118,9 @@
                   />
                 {/if}
               </td>
-              <td class="knowledge-title"
-                >{capitalizeFirstLetter(item.title)}</td
-              >
+              <td class="knowledge-title">
+                {capitalizeFirstLetter(item.title)}
+              </td>
               <td class="knowledge-type">{typeLabel(item.type)}</td>
             </tr>
           {/each}
@@ -142,8 +142,10 @@
         e.preventDefault();
         showInfo(item);
         closeContextMenu();
-      }}>Info</button
+      }}
     >
+      Info
+    </button>
     {#if canAttempt(item.type)}
       <button
         onclick={() => {
@@ -154,8 +156,10 @@
           e.preventDefault();
           attemptKnowledge(item);
           closeContextMenu();
-        }}>Attempt</button
+        }}
       >
+        Attempt
+      </button>
     {/if}
   </ContextMenu>
 {/if}

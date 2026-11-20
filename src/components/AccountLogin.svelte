@@ -90,16 +90,20 @@
         onclick={() => {
           showNewAccount = false;
           onError("");
-        }}>Log In</button
+        }}
       >
+        Log In
+      </button>
       <button
         type="button"
         class:tab-active={showNewAccount}
         onclick={() => {
           showNewAccount = true;
           onError("");
-        }}>New Account</button
+        }}
       >
+        New Account
+      </button>
     </div>
     <label>
       Account Name

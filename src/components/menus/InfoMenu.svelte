@@ -105,8 +105,10 @@
     oncontextmenu={(e) => {
       e.preventDefault();
       onToggle();
-    }}>Info</button
+    }}
   >
+    Info
+  </button>
   {#if isOpen}
     <div class="dropdown" class:fading data-ui-nav-scope="ui-menu-info">
       <button
@@ -116,8 +118,10 @@
         oncontextmenu={(e) => {
           e.preventDefault();
           showHiscore();
-        }}>Hiscore</button
+        }}
       >
+        Hiscore
+      </button>
       <button
         data-ui-nav-id="ui-menu-info-help"
         data-ui-nav-panel="menubar"
@@ -125,8 +129,10 @@
         oncontextmenu={(e) => {
           e.preventDefault();
           showHelp();
-        }}>Help</button
+        }}
       >
+        Help
+      </button>
       <button
         data-ui-nav-id="ui-menu-info-tour"
         data-ui-nav-panel="menubar"
@@ -134,8 +140,10 @@
         oncontextmenu={(e) => {
           e.preventDefault();
           showTour();
-        }}>Client Tour</button
+        }}
       >
+        Client Tour
+      </button>
       <button
         data-ui-nav-id="ui-menu-info-about"
         data-ui-nav-panel="menubar"
@@ -143,8 +151,10 @@
         oncontextmenu={(e) => {
           e.preventDefault();
           showAbout();
-        }}>About Crossfire Web Client</button
+        }}
       >
+        About Crossfire Web Client
+      </button>
     </div>
   {/if}
 </div>
@@ -157,16 +167,20 @@
         A web-based client for <a
           href="http://crossfire.real-time.com/"
           target="_blank"
-          rel="noopener noreferrer">Crossfire</a
-        >, the cooperative multi-player graphical RPG and adventure game.
+          rel="noopener noreferrer"
+        >
+          Crossfire
+        </a>, the cooperative multi-player graphical RPG and adventure game.
       </p>
       <p>
         This client is based on the original
         <a
           href="http://crossfire.real-time.com/"
           target="_blank"
-          rel="noopener noreferrer">Crossfire GTK client</a
+          rel="noopener noreferrer"
         >
+          Crossfire GTK client
+        </a>
         and reimplemented for the browser.
       </p>
       <p>
@@ -174,22 +188,26 @@
         <a
           href="https://github.com/bofh69/crossfire-web-client"
           target="_blank"
-          rel="noopener noreferrer">GitHub</a
-        >.
+          rel="noopener noreferrer"
+        >
+          GitHub
+        </a>.
       </p>
       <p class="dialog-credits">
         Built with
-        <a href="https://svelte.dev/" target="_blank" rel="noopener noreferrer"
-          >Svelte</a
-        >,
-        <a href="https://vite.dev/" target="_blank" rel="noopener noreferrer"
-          >Vite</a
-        >, and
+        <a href="https://svelte.dev/" target="_blank" rel="noopener noreferrer">
+          Svelte
+        </a>,
+        <a href="https://vite.dev/" target="_blank" rel="noopener noreferrer">
+          Vite
+        </a>, and
         <a
           href="https://www.typescriptlang.org/"
           target="_blank"
-          rel="noopener noreferrer">TypeScript</a
-        >.
+          rel="noopener noreferrer"
+        >
+          TypeScript
+        </a>.
       </p>
       <p>
         The font used is Modern Antiqua. Copyright (c) 2011, wmk69,
@@ -213,18 +231,24 @@
         <a
           href="https://kenney.nl/assets/input-prompts"
           target="_blank"
-          rel="noopener noreferrer">Input Prompts</a
+          rel="noopener noreferrer"
         >
+          Input Prompts
+        </a>
         by Kenney (<a
           href="https://www.kenney.nl/"
           target="_blank"
-          rel="noopener noreferrer">www.kenney.nl</a
-        >), licensed under
+          rel="noopener noreferrer"
+        >
+          www.kenney.nl
+        </a>), licensed under
         <a
           href="https://creativecommons.org/publicdomain/zero/1.0/"
           target="_blank"
-          rel="noopener noreferrer">CC0</a
-        >.
+          rel="noopener noreferrer"
+        >
+          CC0
+        </a>.
       </p>
       <div class="dialog-buttons">
         <button onclick={closeAbout}>Close</button>
@@ -352,8 +376,9 @@
                 <td class="num-cell narrow-cell">{row.maxGrace}</td>
               </tr>
             {:else}
-              <tr><td colspan="6" class="no-scores">No high scores yet.</td></tr
-              >
+              <tr>
+                <td colspan="6" class="no-scores">No high scores yet.</td>
+              </tr>
             {/each}
           </tbody>
         </table>

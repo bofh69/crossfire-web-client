@@ -1033,8 +1033,10 @@
             data-ui-nav-skip="true"
             title="Close left view"
             aria-label="Close left view"
-            onclick={() => closeView("left")}>✕</button
+            onclick={() => closeView("left")}
           >
+            ✕
+          </button>
         </div>
         <div class="pane-inner">
           <div class="filter-sidebar">
@@ -1048,8 +1050,10 @@
               title={ALL_FILTER.label}
               onclick={() => toggleAll("left")}
               aria-label={ALL_FILTER.label}
-              aria-pressed={leftShowAll}>{ALL_FILTER.icon}</button
+              aria-pressed={leftShowAll}
             >
+              {ALL_FILTER.icon}
+            </button>
             {#each CATEGORY_FILTERS as filter}
               <button
                 class="filter-btn"
@@ -1063,8 +1067,9 @@
                 onclick={() => toggleCategory("left", filter.id)}
                 aria-label={filter.label}
                 aria-pressed={leftEnabledCategories.has(filter.id)}
-                >{filter.icon}</button
               >
+                {filter.icon}
+              </button>
             {/each}
           </div>
           <div class="main-content">
@@ -1080,9 +1085,9 @@
                   oncontextmenu={(e) =>
                     handleMessageContextMenu(e, msg, "left")}
                 >
-                  {#if msg.count > 1}<span class="repeat-count"
-                      >{msg.count}×</span
-                    >{/if}{#each msg.spans as span}{#if span.command}<button
+                  {#if msg.count > 1}<span class="repeat-count">
+                      {msg.count}×
+                    </span>{/if}{#each msg.spans as span}{#if span.command}<button
                         class="message-link"
                         data-ui-nav-skip="true"
                         onclick={() =>
@@ -1094,16 +1099,20 @@
                         style:color={span.color}
                         style:font-weight={span.bold ? "bold" : "normal"}
                         style:font-style={span.italic ? "italic" : "normal"}
-                        style:font-family={span.fontFamily}>{span.text}</button
-                      >{:else}<span
+                        style:font-family={span.fontFamily}
+                      >
+                        {span.text}
+                      </button>{:else}<span
                         style:color={span.color}
                         style:font-weight={span.bold ? "bold" : "normal"}
                         style:font-style={span.italic ? "italic" : "normal"}
                         style:font-family={span.fontFamily}
                         style:text-decoration={span.underline
                           ? "underline"
-                          : "none"}>{span.text}</span
-                      >{/if}{/each}
+                          : "none"}
+                      >
+                        {span.text}
+                      </span>{/if}{/each}
                 </div>
               {/each}
             </div>
@@ -1119,8 +1128,10 @@
             data-ui-nav-skip="true"
             title="Close right view"
             aria-label="Close right view"
-            onclick={() => closeView("right")}>✕</button
+            onclick={() => closeView("right")}
           >
+            ✕
+          </button>
         </div>
         <div class="pane-inner">
           <div class="filter-sidebar">
@@ -1134,8 +1145,10 @@
               title={ALL_FILTER.label}
               onclick={() => toggleAll("right")}
               aria-label={ALL_FILTER.label}
-              aria-pressed={rightShowAll}>{ALL_FILTER.icon}</button
+              aria-pressed={rightShowAll}
             >
+              {ALL_FILTER.icon}
+            </button>
             {#each CATEGORY_FILTERS as filter}
               <button
                 class="filter-btn"
@@ -1149,8 +1162,9 @@
                 onclick={() => toggleCategory("right", filter.id)}
                 aria-label={filter.label}
                 aria-pressed={rightEnabledCategories.has(filter.id)}
-                >{filter.icon}</button
               >
+                {filter.icon}
+              </button>
             {/each}
           </div>
           <div class="main-content">
@@ -1166,9 +1180,9 @@
                   oncontextmenu={(e) =>
                     handleMessageContextMenu(e, msg, "right")}
                 >
-                  {#if msg.count > 1}<span class="repeat-count"
-                      >{msg.count}×</span
-                    >{/if}{#each msg.spans as span}{#if span.command}<button
+                  {#if msg.count > 1}<span class="repeat-count">
+                      {msg.count}×
+                    </span>{/if}{#each msg.spans as span}{#if span.command}<button
                         class="message-link"
                         data-ui-nav-skip="true"
                         onclick={() =>
@@ -1180,16 +1194,20 @@
                         style:color={span.color}
                         style:font-weight={span.bold ? "bold" : "normal"}
                         style:font-style={span.italic ? "italic" : "normal"}
-                        style:font-family={span.fontFamily}>{span.text}</button
-                      >{:else}<span
+                        style:font-family={span.fontFamily}
+                      >
+                        {span.text}
+                      </button>{:else}<span
                         style:color={span.color}
                         style:font-weight={span.bold ? "bold" : "normal"}
                         style:font-style={span.italic ? "italic" : "normal"}
                         style:font-family={span.fontFamily}
                         style:text-decoration={span.underline
                           ? "underline"
-                          : "none"}>{span.text}</span
-                      >{/if}{/each}
+                          : "none"}
+                      >
+                        {span.text}
+                      </span>{/if}{/each}
                 </div>
               {/each}
             </div>
@@ -1211,8 +1229,10 @@
               title={ALL_FILTER.label}
               onclick={() => toggleAll("single")}
               aria-label={ALL_FILTER.label}
-              aria-pressed={showAll}>{ALL_FILTER.icon}</button
+              aria-pressed={showAll}
             >
+              {ALL_FILTER.icon}
+            </button>
             {#each CATEGORY_FILTERS as filter}
               <button
                 class="filter-btn"
@@ -1226,8 +1246,9 @@
                 onclick={() => toggleCategory("single", filter.id)}
                 aria-label={filter.label}
                 aria-pressed={enabledCategories.has(filter.id)}
-                >{filter.icon}</button
               >
+                {filter.icon}
+              </button>
             {/each}
           </div>
           <div class="main-content">
@@ -1243,9 +1264,9 @@
                   oncontextmenu={(e) =>
                     handleMessageContextMenu(e, msg, "single")}
                 >
-                  {#if msg.count > 1}<span class="repeat-count"
-                      >{msg.count}×</span
-                    >{/if}{#each msg.spans as span}{#if span.command}<button
+                  {#if msg.count > 1}<span class="repeat-count">
+                      {msg.count}×
+                    </span>{/if}{#each msg.spans as span}{#if span.command}<button
                         class="message-link"
                         data-ui-nav-skip="true"
                         onclick={() =>
@@ -1257,16 +1278,20 @@
                         style:color={span.color}
                         style:font-weight={span.bold ? "bold" : "normal"}
                         style:font-style={span.italic ? "italic" : "normal"}
-                        style:font-family={span.fontFamily}>{span.text}</button
-                      >{:else}<span
+                        style:font-family={span.fontFamily}
+                      >
+                        {span.text}
+                      </button>{:else}<span
                         style:color={span.color}
                         style:font-weight={span.bold ? "bold" : "normal"}
                         style:font-style={span.italic ? "italic" : "normal"}
                         style:font-family={span.fontFamily}
                         style:text-decoration={span.underline
                           ? "underline"
-                          : "none"}>{span.text}</span
-                      >{/if}{/each}
+                          : "none"}
+                      >
+                        {span.text}
+                      </span>{/if}{/each}
                 </div>
               {/each}
             </div>
@@ -1286,10 +1311,11 @@
           data-ui-nav-panel="info"
           aria-keyshortcuts={i < 9 ? String(i + 1) : undefined}
           onclick={() => handleDialogOptionClick(option.key, option.value)}
-          >{#if i < 9}<span class="dialog-option-key" aria-hidden="true"
-              >{i + 1}</span
-            >{/if}{option.value}</button
         >
+          {#if i < 9}<span class="dialog-option-key" aria-hidden="true">
+              {i + 1}
+            </span>{/if}{option.value}
+        </button>
       {/each}
     </div>
   {/if}
@@ -1305,16 +1331,18 @@
         aria-label="Search messages"
       />
       {#if searchQuery !== ""}
-        <span class="search-count" aria-live="polite"
-          >{searchMatchCount} found</span
-        >
+        <span class="search-count" aria-live="polite">
+          {searchMatchCount} found
+        </span>
       {/if}
       <button
         data-ui-nav-skip="true"
         title="Close search"
         aria-label="Close search"
-        onclick={closeSearch}>✕</button
+        onclick={closeSearch}
       >
+        ✕
+      </button>
     </div>
   {/if}
 
@@ -1335,13 +1363,17 @@
       title="Search messages"
       aria-label="Search messages"
       aria-pressed={searchOpen}
-      onclick={toggleSearch}>🔍</button
+      onclick={toggleSearch}
     >
+      🔍
+    </button>
     <button
       data-ui-nav-skip="true"
       onclick={submitCommand}
-      disabled={inputDisabled}>Send</button
+      disabled={inputDisabled}
     >
+      Send
+    </button>
   </div>
 
   {#if contextMenu}
@@ -1357,8 +1389,10 @@
           oncontextmenu={(e) => {
             e.preventDefault();
             void handleCopyFromMenu();
-          }}>Copy selection</button
+          }}
         >
+          Copy selection
+        </button>
       {/if}
       <button
         type="button"
@@ -1366,39 +1400,49 @@
         oncontextmenu={(e) => {
           e.preventDefault();
           void handleCopyMessageFromMenu();
-        }}>Copy message</button
+        }}
       >
+        Copy message
+      </button>
       <button
         disabled={!menuHasType}
         onclick={handleStopListeningFromMenu}
         oncontextmenu={(e) => {
           e.preventDefault();
           handleStopListeningFromMenu();
-        }}>Stop listening to {messageTypeLabel(menuContext.message)}</button
+        }}
       >
+        Stop listening to {messageTypeLabel(menuContext.message)}
+      </button>
       <button
         disabled={!menuHasType}
         onclick={handleOnlyListeningFromMenu}
         oncontextmenu={(e) => {
           e.preventDefault();
           handleOnlyListeningFromMenu();
-        }}>Only listen to {messageTypeLabel(menuContext.message)}</button
+        }}
       >
+        Only listen to {messageTypeLabel(menuContext.message)}
+      </button>
       {#if !isSplit && menuHasType}
         <button
           onclick={() => handleSplitFromMenu("left")}
           oncontextmenu={(e) => {
             e.preventDefault();
             handleSplitFromMenu("left");
-          }}>Split with this type on left</button
+          }}
         >
+          Split with this type on left
+        </button>
         <button
           onclick={() => handleSplitFromMenu("right")}
           oncontextmenu={(e) => {
             e.preventDefault();
             handleSplitFromMenu("right");
-          }}>Split with this type on right</button
+          }}
         >
+          Split with this type on right
+        </button>
       {/if}
       {#if isSplit && menuContext.view !== "single"}
         <button
@@ -1406,8 +1450,10 @@
           oncontextmenu={(e) => {
             e.preventDefault();
             handleCloseViewFromMenu();
-          }}>Close view</button
+          }}
         >
+          Close view
+        </button>
       {/if}
     {/snippet}
     <ContextMenu x={contextMenu.x} y={contextMenu.y} onClose={closeContextMenu}>
