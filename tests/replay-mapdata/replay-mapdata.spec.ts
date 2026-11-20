@@ -86,14 +86,13 @@ function replayToMark(logText: string, markLabel: string): void {
   }
 }
 
+/**
+ * Return the payload of one RX log line, in compact or converted format,
+ * or null for other lines.
+ */
 function parseRawRxLine(line: string): Uint8Array | null {
-  const parts = line.trim().split(/\s+/);
-  if (parts[1] !== "RX") {
-    return null;
-  }
-  const b64 = parts[3] ?? "";
-  const buf = Buffer.from(b64, "base64");
-  return new Uint8Array(buf.buffer, buf.byteOffset, buf.byteLength);
+  const entry = parseReplayLogFile(line).entries[0];
+  return entry?.type === "RX" ? entry.payload : null;
 }
 
 /**
@@ -287,7 +286,10 @@ describe("replay mapdata states", () => {
 
   test("remembered big monster is removed when it reappears overlapping", () => {
     const lines = readFileSync(
-      path.join(rootDir, "tests/replay-mapdata/logs/broken-devil.log"),
+      path.join(
+        rootDir,
+        "tests/replay-mapdata/logs/broken-devil.converted.log",
+      ),
       "utf8",
     ).split(/\r?\n/);
 
@@ -324,7 +326,10 @@ describe("replay mapdata states", () => {
 
   test("big monster head in unseen cell is removed when it moves", () => {
     const lines = readFileSync(
-      path.join(rootDir, "tests/replay-mapdata/logs/broken-wizard.log"),
+      path.join(
+        rootDir,
+        "tests/replay-mapdata/logs/broken-wizard.converted.log",
+      ),
       "utf8",
     ).split(/\r?\n/);
 
@@ -448,7 +453,10 @@ describe("replay mapdata states", () => {
 
   test("magic mapping fills unseen cells around the player", () => {
     const logText = readFileSync(
-      path.join(rootDir, "tests/replay-mapdata/logs/magic-mapping.log"),
+      path.join(
+        rootDir,
+        "tests/replay-mapdata/logs/magic-mapping.converted.log",
+      ),
       "utf8",
     );
 

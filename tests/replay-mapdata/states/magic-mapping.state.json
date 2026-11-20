@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "source": {
-    "replayFileName": "magic-mapping.log",
+    "replayFileName": "magic-mapping.converted.log",
     "markLabel": "after magic mapping",
     "entryIndex": 362
   },
