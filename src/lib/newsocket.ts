@@ -109,7 +109,7 @@ export class SockList {
   }
 
   /** Return a copy of the built packet data. */
-  getData(): Uint8Array {
+  getData(): Uint8Array<ArrayBuffer> {
     return new Uint8Array(this.buffer, 0, this._len);
   }
 }
