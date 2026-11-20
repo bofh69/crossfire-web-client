@@ -69,19 +69,28 @@ export interface GamepadProfile {
 // Built-in profiles
 // ──────────────────────────────────────────────────────────────────────────────
 
-/** Default button bindings for gamepads with a standard-like layout. */
+/**
+ * Default button bindings for gamepads with a standard-like layout, in
+ * button order.  Search and disarm are on the left and right face buttons
+ * since they are used together.  Home is left unbound: the system or Steam
+ * often takes it.
+ */
 const standardButtons: readonly ButtonMapping[] = [
   { button: "a", command: "apply", global: true },
   { button: "b", command: "disarm", global: true },
-  { button: "x", command: "use_skill pray", global: true },
+  { button: "x", command: "search", global: true },
   { button: "y", command: "hotbar", global: true },
-  { button: "rightstick", command: "stay fire", global: true },
+  { button: "leftshoulder", command: "use_skill pray", global: true },
+  { button: "rightshoulder", command: "brace", global: true },
+  { button: "lefttrigger", command: "reply", global: true },
+  { button: "righttrigger", command: "examine", global: true },
+  { button: "back", command: "help", global: true },
   { button: "start", command: "ui_nav", global: true },
+  { button: "rightstick", command: "stay fire", global: true },
   { button: "dpup", command: "ready_skill throwing", global: true },
   { button: "dpdown", command: "take", global: true },
   { button: "dpleft", command: "rotateshoottype -1", global: true },
   { button: "dpright", command: "rotateshoottype", global: true },
-  { button: "guide", command: "brace", global: true },
 ];
 
 /** The profile for every gamepad that has the standard mapping. */
